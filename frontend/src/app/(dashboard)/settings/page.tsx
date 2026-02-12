@@ -40,7 +40,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'general', label: 'General', icon: Globe },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'intelligence', label: 'Intelligence Core', icon: Cpu },
+    { id: 'intelligence', label: t('intelligence'), icon: Cpu },
     { id: 'security', label: 'Security & Privacy', icon: ShieldCheck },
     { id: 'data', label: 'Data & Sync', icon: Database },
   ]
@@ -56,7 +56,7 @@ export default function SettingsPage() {
             {t('settings')}
           </h1>
           <p className="text-soft-muted mt-2 max-w-lg font-medium">
-            Configure your Nexus environment, agent parameters and system preferences.
+            {t('settingsSubtitle')}
           </p>
         </div>
         
@@ -66,7 +66,7 @@ export default function SettingsPage() {
             className="border-soft-subtle/50 text-soft-white hover:bg-white/5 rounded-xl px-6 h-11 transition-all flex items-center gap-2"
           >
             <RotateCcw className="w-4 h-4" />
-            Reset Defaults
+            {t('resetDefaults')}
           </Button>
           <Button 
             onClick={handleSave}
@@ -80,12 +80,12 @@ export default function SettingsPage() {
             ) : saveSuccess ? (
               <>
                 <Check className="w-5 h-5" />
-                Saved
+                {t('saved')}
               </>
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                Save Changes
+                {t('saveChanges')}
               </>
             )}
           </Button>
@@ -128,13 +128,13 @@ export default function SettingsPage() {
                 <div className="space-y-8">
                   <Card className="bg-navy-surface border-soft-subtle/30 overflow-hidden">
                     <div className="p-6 border-b border-soft-subtle/30 bg-white/5">
-                      <h3 className="text-lg font-bold text-soft-white">Interface & Language</h3>
+                      <h3 className="text-lg font-bold text-soft-white">{t('interfaceLanguage')}</h3>
                     </div>
                     <div className="p-8 space-y-10">
                       <div className="flex flex-col md:flex-row gap-8 md:items-center justify-between">
                         <div>
-                          <p className="text-soft-white font-bold mb-1">System Language</p>
-                          <p className="text-sm text-soft-muted">Choose your preferred language for the Nexus interface.</p>
+                          <p className="text-soft-white font-bold mb-1">{t('systemLanguage')}</p>
+                          <p className="text-sm text-soft-muted">{t('languageDescription')}</p>
                         </div>
                         <div className="bg-navy-deep/50 p-1.5 rounded-2xl border border-soft-subtle/20 w-full md:w-auto flex justify-center">
                           <LanguageSelector />
@@ -143,8 +143,8 @@ export default function SettingsPage() {
 
                       <div className="flex flex-col md:flex-row gap-8 md:items-center justify-between pt-8 border-t border-soft-subtle/10">
                         <div>
-                          <p className="text-soft-white font-bold mb-1">Timezone Settings</p>
-                          <p className="text-sm text-soft-muted">Automatically detect or set your working timezone.</p>
+                          <p className="text-soft-white font-bold mb-1">{t('timezoneSettings')}</p>
+                          <p className="text-sm text-soft-muted">{t('timezoneDescription')}</p>
                         </div>
                         <select className="bg-navy-deep border border-soft-subtle/30 rounded-xl px-4 py-2.5 text-sm text-soft-white focus:outline-none focus:border-gold/50 min-w-[200px]">
                           <option>Europe/Madrid (GMT+1)</option>
@@ -155,8 +155,8 @@ export default function SettingsPage() {
 
                       <div className="flex flex-col md:flex-row gap-8 md:items-center justify-between pt-8 border-t border-soft-subtle/10">
                         <div>
-                          <p className="text-soft-white font-bold mb-1">Dashboard Refresh Rate</p>
-                          <p className="text-sm text-soft-muted">How often the dashboard updates non-realtime widgets.</p>
+                          <p className="text-soft-white font-bold mb-1">{t('dashboardRefresh')}</p>
+                          <p className="text-sm text-soft-muted">{t('refreshDescription')}</p>
                         </div>
                         <div className="flex bg-navy-deep p-1 rounded-xl border border-soft-subtle/20 self-start md:self-auto">
                           {['5m', '15m', '30m', 'Auto'].map((val) => (
@@ -171,36 +171,36 @@ export default function SettingsPage() {
 
                   <Card className="bg-navy-surface border-soft-subtle/30 overflow-hidden">
                     <div className="p-6 border-b border-soft-subtle/30 bg-white/5">
-                      <h3 className="text-lg font-bold text-soft-white">Visual Experience</h3>
+                      <h3 className="text-lg font-bold text-soft-white">{t('visualExperience')}</h3>
                     </div>
                     <div className="p-8 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
                           <Checkbox checked className="mt-1" />
                           <div>
-                            <p className="text-soft-white font-bold text-sm">Motion & Animations</p>
-                            <p className="text-xs text-soft-muted mt-1 leading-relaxed">Enable premium transitions, count-up effects and hover glows.</p>
+                            <p className="text-soft-white font-bold text-sm">{t('motionAnimations')}</p>
+                            <p className="text-xs text-soft-muted mt-1 leading-relaxed">{t('motionDescription')}</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
                           <Checkbox checked className="mt-1" />
                           <div>
-                            <p className="text-soft-white font-bold text-sm">Glassmorphism Depth</p>
-                            <p className="text-xs text-soft-muted mt-1 leading-relaxed">Apply background blurring and translucency to dashboard cards.</p>
+                            <p className="text-soft-white font-bold text-sm">{t('glassmorphismDepth')}</p>
+                            <p className="text-xs text-soft-muted mt-1 leading-relaxed">{t('glassmorphismDescription')}</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
                           <Checkbox checked className="mt-1" />
                           <div>
-                            <p className="text-soft-white font-bold text-sm">Typewriter Effects</p>
-                            <p className="text-xs text-soft-muted mt-1 leading-relaxed">Show AI reasoning progress with cinematic text animation.</p>
+                            <p className="text-soft-white font-bold text-sm">{t('typewriterEffects')}</p>
+                            <p className="text-xs text-soft-muted mt-1 leading-relaxed">{t('typewriterDescription')}</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 opacity-50">
                           <Checkbox disabled className="mt-1" />
                           <div>
-                            <p className="text-soft-white font-bold text-sm">Light Mode (Legacy)</p>
-                            <p className="text-xs text-red-400 font-bold mt-1 uppercase tracking-tighter">Disabled per branding rules</p>
+                            <p className="text-soft-white font-bold text-sm">{t('lightModeLegacy')}</p>
+                            <p className="text-xs text-red-400 font-bold mt-1 uppercase tracking-tighter">{t('disabledBranding')}</p>
                           </div>
                         </div>
                       </div>
@@ -218,12 +218,12 @@ export default function SettingsPage() {
                           <Cpu className="w-6 h-6 text-gold" />
                         </div>
                         <div>
-                          <h3 className="text-soft-white font-bold text-xl">Operational Core</h3>
-                          <p className="text-sm text-soft-muted font-medium">Configure LLM chains and execution priorities.</p>
+                          <h3 className="text-soft-white font-bold text-xl">{t('operationalCore')}</h3>
+                          <p className="text-sm text-soft-muted font-medium">{t('intelligenceDescription')}</p>
                         </div>
                         <div className="ml-auto">
                           <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-full border border-emerald-500/20 tracking-widest uppercase">
-                            Operational
+                            {t('operational')}
                           </span>
                         </div>
                       </div>
@@ -231,35 +231,35 @@ export default function SettingsPage() {
                       <div className="space-y-8 pt-6">
                         <div className="space-y-4">
                           <div className="flex justify-between items-center">
-                            <label className="text-sm font-bold text-soft-white uppercase tracking-widest">Primary Model Chain</label>
+                            <label className="text-sm font-bold text-soft-white uppercase tracking-widest">{t('primaryModelChain')}</label>
                             <span className="text-[10px] text-soft-muted font-mono px-2 py-0.5 border border-soft-subtle/20 rounded">V1.0.4-LUXE</span>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <button className="p-4 rounded-xl border-2 border-gold/50 bg-gold/10 text-left transition-all">
                               <p className="text-gold font-bold text-sm flex items-center justify-between">
-                                Strategic Luxe
+                                {t('strategicLuxe')}
                                 <Zap className="w-3 h-3 fill-gold" />
                               </p>
-                              <p className="text-[10px] text-gold/60 mt-1 uppercase font-bold tracking-tighter">Recommended</p>
+                              <p className="text-[10px] text-gold/60 mt-1 uppercase font-bold tracking-tighter">{t('recommended')}</p>
                             </button>
                             <button className="p-4 rounded-xl border border-soft-subtle/30 bg-navy-deep hover:border-blue-light/50 text-left transition-all group">
-                              <p className="text-soft-white font-bold text-sm group-hover:text-blue-light">Fast Response</p>
-                              <p className="text-[10px] text-soft-muted mt-1 uppercase font-bold tracking-tighter">Efficiency focus</p>
+                              <p className="text-soft-white font-bold text-sm group-hover:text-blue-light">{t('fastResponse')}</p>
+                              <p className="text-[10px] text-soft-muted mt-1 uppercase font-bold tracking-tighter">{t('efficiencyFocus')}</p>
                             </button>
                             <button className="p-4 rounded-xl border border-soft-subtle/30 bg-navy-deep hover:border-blue-light/50 text-left transition-all group">
-                              <p className="text-soft-white font-bold text-sm group-hover:text-blue-light">Deep Analysis</p>
-                              <p className="text-[10px] text-soft-muted mt-1 uppercase font-bold tracking-tighter">Max tokens / context</p>
+                              <p className="text-soft-white font-bold text-sm group-hover:text-blue-light">{t('deepAnalysis')}</p>
+                              <p className="text-[10px] text-soft-muted mt-1 uppercase font-bold tracking-tighter">{t('maxTokensContext')}</p>
                             </button>
                           </div>
                         </div>
 
                         <div className="pt-6 border-t border-soft-subtle/20 space-y-4">
-                          <p className="text-sm font-bold text-soft-white uppercase tracking-widest">Autonomous Boundaries</p>
+                          <p className="text-sm font-bold text-soft-white uppercase tracking-widest">{t('autonomousBoundaries')}</p>
                           <div className="space-y-4">
                             {[
-                              { label: 'Auto-categorize incoming leads', desc: 'Agent classifies priority 1-5 instantly', active: true },
-                              { label: 'Generate automated follow-up drafts', desc: 'Drafts responses for won properties', active: true },
-                              { label: 'Proactive property searching', desc: 'Weekly background scanning of market', active: false },
+                              { label: t('autoCategorizeLeads'), desc: t('autoCategorizeDesc'), active: true },
+                              { label: t('generateFollowUpDrafts'), desc: t('generateFollowUpDesc'), active: true },
+                              { label: t('proactivePropertySearch'), desc: t('proactiveSearchDesc'), active: false },
                             ].map((item, idx) => (
                               <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                                 <div>
@@ -285,11 +285,11 @@ export default function SettingsPage() {
                     <Bell className="w-10 h-10" />
                   </div>
                   <div>
-                    <h3 className="text-soft-white font-bold">In-depth settings coming soon</h3>
-                    <p className="text-sm text-soft-muted mt-1">Configure email, browser and OS-level notifications.</p>
+                    <h3 className="text-soft-white font-bold">{t('comingSoon')}</h3>
+                    <p className="text-sm text-soft-muted mt-1">{t('notificationsConfig')}</p>
                   </div>
                   <Button variant="outline" className="mt-4 border-gold/30 text-gold hover:bg-gold/10">
-                    Manage Browser Permission
+                    {t('managePermissions')}
                   </Button>
                 </div>
               )}
@@ -300,11 +300,11 @@ export default function SettingsPage() {
                     <Lock className="w-10 h-10" />
                   </div>
                   <div>
-                    <h3 className="text-soft-white font-bold">Secure Access</h3>
-                    <p className="text-sm text-soft-muted mt-1">Session management and key revocation are currently managed by Supabase.</p>
+                    <h3 className="text-soft-white font-bold">{t('secureAccess')}</h3>
+                    <p className="text-sm text-soft-muted mt-1">{t('securityManagedBy')}</p>
                   </div>
                   <Button variant="outline" className="mt-4 border-soft-subtle/50 text-soft-white">
-                    View Sign-in Logs
+                    {t('viewLogs')}
                   </Button>
                 </div>
               )}

@@ -1,13 +1,61 @@
 'use client'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { LayoutDashboard, Users, Home, CheckSquare, Settings, LogOut } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
+import supabase from '@/lib/supabase'
 
 export function Sidebar() {
   const pathname = usePathname()
   const { t } = useI18n()
+  const [logoUrl, setLogoUrl] = useState<string | undefined>()
+
+  useEffect(() => {
+    const fetchOrgLogo = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        // Fetch user profile to get org_id
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('org_id')
+          .eq('id', user.id)
+          .single()
+
+        if (profile) {
+          const { data: org } = await supabase
+            .from('organizations')
+            .select('logo_url')
+            .eq('id', profile.org_id)
+            .single()
+            
+          if (org?.logo_url) {
+            setLogoUrl(org.logo_url)
+          }
+        }
+      }
+    }
+    fetchOrgLogo()
+
+    // Realtime subscription for logo changes
+    const channel = supabase
+      .channel('org-logo-changes')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'organizations' },
+        (payload) => {
+          if (payload.new && payload.new.logo_url) {
+            setLogoUrl(payload.new.logo_url)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   const links = [
     { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
@@ -21,7 +69,7 @@ export function Sidebar() {
     <aside className="w-64 border-r border-soft-subtle bg-navy-darker/50 backdrop-blur-xl flex flex-col pt-8">
       <div className="px-8 mb-10 flex flex-col items-center">
         <div className="mb-4 animate-float">
-          <BrandLogo size={64} />
+          <BrandLogo size={64} src={logoUrl} />
         </div>
         <h1 className="font-display text-xl text-soft-white">Anclora Nexus</h1>
 
