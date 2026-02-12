@@ -30,37 +30,35 @@ export function LeadsPulse() {
               </tr>
             </thead>
             <tbody className="divide-y divide-soft-subtle">
-              <StaggerList>
-                {leads.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-sm text-soft-muted italic">
-                      No hay leads registrados
-                    </td>
-                  </tr>
-                ) : (
-                  leads.map((lead) => (
-                    <StaggerItem key={lead.id} className="contents">
-                      <tr className="group hover:bg-white/[0.02] transition-colors">
-                        <td className="py-4">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-soft-white">{lead.name}</span>
-                            <span className="text-[10px] text-soft-muted uppercase tracking-tighter">{lead.source}</span>
-                          </div>
-                        </td>
-                        <td className="py-4 text-sm font-medium text-blue-light text-right">{lead.budget}</td>
-                        <td className="py-4 text-center">
-                          <span className={`priority-badge priority-${lead.priority}`}>
-                            P{lead.priority}
-                          </span>
-                        </td>
-                        <td className="py-4 text-right">
-                          <span className="text-[10px] uppercase tracking-wider text-soft-muted font-bold">{lead.status}</span>
-                        </td>
-                      </tr>
-                    </StaggerItem>
-                  ))
-                )}
-              </StaggerList>
+              {leads.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-sm text-soft-muted italic">
+                    No hay leads registrados
+                  </td>
+                </tr>
+              ) : (
+                leads.map((lead) => (
+                  <StaggerItem key={lead.id}>
+                    <tr className="group hover:bg-white/[0.02] transition-colors">
+                      <td className="py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-soft-white">{lead.name}</span>
+                          <span className="text-[10px] text-soft-muted uppercase tracking-tighter">{lead.source}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 text-sm font-medium text-blue-light text-right">{lead.budget}</td>
+                      <td className="py-4 text-center">
+                        <span className={`priority-badge priority-${lead.priority}`}>
+                          P{lead.priority}
+                        </span>
+                      </td>
+                      <td className="py-4 text-right">
+                        <span className="text-[10px] uppercase tracking-wider text-soft-muted font-bold">{lead.status}</span>
+                      </td>
+                    </tr>
+                  </StaggerItem>
+                ))
+              )}
             </tbody>
           </table>
         </div>

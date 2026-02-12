@@ -6,10 +6,12 @@ export interface Lead {
   id: string
   name: string
   email: string
+  phone?: string
   budget: string
   priority: number
   source: string
   status: string
+  property_interest?: string
   created_at: string
 }
 
@@ -23,9 +25,13 @@ export interface Task {
 export interface Property {
   id: string
   address: string
-  price: number
+  price: number | string
   type: string
   status: 'prospect' | 'listed' | 'offer' | 'sold'
+  stage?: string
+  zone?: string
+  commission_est?: string
+  last_update?: string
 }
 
 export interface AgentLog {

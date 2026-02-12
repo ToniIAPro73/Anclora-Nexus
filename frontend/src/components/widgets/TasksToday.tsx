@@ -4,10 +4,8 @@ import { StaggerList, StaggerItem } from '@/components/effects/animations'
 import { Check } from 'lucide-react'
 
 export function TasksToday() {
-  const { tasks, toggleTask } = useStore((state) => ({ 
-    tasks: state.tasks, 
-    toggleTask: state.toggleTask 
-  }))
+  const tasks = useStore((state) => state.tasks)
+  const toggleTask = useStore((state) => state.toggleTask)
 
   return (
     <div className="widget-card h-full flex flex-col">
