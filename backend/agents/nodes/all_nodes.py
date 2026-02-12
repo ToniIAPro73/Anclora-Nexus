@@ -1,0 +1,206 @@
+import json
+from datetime import datetime
+from typing import Dict, Any, List
+from backend.agents.state import AgentState
+
+async def process_input_node(state: AgentState) -> AgentState:
+    print("--- PROCESS INPUT ---")
+    return state
+
+async def planner_node(state: AgentState) -> AgentState:
+    print("--- PLANNER ---")
+    # In v0, we assume the skill_name is passed in the input or inferred
+    # For now, let's look at the input_data
+    if state.get("skill_name") == "lead_intake" or state["input_data"].get("skill") == "lead_intake":
+        state["selected_skill"] = "lead_intake"
+        state["plan"] = "Execute lead intake processing"
+    elif state.get("skill_name") == "prospection_weekly" or state["input_data"].get("skill") == "prospection_weekly":
+        state["selected_skill"] = "prospection_weekly"
+        state["plan"] = "Execute weekly property prospection and matching"
+    elif state.get("skill_name") == "recap_weekly" or state["input_data"].get("skill") == "recap_weekly":
+        state["selected_skill"] = "recap_weekly"
+        state["plan"] = "Generate weekly executive recap"
+    return state
+
+async def limit_check_node(state: AgentState) -> AgentState:
+    print("--- LIMIT CHECK ---")
+    state["limits_ok"] = True
+    return state
+
+async def executor_node(state: AgentState) -> AgentState:
+    print("--- EXECUTOR ---")
+    from backend.skills.lead_intake import run_lead_intake
+    from backend.services.llm_service import llm_service
+    from backend.services.supabase_service import supabase_service
+    
+    if state["selected_skill"] == "lead_intake":
+        from backend.skills.lead_intake import run_lead_intake
+        try:
+            output = await run_lead_intake(state["input_data"], llm_service, supabase_service)
+            state["skill_output"] = output
+        except Exception as e:
+            state["error"] = str(e)
+            state["status"] = "error"
+    elif state["selected_skill"] == "prospection_weekly":
+        from backend.skills.prospection_weekly import run_prospection_weekly
+        try:
+            output = await run_prospection_weekly(state["input_data"], llm_service, supabase_service)
+            state["skill_output"] = output
+        except Exception as e:
+            state["error"] = str(e)
+            state["status"] = "error"
+    elif state["selected_skill"] == "recap_weekly":
+        from backend.skills.recap_weekly import run_recap_weekly
+        try:
+            output = await run_recap_weekly(state["input_data"], llm_service, supabase_service)
+            state["skill_output"] = output
+        except Exception as e:
+            state["error"] = str(e)
+            state["status"] = "error"
+            
+    return state
+
+async def result_handler_node(state: AgentState) -> AgentState:
+    print("--- RESULT HANDLER ---")
+    from backend.services.supabase_service import supabase_service
+    
+    if state.get("skill_output") and state["selected_skill"] == "lead_intake":
+        output = state["skill_output"]
+        org_id = state.get("org_id", state["input_data"].get("org_id"))
+        
+        # 1. Update Lead
+        lead_id = state["input_data"].get("lead_id")
+        if lead_id:
+            await supabase_service.update_lead(lead_id, {
+                "ai_summary": output["ai_summary"],
+                "ai_priority": output["ai_priority"],
+                "priority_score": output["priority_score"],
+                "next_action": output["next_action"],
+                "copy_email": output["copy_email"],
+                "copy_whatsapp": output["copy_whatsapp"],
+                "processed_at": output["processed_at"],
+                "status": "new"
+            })
+            
+        # 2. Create Task
+        await supabase_service.insert_task({
+            "org_id": org_id,
+            "title": f"Follow-up: {state['input_data'].get('name')}",
+            "description": f"Prioridad {output['ai_priority']}/5. Acción: {output['next_action']}. Resumen: {output['ai_summary']}",
+            "type": "follow_up",
+            "related_lead_id": lead_id,
+            "due_date": output["task_due_date"],
+            "ai_generated": True
+        })
+        
+        state["final_result"] = output
+    elif state.get("skill_output") and state["selected_skill"] == "prospection_weekly":
+        output = state["skill_output"]
+        org_id = state.get("org_id", state["input_data"].get("org_id"))
+        
+        if output.get("status") == "skipped":
+            state["final_result"] = output
+            return state
+
+        # 1. Update Property Matchings
+        for match in output.get("matchings", []):
+            await supabase_service.update_property_matching(match["property_id"], {
+                "prospection_score": match["score"],
+                "notes": {"matching_reason": match["reason"]}
+            })
+            
+        # 2. Create Weekly Recap entry
+        await supabase_service.insert_weekly_recap({
+            "org_id": org_id,
+            "week_start": datetime.utcnow().date().isoformat(), # Simplified
+            "week_end": datetime.utcnow().date().isoformat(),
+            "metrics": {
+                "leads_processed": output["leads_processed"],
+                "properties_analyzed": output["properties_analyzed"],
+                "matches_found": output["matches_found"]
+            },
+            "insights": output["luxury_summary"]
+        })
+        
+        # 3. Insert into agent_executions
+        await supabase_service.insert_agent_execution({
+            "org_id": org_id,
+            "skill_id": state.get("agent_id"), # Assuming agent_id is in state
+            "status": "COMPLETED",
+            "input": state["input_data"],
+            "output": output,
+            "reasoning": f"Prospection completed: {output['matches_found']} matches found.",
+            "execution_time_ms": 0, # Placeholder
+            "completed_at": datetime.utcnow().isoformat()
+        })
+
+        state["final_result"] = output
+    elif state.get("skill_output") and state["selected_skill"] == "recap_weekly":
+        output = state["skill_output"]
+        org_id = state.get("org_id", state["input_data"].get("org_id"))
+        
+        # 1. Insert Weekly Recap
+        await supabase_service.insert_weekly_recap({
+            "org_id": org_id,
+            "week_start": output["week_start"],
+            "week_end": output["week_end"],
+            "metrics": output["metrics"],
+            "insights": output["luxury_summary"],
+            "top_actions": {"action": output["top_action"]}
+        })
+        
+        # 2. Insert into agent_executions
+        await supabase_service.insert_agent_execution({
+            "org_id": org_id,
+            "skill_id": state.get("agent_id"),
+            "status": "COMPLETED",
+            "input": state["input_data"],
+            "output": output,
+            "reasoning": f"Weekly recap generated for {output['week_start']} to {output['week_end']}.",
+            "execution_time_ms": 0,
+            "completed_at": datetime.utcnow().isoformat()
+        })
+        
+        state["final_result"] = output
+    return state
+
+async def audit_logger_node(state: AgentState) -> AgentState:
+    print("--- AUDIT LOGGER ---")
+    from backend.services.supabase_service import supabase_service
+    
+    org_id = state.get("org_id", state["input_data"].get("org_id"))
+    user_id = state.get("user_id", "system")
+    
+    # Audit Log Entry
+    audit_data = {
+        "org_id": org_id,
+        "actor_type": "agent",
+        "actor_id": "nexus-agent-v0",
+        "action": f"execute_skill_{state['selected_skill']}",
+        "resource_type": "lead",
+        "resource_id": state["input_data"].get("lead_id"),
+        "details": {
+            "input": state["input_data"],
+            "output": state.get("skill_output")
+        }
+    }
+    await supabase_service.insert_audit_log(audit_data)
+    
+    # Agent Execution Log
+    agent_log_data = {
+        "org_id": org_id,
+        "agent_name": "Nexus Lead Agent",
+        "skill_name": state["selected_skill"],
+        "input": state["input_data"],
+        "output": state.get("skill_output"),
+        "status": "success" if not state.get("error") else "error"
+    }
+    await supabase_service.insert_agent_log(agent_log_data)
+    
+    state["audit_logged"] = True
+    return state
+
+async def finalize_node(state: AgentState) -> AgentState:
+    print("--- FINALIZE ---")
+    state["status"] = "success"
+    return state

@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* Core Anclora Palette */
+  --color-navy-deep: #192350;
+  --color-navy-darker: #0F1629;
+  --color-navy-mid: #1A2A5C;
+  --color-blue-light: #AFD2FA;
+  --color-blue-muted: #7BA3D4;
+  --color-gold: #D4AF37;
+  --color-gold-muted: #B8962E;
+  --color-soft-white: #F5F5F0;
+
+  /* Semantic / Derivative */
+  --color-navy-surface: rgba(25, 35, 80, 0.8);
+  --color-navy-hover: rgba(25, 35, 80, 0.95);
+  --color-gold-glow: rgba(212, 175, 55, 0.20);
+  --color-blue-glow: rgba(175, 210, 250, 0.15);
+  --color-soft-muted: rgba(245, 245, 240, 0.6);
+  --color-soft-subtle: rgba(245, 245, 240, 0.08);
+
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  --radius-widget: 16px;
+  --radius-widget-inner: 12px;
+
+  --shadow-widget: 0 4px 24px rgba(0, 0, 0, 0.2);
+  --shadow-widget-hover: 0 8px 40px rgba(0, 0, 0, 0.35);
+  --shadow-gold-glow: 0 0 20px rgba(212, 175, 55, 0.15);
+  --shadow-blue-glow: 0 0 20px rgba(175, 210, 250, 0.12);
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.10); }
+    50% { box-shadow: 0 0 25px rgba(212, 175, 55, 0.25); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  --animate-shimmer: shimmer 3s ease-in-out infinite;
+  --animate-glow-pulse: glowPulse 2s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Base Styles */
+@layer base {
+  :root {
+    --background: #0F1629;
+    --foreground: #F5F5F0;
+    --card: #192350;
+    --card-foreground: #F5F5F0;
+    --popover: #0F1629;
+    --popover-foreground: #F5F5F0;
+    --primary: #D4AF37;
+    --primary-foreground: #192350;
+    --secondary: #1A2A5C;
+    --secondary-foreground: #AFD2FA;
+    --muted: rgba(245, 245, 240, 0.08);
+    --muted-foreground: rgba(245, 245, 240, 0.6);
+    --accent: #D4AF37;
+    --accent-foreground: #192350;
+    --destructive: #E53E3E;
+    --destructive-foreground: #F5F5F0;
+    --border: rgba(245, 245, 240, 0.06);
+    --input: rgba(245, 245, 240, 0.06);
+    --ring: #D4AF37;
+    --radius: 0.5rem;
+  }
+
+  body {
+    background-color: var(--color-navy-darker);
+    color: var(--color-soft-white);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: linear-gradient(135deg, #0F1629 0%, #192350 50%, #1A2A5C 100%);
+    background-attachment: fixed;
+  }
+
+  /* Scrollbar premium */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(175, 210, 250, 0.2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(175, 210, 250, 0.35); }
+
+  /* Selection */
+  ::selection { background: rgba(212, 175, 55, 0.3); color: #F5F5F0; }
+}
+
+@layer components {
+  /* Widget Card Base */
+  .widget-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(25, 35, 80, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(245, 245, 240, 0.06);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  
+  .widget-card:hover {
+    border-color: rgba(245, 245, 240, 0.12);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+  }
+
+  /* Gold Shimmer Border (top edge on hover) */
+  .widget-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg, transparent 0%, rgba(212,175,55,0.0) 20%,
+      rgba(212,175,55,0.4) 50%, rgba(212,175,55,0.0) 80%, transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .widget-card:hover::before { opacity: 1; }
+
+  /* Widget con acento Gold */
+  .widget-card-gold {
+    background: rgba(25, 35, 80, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .widget-card-gold:hover {
+    border-color: rgba(212, 175, 55, 0.35);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.35), 0 0 20px rgba(212,175,55,0.10);
+    transform: translateY(-2px);
+  }
+
+  /* Typography */
+  .widget-title {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    color: rgba(175, 210, 250, 0.7);
+  }
+  .metric-value {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 2.25rem;
+    line-height: 1;
+    color: var(--color-soft-white);
+    letter-spacing: -0.02em;
+  }
+
+  /* Priority Badges */
+  .priority-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+  }
+  .priority-5 { background-color: rgba(239, 68, 68, 0.2); color: rgb(248, 113, 113); box-shadow: 0 0 8px rgba(239,68,68,0.25); }
+  .priority-4 { background-color: rgba(212, 175, 55, 0.2); color: var(--color-gold); box-shadow: 0 0 8px rgba(212,175,55,0.2); }
+  .priority-3 { background-color: rgba(175, 210, 250, 0.2); color: var(--color-blue-light); }
+  .priority-2 { background-color: rgba(245, 245, 240, 0.2); color: rgba(245, 245, 240, 0.6); }
+  .priority-1 { background-color: rgba(245, 245, 240, 0.08); color: rgba(245, 245, 240, 0.6); }
+
+  /* Status Dots */
+  .status-dot-active {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: rgb(74, 222, 128);
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+  }
+}

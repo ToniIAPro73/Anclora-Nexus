@@ -1,0 +1,60 @@
+'use client'
+import Link from 'next/link'
+import { LayoutDashboard, Users, Home, CheckSquare, Settings, LogOut } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import Image from 'next/image'
+
+export function Sidebar() {
+  const pathname = usePathname()
+
+  const links = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Leads', href: '/leads', icon: Users },
+    { name: 'Properties', href: '/properties', icon: Home },
+    { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+  ]
+
+  return (
+    <aside className="w-64 border-r border-soft-subtle bg-navy-darker/50 backdrop-blur-xl flex flex-col pt-8">
+      <div className="px-8 mb-10 flex flex-col items-center">
+        <div className="relative w-16 h-16 mb-4 animate-float">
+          <Image 
+            src="/brand/logo-nexus.jpeg" 
+            alt="Anclora Nexus Logo" 
+            fill 
+            className="rounded-full object-cover border-2 border-gold/30 shadow-gold-glow"
+          />
+        </div>
+        <h1 className="font-display text-xl text-soft-white">Anclora Nexus</h1>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 mt-1">Intelligence Layer</p>
+      </div>
+
+      <nav className="flex-1 px-4 space-y-1">
+        {links.map((link) => {
+          const Active = pathname === link.href
+          return (
+            <Link
+              key={link.name}
+              href={link.href}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group ${
+                Active 
+                  ? 'bg-gold/10 text-gold shadow-sm' 
+                  : 'text-soft-muted hover:text-soft-white hover:bg-white/[0.03]'
+              }`}
+            >
+              <link.icon className={`w-5 h-5 ${Active ? 'text-gold' : 'text-soft-muted group-hover:text-soft-white'}`} />
+              {link.name}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-soft-subtle mt-auto">
+        <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-soft-muted hover:text-red-400 hover:bg-red-400/5 transition-all w-full">
+          <LogOut className="w-5 h-5" />
+          Logout
+        </button>
+      </div>
+    </aside>
+  )
+}
