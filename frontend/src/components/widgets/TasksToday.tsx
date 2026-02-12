@@ -2,18 +2,20 @@
 import { useStore } from '@/lib/store'
 import { StaggerList, StaggerItem } from '@/components/effects/animations'
 import { Check } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 export function TasksToday() {
   const tasks = useStore((state) => state.tasks)
   const toggleTask = useStore((state) => state.toggleTask)
+  const { t } = useI18n()
 
   return (
     <div className="widget-card h-full flex flex-col">
-      <h3 className="widget-title">Tareas de Hoy</h3>
+      <h3 className="widget-title">{t('tasksToday')}</h3>
       <div className="flex-1 overflow-auto">
         <StaggerList className="space-y-3">
           {tasks.length === 0 ? (
-            <p className="text-xs text-soft-muted italic">No hay tareas para hoy</p>
+            <p className="text-xs text-soft-muted italic">{t('noPendingTasks')}</p>
           ) : (
             tasks.map((task) => (
               <StaggerItem key={task.id}>

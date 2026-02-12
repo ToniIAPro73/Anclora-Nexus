@@ -2,17 +2,19 @@
 import { useStore } from '@/lib/store'
 import { PulseOrb } from '@/components/effects/PulseOrb'
 import { TypeWriter, StaggerList, StaggerItem } from '@/components/effects/animations'
+import { useI18n } from '@/lib/i18n'
 
 export function AgentStream() {
   const logs = useStore((state) => state.agentLogs)
+  const { t } = useI18n()
 
   return (
     <div className="widget-card h-full flex flex-col">
-      <h3 className="widget-title">Agent Stream</h3>
+      <h3 className="widget-title">{t('agentStream')}</h3>
       <div className="flex-1 overflow-auto">
         <StaggerList className="space-y-4">
           {logs.length === 0 ? (
-            <p className="text-xs text-soft-muted italic">No hay actividad reciente</p>
+            <p className="text-xs text-soft-muted italic">{t('noRecentActivity')}</p>
           ) : (
             logs.map((log, i) => (
               <StaggerItem key={log.id} className="flex gap-3">

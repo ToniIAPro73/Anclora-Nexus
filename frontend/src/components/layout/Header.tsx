@@ -1,5 +1,6 @@
 'use client'
 import { Bell, Search, User } from 'lucide-react'
+import { LanguageSelector } from './LanguageSelector'
 
 export function Header() {
   return (
@@ -23,6 +24,8 @@ export function Header() {
           <Bell className="w-5 h-5" />
           <span className="absolute top-2 right-2 w-2 h-2 bg-gold rounded-full border-2 border-navy-deep" />
         </button>
+
+        <LanguageSelector />
 
         <div className="w-10 h-10 rounded-full border border-gold/30 bg-gold/10 flex items-center justify-center text-gold cursor-pointer hover:bg-gold/20 transition-all">
           <User className="w-6 h-6" />

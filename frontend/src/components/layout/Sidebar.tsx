@@ -3,15 +3,17 @@ import Link from 'next/link'
 import { LayoutDashboard, Users, Home, CheckSquare, Settings, LogOut } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
+import { useI18n } from '@/lib/i18n'
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { t } = useI18n()
 
   const links = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Leads', href: '/leads', icon: Users },
-    { name: 'Properties', href: '/properties', icon: Home },
-    { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+    { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
+    { name: t('leads'), href: '/leads', icon: Users },
+    { name: t('properties'), href: '/properties', icon: Home },
+    { name: t('tasks'), href: '/tasks', icon: CheckSquare },
   ]
 
   return (
@@ -48,7 +50,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-soft-subtle mt-auto">
         <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-soft-muted hover:text-red-400 hover:bg-red-400/5 transition-all w-full">
           <LogOut className="w-5 h-5" />
-          Logout
+          {t('logout')}
         </button>
       </div>
     </aside>

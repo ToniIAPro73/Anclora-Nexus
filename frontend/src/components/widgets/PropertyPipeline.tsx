@@ -2,9 +2,11 @@
 import { useStore } from '@/lib/store'
 import { StaggerList, StaggerItem } from '@/components/effects/animations'
 import { Home, ExternalLink } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 export function PropertyPipeline() {
   const properties = useStore((state) => state.properties)
+  const { t } = useI18n()
 
   const columns = [
     { id: 'prospect', label: 'Prospect' },
@@ -15,7 +17,7 @@ export function PropertyPipeline() {
 
   return (
     <div className="widget-card h-full flex flex-col">
-      <h3 className="widget-title">Property Pipeline</h3>
+      <h3 className="widget-title">{t('propertyPipeline')}</h3>
       <div className="flex-1 overflow-auto">
         <div className="grid grid-cols-4 gap-2 h-full min-w-[400px]">
           {columns.map((col) => (
@@ -37,7 +39,7 @@ export function PropertyPipeline() {
                         </div>
                         <p className="text-[10px] text-soft-white font-medium truncate mb-1">{prop.address}</p>
                         <p className={`text-[11px] font-bold tabular-nums ${col.id === 'sold' ? 'text-gold' : 'text-soft-white'}`}>
-                          {(prop.price / 1000000).toFixed(1)}M€
+                          {typeof prop.price === 'number' ? `${(prop.price / 1000000).toFixed(1)}M€` : prop.price}
                         </p>
                       </div>
                     </StaggerItem>

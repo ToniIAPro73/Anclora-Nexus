@@ -3,10 +3,12 @@ import { useStore } from '@/lib/store'
 import { ArrowLeft, Check, Clock, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useI18n } from '@/lib/i18n'
 
 export default function TasksPage() {
   const tasks = useStore((state) => state.tasks)
   const toggleTask = useStore((state) => state.toggleTask)
+  const { t } = useI18n()
 
   const pendingTasks = tasks.filter(t => t.status === 'pending')
   const doneTasks = tasks.filter(t => t.status === 'done')
@@ -28,17 +30,17 @@ export default function TasksPage() {
               <ArrowLeft className="w-5 h-5 text-soft-white" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-soft-white">Tasks</h1>
-              <p className="text-sm text-soft-muted mt-1">Gestión de tareas y actividades</p>
+              <h1 className="text-3xl font-bold text-soft-white">{t('tasks')}</h1>
+              <p className="text-sm text-soft-muted mt-1">{t('taskManagement')}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-              <span className="text-sm text-soft-muted">Pendientes: </span>
+              <span className="text-sm text-soft-muted">{t('pending')}: </span>
               <span className="text-lg font-bold text-amber-400">{pendingTasks.length}</span>
             </div>
             <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-              <span className="text-sm text-soft-muted">Completadas: </span>
+              <span className="text-sm text-soft-muted">{t('completed')}: </span>
               <span className="text-lg font-bold text-emerald-400">{doneTasks.length}</span>
             </div>
           </div>
@@ -50,12 +52,12 @@ export default function TasksPage() {
           <div className="bg-navy-surface/40 border border-soft-subtle rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-6">
               <Clock className="w-5 h-5 text-amber-400" />
-              <h2 className="text-xl font-bold text-soft-white">Pendientes</h2>
+              <h2 className="text-xl font-bold text-soft-white">{t('pending')}</h2>
             </div>
             <div className="space-y-3">
               {pendingTasks.length === 0 ? (
                 <p className="text-sm text-soft-muted italic text-center py-8">
-                  No hay tareas pendientes
+                  {t('noPendingTasks')}
                 </p>
               ) : (
                 pendingTasks.map((task, index) => (
@@ -91,12 +93,12 @@ export default function TasksPage() {
           <div className="bg-navy-surface/40 border border-soft-subtle rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-6">
               <Check className="w-5 h-5 text-emerald-400" />
-              <h2 className="text-xl font-bold text-soft-white">Completadas</h2>
+              <h2 className="text-xl font-bold text-soft-white">{t('completed')}</h2>
             </div>
             <div className="space-y-3">
               {doneTasks.length === 0 ? (
                 <p className="text-sm text-soft-muted italic text-center py-8">
-                  No hay tareas completadas
+                  {t('noCompletedTasks')}
                 </p>
               ) : (
                 doneTasks.map((task, index) => (

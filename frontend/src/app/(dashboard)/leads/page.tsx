@@ -4,9 +4,11 @@ import { format } from 'date-fns'
 import { ArrowLeft, Mail, Phone, Euro } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useI18n } from '@/lib/i18n'
 
 export default function LeadsPage() {
   const leads = useStore((state) => state.leads)
+  const { t } = useI18n()
 
   return (
     <div className="min-h-screen p-8">
@@ -25,12 +27,12 @@ export default function LeadsPage() {
               <ArrowLeft className="w-5 h-5 text-soft-white" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-soft-white">Leads</h1>
-              <p className="text-sm text-soft-muted mt-1">Gestión de contactos y oportunidades</p>
+              <h1 className="text-3xl font-bold text-soft-white">{t('leads')}</h1>
+              <p className="text-sm text-soft-muted mt-1">{t('contactManagement')}</p>
             </div>
           </div>
           <div className="px-4 py-2 bg-navy-surface/40 border border-soft-subtle rounded-lg">
-            <span className="text-sm text-soft-muted">Total: </span>
+            <span className="text-sm text-soft-muted">{t('total')}: </span>
             <span className="text-lg font-bold text-gold">{leads.length}</span>
           </div>
         </div>
@@ -42,22 +44,22 @@ export default function LeadsPage() {
               <thead className="bg-navy-deep/50 border-b border-soft-subtle">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-soft-muted uppercase tracking-wider">
-                    Lead
+                    {t('lead')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-soft-muted uppercase tracking-wider">
-                    Contacto
+                    {t('contact')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-soft-muted uppercase tracking-wider">
-                    Budget
+                    {t('budget')}
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-soft-muted uppercase tracking-wider">
-                    Prioridad
+                    {t('priority')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-soft-muted uppercase tracking-wider">
-                    Fuente
+                    {t('source')}
                   </th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-soft-muted uppercase tracking-wider">
-                    Estado
+                    {t('status')}
                   </th>
                 </tr>
               </thead>
@@ -65,7 +67,7 @@ export default function LeadsPage() {
                 {leads.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center">
-                      <p className="text-soft-muted italic">No hay leads registrados</p>
+                      <p className="text-soft-muted italic">{t('noLeadsRegistered')}</p>
                     </td>
                   </tr>
                 ) : (

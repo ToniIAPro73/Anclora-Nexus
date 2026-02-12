@@ -1,12 +1,15 @@
 'use client'
 import { Plus, Search, FileText } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useI18n } from '@/lib/i18n'
 
 export function QuickActions() {
+  const { t } = useI18n()
+  
   const actions = [
-    { label: 'Nuevo Lead', icon: Plus, sub: 'Alta manual' },
-    { label: 'Prospection Run', icon: Search, sub: 'Scan semanal' },
-    { label: 'Force Recap', icon: FileText, sub: 'Generar reporte' },
+    { label: t('newLead'), icon: Plus, sub: t('manualEntry') },
+    { label: t('prospectionRun'), icon: Search, sub: t('weeklySearch') },
+    { label: t('forceRecap'), icon: FileText, sub: t('generateReport') },
   ]
 
   return (
