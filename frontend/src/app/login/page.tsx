@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import supabase from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,19 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [particles, setParticles] = useState<any[]>([])
+
+  useEffect(() => {
+    // Generate particles only on the client to avoid hydration mismatch
+    const newParticles = [...Array(12)].map((_, i) => ({
+      id: i,
+      x: Math.random() * 1000,
+      y: Math.random() * 1000,
+      offsetY: Math.random() * -100,
+      duration: 5 + Math.random() * 5,
+    }))
+    setParticles(newParticles)
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,26 +48,27 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-navy-darker relative overflow-hidden">
       {/* Abstract Background Particles */}
-      {[...Array(12)].map((_, i) => (
+      {particles.map((p) => (
         <motion.div
-          key={i}
+          key={p.id}
           className="absolute w-1 h-1 bg-blue-light/10 rounded-full"
           initial={{ 
-            x: Math.random() * 1000, 
-            y: Math.random() * 1000,
+            x: p.x, 
+            y: p.y,
             opacity: 0.1 
           }}
           animate={{
-            y: [null, Math.random() * -100],
+            y: [null, p.y + p.offsetY],
             opacity: [0.1, 0.3, 0.1]
           }}
           transition={{
-            duration: 5 + Math.random() * 5,
+            duration: p.duration,
             repeat: Infinity,
             ease: "linear"
           }}
         />
       ))}
+
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
