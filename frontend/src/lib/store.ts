@@ -51,6 +51,41 @@ export interface AgentLog {
   timestamp: string
 }
 
+export interface RiskAssessment {
+  category: 'labor' | 'tax' | 'brand' | 'focus' | 'other'
+  level: 'low' | 'medium' | 'high' | 'critical'
+  rationale: string
+  mitigation?: string
+}
+
+export interface GovernorDecision {
+  recommendation: 'execute' | 'postpone' | 'reformulate' | 'discard'
+  diagnosis: string
+  risks: RiskAssessment[]
+  next_steps: string[]
+  dont_do: string[]
+  flags: string[]
+  hitl_required: boolean
+  strategic_mode_version: string
+  domains_used: string[]
+  confidence?: number
+}
+
+export interface QueryPlan {
+  intent_classification: string
+  domains_selected: string[]
+  rationale: string
+  mode: 'fast' | 'deep'
+}
+
+export interface IntelligenceResponse {
+  response: string
+  query_plan: QueryPlan
+  governor_decision: GovernorDecision
+  audit_id?: string
+  status: string
+}
+
 interface AppState {
   leads: Lead[]
   tasks: Task[]
@@ -61,6 +96,12 @@ interface AppState {
     responseRate: number
     activeMandates: number
     latestInsight: string
+  }
+
+  intelligence: {
+    queryHistory: { message: string, response: IntelligenceResponse }[]
+    isProcessing: boolean
+    lastResponse: IntelligenceResponse | null
   }
 
   setLeads: (leads: Lead[]) => void
@@ -77,6 +118,8 @@ interface AppState {
   deleteLead: (id: string) => void
   deleteTask: (id: string) => void
   deleteProperty: (id: string) => void
+  sendIntelligenceQuery: (message: string, mode: 'fast' | 'deep', domainHint?: string) => Promise<void>
+  clearIntelligenceHistory: () => void
   initialize: () => Promise<void>
 }
 
@@ -540,6 +583,12 @@ export const useStore = create<AppState>((set) => ({
     latestInsight: 'Generando análisis de mercado...'
   },
 
+  intelligence: {
+    queryHistory: [],
+    isProcessing: false,
+    lastResponse: null,
+  },
+
   setLeads: (leads) => set({ leads }),
   setTasks: (tasks) => set({ tasks }),
   setProperties: (properties) => set({ properties }),
@@ -590,6 +639,32 @@ export const useStore = create<AppState>((set) => ({
   deleteProperty: (id) => set((state) => ({
     properties: state.properties.filter(p => p.id !== id)
   })),
+
+  sendIntelligenceQuery: async (message, mode, domainHint) => {
+    set((state) => ({ intelligence: { ...state.intelligence, isProcessing: true } }))
+    try {
+      // Import dynamic to avoid circular dep if any, though here it's fine
+      const { fetchIntelligenceQuery } = await import('./api')
+      const response = await fetchIntelligenceQuery(message, mode, domainHint)
+      
+      set((state) => ({
+        intelligence: {
+          ...state.intelligence,
+          isProcessing: false,
+          lastResponse: response,
+          queryHistory: [...state.intelligence.queryHistory, { message, response }]
+        }
+      }))
+    } catch (error) {
+      set((state) => ({ intelligence: { ...state.intelligence, isProcessing: false } }))
+      throw error
+    }
+  },
+
+  clearIntelligenceHistory: () => set((state) => ({
+    intelligence: { ...state.intelligence, queryHistory: [], lastResponse: null }
+  })),
+
   initialize: async () => {
     try {
       // Try to fetch from Supabase, but fallback to mock data if it fails

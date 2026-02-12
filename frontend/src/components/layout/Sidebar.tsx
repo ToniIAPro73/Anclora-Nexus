@@ -14,6 +14,7 @@ export function Sidebar() {
     { name: t('leads'), href: '/leads', icon: Users },
     { name: t('properties'), href: '/properties', icon: Home },
     { name: t('tasks'), href: '/tasks', icon: CheckSquare },
+    { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
   ]
 
   return (

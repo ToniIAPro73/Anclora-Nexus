@@ -84,3 +84,23 @@ export async function getWeeklyStats() {
   }
   return res.json()
 }
+
+export async function fetchIntelligenceQuery(message: string, mode: 'fast' | 'deep' = 'fast', domainHint?: string) {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+
+  const res = await fetch(`${API_URL}/api/intelligence/query`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token || ''}`
+    },
+    body: JSON.stringify({ message, mode, domain_hint: domainHint })
+  })
+
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(error.detail || 'Error in intelligence query')
+  }
+  return res.json()
+}

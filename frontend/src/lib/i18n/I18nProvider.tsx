@@ -27,7 +27,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }
 
   const t = (key: TranslationKey): string => {
-    return translations[language][key] || translations.es[key] || key
+    // @ts-ignore - indexing const with dynamic key
+    const langGroup = translations[language] as Record<string, string>
+    // @ts-ignore
+    const fallbackGroup = translations.es as Record<string, string>
+    return langGroup[key] || fallbackGroup[key] || key
   }
 
   return (

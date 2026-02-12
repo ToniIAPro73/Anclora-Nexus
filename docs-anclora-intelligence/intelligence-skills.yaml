@@ -1,0 +1,681 @@
+# Anclora Intelligence Skills Catalog (MCP)
+## Catálogo de Funciones y Herramientas Disponibles
+### version: 1.0-intelligence
+### status: Phase 1 Complete, Phase 2-5 Deferred
+
+---
+
+## ARQUITECTURA DE SKILLS
+
+La estructura de skills en Anclora Intelligence sigue el modelo MCP (Model Context Protocol).
+Cada skill es una función especializada que puede ser invocada por agentes dentro de Nexus.
+
+**Jerarquía de Activación:**
+
+```
+Phase 1: Core Router, Governor, Synthesizer (obligatorios)
+Phase 2: Domain Registry, Evidence Layer (NotebookLM)
+Phase 3: GEM Agents verticales
+Phase 4: Multi-domain orchestration
+Phase 5: Extracción de Intelligence como módulo independiente
+```
+
+---
+
+## PHASE 1 SKILLS (IMPLEMENTED)
+
+### SKILL_001: Router Classification
+
+**Nombre:** `intelligence.router.classify_query`  
+**Responsabilidad:** Clasificar intención de consulta y seleccionar dominios  
+**Phase:** 1 (IMPLEMENTED)  
+**Estado:** ACTIVE  
+
+**Input Schema:**
+
+```yaml
+name: classify_query
+inputs:
+  message:
+    type: string
+    description: "Consulta natural language del usuario (300-2000 chars)"
+    required: true
+  mode:
+    type: enum
+    values: ["fast", "deep"]
+    description: "Fast (1-2 dominios, ~60s) | Deep (max 3 dominios, ~120s)"
+    default: "fast"
+    required: false
+  domain_hint:
+    type: string
+    description: "Sugerencia de dominio (ej: 'real_estate', 'labor')"
+    examples: ["real_estate", "founder_os", "tax", "labor"]
+    required: false
+  context:
+    type: object
+    description: "Contexto adicional (user_id, timestamp, historial corto)"
+    required: false
+```
+
+**Output Schema:**
+
+```yaml
+QueryPlan:
+  domains_selected:
+    type: array[string]
+    description: "Dominios seleccionados (max 3)"
+  rationale:
+    type: string
+    description: "Justificación de por qué se seleccionaron estos dominios"
+  confidence:
+    type: float
+    range: [0.0, 1.0]
+    description: "Confianza en clasificación"
+  flags:
+    type: array[string]
+    description: "Flags detectadas (ej: overengineering-risk, lab-mode)"
+  mode:
+    type: enum
+    values: ["fast", "deep"]
+  timestamp:
+    type: datetime
+```
+
+**Ejemplos de Invocación:**
+
+```yaml
+# Ejemplo 1: Consulta sobre cambio laboral
+Input:
+  message: "¿Es buen momento para solicitar excedencia en CGI?"
+  mode: "deep"
+  domain_hint: null
+
+Output:
+  domains_selected: ["real_estate_validation"]
+  rationale: "Excedencia requiere análisis de tracción inmobiliaria actual"
+  confidence: 0.92
+  flags: ["labor-change-proposed", "irreversible-decision"]
+  mode: "deep"
+
+---
+
+# Ejemplo 2: Consulta sobre inversión inmobiliaria
+Input:
+  message: "Oportunidad villa en Andratx 5M€. ¿Como la aprovecho?"
+  mode: "fast"
+  domain_hint: "real_estate"
+
+Output:
+  domains_selected: ["real_estate_mallorca_premium"]
+  rationale: "Decisión inmobiliaria estratégica, alineada con dominio primario"
+  confidence: 0.88
+  flags: []
+  mode: "fast"
+```
+
+**Restricciones Operacionales:**
+
+- MAX dominios: 3 (rechaza si intención requiere 4+)
+- MAX tiempo procesamiento: 60s (fast) | 120s (deep)
+- Lab mode: NUNCA se activa automáticamente
+- Domain hint: Preferencia fuerte, no mandato
+
+---
+
+### SKILL_002: Strategic Mode Loader
+
+**Nombre:** `intelligence.governance.load_strategic_mode`  
+**Responsabilidad:** Cargar Strategic Mode versionado desde Git  
+**Phase:** 1 (IMPLEMENTED)  
+**Estado:** ACTIVE  
+
+**Input Schema:**
+
+```yaml
+name: load_strategic_mode
+inputs:
+  use_cache:
+    type: boolean
+    description: "Usar caché si está válida (TTL: 3600s)"
+    default: true
+    required: false
+  force_refresh:
+    type: boolean
+    description: "Forzar recarga desde disco (ignora caché)"
+    default: false
+    required: false
+```
+
+**Output Schema:**
+
+```yaml
+StrategicMode:
+  version:
+    type: string
+    example: "1.0-validation-phase"
+  phase:
+    type: string
+    values: ["discovery", "validation", "scaling", "optimization", "consolidation"]
+    example: "validation"
+  principles:
+    type: object
+    description: "Principios rectores (ej: consolidar base sólida)"
+  priorities_ordered:
+    type: array[string]
+    description: "Prioridades en orden (1=highest)"
+  hard_constraints:
+    type: array[string]
+    description: "Restricciones explícitas que NO se pueden violar"
+  active_domains:
+    type: array[string]
+    description: "Dominios permitidos en esta fase"
+  max_domains_per_query:
+    type: integer
+    default: 3
+  allow_lab_mode:
+    type: boolean
+    description: "¿Está habilitado lab/experimental mode?"
+    default: false
+  effective_date:
+    type: date
+  loaded_from_git:
+    type: boolean
+    description: "Confirmación de que fue cargado desde Git (no hardcoded)"
+```
+
+**Ejemplo de Output (Phase 1):**
+
+```yaml
+version: "1.0-validation-phase"
+phase: "validation"
+principles:
+  main: "Consolidar base sólida hoy para decidir con libertad mañana"
+  sub_principles:
+    - "Generación de ingresos reales es prioridad 1"
+    - "Estabilidad financiera reduce riesgo"
+    - "Opcionalidad futura es activo estratégico"
+priorities_ordered:
+  1: "Generación de ingresos en línea actual (Real Estate)"
+  2: "Validación de cash flow (min 3 cierres)"
+  3: "Estabilidad financiera personal"
+  4: "Simplificación operativa"
+  5: "Construcción disciplinada del motor estratégico"
+  6: "Preservación de opcionalidad futura"
+hard_constraints:
+  - "No cambios laborales sin validación de cash flow"
+  - "No activar consultoría IA públicamente"
+  - "No constituir SL sin facturación comprobada"
+  - "No desarrollo de producto sin impacto directo en cierres"
+  - "No decisiones laborales emocionales sin señales objetivas"
+active_domains:
+  - "real_estate_mallorca_premium"
+max_domains_per_query: 3
+allow_lab_mode: false
+effective_date: "2026-02-01"
+loaded_from_git: true
+```
+
+**Restricciones Operacionales:**
+
+- Strategic Mode **NUNCA** se edita en runtime
+- Cambio = commit en Git con justificación
+- Loader cachea por 3600s (configurable)
+- Fallo en parsear YAML = excepción (no silent error)
+
+---
+
+### SKILL_003: Risk Evaluator
+
+**Nombre:** `intelligence.governor.evaluate_risks`  
+**Responsabilidad:** Evaluar riesgos en 4 categorías (labor, tax, brand, focus)  
+**Phase:** 1 (IMPLEMENTED)  
+**Estado:** ACTIVE  
+
+**Input Schema:**
+
+```yaml
+name: evaluate_risks
+inputs:
+  message:
+    type: string
+    description: "Mensaje de usuario a analizar"
+    required: true
+  domains:
+    type: array[string]
+    description: "Dominios en los que evaluar riesgo"
+    required: true
+  user_context:
+    type: object
+    description: "Contexto de usuario (employment_status, cash_runway, etc.)"
+    required: false
+  strategic_mode:
+    type: object
+    description: "Strategic Mode activo (para validar contra constraints)"
+    required: false
+```
+
+**Output Schema:**
+
+```yaml
+risks:
+  type: array[RiskAssessment]
+  items:
+    category:
+      type: enum
+      values: ["labor", "tax", "brand", "focus"]
+    level:
+      type: enum
+      values: ["LOW", "MEDIUM", "HIGH"]
+      description: "Nivel de riesgo"
+    score:
+      type: float
+      range: [0.0, 1.0]
+      description: "Score heredado de constitution-canonical"
+    rationale:
+      type: string
+      description: "Justificación textual del nivel"
+```
+
+**Heurísticas de Detección (Phase 1):**
+
+```yaml
+Labor-Risk Triggers:
+  - Keywords: ["excedencia", "renuncia", "contrato", "jornada", "cambio laboral"]
+  - Context: "Si propuesta requiere cambio relación laboral → HIGH"
+  - Validation: "¿Hay cash runway de 6+ meses?" → Si no → HIGH
+
+Tax-Risk Triggers:
+  - Keywords: ["SL", "autónomo", "fiscalidad", "estructura legal", "plusvalía"]
+  - Context: "Si propuesta toca estructura → MEDIUM+"
+  - Validation: "¿Consultado con asesor fiscal?" → Si no → MEDIUM
+
+Brand-Risk Triggers:
+  - Keywords: ["lanzar", "publico", "marca", "comunicar", "expand"]
+  - Context: "Si propuesta expande marca públicamente antes de validación → HIGH"
+  - Validation: "¿Hay tracción en línea actual?" → Si no → HIGH
+
+Focus-Risk Triggers:
+  - Keywords: ["nueva línea", "multiplica", "divide tiempo", "paralelamente"]
+  - Context: "Si propuesta dispersa recursos sin validación → HIGH"
+  - Validation: "¿Cash flow actual estable?" → Si no → HIGH
+```
+
+**Ejemplo:**
+
+```yaml
+Input:
+  message: "¿Debo lanzar Anclora Cognitive Solutions como nuevo negocio?"
+  domains: ["real_estate_mallorca_premium"]
+  user_context:
+    employment_status: "employed_CGI"
+    cash_runway_months: 2
+    immobiliaria_cash_monthly: 800
+
+Output:
+  risks:
+    - category: "focus"
+      level: "HIGH"
+      score: 0.92
+      rationale: "Propuesta multiplica líneas sin validación inmobiliaria (solo €800/mes actual)"
+    - category: "labor"
+      level: "MEDIUM"
+      score: 0.65
+      rationale: "Requeriría tiempo desde trabajo actual sin colchón financiero"
+    - category: "brand"
+      level: "HIGH"
+      score: 0.88
+      rationale: "Lanzar nueva marca antes de consolidar posicionamiento en Real Estate Premium"
+    - category: "tax"
+      level: "LOW"
+      score: 0.25
+      rationale: "No toca estructura legal inmediatamente"
+```
+
+---
+
+### SKILL_004: Governor Decision Engine
+
+**Nombre:** `intelligence.governor.generate_decision`  
+**Responsabilidad:** Aplicar Strategic Mode y generar GovernorDecision  
+**Phase:** 1 (IMPLEMENTED)  
+**Estado:** ACTIVE  
+
+**Input Schema:**
+
+```yaml
+name: generate_decision
+inputs:
+  query_plan:
+    type: object
+    description: "Salida del Router (QueryPlan)"
+    required: true
+  risks:
+    type: array[RiskAssessment]
+    description: "Riesgos evaluados"
+    required: true
+  strategic_mode:
+    type: object
+    description: "Strategic Mode activo"
+    required: true
+  user_message:
+    type: string
+    description: "Mensaje original del usuario"
+    required: true
+```
+
+**Output Schema:**
+
+```yaml
+GovernorDecision:
+  recommendation:
+    type: enum
+    values: ["Ejecutar", "Postergar", "Reformular", "Descartar"]
+  diagnosis:
+    type: string
+    description: "Análisis estructurado de la situación"
+  risks:
+    type: array[RiskAssessment]
+  next_steps:
+    type: array[string]
+    length: 3  # EXACTAMENTE 3, no más no menos
+    description: "Próximos 3 pasos concretos"
+  dont_do:
+    type: array[string]
+    description: "Contraindicaciones explícitas"
+  flags:
+    type: array[string]
+    examples: ["labor-risk=HIGH", "overengineering-risk=HIGH", "hitl_required=true"]
+  hitl_required:
+    type: boolean
+    description: "¿Requiere aprobación humana explícita?"
+  strategic_mode_version:
+    type: string
+  domains_used:
+    type: array[string]
+```
+
+**Lógica de Recomendación (Decision Tree):**
+
+```
+IF risk.labor = HIGH OR risk.tax = HIGH OR propuesta = cambio_laboral_irreversible:
+  → hitl_required = true
+  → recommendation = "POSTERGAR"
+
+IF overengineering-risk = HIGH:
+  → recommendation = "POSTERGAR"
+
+IF (consolida_base AND reduce_riesgo AND aumenta_opcionalidad):
+  → recommendation = "EJECUTAR"
+
+IF (es_expansión_prematura OR puede_esperar):
+  → recommendation = "POSTERGAR"
+
+IF (ambiguo OR multiple_paths):
+  → recommendation = "REFORMULAR"
+
+IF (viola_hard_constraint):
+  → recommendation = "DESCARTAR"
+```
+
+---
+
+### SKILL_005: Response Synthesizer
+
+**Nombre:** `intelligence.synthesizer.build_response`  
+**Responsabilidad:** Construir respuesta final en formato estructurado  
+**Phase:** 1 (IMPLEMENTED)  
+**Estado:** ACTIVE  
+
+**Input Schema:**
+
+```yaml
+name: build_response
+inputs:
+  governor_decision:
+    type: object
+    description: "GovernorDecision de Governor"
+    required: true
+  user_message:
+    type: string
+    description: "Mensaje original para contexto"
+    required: true
+  mode:
+    type: enum
+    values: ["fast", "deep"]
+    description: "Modo de análisis"
+    default: "fast"
+```
+
+**Output Schema:**
+
+```yaml
+response:
+  type: string
+  format: "markdown"
+  sections:
+    - "DIAGNÓSTICO"
+    - "RECOMENDACIÓN"
+    - "RIESGOS ASOCIADOS"
+    - "PRÓXIMOS 3 PASOS"
+    - "QUÉ NO HACER AHORA"
+    - "[metadata]"
+  max_length: 800  # palabras
+  constraints:
+    - "Tono: Premium, discreto, directo"
+    - "Sin tecnicismos innecesarios"
+    - "Accionable antes que exhaustivo"
+```
+
+**Ejemplo de Output:**
+
+```markdown
+## DIAGNÓSTICO
+
+Solicitar excedencia en CGI requiere validación previa de caja alternativa.
+Actualmente: 0 cierres inmobiliarios, ingresos pasivos €0, runway sin excedencia: indefinido.
+
+## RECOMENDACIÓN
+
+**POSTERGAR** (6-12 meses)
+
+Justificación: Excedencia es cambio irreversible que requiere base estable. 
+Hoy no existe esa base. Esperar a ≥3 cierres validados (€15k+ neto comprobado) 
+antes de cambiar relación laboral.
+
+## RIESGOS ASOCIADOS
+
+- **Labor** [HIGH]: Pérdida contrato indefinido, estabilidad, cotizaciones SS
+- **Tax** [MEDIUM]: Implicaciones en impuestos, SS, paro involuntario
+- **Brand** [LOW]: N/A
+- **Focus** [MEDIUM]: Cambio de contexto puede reducir productividad inicial
+
+## PRÓXIMOS 3 PASOS
+
+1. Validar 3 cierres inmobiliarios con comisión neta comprobada (≥€5k each)
+2. Proyectar cash flow para 6 meses sin salario CGI (incluir retenciones, SS)
+3. Revisar con asesor fiscal implicaciones: excedencia vs. renuncia vs. part-time
+
+## QUÉ NO HACER AHORA
+
+- No comunicar a CGI hasta tener validación completa
+- No solicitar excedencia sin colchón de 6-12 meses
+- No asumir que excedencia es renuncia automática
+- No reducir dedicación a CGI prematuramente
+
+---
+
+*[Anclora Intelligence Agent — Phase 1]*  
+*Dominios: [Real Estate Mallorca Premium]*  
+*Confianza: 0.87*  
+*Flags: [labor-risk=HIGH, hitl_required=true]*
+```
+
+---
+
+## PHASE 2 SKILLS (DEFERRED)
+
+### SKILL_101: Domain Registry
+
+**Nombre:** `intelligence.domain_registry.get_domain_pack`  
+**Responsabilidad:** Gestionar catálogo de Domain Packs  
+**Phase:** 2 (DEFERRED)  
+**Estado:** [NOT IMPLEMENTED]  
+
+**Descripción:**
+En Phase 2, Intelligence soportará múltiples Domain Packs (Real Estate, Founder OS, Consulting).
+Este skill gestionará: registro, validación, activación, desactivación.
+
+**Dominios Previstos Phase 2+:**
+
+```yaml
+domain_packs:
+  real_estate_mallorca_premium:
+    version: "1.0"
+    status: "ACTIVE_PHASE_1"
+    geographical_scope: ["Palma", "Andratx", "Calvià", "others"]
+    buyer_profile: "International, English fluent, €2M+ budget"
+    
+  founder_os_strategy:
+    version: "0.0"
+    status: "DORMANT"
+    activation_condition: "Phase 2 + ≥5 real estate cierres"
+    scope: "Estrategia operativa, decisiones fundacionales"
+    
+  cognitive_consulting:
+    version: "0.0"
+    status: "DORMANT"
+    activation_condition: "Phase 3 + ≥€60k YoY ingresos Founder OS"
+```
+
+---
+
+### SKILL_102: NotebookLM Bridge
+
+**Nombre:** `intelligence.evidence.fetch_evidence`  
+**Responsabilidad:** Integración con NotebookLM para evidence layer  
+**Phase:** 2 (DEFERRED)  
+**Estado:** [NOT IMPLEMENTED]  
+
+**Descripción:**
+En Phase 2, Intelligence integrará NotebookLM para:
+- Búsqueda de evidencia en documents
+- Validación de datos contra sources
+- Generación de summaries con citations
+
+---
+
+## PHASE 3+ SKILLS (DEFERRED)
+
+### SKILL_201: GEM Agents Integration
+
+**Nombre:** `intelligence.agents.invoke_gem_agent`  
+**Responsabilidad:** Invocar agentes verticales especializados  
+**Phase:** 3 (DEFERRED)  
+**Estado:** [NOT IMPLEMENTED]  
+
+**Descripción:**
+GEM (Goal-Execution-Monitoring) agents especializados por dominio que ejecutan decisiones aprobadas.
+
+**Agentes Previstos:**
+
+```yaml
+gems_planned:
+  lead_evaluator_gem:
+    domain: "real_estate"
+    capability: "Evaluar leads automáticamente"
+    activation: "Phase 3 + ≥100 leads procesados"
+    
+  cash_flow_monitor_gem:
+    domain: "founder_os"
+    capability: "Monitorear cash flow vs. Strategic Mode"
+    activation: "Phase 3 + ≥2 líneas activas"
+```
+
+---
+
+## FASES Y TRANSICIONES
+
+```yaml
+Phase_1:
+  active_skills: [SKILL_001, SKILL_002, SKILL_003, SKILL_004, SKILL_005]
+  ui_features: ["chat_console", "decision_console", "query_plan_panel"]
+  domains_active: ["real_estate_mallorca_premium"]
+  status: "IMPLEMENTED"
+
+Phase_2:
+  adds: [SKILL_101, SKILL_102]
+  adds_ui: ["evidence_layer", "domain_selector", "history_panel"]
+  domains_active: ["real_estate", "founder_os_preparation"]
+  condition: "Phase 1 validated + ≥3 real estate cierres"
+
+Phase_3:
+  adds: [SKILL_201, SKILL_202, SKILL_203]
+  adds_ui: ["multi_domain_switch", "gem_status_panel"]
+  domains_active: ["real_estate", "founder_os", "consulting_prep"]
+  condition: "Phase 2 validated + ≥€60k annual ingresos"
+
+Phase_5:
+  extracts: "intelligence/ → independent module"
+  makes_portable: true
+  removes_nexus_coupling: true
+```
+
+---
+
+## SKILL DEPENDENCIES
+
+```yaml
+dependencies:
+  SKILL_001_Router:
+    requires: [LLMService, strategic_mode]
+    
+  SKILL_002_StrategicModeLoader:
+    requires: [git_repository, yaml_parser]
+    
+  SKILL_003_RiskEvaluator:
+    requires: [SKILL_002, LLMService]
+    
+  SKILL_004_Governor:
+    requires: [SKILL_001, SKILL_002, SKILL_003, rules_engine]
+    
+  SKILL_005_Synthesizer:
+    requires: [SKILL_004, template_engine]
+    
+  SKILL_101_DomainRegistry:
+    requires: [SKILL_005] # Deferred until Phase 2
+    
+  SKILL_102_NotebookLM:
+    requires: [external_api, SKILL_101] # Deferred until Phase 2
+```
+
+---
+
+## VERSIONADO DE SKILLS
+
+Todas las versiones de skills se documentan en:
+
+```
+.agent/skills/changelog.md
+```
+
+Cambios de skill requieren:
+1. Versión incremental (MAJOR.MINOR.PATCH)
+2. Justificación en changelog
+3. Validación contra constitution-canonical
+4. Audit log de cambio
+
+---
+
+# COLOFÓN
+
+Este catálogo MCP define la interfaz operativa entre Anclora Intelligence y el resto del sistema.
+
+Está diseñado para:
+✅ Progresión disciplinada (Phase 1 → 5)  
+✅ Extraibilidad (módulo independiente en Phase 5)  
+✅ Gobernanza Git-first  
+✅ Trazabilidad total  
+
+Versión: **1.0-skills-catalog**  
+Estado: **Phase 1 Complete, Phase 2-5 Deferred**  
+Última actualización: **Febrero 2026**

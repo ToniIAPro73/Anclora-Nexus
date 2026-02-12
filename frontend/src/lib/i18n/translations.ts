@@ -8,6 +8,7 @@ export const translations = {
     logout: 'Cerrar sesión',
     profile: 'Perfil',
     settings: 'Configuración',
+    intelligence: 'Intelligence',
 
     // Dashboard widgets
     leadsPulse: 'Contactos Activos',
@@ -93,6 +94,29 @@ export const translations = {
     unread: 'sin leer',
     markAllAsRead: 'Marcar todas',
     noNotifications: 'No hay notificaciones',
+
+    // Intelligence
+    intelligenceControlCenter: 'Centro de Control Intelligence',
+    intelligenceSubtitle: 'Orquestación estratégica y análisis de riesgos',
+    fastMode: 'Modo Fast',
+    deepMode: 'Modo Deep',
+    diagnosis: 'Diagnóstico',
+    recommendation: 'Recomendación',
+    nextSteps: 'Próximos Pasos',
+    dontDo: 'Qué NO Hacer',
+    riskAnalysis: 'Análisis de Riesgos',
+    queryPlan: 'Plan de Consulta',
+    confidence: 'Confianza',
+    processing: 'Procesando...',
+    placeholderIntelligence: 'Escribe tu consulta estratégica aquí...',
+    execute: 'Ejecutar',
+    postpone: 'Postergar',
+    reformulate: 'Reformular',
+    discard: 'Descartar',
+    laborRisk: 'Riesgo Laboral',
+    taxRisk: 'Riesgo Fiscal',
+    brandRisk: 'Riesgo Marca',
+    focusRisk: 'Riesgo Foco',
   },
   en: {
     // Navigation
@@ -103,6 +127,7 @@ export const translations = {
     logout: 'Logout',
     profile: 'Profile',
     settings: 'Settings',
+    intelligence: 'Intelligence',
 
     // Dashboard widgets
     leadsPulse: 'Active Contacts',
@@ -186,6 +211,29 @@ export const translations = {
     unread: 'unread',
     markAllAsRead: 'Mark all as read',
     noNotifications: 'No notifications',
+
+    // Intelligence
+    intelligenceControlCenter: 'Intelligence Control Center',
+    intelligenceSubtitle: 'Strategic orchestration and risk analysis',
+    fastMode: 'Fast Mode',
+    deepMode: 'Deep Mode',
+    diagnosis: 'Diagnosis',
+    recommendation: 'Recommendation',
+    nextSteps: 'Next Steps',
+    dontDo: 'What NOT to Do',
+    riskAnalysis: 'Risk Analysis',
+    queryPlan: 'Query Plan',
+    confidence: 'Confidence',
+    processing: 'Processing...',
+    placeholderIntelligence: 'Type your strategic query here...',
+    execute: 'Execute',
+    postpone: 'Postpone',
+    reformulate: 'Reformulate',
+    discard: 'Discard',
+    laborRisk: 'Labor Risk',
+    taxRisk: 'Tax Risk',
+    brandRisk: 'Brand Risk',
+    focusRisk: 'Focus Risk',
   },
   de: {
     // Navigation
@@ -196,6 +244,7 @@ export const translations = {
     logout: 'Abmelden',
     profile: 'Profil',
     settings: 'Einstellungen',
+    intelligence: 'Intelligence',
 
     // Dashboard widgets
     leadsPulse: 'Aktive Kontakte',
@@ -279,6 +328,29 @@ export const translations = {
     unread: 'ungelesen',
     markAllAsRead: 'Alle als gelesen markieren',
     noNotifications: 'Keine Benachrichtigungen',
+
+    // Intelligence
+    intelligenceControlCenter: 'Intelligence Control Center',
+    intelligenceSubtitle: 'Strategische Orchestrierung und Risikoanalyse',
+    fastMode: 'Fast-Modus',
+    deepMode: 'Deep-Modus',
+    diagnosis: 'Diagnose',
+    recommendation: 'Empfehlung',
+    nextSteps: 'Nächste Schritte',
+    dontDo: 'Was NICHT zu tun ist',
+    riskAnalysis: 'Risikoanalyse',
+    queryPlan: 'Abfrageplan',
+    confidence: 'Vertrauen',
+    processing: 'Wird verarbeitet...',
+    placeholderIntelligence: 'Geben Sie hier Ihre strategische Anfrage ein...',
+    execute: 'Ausführen',
+    postpone: 'Aufschieben',
+    reformulate: 'Reformulieren',
+    discard: 'Verwerfen',
+    laborRisk: 'Arbeitsrisiko',
+    taxRisk: 'Steuerrisiko',
+    brandRisk: 'Markenrisiko',
+    focusRisk: 'Fokusrisiko',
   },
 } as const
 

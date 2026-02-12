@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useStore, Lead } from '@/lib/store'
 import { ArrowLeft, Mail, Phone, Euro, ChevronLeft, ChevronRight, Trash2, Pencil, Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -9,7 +9,7 @@ import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
 import LeadFormModal from '@/components/modals/LeadFormModal'
 
-export default function LeadsPage() {
+function LeadsContent() {
   const leads = useStore((state) => state.leads)
   const deleteLead = useStore((state) => state.deleteLead)
   const { t } = useI18n()
@@ -70,11 +70,11 @@ export default function LeadsPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-             <div className="text-right">
+            <div className="text-right">
                 <span className="text-sm text-soft-muted">{t('total')}: </span>
                 <span className="text-lg font-bold text-gold">{leads.length}</span>
-             </div>
-             <button
+            </div>
+            <button
                 onClick={() => {
                   setEditingLead(null)
                   setIsModalOpen(true)
@@ -246,5 +246,13 @@ export default function LeadsPage() {
         editLead={editingLead} 
       />
     </div>
+  )
+}
+
+export default function LeadsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-soft-muted">Cargando contactos...</div>}>
+      <LeadsContent />
+    </Suspense>
   )
 }
