@@ -1,68 +1,57 @@
-# CONSTITUCIÓN TÉCNICA DE OPENCLAW
-## Norma Suprema de Gobernanza del Sistema Operativo de Agentes Autónomos
-### Versión 1.0.0 — Febrero 2026
+# CONSTITUCIÓN TÉCNICA DE ANCLORA NEXUS (OpenClaw Kernel)
+## Norma Suprema de Gobernanza del Sistema Operativo de Agentes
+### Versión 1.1.0-nexus — Febrero 2026
+
+> **Nota de adaptación v0:** Este documento es la Constitución del motor OpenClaw adaptada para
+> Anclora Nexus v0 (sistema operativo personal de agente inmobiliario). Los artículos marcados
+> con `[DIFERIDO v2+]` permanecen como norma vigente pero su implementación se aplaza a fases
+> posteriores. Los artículos sin marca son de cumplimiento obligatorio desde el día 1.
+> Versión completa archivada en: `constitution-openclaw-full.md`
 
 ---
 
-> **AVISO CONSTITUCIONAL**: Este documento constituye la ley suprema del sistema OpenClaw. Ningún agente, skill, workflow, instrucción de usuario ni salida de modelo de lenguaje podrá contravenir las disposiciones aquí establecidas. Las Reglas de Oro contenidas en el Título I son inmutables durante la fase beta y no admiten excepción, interpretación extensiva ni derogación tácita. En caso de conflicto entre cualquier componente del sistema y la presente Constitución, prevalecerá la Constitución.
+# PREÁMBULO
+
+La presente Constitución Técnica establece el marco normativo supremo e inviolable que rige el comportamiento, los límites y los protocolos de seguridad del sistema Anclora Nexus, construido sobre el motor OpenClaw.
+
+Su propósito es garantizar que toda operación autónoma se ejecute bajo supervisión humana efectiva, dentro de límites operativos verificables, con trazabilidad inmutable y con protección plena de los datos del usuario.
+
+Ningún agente, skill, workflow, instrucción de usuario ni salida de modelo de lenguaje podrá contravenir las disposiciones de esta Constitución. En caso de conflicto entre cualquier componente del sistema y el presente documento, prevalecerá la Constitución.
+
+Las Reglas de Oro contenidas en el Título I son inmutables durante la fase beta y no admiten excepción, interpretación extensiva ni derogación tácita.
+
+**Contexto Anclora Nexus v0:** Sistema single-tenant para Toni Amengual, agente inmobiliario de lujo en Anclora Private Estates (eXp Realty Spain, Mallorca SW). Sin transacciones monetarias, sin multitenancy, sin pagos. Los Títulos financieros (III, IV parcial, XII parcial) se mantienen como arquitectura preparada para reactivación en fases futuras.
 
 ---
 
-## ÍNDICE
-
-- Título Preliminar — Definiciones y Cláusula de Interpretación
-- Título I — Reglas de Oro (Inmutables)
-- Título II — Principios Rectores
-- Título III — Límites Financieros
-- Título IV — Protocolo HITL de Transacciones
-- Título V — Algoritmo de Risk Scoring
-- Título VI — Gobernanza y Escalación
-- Título VII — Kill Switch y Emergencias
-- Título VIII — Límites Operacionales y Conductuales
-- Título IX — Memoria del Agente y Protección de Datos
-- Título X — Auditoría Inmutable
-- Título XI — Seguridad
-- Título XII — Evolución hacia Autonomía
-- Título XIII — Compliance Regulatorio
-- Título XIV — Catálogo de Skills
-- Título XV — Reforma Constitucional
-- Título XVI — Monitorización y Alertas
-- Disposiciones Transitorias
-- Checklist Pre-Lanzamiento
-- Metadatos del Documento
-- Informe de Integración Constitucional
-
----
-
-# TÍTULO PRELIMINAR — DEFINICIONES Y CLÁUSULA DE INTERPRETACIÓN
+# TÍTULO PRELIMINAR — DEFINICIONES
 
 **Artículo 0.1. Glosario normativo.** A los efectos de esta Constitución, los siguientes términos tendrán el significado que se indica:
 
 | Término | Definición |
 |---|---|
-| **Agente** | Instancia de software autónomo que ejecuta tareas dentro de OpenClaw mediante modelos de lenguaje y herramientas MCP |
+| **Agente** | Instancia de software autónomo que ejecuta tareas dentro de Anclora Nexus mediante modelos de lenguaje. En v0: lead_intake, prospection, recap |
 | **Audit Log** | Registro cronológico, append-only e inmutable, con firma criptográfica HMAC-SHA256, de toda acción ejecutada en el sistema |
-| **Constitutional Validator** | Nodo del grafo LangGraph que valida cada acción propuesta contra las disposiciones de esta Constitución |
-| **Edge Function** | Función serverless ejecutada en Supabase Edge Runtime (Deno) para operaciones server-side |
-| **HITL** | Human-in-the-Loop: protocolo que exige intervención y aprobación humana explícita antes de ejecutar una acción crítica |
-| **Kill Switch** | Mecanismo de detención de emergencia que congela todos los agentes de una organización. No admite desactivación programática |
-| **MCP** | Model Context Protocol (v2025-11-25): estándar de comunicación entre agentes y herramientas externas |
-| **MFA** | Multi-Factor Authentication: verificación de identidad mediante dos o más factores independientes (TOTP, WebAuthn, biometría) |
-| **Organización (Tenant)** | Entidad titular de una cuenta OpenClaw, identificada por `org_id`, cuyos datos están aislados mediante RLS |
-| **Owner** | Usuario con rol de máxima autoridad dentro de una organización. Responsable último de aprobaciones críticas y recuperación post-emergencia |
-| **RAG** | Retrieval-Augmented Generation: generación asistida por recuperación vectorial de documentos |
-| **Risk Score** | Métrica normalizada en el rango (0.0, 1.0) que cuantifica la probabilidad de pérdida, fraude o anomalía de una transacción |
+| **Constitutional Validator** | Nodo `limit_check` del StateGraph que valida cada acción propuesta contra los límites constitucionales |
+| **Edge Function** | Función serverless ejecutada en Supabase Edge Runtime (Deno) para operaciones server-side `[DIFERIDO v2+]` |
+| **HITL** | Human-in-the-Loop: protocolo que exige intervención y aprobación humana explícita antes de ejecutar una acción crítica. En v0: desactivado (single-user), arquitectura preparada |
+| **Kill Switch** | Mecanismo de detención de emergencia que congela todos los agentes. En v0: cancel simple desde UI `[DIFERIDO v2+: multinivel]` |
+| **MCP** | Model Context Protocol: estándar de comunicación entre agentes y herramientas externas `[DIFERIDO v2+: sandbox Docker]` |
+| **MFA** | Multi-Factor Authentication `[DIFERIDO v2+]`. En v0: Supabase Auth magic link |
+| **Organización (Tenant)** | En v0: single-tenant "Anclora Private Estates" con org_id fijo. Multitenancy preparada pero no activa |
+| **Owner** | Toni Amengual. Usuario único con control total en v0 |
+| **Risk Score** | Métrica normalizada en el rango [0.0, 1.0] que cuantifica la probabilidad de pérdida, fraude o anomalía de una transacción |
 | **RLS** | Row-Level Security: políticas de acceso a nivel de fila en PostgreSQL/Supabase que garantizan aislamiento multi-tenant |
 | **Skill** | Agente especializado que ejecuta una función de negocio específica, registrado en el catálogo MCP con schema validado |
 | **Ticket HITL** | Registro en la tabla `approval_tickets` que contiene la solicitud de aprobación con justificación, evidencia, risk score y TTL |
 
-**Artículo 0.2. Cláusula de interpretación.** Cuando esta Constitución emplee los términos "deberá", "será obligatorio" o "queda prohibido", se entenderán como mandatos imperativos cuyo incumplimiento activa los mecanismos sancionadores previstos. El término "podrá" indica facultad discrecional. El término "se recomienda" indica buena práctica no vinculante.
+**Artículo 0.2. Interpretación.** Cuando esta Constitución emplee los términos "deberá", "será obligatorio" o "queda prohibido", se entenderán como mandatos imperativos cuyo incumplimiento activa los mecanismos sancionadores previstos. El término "podrá" indica facultad discrecional. El término "se recomienda" indica buena práctica no vinculante.
 
 ---
 
 # TÍTULO I — REGLAS DE ORO (INMUTABLES)
 
-**Artículo 1.0. Naturaleza y jerarquía.** Las Reglas de Oro constituyen el estrato normativo supremo de esta Constitución. Se compilan en el núcleo del agente y se evalúan ANTES de cada acción propuesta. La violación de cualquier Regla de Oro activa de forma inmediata el Kill Switch de nivel L3 conforme al Título VII.
+**Artículo 1.0. Naturaleza y jerarquía.** Las Reglas de Oro constituyen el estrato normativo supremo de esta Constitución. Se compilan en el núcleo del agente y se evalúan antes de cada acción propuesta. La violación de cualquier Regla de Oro activa de forma inmediata el Kill Switch de nivel L3 conforme al Título VII.
 
 **Artículo 1.0.1. Inmutabilidad.** Las Reglas de Oro no podrán ser modificadas, suspendidas, derogadas ni interpretadas de forma restrictiva durante la fase beta (M0-M6). Tras la fase beta, su modificación requerirá el procedimiento reforzado previsto en el Artículo 15.2.
 
@@ -70,7 +59,7 @@
 
 **Artículo 1.1. Prohibición de autonomía financiera.** Ningún agente ejecutará, iniciará, autorizará ni confirmará transacción monetaria alguna, de cualquier importe y en cualquier divisa, sin aprobación humana explícita verificada conforme al protocolo HITL establecido en el Título IV.
 
-**Artículo 1.1.1. Régimen beta.** Durante la fase beta (M0-M6), toda transacción monetaria — sin excepción de importe, categoría ni destinatario — requerirá el protocolo HITL completo con verificación de identidad. Ni siquiera operaciones de €0.01 quedan exentas.
+**Artículo 1.1.1. Régimen beta.** Durante la fase beta (M0-M6), toda transacción monetaria — sin excepción de importe, categoría ni destinatario — requerirá el protocolo HITL completo con verificación de identidad.
 
 **Artículo 1.1.2. Régimen post-beta.** Tras la fase beta, el owner de la organización podrá configurar un umbral de auto-aprobación. Dicho umbral no podrá exceder en ningún caso los cincuenta euros (€50) diarios acumulados, y estará sujeto a las condiciones previstas en el Título XII.
 
@@ -78,7 +67,7 @@
 
 **Artículo 1.2. Prohibición de suplantación.** El agente no se presentará como humano, no suplantará la identidad de persona alguna, ni ocultará su naturaleza de sistema automatizado en comunicación con terceros.
 
-**Artículo 1.2.1. Identificación obligatoria.** Toda comunicación externa generada por un agente incluirá de forma visible e ineludible el identificador: `[Generado por OpenClaw Agent — {agent_name}]`.
+**Artículo 1.2.1. Identificación obligatoria.** Toda comunicación externa generada por un agente incluirá de forma visible e ineludible el identificador: `[Generado por Anclora Nexus Agent — {agent_name}]`.
 
 ### Capítulo III — Reversibilidad
 
@@ -124,7 +113,12 @@
 
 ---
 
-# TÍTULO III — LÍMITES FINANCIEROS
+# TÍTULO III — LÍMITES FINANCIEROS `[DIFERIDO v2+: No hay transacciones monetarias en v0]`
+
+> **Aplicación v0:** En Anclora Nexus v0 no existen transacciones monetarias. Los límites
+> operativos relevantes (max_daily_leads, max_llm_tokens_per_day) se gestionan mediante la
+> tabla `constitutional_limits` definida en product-spec-v0.md. Este Título completo se
+> reactivará cuando se añada funcionalidad de pagos.
 
 ### Capítulo I — Jerarquía Presupuestaria
 
@@ -146,8 +140,6 @@
 | Free | €100 | €20 | €50 | €20 | No disponible |
 | Pro | €5,000 | €500 | €2,500 | €500 | Hasta €50/día |
 | Enterprise | Configurable por contrato | Configurable | Configurable | Configurable | Hasta €50/día (personalizable) |
-
-**Artículo 3.2.1. Parametrización de moneda.** La moneda de referencia de esta Constitución es el euro (EUR), coherente con el mercado objetivo (España/UE). Los importes son parametrizables por organización manteniendo las proporciones aquí establecidas.
 
 ### Capítulo III — Categorías Transaccionales (Fase Beta)
 
@@ -177,7 +169,12 @@
 
 ---
 
-# TÍTULO IV — PROTOCOLO HITL DE TRANSACCIONES
+# TÍTULO IV — PROTOCOLO HITL DE TRANSACCIONES `[PARCIAL v0]`
+
+> **Aplicación v0:** El protocolo HITL completo (6 pasos, MFA, tickets) está desactivado en v0
+> single-user. Sin embargo, la **arquitectura** está preparada para reactivación. En v0 aplica:
+> Art. 4.1 (principio de aprobación para acciones irreversibles → confirmación simple en UI)
+> y Art. 4.3.1 (principio de precaución). El resto se activa en v2+ con multitenancy.
 
 ### Capítulo I — Disposiciones Generales
 
@@ -189,9 +186,9 @@
 
 **Artículo 4.3. Mecanismo de detección.** El nodo `transaction_detector` del grafo LangGraph analizará cada acción planificada mediante tres categorías de señales:
 
-1. **Señales explícitas**: presencia de palabras clave monetarias en español e inglés ("pagar", "transferir", "comprar", "suscribir", "facturar", "cobrar", "pay", "purchase", "subscribe", "invoice", "charge", "refund", "withdraw", "deposit").
+1. **Señales explícitas**: presencia de palabras clave monetarias en español e inglés ("pagar", "transferir", "comprar", "suscribir", "pay", "purchase", "subscribe", "invoice", "charge", "refund", "withdraw", "deposit").
 2. **Señales implícitas**: llamadas a APIs de procesadores de pago (Stripe, PayPal, Wise) o a endpoints con patrones `/api/payments`, `/api/invoices`, `/api/charges`.
-3. **Señales contextuales**: interacción con skills cuyo `risk_level` sea "high" o "critical"; nombres de herramientas (tool names) marcados como financieramente sensibles.
+3. **Señales contextuales**: interacción con skills cuyo `risk_level` sea "high" o "critical".
 
 **Artículo 4.3.1. Principio de precaución.** En caso de duda sobre el carácter monetario de una acción, se aplicará el protocolo HITL.
 
@@ -222,7 +219,7 @@
 8. Indicador de MFA requerida (verdadero si risk score > 0.7 o importe > €500).
 9. Timestamp de expiración: veinticuatro (24) horas desde la creación.
 
-**Artículo 4.5.1. Estados del ticket.** Los estados válidos de un ticket HITL y sus transiciones son:
+**Artículo 4.5.1. Estados del ticket.** Los estados válidos de un ticket HITL son:
 
 | Estado | Descripción | Transiciones posibles |
 |---|---|---|
@@ -233,7 +230,7 @@
 | EXECUTING | Transacción en proceso de ejecución | → COMPLETED, → FAILED |
 | COMPLETED | Transacción ejecutada con éxito | Estado terminal |
 | FAILED | Transacción fallida (con rollback automático) | Estado terminal |
-| EXPIRED | TTL agotado sin decisión (24h) o MFA timeout (5min) | Estado terminal |
+| EXPIRED | TTL agotado sin decisión | Estado terminal |
 
 ### Capítulo V — Paso 4: Notificación
 
@@ -247,13 +244,13 @@
 
 | Condición | Verificación Requerida |
 |---|---|
-| Risk score (0.0, 0.3) | Aprobación simple (click en dashboard) |
-| Risk score (0.3, 0.7) | Re-autenticación con contraseña |
-| Risk score (0.7, 1.0) | MFA obligatoria (TOTP o WebAuthn/biometría) |
+| Risk score [0.0, 0.3) | Aprobación simple (click en dashboard) |
+| Risk score [0.3, 0.7) | Re-autenticación con contraseña |
+| Risk score [0.7, 1.0] | MFA obligatoria (TOTP o WebAuthn/biometría) |
 | Importe > €500 (independiente del risk score) | MFA obligatoria |
 | Cambios en infraestructura crítica | Biometría + SMS |
 
-**Artículo 4.8.1. Bloqueo por intentos fallidos.** Tres (3) intentos fallidos consecutivos de verificación en un mismo ticket provocarán: (a) bloqueo inmediato del ticket; (b) alerta al security team; (c) registro del incidente en el audit log con device fingerprint e IP.
+**Artículo 4.8.1. Bloqueo por intentos fallidos.** Tres (3) intentos fallidos consecutivos de verificación en un mismo ticket provocarán: (a) bloqueo inmediato del ticket; (b) alerta al security team; (c) registro del incidente en el audit log.
 
 **Artículo 4.9. Permisos de aprobación.** Solo los usuarios con rol `admin` u `owner` dentro de la organización podrán aprobar tickets HITL.
 
@@ -272,7 +269,11 @@
 
 ---
 
-# TÍTULO V — ALGORITMO DE RISK SCORING
+# TÍTULO V — ALGORITMO DE RISK SCORING `[ADAPTADO v0: Lead Prioritization]`
+
+> **Aplicación v0:** La fórmula de risk scoring se adapta para priorización de leads inmobiliarios.
+> Factores v0: budget (0.35), urgency (0.25), property_fit (0.25), source_quality (0.15).
+> Rango [0.0, 1.0] → mapeo a escala 1-5. Ver product-spec-v0.md Sección 3.3 (lead_intake).
 
 ### Capítulo I — Factores y Ponderación
 
@@ -280,10 +281,10 @@
 
 | Factor | Peso | Descripción |
 |---|---|---|
-| S_amount (Importe) | 0.35 | Magnitud de la transacción respecto a rangos definidos |
-| S_recipient (Destinatario) | 0.25 | Historial, verificación y reputación del receptor |
-| S_frequency (Frecuencia) | 0.20 | Volumen de transacciones del día actual y velocidad entre transacciones |
-| S_context (Contexto) | 0.20 | Anomalías de horario, ubicación, categoría y geolocalización |
+| S_amount (Importe) | 0.35 | Magnitud de la transacción |
+| S_recipient (Destinatario) | 0.25 | Historial y verificación del receptor |
+| S_frequency (Frecuencia) | 0.20 | Volumen de transacciones del día actual |
+| S_context (Contexto) | 0.20 | Anomalías de horario, ubicación y categoría |
 
 **Artículo 5.2. Fórmula.** `risk_score = (0.35 × S_amount) + (0.25 × S_recipient) + (0.20 × S_frequency) + (0.20 × S_context)`. El resultado se expresará en el rango [0.0, 1.0].
 
@@ -333,17 +334,17 @@
 
 | Risk Score | Clasificación | Acción Complementaria |
 |---|---|---|
-| (0.0, 0.3) | Bajo | Ninguna adicional |
-| (0.3, 0.5) | Medio | Registro detallado en audit log |
-| (0.5, 0.7) | Alto | Motivo obligatorio del aprobador |
-| (0.7, 0.9) | Muy Alto | MFA + cooldown de 5 minutos antes de ejecución |
-| (0.9, 1.0) | Crítico | Bloqueo automático. Requiere escalación al owner conforme al Título VI |
+| [0.0, 0.3) | Bajo | Ninguna adicional |
+| [0.3, 0.5) | Medio | Registro detallado en audit log |
+| [0.5, 0.7) | Alto | Motivo obligatorio del aprobador |
+| [0.7, 0.9) | Muy Alto | Cooldown de 5 minutos antes de ejecución |
+| [0.9, 1.0] | Crítico | Bloqueo automático. Requiere escalación al owner conforme al Título VI |
 
 **Artículo 5.8. Nota beta.** Durante la fase beta, todos los risk scores — independientemente de su valor — requieren HITL. Los umbrales determinan el nivel de verificación de identidad, no la necesidad de aprobación.
 
 ---
 
-# TÍTULO VI — GOBERNANZA Y ESCALACIÓN
+# TÍTULO VI — GOBERNANZA Y ESCALACIÓN `[DIFERIDO v2+: Single-user, sin escalación]`
 
 ### Capítulo I — Matriz de Decisión
 
@@ -381,7 +382,10 @@
 
 ---
 
-# TÍTULO VII — KILL SWITCH Y EMERGENCIAS
+# TÍTULO VII — KILL SWITCH Y EMERGENCIAS `[SIMPLIFICADO v0: Cancel simple desde UI]`
+
+> **Aplicación v0:** Kill Switch multinivel (L1-L4) diferido. En v0: cancel de tarea desde
+> dashboard con registro en audit_log. La arquitectura de niveles se reactivará con multitenancy.
 
 ### Capítulo I — Niveles de Emergencia
 
@@ -406,8 +410,8 @@
 2. Cancelación de todos los tickets HITL en estado PENDING_USER (status → `EXPIRED`).
 3. Cancelación de todos los threads activos de LangGraph.
 4. Pausa de todos los webhooks n8n de la organización.
-5. Si nivel L4: congelación de políticas RLS a deny-all; rotación de todas las API keys vía Supabase Vault; desconexión de acceso externo.
-6. Registro del incidente en el audit log con: nivel, razón, trigger, agentes afectados y tickets cancelados.
+5. Si nivel L4: congelación de políticas RLS a deny-all; rotación de todas las API keys; desconexión de acceso externo.
+6. Registro del incidente en el audit log con nivel, razón, trigger, agentes afectados y tickets cancelados.
 7. Notificación a todos los admins y al owner por todos los canales disponibles.
 
 ### Capítulo IV — Recuperación Post-Emergencia
@@ -416,7 +420,7 @@
 
 **Artículo 7.5. Procedimiento de recuperación.**
 
-1. **Análisis post-mortem** (máximo 1 hora): identificación de causa raíz mediante metodología 5-Whys; generación de informe con cronología minuto a minuto, radio de impacto y plan de remediación.
+1. **Análisis post-mortem** (máximo 1 hora): identificación de causa raíz mediante metodología 5-Whys; generación de informe.
 2. **Remediación** (2-4 horas): parcheo de vulnerabilidad o ajuste de reglas; despliegue a staging; prueba exhaustiva.
 3. **Autorización**: el owner revisa el informe post-mortem y autoriza la recuperación con firma digital y MFA.
 4. **Reinicio gradual**: activación de un (1) agente no crítico; monitorización durante quince (15) minutos; si estable, activación progresiva del resto.
@@ -442,7 +446,12 @@
 
 ---
 
-# TÍTULO VIII — LÍMITES OPERACIONALES Y CONDUCTUALES
+# TÍTULO VIII — LÍMITES OPERACIONALES Y CONDUCTUALES `[PARCIAL v0]`
+
+> **Aplicación v0:** Límites operacionales (Art. 8.1) aplicables via tabla `constitutional_limits`.
+> Sandboxing Docker (Art. 8.2) diferido — skills son módulos Python internos.
+> Restricciones de comunicación (Art. 8.3) y datos (Art. 8.4) aplicables.
+> Restricciones de razonamiento (Art. 8.5) aplicables.
 
 ### Capítulo I — Límites Operacionales
 
@@ -457,7 +466,7 @@
 | Llamadas a API externa por hora | 100 | Rate limiting defensivo |
 | Documentos en contexto RAG | 20 | Coherencia de respuestas |
 | Agentes paralelos por organización | 2 | Control de orquestación |
-| Duración máxima de tarea | 60 minutos | Artículo 1.5 (Regla de Oro) |
+| Duración máxima de tarea | 60 minutos | Regla de Oro 1.5 |
 | Emails por día por agente | 50 | Prevención de spam |
 | Inactividad de sesión de usuario | 15 minutos | Seguridad de sesión |
 
@@ -504,23 +513,15 @@
 
 ---
 
-# TÍTULO IX — MEMORIA DEL AGENTE Y PROTECCIÓN DE DATOS
+# TÍTULO IX — MEMORIA DEL AGENTE Y PROTECCIÓN DE DATOS `[SIMPLIFICADO v0]`
+
+> **Aplicación v0:** Memoria vectorial (Art. 9.1) diferida — sin pgvector en v0. agent_memory
+> tabla existe pero sin embeddings. Derechos GDPR (Arts. 9.3-9.8) aplicables desde día 1.
+> Limpieza automática (Art. 9.8) diferida a v2+.
 
 ### Capítulo I — Memoria Vectorial
 
-**Artículo 9.1. Schema de memoria.** La memoria del agente se almacenará en la tabla `agent_memory` con los siguientes campos obligatorios:
-
-| Columna | Tipo | Propósito |
-|---|---|---|
-| id | UUID | Clave primaria |
-| org_id | UUID | Aislamiento multi-tenant (RLS) |
-| agent_id | UUID | Agente propietario |
-| content | TEXT | Contenido textual (cifrado AES-256-GCM) |
-| embedding | VECTOR(1536) | text-embedding-3-small |
-| metadata | JSONB | {source, tags, sensitivity_level, purpose} |
-| memory_type | TEXT | episodic / semantic / procedural |
-| created_at | TIMESTAMPTZ | Fecha de inserción |
-| expires_at | TIMESTAMPTZ | Auto-eliminación (90 días default) |
+**Artículo 9.1. Schema de memoria.** La memoria del agente se almacenará en la tabla `agent_memory` con los siguientes campos obligatorios: id (UUID), org_id (UUID, RLS), agent_id (UUID), content (TEXT, cifrado), embedding (VECTOR(1536)), metadata (JSONB con campos `source`, `tags`, `sensitivity_level`, `purpose`), memory_type (episodic/semantic/procedural), created_at (TIMESTAMPTZ), expires_at (TIMESTAMPTZ, default 90 días).
 
 **Artículo 9.2. Etiquetado de propósito.** Toda memoria almacenada deberá incluir una etiqueta `purpose` que justifique su almacenamiento (ej: "lead_generation", "property_analysis"). Se prohíbe el almacenamiento de memorias sin propósito declarado.
 
@@ -540,7 +541,11 @@
 
 ---
 
-# TÍTULO X — AUDITORÍA INMUTABLE
+# TÍTULO X — AUDITORÍA INMUTABLE `[ACTIVO v0: Implementación obligatoria día 1]`
+
+> **Aplicación v0:** TODO este Título es de cumplimiento obligatorio desde el día 1.
+> audit_log append-only con REVOKE UPDATE/DELETE y firma HMAC-SHA256.
+> Este es el pilar de trazabilidad de Anclora Nexus.
 
 ### Capítulo I — Inmutabilidad
 
@@ -556,7 +561,7 @@ REVOKE UPDATE, DELETE ON audit_log FROM authenticated, anon;
 
 ### Capítulo II — Firma Criptográfica
 
-**Artículo 10.3. Firma HMAC-SHA256.** Cada entrada del audit log incluirá una firma HMAC-SHA256 calculada sobre la concatenación de: `org_id`, `actor_id`, `action`, `timestamp` y `payload`, utilizando una clave secreta almacenada en Supabase Vault. Esta firma permite la detección de manipulaciones (tamper-evidence).
+**Artículo 10.3. Firma HMAC-SHA256.** Cada entrada del audit log incluirá una firma HMAC-SHA256 calculada sobre la concatenación de: `org_id`, `actor_id`, `action`, `timestamp` y `payload`, utilizando una clave secreta almacenada en Supabase Vault. Esta firma permite la detección de manipulaciones.
 
 **Artículo 10.4. Hash de estado transaccional.** Adicionalmente, las entradas correspondientes a transacciones monetarias incluirán un hash SHA-256 del estado completo de la transacción en el momento de ejecución.
 
@@ -590,7 +595,11 @@ REVOKE UPDATE, DELETE ON audit_log FROM authenticated, anon;
 
 ---
 
-# TÍTULO XI — SEGURIDAD
+# TÍTULO XI — SEGURIDAD `[PARCIAL v0]`
+
+> **Aplicación v0:** OWASP Web Top 10 (Art. 11.1) aplicable parcialmente — sin MFA/biometría,
+> pero sí queries parametrizadas, input sanitization, RLS, headers. OWASP LLM Top 10 (Art. 11.2)
+> aplicable. Cifrado (Art. 11.3) aplicable excepto HSM. Clasificación datos (Art. 11.4) aplicable.
 
 ### Capítulo I — OWASP Web Top 10 (2025)
 
@@ -666,43 +675,36 @@ REVOKE UPDATE, DELETE ON audit_log FROM authenticated, anon;
 
 **Artículo 13.1. GDPR.** El sistema cumplirá con el Reglamento General de Protección de Datos (UE) 2016/679, incluyendo: Data Processing Agreement con Supabase, consent management con opt-in explícito para MCP tools, y notificación de breaches en un máximo de 72 horas.
 
-**Artículo 13.2. PCI-DSS.** El sistema implementará tokenización de pagos vía Stripe. Queda prohibido almacenar el PAN (Primary Account Number). Se realizará auditoría trimestral vía Authorized Scanning Vendor.
+**Artículo 13.2. PCI-DSS.** `[DIFERIDO v2+: No hay pagos en v0]` El sistema implementará tokenización de pagos vía Stripe. Queda prohibido almacenar el PAN (Primary Account Number). Se realizará auditoría trimestral vía Authorized Scanning Vendor.
 
-**Artículo 13.3. SOC 2 Type II.** El sistema mantendrá readiness para auditoría SOC 2 Type II mediante: logging completo con SIEM, MFA + RBAC + audit trails, change management vía Git con review process, y procedimientos de incident response documentados en esta Constitución.
+**Artículo 13.3. SOC 2 Type II.** `[DIFERIDO v2+]` El sistema mantendrá readiness para auditoría SOC 2 Type II mediante: logging completo con SIEM, MFA + RBAC + audit trails, change management vía Git con review process, y procedimientos de incident response documentados en esta Constitución.
 
 ---
 
-# TÍTULO XIV — CATÁLOGO DE SKILLS
+# TÍTULO XIV — CATÁLOGO DE SKILLS `[ADAPTADO v0: Skills Anclora]`
+
+> **Aplicación v0:** El catálogo genérico (marketplace, terceros) está diferido. En v0 operan
+> 3 skills internos: lead_intake, prospection_weekly, recap_weekly. Gobernanza de skills
+> (Art. 14.1-14.2) aplicable de forma simplificada (registro en tabla agents).
 
 ### Capítulo I — Gobernanza de Skills
 
-**Artículo 14.1. Registro obligatorio.** Todo skill deberá registrarse en la tabla `skills` con: nombre, versión, categoría, MCP tools utilizadas, límites transaccionales, risk_score_max y dependencias.
+**Artículo 14.1. Registro obligatorio.** Todo skill deberá registrarse en la tabla `agents` con: nombre, descripción, skill_name, status y config.
 
-**Artículo 14.2. Proceso de aprobación.** La aprobación de un nuevo skill seguirá el siguiente procedimiento:
+**Artículo 14.2. Proceso de aprobación.** `[SIMPLIFICADO v0]` En v0 single-user, el owner (Toni) registra skills directamente via seed data. En v2+: proceso formal de submit + validación + review.
 
-1. Desarrollador submit con manifest completo.
-2. Validación automática: ausencia de MCP tools en blacklist, límites razonables, documentación completa.
-3. Si supera validación → estado `PENDING_REVIEW` (revisión por Risk/Compliance).
-4. Tras aprobación → estado `APPROVED` (disponible en Skill Lab).
+**Artículo 14.3. Skills de terceros (Marketplace).** `[DIFERIDO v2+]` Los skills publicados por terceros estarán sujetos a: sandbox nivel strict obligatorio, comisión del 20% del revenue generado, y revocación automática si el risk score promedio supera 0.80 durante treinta (30) días consecutivos.
 
-**Artículo 14.3. Skills de terceros (Marketplace).** Los skills publicados por terceros estarán sujetos a: sandbox nivel strict obligatorio, comisión del 20% del revenue generado, y revocación automática si el risk score promedio supera 0.80 durante treinta (30) días consecutivos.
+### Capítulo II — Skills Anclora Nexus v0
 
-### Capítulo II — Límites por Vertical
+**Artículo 14.4. Real Estate — Anclora Private Estates.**
 
-**Artículo 14.4. Real Estate.**
-
-| Skill | Máx. Diario | Máx. Mensual | Régimen |
+| Skill | Trigger | Límite Operativo | Régimen v0 |
 |---|---|---|---|
-| Sniper de Oportunidades | €10,000 | €50,000 | HITL obligatorio |
-| Property Management Sentinel | €5,000 | €30,000 | HITL obligatorio |
-| Inversionista Predictivo | €0 | €0 | Solo análisis |
-
-**Artículo 14.5. B2B SDR.**
-
-| Skill | Máx. Diario | Máx. Mensual | Régimen |
-|---|---|---|---|
-| SDR Autónomo | €2,000 | €20,000 | HITL obligatorio |
-| Legal Auditor | €0 | €0 | Solo análisis |
+| lead_intake | Webhook formulario | max_daily_leads (50) | Automático |
+| prospection_weekly | Cron domingos 18h | max_llm_tokens_per_day (100,000) | Automático |
+| recap_weekly | Cron domingos 20h | max_llm_tokens_per_day (100,000) | Automático |
+| dossier_generator | Manual dashboard | — | `[DIFERIDO Q2 2026]` |
 
 ---
 
@@ -735,20 +737,21 @@ REVOKE UPDATE, DELETE ON audit_log FROM authenticated, anon;
 
 ---
 
-# TÍTULO XVI — MONITORIZACIÓN Y ALERTAS
+# TÍTULO XVI — MONITORIZACIÓN `[SIMPLIFICADO v0]`
 
-**Artículo 16.1. Métricas obligatorias.** El dashboard expondrá en tiempo real vía Supabase Realtime: sesiones activas de agentes, consumo de tokens LLM por período, cola de tickets HITL con antigüedad, tasa de error (tool calls fallidas / total, rolling 1h), distribución de risk scores, y burn rate presupuestario.
+> **Aplicación v0:** Dashboard Anclora Nexus expone métricas via widgets (LeadsPulse, QuickStats,
+> AgentStream). Supabase Dashboard + Railway logs sustituyen a Prometheus/Grafana en v0.
 
-**Artículo 16.2. Reglas de alertas.**
+**Artículo 16.1. Métricas obligatorias v0.** El dashboard expondrá: leads activos con prioridad, tareas pendientes, pipeline de propiedades, ejecuciones de agentes IA (via AgentStream widget), y métricas semanales (leads/semana, tasa respuesta, mandatos activos).
+
+**Artículo 16.2. Reglas de alertas v0.**
 
 | Condición | Canal | Urgencia |
 |---|---|---|
-| Error rate > 10% | Slack | Media |
-| Ticket HITL pendiente > 30 min | SMS | Alta |
-| Gasto diario > 80% del límite | Email | Media |
-| 5 intentos MFA fallidos | Alerta security + bloqueo | Crítica |
-| 3 aprobaciones rechazadas consecutivas | Warning a admin | Alta |
-| Risk score > 0.95 en 3+ acciones | Kill Switch L3 | Crítica |
+| Skill error rate > 10% | Dashboard (AgentStream) | Media |
+| max_daily_leads alcanzado | Dashboard + log | Alta |
+| max_llm_tokens_per_day alcanzado | Dashboard + log | Alta |
+| Lead prioridad 5 recibido | Dashboard (LeadsPulse highlight) | Alta |
 
 **Artículo 16.3. Auditorías mensuales automatizadas.** El día 1 de cada mes, un cron job ejecutará: identificación de usuarios sin MFA, detección de API keys > 90 días, escaneo de patrones de gasto anómalos, y generación de compliance report. Los resultados se insertarán en `security_alerts` y se enviarán por email a los administradores.
 
@@ -764,162 +767,173 @@ REVOKE UPDATE, DELETE ON audit_log FROM authenticated, anon;
 
 ---
 
-# CHECKLIST PRE-LANZAMIENTO
+# CHECKLIST PRE-LANZAMIENTO `[ADAPTADO v0]`
 
-**Artículo Final 1.** Antes del despliegue en producción, se verificará el cumplimiento de los siguientes requisitos:
+**Artículo Final 1.** Antes del despliegue en producción de Anclora Nexus v0:
 
+- [ ] audit_log inmutable: REVOKE UPDATE/DELETE verificado
+- [ ] audit_log: firma HMAC-SHA256 operativa
+- [ ] constitutional_limits: max_daily_leads y max_llm_tokens_per_day configurados
+- [ ] Queries parametrizadas: cero concatenación de strings SQL
+- [ ] API keys en .env: cero secrets en código (verificar con grep)
+- [ ] Supabase Auth magic link: login funcional
+- [ ] StateGraph 7 nodos: compila y ejecuta con skill de prueba
+- [ ] Skill lead_intake: procesa lead en < 30s con output válido
+- [ ] Dashboard: 6 widgets renderizando datos reales
+- [ ] Realtime: nuevo lead aparece en dashboard en < 3s
+- [ ] Output IA identificado: `[Generado por Anclora Nexus Agent]` en comunicaciones
+- [ ] Responsive: mobile, tablet, desktop verificados
+- [ ] Dark theme: cero elementos blancos sin override
+
+**Checklist enterprise** `[DIFERIDO v2+]`:
 - [ ] Políticas RLS testeadas con pgTAP
-- [ ] OWASP Top 10 2025: penetration tests aprobados
-- [ ] OWASP LLM Top 10 2025: mitigaciones verificadas
-- [ ] Protocolo HITL testeado con 100+ escenarios simulados
-- [ ] Kill Switch testeado con chaos engineering
-- [ ] DPA firmado con Supabase
-- [ ] PCI-DSS Level 1 verificado (vía Stripe)
-- [ ] SOC 2 Type II audit programado (si enterprise)
-- [ ] Auditorías mensuales automatizadas configuradas
-- [ ] API keys en Supabase Vault (cero secrets en cliente)
-- [ ] Edge Functions idempotentes con retry/rollback probado
-- [ ] Device fingerprinting y geo-fencing operativos
-- [ ] Backup cifrado y disaster recovery documentado
+- [ ] OWASP Top 10 2025: penetration tests
+- [ ] Protocolo HITL testeado con 100+ escenarios
+- [ ] Kill Switch multinivel testeado
+- [ ] PCI-DSS Level 1 verificado
+- [ ] SOC 2 Type II programado
 
 ---
 
 # METADATOS
 
 ```yaml
-Título: "Constitución Técnica de OpenClaw — CANÓNICA"
-Versión: 1.0.0
-Estado: "VIGENTE — Production Ready (Beta)"
+Título: "Constitución Técnica de Anclora Nexus (OpenClaw Kernel)"
+Versión: 1.1.0-nexus
+Base: constitution-openclaw-full.md v1.0.0
+Estado: "VIGENTE — Anclora Nexus v0 (Beta)"
 Fecha: Febrero 2026
 Clasificación: Internal / Confidential
-Owner: System Architect & Security Officer
-Mantenido por: Toni (CTO, Anclora)
+Owner: Toni Amengual (Owner, Anclora Private Estates)
+Contexto: Single-tenant, inmobiliaria de lujo, Mallorca SW
 Frecuencia de revisión: Trimestral
 Procedimiento de enmienda: Título XV
-Aprobación: CEO + CTO (firma digital)
-Distribución: Interna + Clientes (secciones no sensibles)
 Próxima revisión: Agosto 2026
 ```
 
 **Contacto:**
-- Incidentes de seguridad: security@openclaw.ai
-- Asuntos legales: legal@openclaw.ai
-- Soporte técnico: Slack #openclaw-support
+- Owner: Toni Amengual — Anclora Private Estates
+- Soporte técnico: Anclora Cognitive Solutions
 
 **Control de versiones:** Git con commits firmados.
 
 ---
 
-*FIN DE LA CONSTITUCIÓN TÉCNICA DE OPENCLAW*
+*FIN DE LA CONSTITUCIÓN TÉCNICA DE ANCLORA NEXUS*
 
 ---
 ---
 
-# INFORME DE INTEGRACIÓN CONSTITUCIONAL
+# CONSTITUTIONAL EDITORIAL & DECISION REPORT
 
-## A) Inventario de Documentos Fuente
+---
 
-| # | Documento | Líneas | Hash SHA-256 (primeros 8) | Idioma | Estructura |
-|---|---|---|---|---|---|
-| 1 | constitution-master-1-perplexity.md | 1,207 | — | Español | 20 secciones numeradas + changelog |
-| 2 | constitution-master-2-Z.md | 452 | — | Español | 7 artículos + apéndices |
-| 3 | constitution-master-3-Claude.md | 897 | 0521d92c | Español | 7 Títulos / 29 Capítulos / 89 Artículos |
-| 4 | constitution-final-1-perplexity.md | 897 | 0521d92c | Español | Idéntico a #3 |
-| 5 | constitution-final-2-Z.md | 346 | — | Español | 8 Títulos / 29 Artículos |
-| 6 | constitution-final-claude.md | 897 | 0521d92c | Español | Idéntico a #3 |
+## A) Mejoras Estructurales y Normativas
 
-**Documentos únicos**: 4 (los documentos #3, #4 y #6 son idénticos byte a byte).
+### A.1. Reestructuración en Títulos, Capítulos y Artículos
 
-## B) Estructura Canónica Adoptada
+La versión anterior utilizaba un formato de secciones numeradas con mezcla de markdown headers, bloques de código y tablas sin jerarquía normativa clara. La versión MASTER adopta estructura legislativa formal: **Título Preliminar** (definiciones) + **16 Títulos** temáticos + **Disposiciones Transitorias** + **Checklist**. Cada artículo tiene numeración decimal consistente (ej: Artículo 4.8.1) que permite citación jurídica precisa.
 
-**Decisión**: Se adopta la estructura legislativa Título / Capítulo / Artículo con numeración decimal jerárquica (ej: Artículo 4.8.1) proveniente de los documentos #3/#6 (final-claude).
+**Beneficio**: Cualquier disposición es localizable y citable sin ambigüedad. Ejemplo: "conforme al Artículo 7.4 del Título VII" en lugar de "ver Sección 10.3".
 
-**Justificación**: Esta estructura permite citación jurídica precisa ("conforme al Artículo 7.4 del Título VII"), es extensible sin ruptura de numeración, y separa claramente los niveles normativos (Reglas de Oro → Principios Rectores → Disposiciones operativas).
+### A.2. Lenguaje declarativo e impersonal
 
-**Títulos del documento canónico**: 16 Títulos temáticos + Título Preliminar + Disposiciones Transitorias + Checklist + Metadatos = estructura completa y auto-contenida.
+Se eliminaron todas las construcciones en primera persona, modo imperativo directo y tono conversacional. Se sustituyeron por lenguaje declarativo impersonal ("El agente no podrá...", "Se requerirá...", "Queda prohibido...") propio de textos normativos.
 
-## C) Conflictos Resueltos
+**Beneficio**: Mayor fuerza normativa. Cada artículo funciona como mandato autónomo sin depender de contexto narrativo.
 
-| # | Conflicto | Fuentes en tensión | Resolución adoptada | Criterio |
-|---|---|---|---|---|
-| C-01 | **Moneda: USD vs EUR** | master-1/master-2 usaban USD para algunos límites; final-claude/final-2-Z usaban EUR | **EUR** como moneda de referencia. Artículo 3.2.1 establece parametrización por organización | **Consenso** (4/6 docs usan EUR) + **Coherencia sistémica** (mercado objetivo España/UE) |
-| C-02 | **Risk Score: escala 0-1 vs 0-100** | master-1 mencionaba 0-100 en una tabla; todas las demás fuentes usaban (0.0, 1.0) | **(0.0, 1.0)** con notación de intervalos cerrados/abiertos | **Consenso** + **Claridad normativa** (notación (0.0, 0.3) elimina ambigüedad fronteriza) |
-| C-03 | **HITL en Beta: €0 absoluto vs umbrales** | master-1 y final-claude: €0 absoluto sin excepciones; master-2-Z: permitía $500/$5000 para leads | **€0 absoluto** durante beta. Art. 1.1.1 y Art. 3.3 | **Opción conservadora** (más restrictiva = más segura en beta) + **Consenso** (3/4 docs únicos) |
-| C-04 | **Ticket Expiry: 1h vs 24h** | master-2-Z: 1h auto-reject; master-1/final-claude: 24h con escalación gradual | **24h** con escalación automática por niveles (Art. 6.3). Expiración a 24h permite gestión asíncrona | **Coherencia sistémica** (la escalación gradual ya gestiona el riesgo temporal) + **Consenso** |
-| C-05 | **Límites semanales: incluir vs omitir** | master-1/final-claude: incluyen weekly limits; master-2-Z: solo daily + monthly | **Incluidos**. Artículos 3.2 (tabla) y 3.7 (tope semanal) | **Consenso** + **Opción conservadora** (más capas de control) |
-| C-06 | **Firma audit: HMAC-SHA256 vs SHA-256** | master-1/final-claude: HMAC-SHA256 con clave secreta; master-2-Z: SHA-256 del estado | **Ambas**: HMAC-SHA256 para tamper-evidence del registro (Art. 10.3) + SHA-256 del estado transaccional (Art. 10.4) | **Integración** (no son mutuamente excluyentes; cumplen funciones distintas) |
-| C-07 | **MFA Biometry: siempre vs graduada** | master-2-Z: biometría siempre para transacciones críticas; master-1/final-claude: graduada por risk score | **Graduada** por risk score (Art. 4.8), con biometría obligatoria para infraestructura crítica y riesgo (0.7, 1.0) | **Claridad normativa** (tabla explícita de cuándo se requiere cada nivel) |
-| C-08 | **Kill Switch triggers: 5 vs 3 llamadas** | master-1: >5 API calls para L2; master-2-Z: >3 transacciones en 10min para L3 | **Ambos integrados**: L2 = >5 API calls consecutivas fallidas; L3 = >3 transacciones fallidas en 10 min (Art. 7.1) | **Integración** (triggers para niveles distintos; coexisten sin contradicción) |
-| C-09 | **Recovery: Owner vs CEO+CTO** | master-1/final-claude: owner de la organización; master-2-Z: CEO+CTO | **Owner** para operación multi-tenant SaaS (Art. 7.4). CEO+CTO reservado para reforma constitucional (Art. 15.2) | **Coherencia sistémica** (modelo multi-tenant requiere autonomía por tenant) |
-| C-10 | **Código fuente en Constitución** | master-1: extensos bloques Python/TS/SQL; final-claude: solo SQL de audit_log | **Eliminado** salvo políticas SQL de inmutabilidad del audit_log (Art. 10.2) | **Técnica legislativa** (separación norma/implementación; código pertenece a spec.md) |
+### A.3. Artículo 0.2 — Cláusula de interpretación
 
-## D) Contribuciones Únicas Integradas por Documento
+Se añadió una cláusula de interpretación que define el significado normativo de "deberá", "podrá" y "se recomienda". Este artículo no introduce contenido nuevo — formaliza distinciones que estaban implícitas en todas las versiones.
 
-### De master-1-perplexity (contribuciones exclusivas incorporadas):
-- **Art. 1.7**: Supremacía constitucional contra prompt injection como Regla de Oro
-- **Art. 1.8**: Obediencia incondicional al Kill Switch como Regla de Oro
-- **Art. 4.5.1**: Estados intermedios del ticket (APPROVAL_MFA_SENT, EXECUTING)
-- **Art. 3.3**: Documentación obligatoria por categoría transaccional (lead manifest, KPIs ads, PO match)
-- **Art. 8.2**: Docker sandbox con security_opt y cap_drop: ALL
-- **Art. 4.8.1**: Device fingerprinting en intentos fallidos de MFA (3 intentos → bloqueo)
-- **Art. 10.3**: Firma HMAC-SHA256 para tamper-evidence
-- **Art. 11.4**: Clasificación de datos en 3 niveles (Confidencial/Restringido/Público)
-- **Art. 14.3**: Skill marketplace (20% comisión, auto-revocación por risk score)
-- **Art. 15.3**: POWER_USER overrides (hasta 2x default, verificado por RLS)
-- **Art. 3.7**: Límites semanales explícitos
-- **Art. 16.3**: Auditorías de seguridad mensuales automatizadas (cron)
-- **Art. 12.1**: Roadmap de autonomía en 4 fases (M0-M24+)
+**Beneficio**: Elimina ambigüedad sobre qué disposiciones son vinculantes vs. discrecionales vs. recomendatorias.
 
-### De master-2-Z (contribuciones exclusivas incorporadas):
-- **Art. 5.1**: Factor de velocidad entre transacciones en S_frequency
-- **Art. 5.4**: Reputación de proveedor/receptor como factor de S_recipient
-- **Art. 7.5**: Requisitos de post-mortem con cronología y plan de remediación
-- **Art. 15.1**: Proceso de change management con notificación previa 7 días
+### A.4. Conversión de principios vagos en artículos operativos
 
-### De final-claude (#3/#4/#6) (contribuciones estructurales incorporadas):
-- Estructura legislativa completa (Títulos/Capítulos/Artículos)
-- **Art. 0.2**: Cláusula de interpretación ("deberá" / "podrá" / "se recomienda")
-- **Art. 1.0.1**: Inmutabilidad temporal de Reglas de Oro
-- **Art. 1.4.1**: Campos `agentic_ok` como norma constitucional con Kill Switch L3
-- **Art. 5.7**: Notación de intervalos matemáticos (0.0, 0.3) para risk score
-- **Art. 12.2**: Restricción permanente del roadmap (Reglas de Oro perpetuas)
-- Disposiciones Transitorias formales
+Ejemplos de transformaciones:
 
-### De final-2-Z (contribuciones incorporadas):
-- Validación de estructura compacta: confirmó que 29 artículos cubren el core operativo
-- Artículo de compliance como bloque independiente (elevado a Título XIII)
+| Antes (MASTER v1) | Después (MASTER v2) | Beneficio |
+|---|---|---|
+| "Hard Stop: Si budget_spent >= monthly_budget, TODOS los agentes se pausan" | Artículo 3.4: "Cuando el gasto acumulado de una organización alcance o supere su presupuesto mensual, todos los agentes de dicha organización serán pausados de forma automática. Esta parada no admite excepciones." | Redacción normativa completa con sujeto, condición y consecuencia explícitos |
+| "3 failed MFA → bloqueo + alerta" | Artículo 4.8.1: "Tres (3) intentos fallidos consecutivos de verificación en un mismo ticket provocarán: (a) bloqueo inmediato del ticket; (b) alerta al security team; (c) registro del incidente en el audit log." | Consecuencias enumeradas y vinculadas al mecanismo de enforcement |
+| "Principio de precaución en detección monetaria" (implícito) | Artículo 4.3.1: "En caso de duda sobre el carácter monetario de una acción, se aplicará el protocolo HITL." | Formalización de regla implícita como artículo citable |
 
-## E) Decisiones Pendientes (No Resolubles sin Input del Owner)
+### A.5. Eliminación de código fuente en favor de especificación normativa
 
-| # | Pregunta | Opciones | Riesgo Constitucional | Artículo Afectado |
-|---|---|---|---|---|
-| Q-01 | **HSM vs Supabase Vault para claves de pago** | HSM ofrece PCI-DSS Level 1 nativo; Supabase Vault es más simple y ya integrado | **Alto** — Afecta certificación PCI-DSS | Art. 11.3, Art. 13.2 |
-| Q-02 | **Temporal (event sourcing) vs audit_log nativo** | Temporal añade redundancia y replay; audit_log en Supabase es más simple | **Medio** — Art. 10.1 es compatible con ambos | Art. 10.1 |
-| Q-03 | **ELK stack vs Supabase nativo para SIEM** | ELK ofrece correlación avanzada; nativo reduce complejidad | **Medio** — Afecta Art. 11.1 (A09) | Art. 11.1 |
-| Q-04 | **DocuSign para firmas de escalación ejecutiva** | Integración como MCP tool vs firma digital manual | **Bajo** — Feature opcional | Art. 15.2 |
-| Q-05 | **Tope auto-aprobación: €50 fijo perpetuo vs ajustable** | Art. 12.3 establece €50 con válvula de escape vía Art. 15.2. ¿Suficiente? | **Alto** — Define autonomía futura | Art. 12.3 |
-| Q-06 | **Modelo LLM local: Llama 3.3 70B vs Mistral 7B** | 70B más capaz; 7B más rápido y económico | **Bajo** — No afecta al core constitucional | Fuera de scope constitucional |
-| Q-07 | **mTLS entre servicios internos vs TLS estándar** | mTLS añade autenticación mutua; TLS estándar es suficiente para la mayoría de casos | **Medio** — Afecta Art. 11.3 | Art. 11.3 |
-| Q-08 | **Edge Functions runtime: Supabase Edge (Deno) vs Cloud Run (Docker)** | Deno: integrado con Supabase, 60s timeout; Cloud Run: más flexible, sin timeout fijo | **Medio** — Afecta Art. 4.10 y Art. 8.2 | Art. 4.10, Art. 8.2 |
+Se eliminaron los bloques de código Python, TypeScript y SQL que aparecían en la versión anterior. La Constitución es un documento normativo, no un documento de implementación. Los fragmentos de código pertenecen al `spec.md`.
 
-## F) Estadísticas del Documento Canónico
+**Excepción**: Se conservó el bloque SQL de inmutabilidad del audit log (Artículo 10.2) porque define una política de seguridad que es simultáneamente norma y su propia implementación.
 
-| Métrica | Valor |
-|---|---|
-| Títulos | 16 + Preliminar + Transitorias |
-| Artículos numerados | ~85 |
-| Tablas normativas | 25 |
-| Reglas de Oro | 8 (Art. 1.1 — Art. 1.8) |
-| Conflictos resueltos | 10 |
-| Decisiones pendientes | 8 |
-| Documentos fuente procesados | 6 (4 únicos) |
-| Contenido inventado | 0 (todo trazable a documentos fuente) |
+**Beneficio**: Separación de concerns entre "qué debe cumplirse" (constitution.md) y "cómo se implementa" (spec.md).
 
-## G) Principios de Integración Aplicados
+### A.6. Disposiciones Transitorias
 
-1. **Consenso**: cuando 3+ documentos coincidían, se adoptó la posición mayoritaria.
-2. **Claridad normativa**: entre dos opciones equivalentes, se eligió la más verificable e implementable.
-3. **Coherencia sistémica**: las decisiones se evaluaron contra la arquitectura global (multi-tenant SaaS, Supabase, LangGraph).
-4. **Opción conservadora**: ante ambigüedad, se adoptó la alternativa más restrictiva/segura.
-5. **Integración sobre exclusión**: cuando dos posiciones no eran mutuamente excluyentes (ej: HMAC + SHA-256), se integraron ambas.
-6. **Zero invention**: ningún artículo, regla o institución fue creada sin base en al menos uno de los documentos fuente.
+Se añadieron tres disposiciones transitorias que definen: entrada en vigor, plazo de adecuación para agentes existentes, y fecha de primera revisión. Estas disposiciones están presentes implícitamente en las versiones originales (V3 menciona review frequency, V1 menciona next review date) y se formalizaron como artículos de derecho transitorio.
+
+**Beneficio**: Marco temporal claro para la adopción y primera evaluación.
+
+### A.7. Notación de intervalos matemáticos
+
+Los umbrales de risk score se expresan ahora con notación de intervalos: `[0.0, 0.3)`, `[0.3, 0.7)`, etc., eliminando la ambigüedad de los valores frontera que existía en la versión anterior (¿un score de exactamente 0.3 es "bajo" o "medio"?).
+
+**Beneficio**: Cada valor real del rango [0.0, 1.0] pertenece a exactamente una categoría, sin solapamiento.
+
+---
+
+## B) Conflictos Resueltos
+
+| Tema | Redacción Final | Versiones Implicadas | Criterio |
+|---|---|---|---|
+| **Código fuente en Constitución** | Eliminado. La Constitución define normas, no implementación. Código reside en spec.md | V2 tenía código Python/TS/SQL extenso. V4 solo pseudocódigo | A2: mejor técnica legislativa — separar norma de implementación |
+| **Cláusula de interpretación** | Añadida (Art. 0.2) para definir fuerza normativa de "deberá" / "podrá" / "se recomienda" | No existía en ninguna versión; derivada de la necesidad de distinguir mandatos de recomendaciones presentes en V1-V4 | A2: técnica legislativa — toda constitución requiere cláusula hermenéutica |
+| **Risk score en notación de intervalos** | Intervalos cerrados/abiertos `[0.0, 0.3)` | V2 usaba "0.0 — 0.3" (ambiguo en fronteras) | A4: estabilidad — eliminación de ambigüedad fronteriza |
+| **Principio de precaución monetaria** | Formalizado como Art. 4.3.1 | Implícito en V2/V3 (toda duda → HITL) pero nunca articulado | A2: calidad constitucional — un principio fundamental operaba sin artículo propio |
+| **Disposiciones transitorias: existencia** | Incluidas (3 disposiciones) | V1 mencionaba "Next Review: August 2026"; V3 mencionaba review frequency trimestral | A3: coherencia sistémica — toda constitución necesita régimen transitorio |
+
+---
+
+## C) Propuestas Editoriales Avanzadas
+
+### C.1. Artículo 1.0.1 — Inmutabilidad temporal de Reglas de Oro
+
+**Redacción adoptada**: "Las Reglas de Oro no podrán ser modificadas, suspendidas, derogadas ni interpretadas de forma restrictiva durante la fase beta (M0-M6). Tras la fase beta, su modificación requerirá el procedimiento reforzado previsto en el Artículo 15.2."
+
+**Base**: V2 declaraba "inmutables durante fase beta". V3 declaraba que la constitución "NO ES INMUTABLE pero tiene proceso riguroso". Se unificó estableciendo inmutabilidad temporal para las Golden Rules y un procedimiento reforzado post-beta.
+
+**Beneficio**: Evita la contradicción aparente entre inmutabilidad y enmendabilidad. Las Reglas de Oro son el núcleo duro con protección reforzada; el resto es enmendable por procedimiento ordinario.
+
+### C.2. Artículo 1.4.1 — Campos agentic_ok como norma de acceso
+
+**Redacción adoptada**: "El agente únicamente accederá a campos de datos marcados como `agentic_ok` en las políticas RLS. El acceso a cualquier campo no autorizado activará el Kill Switch de nivel L3."
+
+**Base**: V3 mencionaba que el acceso a datos no marcados activaba Kill Switch. Se elevó de restricción técnica a artículo constitucional con consecuencia explícita.
+
+**Beneficio**: Convierte una regla de implementación en norma constitucional con sanción automática, reforzando la protección de datos.
+
+### C.3. Artículos 5.3-5.6 — Escalas como artículos independientes
+
+**Redacción adoptada**: Cada escala de factor del risk score (importe, destinatario, frecuencia, contexto) es un artículo independiente con tabla propia.
+
+**Base**: V2 tenía todas las escalas en un único bloque de texto preformateado. Se descompuso en artículos discretos.
+
+**Beneficio**: Cada escala es citable y modificable de forma independiente. Una futura enmienda que ajuste umbrales de importe solo necesita referenciar el Artículo 5.3.
+
+### C.4. Artículo 12.2 — Restricción permanente del roadmap
+
+**Redacción adoptada**: "Ninguna fase del roadmap elimina ni deroga las Reglas de Oro. El Artículo 1.1 evoluciona en sus umbrales pero permanece en vigor de forma perpetua."
+
+**Base**: V2 afirmaba implícitamente la permanencia; V3 definía fases de autonomía creciente sin anclarlas a las Golden Rules.
+
+**Beneficio**: Cierra el riesgo de que la evolución del roadmap pueda interpretarse como derogación tácita de la supervisión humana.
+
+---
+
+## D) Decisiones Pendientes
+
+| Pregunta | Opciones en Versiones | Riesgo Constitucional |
+|---|---|---|
+| **HSM vs Supabase Vault para claves de pago** | V3 propone HSM (Hardware Security Module); V1/V2 usan Supabase Vault. HSM ofrece mayor seguridad pero añade complejidad y coste | **Alto** — Afecta certificación PCI-DSS. El Artículo 11.3 establece Supabase Vault como estándar; si se adopta HSM, requiere enmienda |
+| **Temporal (event sourcing) como complemento al audit_log** | V3 propone Temporal + Glacier como event store separado; V2 usa audit_log append-only en Supabase | **Medio** — Temporal añade redundancia y mejor compliance pero duplica infraestructura. El Artículo 10.1 es compatible con ambos |
+| **Tope absoluto de auto-aprobación: €50 fijo vs configurable** | V2 establece €50 máximo absoluto; V1 permite hasta 2x default (potencialmente >€50) | **Alto** — Define el grado de autonomía futura. El Artículo 12.3 adopta €50 como tope pero la cláusula "salvo modificación conforme al Art. 15.2" deja la puerta abierta al procedimiento reforzado |
+| **Rol de CEO/CTO vs Owner en contexto multi-tenant** | V3 asigna al CEO+CTO la autorización de recovery; V2 al owner de la organización | **Medio** — Resuelto en favor de "owner" para el modelo multi-tenant SaaS, pero clientes enterprise podrían requerir jerarquía C-level. El Artículo 7.4 es claro pero podría necesitar extensión enterprise |
+| **DocuSign para firmas de escalación nivel ejecutivo** | V3 lo menciona como integración. ¿Se implementa como MCP tool? | **Bajo** — Feature opcional. No afecta al core constitucional |

@@ -1,287 +1,261 @@
-# ESPECIFICACION TECNICA DE OPENCLAW — CANONICA
+# ANCLORA NEXUS — ESPECIFICACIÓN TÉCNICA (spec.md)
 
-**Version:** 1.0.0
-**Estado:** VIGENTE — Production Ready (Beta)
-**Fecha:** Febrero 2026
-**Clasificacion:** Internal / Confidential
-**Owner:** System Architect & Engineering Team
-**Mantenido por:** Toni (CTO, Anclora)
-**Frecuencia de revision:** Bi-semanal (features), Mensual (arquitectura)
-**Procedimiento de enmienda:** PR review + CTO approval
-**Compliance:** GDPR + PCI-DSS + SOC 2 Type II readiness
-**Documentos relacionados:**
-- `constitution.md` — Constitucion Tecnica (norma suprema)
-- API Reference Documentation
-- Deployment Runbook
-- Security Audit Reports
+## Referencia Arquitectónica del Motor OpenClaw adaptado para Anclora Nexus v0
+### Versión 1.1.0-nexus — Febrero 2026
 
 ---
 
-## INDICE
+**Clasificación:** Internal / Confidential  
+**Estado:** Anclora Nexus v0 (Beta)  
+**Owner:** Toni Amengual (Owner, Anclora Private Estates)  
+**Documento superior:** `constitution-canonical.md` (Norma Suprema)  
+**Documento de producto:** `product-spec-v0.md` (Define QUÉ hace la app)
 
-1. Resumen Ejecutivo
-2. Vision, Alcance y No-Alcance
-3. Glosario Tecnico
-4. Actores y Roles
-5. Principios Arquitectonicos
-6. Arquitectura del Sistema (por Capas)
-7. Stack Tecnologico (Versiones Fijadas)
-8. Modelo de Datos (Entidades Clave y Relaciones)
-9. Orquestacion Agentica (LangGraph)
-10. Protocolo HITL y Flujos Monetarios
-11. MCP, Skills y Sandboxing
-12. Sistema de Colas y Concurrencia (Lanes)
-13. Heartbeat y Monitorizacion de Agentes
-14. Persistencia, Memoria Vectorial y RAG
-15. Integracion de Pagos
-16. n8n — Orquestacion de Workflows
-17. Especificacion de API
-18. Frontend — Dashboard Bento Grid
-19. Catalogo de Skills Monetizables
-20. Seguridad, Auditoria y Compliance
-21. Infraestructura, Despliegue y CI/CD
-22. Observabilidad, Metricas y Alertas
-23. Backup, Disaster Recovery y SLA
-24. Guia de Desarrollo
-25. Roadmap de Implementacion
-26. Requisitos No Funcionales
-27. Checklist de Aceptacion / QA
-28. Supuestos, Decisiones y Trade-Offs
-29. Variables de Entorno
-30. Metadatos del Documento
+> **Nota de adaptación:** Este documento es la especificación técnica del motor OpenClaw
+> adaptada para Anclora Nexus v0. Las secciones marcadas `[ELIMINADO v0]` han sido removidas
+> porque no aplican al scope de v0. Las marcadas `[DIFERIDO v2+]` se preservan como referencia
+> para fases futuras. Versión completa: `spec-openclaw-full.md`
 
 ---
 
-## 1. RESUMEN EJECUTIVO
+## ÍNDICE
 
-### 1.1 Definicion del Producto
+1. Visión, Alcance y No-Alcance `[ADAPTADO v0]`
+2. Glosario Técnico
+3. Actores y Roles del Sistema `[SIMPLIFICADO v0: single-user]`
+4. Arquitectura del Sistema `[ADAPTADO v0: sin Gateway/MCP Docker]`
+5. Stack Tecnológico `[ADAPTADO v0]`
+6. Schema de Base de Datos `[USAR product-spec-v0.md Sección 3.4 como referencia primaria]`
+7. Capa de Autenticación `[SIMPLIFICADO v0: magic link]`
+8. Capa de Orquestación Agentica (LangGraph) `[ADAPTADO v0: 7 nodos]`
+9. ~~Protocolo MCP y Sandboxing~~ `[ELIMINADO v0: skills son módulos Python]`
+10. ~~Sistema de Colas y Concurrencia~~ `[ELIMINADO v0: single-user]`
+11. ~~Heartbeat y Monitorización de Agentes~~ `[ELIMINADO v0: invocaciones cortas]`
+12. ~~Integración de Pagos~~ `[ELIMINADO v0: sin monetización]`
+13. ~~Supabase Edge Functions~~ `[DIFERIDO v2+]`
+14. ~~Memoria Vectorial y RAG~~ `[DIFERIDO v2+: sin pgvector en v0]`
+15. n8n — Orquestación de Workflows `[ADAPTADO v0: 3 workflows Anclora]`
+16. Especificación de API `[SIMPLIFICADO v0]`
+17. Frontend — Dashboard Bento Grid `[ADAPTADO v0: ver product-spec-v0.md + Antigravity Skill 3]`
+18. ~~Catálogo de Skills Monetizables~~ `[REEMPLAZADO: ver constitution-canonical.md Título XIV]`
+19. Seguridad, Cifrado y OWASP `[PARCIAL v0]`
+20. ~~Infraestructura GKE/Terraform~~ `[ELIMINADO v0: Vercel + Railway]`
+21. ~~Monitorización Prometheus/Grafana~~ `[ELIMINADO v0: Supabase Dashboard + Railway logs]`
+22. ~~Backup/DR/SLA enterprise~~ `[DIFERIDO v2+]`
+23. Guía de Desarrollo (Code Style + Testing)
+24. ~~Roadmap OpenClaw~~ `[REEMPLAZADO: ver product-spec-v0.md Sección 4]`
+25. Requisitos No Funcionales `[ADAPTADO v0]`
+26. Checklist de Aceptación `[ADAPTADO v0]`
+27. Supuestos y Decisiones
+28. Variables de Entorno `[ADAPTADO v0]`
+29. Metadatos
 
-OpenClaw es un Sistema Operativo de Agentes Autonomos (Agentic Operating System) que orquesta inteligencias artificiales especializadas capaces de ejecutar tareas monetizables con supervision humana obligatoria (HITL — Human-in-the-Loop). Combina la autonomia de agentes cognitivos avanzados con controles de seguridad de nivel bancario para automatizar procesos complejos en multiples verticales: Real Estate, Ventas B2B, Legal, Supply Chain y Wealth Management.
+---
 
-### 1.2 Propuesta de Valor
+## 1. VISIÓN, ALCANCE Y NO-ALCANCE
 
-| Dimension | Valor Entregado |
+### 1.1 Visión del Producto
+
+OpenClaw es un Sistema Operativo de Agentes (AOS) que orquesta agentes de IA especializados bajo supervisión humana efectiva. Cada agente ejecuta tareas de negocio (ventas, real estate, legal, finanzas) que generan valor económico, operando con controles de nivel bancario: aprobación humana obligatoria para transacciones monetarias (HITL), límites de gasto configurables, trazabilidad inmutable y Kill Switch de emergencia.
+
+### 1.2 Alcance (In-Scope)
+
+1. Backend: Supabase (PostgreSQL + Auth + RLS + Edge Functions + pgvector).
+2. Orquestación agentica: LangGraph (Python) + Model Context Protocol (MCP).
+3. LLM: Modelos open-source (Llama 3.3 / Mistral) con auto-hosting. Claude como fallback.
+4. Frontend: Next.js 15 + shadcn/ui + Tailwind CSS (dashboard Bento Grid con glassmorphism).
+5. Workflows: n8n como orquestador secundario para flujos complejos e integraciones.
+6. Pagos: Stripe (PCI-DSS Level 1) + SEPA. Wise para pagos internacionales.
+7. Monitorización: Prometheus + Grafana + alertas.
+8. Infraestructura: Vercel (frontend) + GCP Cloud Run (backend LangGraph) + Docker (MCP sandboxes).
+9. Skills verticales: Real Estate (Sniper, Property Sentinel, Predictivo) + B2B SDR (Autónomo, Legal Auditor) + Marketplace de terceros.
+10. Compliance: GDPR, PCI-DSS, SOC 2 Type II readiness.
+
+### 1.3 No-Alcance (Out-of-Scope)
+
+1. Aplicación móvil nativa (se accede vía responsive web).
+2. Integraciones con blockchains o criptomonedas.
+3. Agentes con capacidad de trading financiero autónomo.
+4. Soporte multi-idioma de interfaz (solo EN/ES en MVP).
+5. Integración con ERP legacy (SAP, Oracle) — fuera del MVP.
+
+---
+
+## 2. GLOSARIO TÉCNICO
+
+| Término | Definición |
 |---|---|
-| Autonomia Controlada | Agentes que razonan, planifican y ejecutan tareas sin intervencion humana en operaciones de bajo riesgo, con aprobacion explicita obligatoria en transacciones monetarias |
-| Monetizacion Verificable | Skills pre-configurados que generan ROI medible: 15-40% retorno en Real Estate, +45% pipeline en Ventas, 40h/operacion ahorro en Legal |
-| Seguridad Nivel Bancario | Protocolo HITL de 6 pasos, RLS multi-tenant, sandboxing MCP, auditoria inmutable, cumplimiento OWASP Top 10 LLM 2025 |
-| Open-Source First | Stack 100% open-source en nucleo. LLMs Llama 3.3 70B / Mistral Large 3 via vLLM. Fallback a cloud sin vendor lock-in |
-| Transparencia Total | Dashboard Bento Grid con Thought-Stream en tiempo real, visibilidad completa del razonamiento del agente, logs inmutables |
-
-### 1.3 Diferenciadores Clave
-
-- HITL Nativo: El protocolo de aprobacion humana esta integrado en el nucleo del grafo LangGraph via `interrupt()`, no es un add-on.
-- Constitutional AI: Validador constitucional como nodo obligatorio del grafo, evaluando CADA accion contra `constitution.md`.
-- Multi-Tenant desde Dia 1: Aislamiento total por `org_id` con Row-Level Security en PostgreSQL.
-- Skills Monetizables: Marketplace de agentes verticales con comision y revenue tracking integrado.
-
----
-
-## 2. VISION, ALCANCE Y NO-ALCANCE
-
-### 2.1 Vision
-
-Construir la plataforma de referencia para agentes autonomos empresariales que opera bajo principios de supervision humana total durante la fase beta, evolucionando hacia autonomia calibrada conforme al historial verificado de rendimiento, sin vulnerar jamas las Reglas de Oro constitucionales.
-
-### 2.2 Alcance (In-Scope)
-
-- Plataforma SaaS multi-tenant con dashboard Bento Grid
-- Orquestacion agentica con LangGraph (state machines, checkpointing, HITL gates)
-- Protocolo HITL completo de 6 pasos conforme a Constitution Titulo IV
-- Skills monetizables en verticales: Real Estate, B2B SDR, Legal, Supply Chain, Wealth
-- Integracion de pagos (Stripe primary, Wise/SEPA secundario)
-- Memoria vectorial RAG con pgvector
-- MCP servers con sandboxing Docker
-- Monitoring (Prometheus + Grafana) y alertas
-- CI/CD con GitHub Actions
-- n8n como orquestador de workflows complejos
-
-### 2.3 No-Alcance (Out-of-Scope)
-
-- Aplicacion movil nativa (MVP es web-first, responsive)
-- Fine-tuning de modelos LLM con datos propios
-- Soporte de idiomas mas alla de ES/EN en MVP
-- Integraciones con sistemas legacy on-premise
-- Funcionalidad offline
-- Trading algoritmico o gestion automatica de inversiones
-- Marketplace publico abierto (Phase 4+)
+| **AOS** | Agent Operating System — el producto OpenClaw |
+| **Bento Grid** | Layout de dashboard basado en grid CSS con widgets modulares (glassmorphism) |
+| **Constitutional Validator** | Nodo del grafo LangGraph que valida cada acción contra `constitution.md` |
+| **Edge Function** | Función serverless en Supabase Edge Runtime (Deno) |
+| **Gateway** | Servidor WebSocket que actúa como control plane para todas las operaciones de agentes |
+| **HITL** | Human-in-the-Loop: protocolo de aprobación humana obligatoria |
+| **Kill Switch** | Mecanismo de detención de emergencia. 4 niveles: L1 Warning, L2 Pause, L3 Kill, L4 Lockdown |
+| **Lane** | Cola FIFO para control de concurrencia (Session, Global, Cron, Subagent) |
+| **LangGraph** | Framework Python para workflows multi-agente con estado, checkpointing y herramientas |
+| **MCP** | Model Context Protocol (v2025-11-25): interfaz estandarizada de ejecución de herramientas LLM |
+| **MFA** | Multi-Factor Authentication: TOTP, WebAuthn o biometría |
+| **Org / Tenant** | Organización aislada por `org_id` con RLS. Unidad de facturación y aislamiento |
+| **RAG** | Retrieval-Augmented Generation: LLM + búsqueda vectorial semántica |
+| **Risk Score** | Métrica [0.0, 1.0] que cuantifica probabilidad de pérdida/fraude por transacción |
+| **RLS** | Row-Level Security: políticas de acceso a nivel de fila en PostgreSQL |
+| **Skill** | Agente especializado que ejecuta una función de negocio. Registrado en catálogo MCP |
+| **Subagent** | Agente hijo delegado para tareas paralelas |
+| **Ticket HITL** | Registro en `approval_tickets` con solicitud de aprobación, evidencia, risk score y TTL |
 
 ---
 
-## 3. GLOSARIO TECNICO
+## 3. ACTORES Y ROLES DEL SISTEMA
 
-| Termino | Definicion |
-|---|---|
-| **AOS** | Agentic Operating System — el concepto central de OpenClaw |
-| **Bento Grid** | Layout de dashboard basado en CSS Grid 6x4 con widgets glassmorphism |
-| **Constitutional Validator** | Nodo del grafo LangGraph que valida cada accion contra `constitution.md` |
-| **Gateway** | Servidor WebSocket Node.js separado que enruta mensajes entre frontend y agent core |
-| **HITL** | Human-in-the-Loop — protocolo de aprobacion humana de 6 pasos (Constitution Titulo IV) |
-| **Kill Switch** | Mecanismo de detencion de emergencia con 4 niveles L1-L4. No admite desactivacion programatica (Constitution Titulo VII) |
-| **Lane** | Canal de concurrencia con semaforo. 4 tipos: Session (serial), Global (4), Cron (2), Subagent (8) |
-| **MCP** | Model Context Protocol (v2025-11-25) — estandar de comunicacion agente-herramienta |
-| **Risk Score** | Valor numerico [0.0, 1.0] NUMERIC(3,2) calculado por algoritmo de Constitution Titulo V |
-| **RLS** | Row-Level Security — politicas PostgreSQL que aislan datos por `org_id` |
-| **Skill** | Agente vertical monetizable que se ejecuta en sandbox Docker via MCP |
-| **Subagent** | Agente hijo delegado por el agente principal para tareas paralelas |
-| **Ticket HITL** | Registro en `approval_tickets` que contiene una transaccion pendiente de aprobacion humana |
+| Rol | Permisos | Descripción |
+|---|---|---|
+| **End User** | CRUD sobre sus propios datos. Aprobar sus tickets HITL. Kill Switch sobre sus agentes | Usuario final de la plataforma |
+| **Manager** | Permisos de End User + visibilidad y aprobación sobre datos del equipo | Responsable de equipo |
+| **Admin** | Permisos de Manager + gestión de usuarios, configuración global, aprobación de skills | Administrador de la organización |
+| **Owner** | Permisos de Admin + Kill Switch global, recovery post-emergencia, ajuste de límites | Propietario de la organización. Último responsable |
+| **CFO / Ejecutivo** | Visibilidad company-wide. Aprobación de transacciones > €5,000. Escalación | Rol financiero de alto nivel |
+| **CTO** | Acceso total. Kill Switch total. Aprobación de reformas constitucionales | Máxima autoridad técnica |
+| **SOC / Security** | Acceso a audit logs completos. Kill Switch. Sin capacidad de aprobación de transacciones | Centro de operaciones de seguridad |
+| **Auditor (Externo)** | Acceso read-only a logs de compliance | Auditor externo (PCI-DSS, SOC 2) |
+| **POWER_USER** | Permisos de End User + ajuste de límites hasta 2x default vía RLS | Usuario avanzado (Constitución Art. 15.3) |
 
 ---
 
-## 4. ACTORES Y ROLES
+## 4. ARQUITECTURA DEL SISTEMA
 
-| Rol | Permisos | Aprobar TX | Kill Switch | Audit Logs |
-|---|---|---|---|---|
-| End User | CRUD sobre datos propios | Propias (bajo riesgo) | Solo propios agentes | Propios |
-| Manager | Datos de su equipo | Equipo | Escalar | Equipo |
-| Admin | Datos de la organizacion | Todas dentro de org | Si | Organizacion |
-| Owner | Todos los datos | Todas + desbloqueo emergencia | Si (total) | Todos |
-| CFO/Ejecutivo | Company-wide financiero | TX > EUR 5K | Escalar | Company |
-| CTO | Todos los datos tecnicos | Todas | Si (total) | Todos |
-| SOC/Security | Audit trail completo | No | Si | Todos |
-| Auditor Externo | Compliance (read-only limitado) | No | No | Compliance |
-
-Solo usuarios con rol `admin` u `owner` pueden aprobar tickets HITL (Constitution Art. 4.9). La asignacion de roles se gestiona via tabla `org_memberships` con politicas RLS.
-
----
-
-## 5. PRINCIPIOS ARQUITECTONICOS
-
-Estos principios derivan de la Constitucion Tecnica y son vinculantes para toda decision de implementacion:
-
-1. **Supervision Humana Primero (Constitution Art. 2.2):** Toda transaccion monetaria requiere aprobacion humana explicita con MFA durante beta.
-2. **Auditoria Inmutable (Constitution Art. 2.3):** Cada accion genera registro append-only con firma HMAC-SHA256.
-3. **Degradacion Segura / Fail-Safe (Constitution Art. 2.4):** Ante anomalia, el sistema transita a estado seguro. Prohibido fail-open.
-4. **Transparencia Radical (Constitution Art. 2.5):** El usuario tiene acceso en todo momento a la justificacion de cada decision agentica.
-5. **Aislamiento Multi-Tenant (Constitution Art. 1.4):** Datos segregados por `org_id` con RLS. Cero contaminacion cross-tenant.
-6. **Independencia Tecnologica (Constitution Art. 2.8):** Nucleo operativo en componentes open-source. Sin dependencia de APIs propietarias.
-7. **Reversibilidad (Constitution Art. 1.3):** Priorizar acciones reversibles. Acciones irreversibles requieren HITL siempre.
-8. **Minimo Privilegio:** Cada componente opera con los permisos minimos necesarios. MCP servers sin acceso a red por defecto.
-
----
-
-## 6. ARQUITECTURA DEL SISTEMA (POR CAPAS)
-
-### 6.1 Diagrama de Capas
+### 4.1 Arquitectura por Capas
 
 ```
-+-------------------------------------------------------------------+
-|                    CAPA DE PRESENTACION                            |
-|        Next.js 15 (App Router) + Bento Grid Dashboard             |
-|     Glassmorphism UI . WebSocket Realtime . shadcn/ui             |
-+----------------------------+--------------------------------------+
-                             | (WebSocket + REST API)
-+----------------------------v--------------------------------------+
-|                    CAPA DE AUTENTICACION                           |
-|       Supabase Auth + RLS + MFA (TOTP/WebAuthn)                   |
-|  OAuth Providers (Google, GitHub) . JWT (30min + 7day refresh)    |
-+----------------------------+--------------------------------------+
-                             | (Supabase Realtime + REST)
-+----------------------------v--------------------------------------+
-|                    CAPA DE ORQUESTACION                            |
-|  +------------------------------------------------------------+  |
-|  |  Gateway WebSocket Server (Node.js + TypeScript)            |  |
-|  |  . Lane-based FIFO Queue (Session + Global)                 |  |
-|  |  . Heartbeat Monitoring (60s interval, 5min timeout)        |  |
-|  +------------------------------------------------------------+  |
-|  +------------------------------------------------------------+  |
-|  |  Agent Core (LangGraph + Python)                            |  |
-|  |  . StateGraph (Planning > Validation > Execution)           |  |
-|  |  . Constitutional Validator (limites + riesgo)              |  |
-|  |  . HITL Gates (interrupt() + Command routing)               |  |
-|  +------------------------------------------------------------+  |
-|  +------------------------------------------------------------+  |
-|  |  MCP Servers (Tool Registry + Skills)                       |  |
-|  |  . Skill validation + sandboxing Docker                     |  |
-|  +------------------------------------------------------------+  |
-|  +------------------------------------------------------------+  |
-|  |  n8n Workflow Engine (Self-Hosted)                           |  |
-|  |  . HITL notifications + Payment post-processing + Cron      |  |
-|  +------------------------------------------------------------+  |
-+----------------------------+--------------------------------------+
-                             | (LLM API calls)
-+----------------------------v--------------------------------------+
-|                    CAPA DE INTELIGENCIA                            |
-|  +-------------------+  +-------------------+                     |
-|  | Llama 3.3 70B     |  | Mistral Large 3   |                     |
-|  | (vLLM primary)    |  | (vLLM secondary)  |                     |
-|  +-------------------+  +-------------------+                     |
-|  +-------------------+  +-------------------+                     |
-|  | Ministral 3-14B   |  | text-emb-3-small  |                     |
-|  | Triage rapido     |  | Vector embeddings |                     |
-|  +-------------------+  +-------------------+                     |
-+----------------------------+--------------------------------------+
-                             | (PostgreSQL + Edge Functions)
-+----------------------------v--------------------------------------+
-|                    CAPA DE PERSISTENCIA                            |
-|  Supabase PostgreSQL 15+ (RLS, pgvector, Realtime)                |
-|  Supabase Edge Functions (Deno) — Payments, Audit, MFA            |
-|  Supabase Storage + S3 — Documents, cold audit logs, backups      |
-+-------------------------------------------------------------------+
-
+┌─────────────────────────────────────────────────────────────────────┐
+│                         USER LAYER                                   │
+│  Bento Grid Dashboard (Next.js 15 + shadcn/ui + Tailwind)          │
+│  - Agent Thought-Stream (4x2)    - Monetary Pulse (2x2)            │
+│  - Efficiency & Savings (2x1)    - Skill Lab (2x2)                 │
+│  - Memory Navigator (2x1)        - Kill Switch (1x1)               │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │ (WebSocket + REST + Supabase Realtime)
+┌──────────────────────────────┴──────────────────────────────────────┐
+│                    AUTHENTICATION LAYER                               │
+│  Supabase Auth + RLS + MFA (TOTP / WebAuthn / Biometría)           │
+│  - OAuth providers (Google, GitHub, Microsoft)                      │
+│  - JWT: 30min access + 7day refresh. Session + device tracking      │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+┌──────────────────────────────┴──────────────────────────────────────┐
+│                    GATEWAY LAYER (WebSocket Server)                   │
+│  Node.js + TypeScript                                                │
+│  - Lane-based FIFO Queue (Session + Global + Cron + Subagent)      │
+│  - Auth Profile Rotation & Model Fallback                           │
+│  - Heartbeat Monitoring (60s interval, 2min warning, 5min kill)    │
+│  - Realtime Event Streaming                                         │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+┌──────────────────────────────┴──────────────────────────────────────┐
+│                    ORCHESTRATION LAYER (LangGraph — Python)          │
+│  ┌────────────────────┐  ┌─────────────────────┐                   │
+│  │ Reasoning Engine   │  │ Tool Executor (MCP)  │                   │
+│  │ - Think step       │  │ - Real Estate APIs   │                   │
+│  │ - Plan next action │  │ - B2B Data APIs      │                   │
+│  │ - Evaluate evidence│  │ - Payment Processors │                   │
+│  └─────────┬──────────┘  └──────────┬──────────┘                   │
+│            │                         │                               │
+│  ┌─────────┴──────────┐  ┌──────────┴──────────┐                   │
+│  │ Memory Integration │  │ HITL Interceptor     │                   │
+│  │ (RAG + pgvector)   │  │ (Constitutional Val.)│                   │
+│  └────────────────────┘  └─────────────────────┘                   │
+│  Loop Control: Max 10 iterations, 30s timeout per tool, 60min task │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │ (MCP Protocol + REST)
+┌──────────────────────────────┴──────────────────────────────────────┐
+│                    SKILL LAYER (Agentes Especializados)              │
+│  Real Estate │ B2B SDR │ Legal Auditor │ Marketplace (3rd party)   │
+│  ────────────┴─────────┴───────────────┴──────────────────────────  │
+│  n8n Orchestration (workflows complejos + webhooks + triggers)     │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │ (API calls + Webhooks)
+┌──────────────────────────────┴──────────────────────────────────────┐
+│                    EXTERNAL INTEGRATIONS                              │
+│  Real Estate (Zillow, Redfin, MLS) │ Payment (Stripe, Wise, SEPA) │
+│  B2B Data (Apollo, Hunter, Clearbit) │ Comms (Twilio, SendGrid)   │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+┌──────────────────────────────┴──────────────────────────────────────┐
+│                    DATA PERSISTENCE LAYER                             │
+│  ┌──────────────────────┐  ┌────────────────────────────┐          │
+│  │ Supabase PostgreSQL  │  │ Object Storage (S3/Supabase)│          │
+│  │ - Core tables + RLS  │  │ - Documents, PDFs           │          │
+│  │ - pgvector embeddings│  │ - Audit logs (cold, 7yr)    │          │
+│  │ - Audit log (hot)    │  │ - Backups (encrypted)       │          │
+│  └──────────────────────┘  └────────────────────────────┘          │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.2 Flujo de Ejecucion End-to-End
+### 4.2 Principios Arquitectónicos
 
-1. **Ingesta:** Usuario envia objetivo via Bento Grid Dashboard al WebSocket Gateway.
-2. **Parsing:** Agent Router clasifica intent con Ministral 3-14B y selecciona StateGraph.
-3. **Planificacion (Planner Node):** LangGraph descompone objetivo en sub-tareas.
-4. **Validacion Constitucional (Constitutional Check Node):** Cada sub-tarea se valida contra Constitution + calculo de `risk_score` (Titulo V).
-5. **Resolucion de Herramientas (Tool Selector Node):** MCP resuelve skills desde tabla `skills`.
-6. **Evaluacion de Riesgo (Transaction Detector Node):** Ruteo condicional segun risk score. Beta: TODA transaccion pasa por HITL completo (Art. 1.1.1).
-7. **HITL Gate:** `interrupt()` pausa ejecucion. Ticket en `approval_tickets`. Notificacion realtime.
-8. **Ejecucion (Executor Node):** Skill ejecuta en sandbox Docker segun `sandbox_level`.
-9. **Procesamiento de Pago:** Edge Function valida APPROVED + MFA. Stripe con idempotency.
-10. **Persistencia:** Resultados en `tasks.output`, embeddings en `agent_memory`, logs en `audit_log`.
-11. **Evaluacion (Result Evaluator):** SUCCESS (finaliza), PARTIAL (itera), FAILURE (replantea/escala).
-12. **Feedback Loop:** Metricas actualizadas. Dashboard refresca widgets.
+1. **Multi-tenant by design**: Toda tabla incluye `org_id` con RLS enforced. Aislamiento total entre organizaciones.
+2. **Constitución como código**: El `constitutional_validator` es un nodo obligatorio en todo grafo LangGraph. Ninguna acción bypassa la validación constitucional.
+3. **Fail-safe over fail-open**: Toda condición de error resulta en parada segura, nunca en ejecución sin validación.
+4. **Audit everything**: Toda acción genera entrada en `audit_log` con firma HMAC-SHA256.
+5. **Stateless compute, stateful data**: Los servicios de cómputo (Gateway, LangGraph, MCP) son stateless. El estado persiste en Supabase.
 
 ---
 
-## 7. STACK TECNOLOGICO (VERSIONES FIJADAS)
+## 5. STACK TECNOLÓGICO `[ADAPTADO v0]`
 
-| Componente | Tecnologia | Version | Justificacion |
+> **Stack v0 definitivo:** Ver product-spec-v0.md Sección 3.6. Las diferencias principales:
+> - LLM: OpenAI GPT-4o-mini + Anthropic Claude 3.5 Sonnet (sustituye Ollama/vLLM)
+> - Hosting: Vercel + Railway (sustituye GKE/Cloud Run)
+> - Monitoring: Supabase Dashboard + Railway logs (sustituye Prometheus/Grafana)
+> - Auth: Supabase magic link (sin MFA/WebAuthn)
+> - Sin: Docker sandbox, pgvector, Stripe, Terraform
+
+| Capa | Tecnología | Versión Mínima | Justificación |
 |---|---|---|---|
-| Frontend | Next.js (App Router) | 15.x | SSR, RSC, streaming, ecosystem React |
-| UI Components | shadcn/ui + Tailwind CSS | latest + 3.x | Composable, accesible, customizable |
-| Animaciones | Framer Motion | 11.x | Glassmorphism transitions |
-| State Management | Zustand | 5.x | Lightweight, TypeScript-first |
-| Runtime Frontend | Node.js | 20 LTS | Soporte ES2024, estabilidad |
-| Agent Framework | LangGraph | 0.3+ | State machines, checkpointing, interrupt() |
-| Agent Language | Python | 3.11+ | Type hints, asyncio, ecosystem ML |
-| LLM Primary | Llama 3.3 70B Instruct | 3.3 | 128K context, JSON tool calling, open-source |
-| LLM Secondary | Mistral Large 3 | 675B MoE | Vision + parallel tool calls, Apache 2.0 |
-| LLM Triage | Ministral 3-14B | 14B | Clasificacion rapida de intents |
-| LLM Serving | vLLM | 0.8+ | PagedAttention, tensor parallelism, OpenAI-compatible |
-| LLM Cloud Fallback | Together AI / Groq | — | Fallback si self-hosted no disponible |
-| LLM Ultimo Recurso | Anthropic Claude Sonnet | — | Ceiling de calidad. Solo si cloud falla |
-| Tool Protocol | MCP | v2025-11-25 | Estandar emergente LLM-tool |
-| Database | Supabase PostgreSQL | 15+ | RLS, Realtime, Edge Functions, pgvector |
-| Vector DB | pgvector | 0.7+ | HNSW indexing, integrado en PostgreSQL |
-| Embeddings | OpenAI text-embedding-3-small | — | 1536 dimensiones |
-| Auth | Supabase Auth | — | JWT, MFA (TOTP/WebAuthn), OAuth, RLS |
-| Payments Primary | Stripe | — | PCI-DSS, webhooks, idempotency |
-| Payments Secondary | Wise + SEPA | — | Transferencias EU (Phase 3+) |
-| Workflow Engine | n8n | 1.x self-hosted | 400+ integraciones, visual debugging |
-| Monitoring | Prometheus + Grafana | — | Estandar de industria |
-| Error Tracking | Sentry | — | Error boundaries, performance traces |
-| Container Runtime | Docker | 24+ | Sandboxing MCP |
-| Deployment Frontend | Vercel | — | Auto-deploy desde GitHub |
-| Deployment Backend | GCP Cloud Run | — | Auto-scaling, europe-west1 |
-| LLM Hosting | GKE | — | GPU support nativo (A100/H100) |
-| Load Balancer | Cloudflare | — | DDoS, WAF, TLS 1.3, WebSocket |
-| IaC | Terraform | — | Infraestructura reproducible |
-| CI/CD | GitHub Actions | — | Integrado con GitHub |
-| Object Storage | Supabase Storage + S3 | — | Documentos, audit logs frios |
+| Frontend | Next.js + TypeScript | 15.0 | App Router, RSC, streaming, SEO |
+| UI Components | shadcn/ui + Tailwind CSS | Latest / 3.4 | Composable, accesible, glassmorphism |
+| State Management | Zustand | 4.5 | Ligero, sin boilerplate |
+| Data Fetching | React Query (TanStack) | 3.39 | Cache, retry, optimistic updates |
+| Animation | Framer Motion | 11.0 | Animaciones fluidas para widgets |
+| Gateway | Node.js + TypeScript | 20 LTS | WebSocket nativo, alta concurrencia |
+| Agent Framework | LangGraph (Python) | Latest | Multi-agent, checkpointing, state graph |
+| LLM Primary | Llama 3.3 / Mistral (via Ollama) | — | Open-source, auto-hosting, sin vendor lock-in |
+| LLM Fallback | Claude (Anthropic API) | claude-sonnet-4-20250514 | Fallback si Ollama no disponible |
+| Database | PostgreSQL (Supabase) | 15+ | ACID, pgvector, RLS, realtime subscriptions |
+| Vector Store | pgvector extension | Latest | Nativo Postgres, cosine similarity, IVFFlat |
+| Authentication | Supabase Auth | Latest | JWT + MFA + OAuth + RLS nativo |
+| Payments Primary | Stripe | Latest | PCI-DSS Level 1, webhooks, idempotency |
+| Payments International | Wise | Latest | Transferencias SEPA/internacionales |
+| Container Runtime | Docker | 24+ | Aislamiento MCP, resource limits, security hardening |
+| Workflows | n8n | Latest | Orquestación visual, webhooks, 400+ integraciones |
+| Monitoring | Prometheus + Grafana | Latest | Métricas, alertas, dashboards custom |
+| Logging | Supabase + JSONL + Sentry | — | Structured logs, error tracking, audit trail |
+| IaC | Terraform | Latest | Reproducibilidad de infraestructura |
+| CI/CD | GitHub Actions | — | Testing, security scanning, deploy automatizado |
+| CDN / DDoS | Cloudflare | — | DDoS protection, caching, TLS termination |
 
-**Cadena de fallback LLM:** vLLM self-hosted (5s timeout) > Together AI / Groq (10s) > Claude Sonnet (ultimo recurso).
+### 5.1 Dependencias Frontend (package.json)
 
+```json
+{
+  "react": "^19.0.0",
+  "next": "^15.0.0",
+  "typescript": "^5.6.0",
+  "tailwindcss": "^3.4.0",
+  "shadcn/ui": "latest",
+  "zustand": "^4.5.0",
+  "@tanstack/react-query": "^5.0.0",
+  "axios": "^1.7.0",
+  "framer-motion": "^11.0.0",
+  "@supabase/supabase-js": "^2.38.0"
+}
+```
 
 ---
 
-## 8. MODELO DE DATOS (ENTIDADES CLAVE Y RELACIONES)
+## 6. SCHEMA DE BASE DE DATOS
 
-### 8.1 Extensiones PostgreSQL Requeridas
+### 6.1 Extensiones Requeridas
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -290,516 +264,428 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "pg_cron";
 ```
 
-### 8.2 Tabla `organizations`
+### 6.2 Diagrama Entidad-Relación
 
-```sql
-CREATE TABLE organizations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    slug TEXT UNIQUE NOT NULL,
-    plan TEXT DEFAULT 'free' CHECK (plan IN ('free','pro','enterprise')),
-    monthly_budget NUMERIC(12,2) DEFAULT 0,
-    budget_spent NUMERIC(12,2) DEFAULT 0,
-    settings JSONB DEFAULT '{}',
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
+```
+organizations
+├─ 1:N → users (via org_memberships)
+├─ 1:N → agent_instances
+├─ 1:N → agent_limits
+├─ 1:N → skills
+├─ 1:N → approval_tickets
+├─ 1:N → transactions
+├─ 1:N → audit_log
+└─ 1:N → incident_logs
+
+users (Supabase Auth)
+├─ N:N → organizations (via org_memberships con role)
+├─ 1:N → user_sessions
+├─ 1:N → approval_tickets (como approver)
+└─ 1:N → agent_executions
+
+agent_instances
+├─ 1:N → agent_sessions
+├─ 1:N → agent_heartbeats
+└─ 1:N → agent_executions
+
+approval_tickets
+└─ 1:1 → transactions
+
+skills
+└─ 1:N → agent_executions
 ```
 
-### 8.3 Tabla `user_profiles`
+### 6.3 Definiciones de Tablas
 
+#### organizations
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | Identificador de organización |
+| name | VARCHAR(255) | Nombre de la organización |
+| plan | VARCHAR(20) | `free` / `pro` / `enterprise` |
+| monthly_budget | NUMERIC(12,2) | Presupuesto mensual total (EUR) |
+| status | VARCHAR(20) | `active` / `suspended` |
+| metadata | JSONB | Configuración adicional |
+| created_at | TIMESTAMPTZ | Fecha de creación |
+| updated_at | TIMESTAMPTZ | Última modificación |
+
+#### org_memberships
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | Organización |
+| user_id | UUID FK → auth.users | Usuario |
+| role | VARCHAR(50) | `user` / `manager` / `admin` / `owner` / `cto` / `power_user` |
+| created_at | TIMESTAMPTZ | — |
+
+**RLS:** `USING (auth.uid() = user_id)` para lectura; `WITH CHECK (role IN ('admin','owner'))` para escritura.
+
+#### users (Supabase Auth + extensión)
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | Supabase `auth.uid()` |
+| email | VARCHAR(255) UNIQUE | Email del usuario |
+| full_name | VARCHAR(255) | Nombre completo |
+| avatar_url | TEXT | URL de avatar |
+| mfa_enabled | BOOLEAN DEFAULT true | MFA activado |
+| mfa_method | VARCHAR(20) DEFAULT 'totp' | `totp` / `webauthn` / `sms` |
+| biometric_enabled | BOOLEAN DEFAULT false | Biometría activada |
+| status | VARCHAR(20) DEFAULT 'active' | `active` / `inactive` / `suspended` |
+| metadata | JSONB | Datos adicionales |
+| created_at | TIMESTAMPTZ | — |
+| updated_at | TIMESTAMPTZ | — |
+
+#### user_sessions
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| user_id | UUID FK → users | — |
+| device_id | VARCHAR(255) | Fingerprint del dispositivo |
+| device_name | TEXT | Nombre legible del dispositivo |
+| ip_address | INET | IP de conexión |
+| user_agent | TEXT | User-Agent del navegador |
+| last_activity | TIMESTAMPTZ | Última actividad |
+| expires_at | TIMESTAMPTZ | Expiración de sesión (15min inactividad) |
+| created_at | TIMESTAMPTZ | — |
+
+#### agent_limits
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | Organización |
+| daily_limit | NUMERIC(12,2) DEFAULT 0 | Límite diario (EUR) |
+| weekly_limit | NUMERIC(12,2) DEFAULT 0 | Límite semanal (EUR) |
+| monthly_limit | NUMERIC(12,2) DEFAULT 0 | Límite mensual (EUR) |
+| current_daily_usage | NUMERIC(12,2) DEFAULT 0 | Gasto acumulado hoy |
+| current_weekly_usage | NUMERIC(12,2) DEFAULT 0 | Gasto acumulado esta semana |
+| current_monthly_usage | NUMERIC(12,2) DEFAULT 0 | Gasto acumulado este mes |
+| reset_daily_at | TIMESTAMPTZ | Próximo reset diario (00:00 UTC) |
+| reset_weekly_at | TIMESTAMPTZ | Próximo reset semanal (lunes 00:00 UTC) |
+| reset_monthly_at | TIMESTAMPTZ | Próximo reset mensual (día 1, 00:00 UTC) |
+| created_at | TIMESTAMPTZ | — |
+| updated_at | TIMESTAMPTZ | — |
+
+**Constraint:** `UNIQUE(org_id)`.
+
+#### agent_instances
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | Organización (RLS enforced) |
+| name | TEXT | Nombre del agente |
+| model_config | JSONB | `{provider, model_name, temperature, max_tokens}` |
+| enabled_tools | TEXT[] | Array de MCP tools permitidas |
+| budget_limit | NUMERIC(12,2) | Presupuesto asignado al agente |
+| status | VARCHAR(20) | `ACTIVE` / `PAUSED` / `KILLED` / `TERMINATED` |
+| created_at | TIMESTAMPTZ | — |
+| updated_at | TIMESTAMPTZ | — |
+
+#### approval_tickets
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | Organización |
+| user_id | UUID FK → users | Solicitante |
+| agent_id | UUID FK → agent_instances | Agente que generó el ticket |
+| skill_id | UUID FK → skills | Skill asociado |
+| ticket_type | VARCHAR(50) | `lead_purchase` / `ad_spend` / `vendor_payment` / `transfer` / `subscription` |
+| amount | NUMERIC(12,2) | Importe propuesto (EUR) |
+| currency | VARCHAR(3) DEFAULT 'EUR' | Divisa |
+| status | VARCHAR(20) DEFAULT 'PENDING_USER' | Ver tabla de estados (Constitution Art. 4.5.1) |
+| justification | TEXT | Justificación generada por el agente |
+| evidence | JSONB | `{lead_manifest, roi_projection, campaign_plan, ...}` |
+| risk_score | NUMERIC(3,2) | [0.00, 1.00] |
+| risk_category | VARCHAR(20) | `LOW` / `MEDIUM` / `HIGH` / `CRITICAL` |
+| mfa_required | BOOLEAN | Determinado por risk score (Constitution Art. 4.8) |
+| approved_by | UUID FK → users | Usuario que aprobó |
+| approved_at | TIMESTAMPTZ | — |
+| mfa_attempts | INT DEFAULT 0 | Contador de intentos MFA |
+| mfa_verified_at | TIMESTAMPTZ | — |
+| executed_at | TIMESTAMPTZ | — |
+| execution_result | JSONB | `{transaction_id, payment_id, ...}` |
+| error_message | TEXT | Mensaje de error si falló |
+| expires_at | TIMESTAMPTZ | TTL: 24h desde creación |
+| created_at | TIMESTAMPTZ | — |
+| updated_at | TIMESTAMPTZ | — |
+
+**Índices:** `(org_id, status)`, `(expires_at)`.  
+**Realtime:** Habilitado para propagación instantánea al dashboard.
+
+#### transactions
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | — |
+| user_id | UUID FK → users | — |
+| approval_ticket_id | UUID FK → approval_tickets | Ticket que autorizó la transacción |
+| transaction_type | VARCHAR(50) | Categoría |
+| amount | NUMERIC(12,2) | Importe ejecutado |
+| currency | VARCHAR(3) DEFAULT 'EUR' | — |
+| status | VARCHAR(20) | `PENDING` / `PROCESSING` / `COMPLETED` / `FAILED` / `REFUNDED` |
+| payment_provider | VARCHAR(50) | `stripe` / `wise` / `sepa` |
+| external_transaction_id | VARCHAR(255) | ID en el procesador externo |
+| description | TEXT | — |
+| metadata | JSONB | Datos adicionales del procesador |
+| executed_by | UUID FK → users | — |
+| created_at | TIMESTAMPTZ | — |
+| updated_at | TIMESTAMPTZ | — |
+
+**Índices:** `(org_id, created_at DESC)`, `(status)`.
+
+#### skills
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | Organización propietaria |
+| name | VARCHAR(255) NOT NULL | Nombre del skill |
+| version | VARCHAR(10) DEFAULT '1.0.0' | Semantic versioning |
+| description | TEXT | — |
+| category | VARCHAR(50) | `real_estate` / `sdr` / `compliance` / `marketplace` |
+| approval_status | VARCHAR(20) DEFAULT 'DRAFT' | `DRAFT` / `PENDING_REVIEW` / `APPROVED` / `DEPRECATED` |
+| risk_score_max | NUMERIC(3,2) DEFAULT 0.30 | Umbral máximo de risk score |
+| transaction_limit_daily | NUMERIC(12,2) DEFAULT 0 | — |
+| transaction_limit_monthly | NUMERIC(12,2) DEFAULT 0 | — |
+| mcp_tools | JSONB | Array de tools MCP registradas |
+| dependencies | JSONB | Array de skill_ids dependientes |
+| code_hash | VARCHAR(64) | SHA-256 del código para versionado |
+| reviewed_by | UUID FK → users | Revisor |
+| approved_date | TIMESTAMPTZ | — |
+| created_at | TIMESTAMPTZ | — |
+| updated_at | TIMESTAMPTZ | — |
+| deleted_at | TIMESTAMPTZ | Soft delete |
+
+**Índices:** `(category, approval_status)`.
+
+#### knowledge_chunks (Vector Store para RAG)
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | RLS enforced |
+| source_type | VARCHAR(50) | `document` / `contract` / `email` / `manual` |
+| source_id | VARCHAR(255) | ID del documento fuente |
+| content | TEXT NOT NULL | Texto original (cifrado at-rest) |
+| embedding | VECTOR(1536) | Embedding (text-embedding-3-small) |
+| metadata | JSONB | `{tags, sensitivity_level, purpose}` |
+| created_at | TIMESTAMPTZ | — |
+| expires_at | TIMESTAMPTZ | GDPR auto-delete (default 90 días) |
+
+**Índice vectorial:** `CREATE INDEX ON knowledge_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);`
+
+#### agent_executions
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | — |
+| user_id | UUID FK → users | — |
+| skill_id | UUID FK → skills | — |
+| agent_id | UUID FK → agent_instances | — |
+| status | VARCHAR(20) | `PENDING` / `RUNNING` / `COMPLETED` / `FAILED` / `INTERRUPTED` |
+| input | JSONB | — |
+| output | JSONB | — |
+| reasoning | TEXT | Cadena de razonamiento del agente |
+| tool_calls | JSONB | Historial de llamadas a herramientas |
+| iteration_count | INT DEFAULT 0 | — |
+| tokens_used | INT DEFAULT 0 | — |
+| execution_time_ms | INT | Duración total |
+| error_message | TEXT | — |
+| created_at | TIMESTAMPTZ | — |
+| completed_at | TIMESTAMPTZ | — |
+
+**Índices:** `(org_id, skill_id, created_at DESC)`.
+
+#### audit_log (INMUTABLE — Constitution Título X)
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | BIGSERIAL PK | Auto-increment |
+| org_id | UUID | Organización |
+| actor_type | TEXT | `agent` / `user` / `system` |
+| actor_id | UUID | ID del actor |
+| action | TEXT | Formato `resource.verb` (ej: `payment.executed`) |
+| resource_type | TEXT | Tipo del recurso afectado |
+| resource_id | UUID | ID del recurso |
+| details | JSONB | Importe, risk score, state_hash, IP, estado previo |
+| signature | TEXT | HMAC-SHA256(org_id \|\| actor_id \|\| action \|\| timestamp \|\| payload) |
+| created_at | TIMESTAMPTZ | Inmutable |
+
+**Inmutabilidad:**
 ```sql
-CREATE TABLE user_profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-    role TEXT DEFAULT 'member' CHECK (role IN ('owner','admin','member','viewer')),
-    display_name TEXT,
-    mfa_enabled BOOLEAN DEFAULT false,
-    mfa_method TEXT DEFAULT 'totp' CHECK (mfa_method IN ('totp','sms','email','webauthn')),
-    biometric_enabled BOOLEAN DEFAULT false,
-    notification_preferences JSONB DEFAULT '{"email":true,"push":true,"sms":false}',
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-```
-
-### 8.4 Tabla `agents`
-
-```sql
-CREATE TABLE agents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    description TEXT,
-    status TEXT DEFAULT 'idle' CHECK (status IN ('idle','running','paused','error','killed')),
-    config JSONB NOT NULL DEFAULT '{}',
-    current_thread_id TEXT,
-    total_tasks_completed INTEGER DEFAULT 0,
-    total_money_saved NUMERIC(12,2) DEFAULT 0,
-    total_money_spent NUMERIC(12,2) DEFAULT 0,
-    last_active_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-```
-
-### 8.5 Tabla `skills`
-
-```sql
-CREATE TABLE skills (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID REFERENCES organizations(id),  -- NULL = skill global
-    slug TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    category TEXT NOT NULL CHECK (category IN ('real_estate','sales','legal','supply_chain','wealth','general','custom')),
-    version TEXT DEFAULT '1.0.0',
-    input_schema JSONB NOT NULL,
-    output_schema JSONB,
-    sandbox_level TEXT DEFAULT 'standard' CHECK (sandbox_level IN ('none','standard','strict')),
-    risk_level TEXT DEFAULT 'low' CHECK (risk_level IN ('low','medium','high','critical')),
-    requires_hitl BOOLEAN DEFAULT false,
-    estimated_cost NUMERIC(8,2) DEFAULT 0,
-    transaction_limit_daily NUMERIC(12,2) DEFAULT 0,
-    transaction_limit_monthly NUMERIC(12,2) DEFAULT 0,
-    mcp_tools JSONB DEFAULT '[]',
-    dependencies JSONB DEFAULT '[]',
-    code_hash TEXT,  -- SHA256 for versioning
-    approval_status TEXT DEFAULT 'DRAFT' CHECK (approval_status IN ('DRAFT','PENDING_REVIEW','APPROVED','DEPRECATED')),
-    status TEXT DEFAULT 'active',
-    deleted_at TIMESTAMPTZ,  -- Soft delete
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-```
-
-### 8.6 Tabla `tasks`
-
-```sql
-CREATE TABLE tasks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID NOT NULL REFERENCES organizations(id),
-    agent_id UUID NOT NULL REFERENCES agents(id),
-    skill_id UUID REFERENCES skills(id),
-    thread_id TEXT NOT NULL,
-    status TEXT DEFAULT 'pending' CHECK (status IN (
-        'pending','planning','executing','awaiting_approval',
-        'approved','rejected','completed','failed','cancelled'
-    )),
-    input JSONB NOT NULL,
-    output JSONB,
-    plan JSONB,
-    error_message TEXT,
-    risk_score NUMERIC(3,2),
-    execution_time_ms INTEGER,
-    tokens_used INTEGER DEFAULT 0,
-    cost_eur NUMERIC(8,4) DEFAULT 0,
-    started_at TIMESTAMPTZ,
-    completed_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX idx_tasks_org ON tasks(org_id);
-CREATE INDEX idx_tasks_agent ON tasks(agent_id);
-CREATE INDEX idx_tasks_status ON tasks(status);
-```
-
-### 8.7 Tabla `approval_tickets`
-
-```sql
-CREATE TABLE approval_tickets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID NOT NULL REFERENCES organizations(id),
-    task_id UUID NOT NULL REFERENCES tasks(id),
-    agent_id UUID NOT NULL REFERENCES agents(id),
-    status TEXT DEFAULT 'PENDING_USER' CHECK (status IN (
-        'PENDING_USER','APPROVAL_MFA_SENT','APPROVED',
-        'REJECTED','EXECUTING','COMPLETED','FAILED','EXPIRED','ESCALATED'
-    )),
-    transaction_type TEXT NOT NULL,
-    transaction_data JSONB NOT NULL,
-    amount NUMERIC(12,2),
-    currency TEXT DEFAULT 'EUR',
-    risk_score NUMERIC(3,2) NOT NULL,
-    risk_factors JSONB DEFAULT '[]',
-    justification TEXT,
-    evidence_links TEXT[],
-    requires_mfa BOOLEAN DEFAULT false,
-    mfa_verified BOOLEAN DEFAULT false,
-    mfa_verified_at TIMESTAMPTZ,
-    mfa_attempts INTEGER DEFAULT 0,
-    approved_by UUID REFERENCES auth.users(id),
-    expires_at TIMESTAMPTZ NOT NULL,
-    decided_at TIMESTAMPTZ,
-    executed_at TIMESTAMPTZ,
-    execution_result JSONB,
-    error_message TEXT,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX idx_approval_org_status ON approval_tickets(org_id, status);
-CREATE INDEX idx_approval_expires ON approval_tickets(expires_at);
-```
-
-### 8.8 Tabla `audit_log` (Inmutable)
-
-```sql
-CREATE TABLE audit_log (
-    id BIGSERIAL PRIMARY KEY,
-    org_id UUID NOT NULL REFERENCES organizations(id),
-    actor_type TEXT NOT NULL CHECK (actor_type IN ('agent','user','system')),
-    actor_id UUID NOT NULL,
-    action TEXT NOT NULL,                -- formato: recurso.verbo (ej: payment.executed)
-    resource_type TEXT NOT NULL,
-    resource_id UUID,
-    details JSONB DEFAULT '{}',          -- amount, risk_score, state_hash, IP, HMAC signature
-    ip_address INET,
-    signature TEXT,                       -- HMAC-SHA256 (Constitution Art. 2.3)
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Inmutabilidad: prohibir UPDATE y DELETE
 CREATE POLICY "audit_no_update" ON audit_log FOR UPDATE USING (false);
 CREATE POLICY "audit_no_delete" ON audit_log FOR DELETE USING (false);
 REVOKE UPDATE, DELETE ON audit_log FROM authenticated, anon;
-
-CREATE INDEX idx_audit_org ON audit_log(org_id);
-CREATE INDEX idx_audit_created ON audit_log(created_at DESC);
 ```
 
-### 8.9 Tabla `agent_memory` (Vector Store)
+#### incident_logs (Kill Switch)
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| id | UUID PK | — |
+| org_id | UUID FK → organizations | — |
+| incident_type | VARCHAR(50) | `anomaly` / `security` / `manual` / `rate_limit` |
+| trigger_type | VARCHAR(20) | `auto` / `manual` |
+| severity | VARCHAR(20) | `low` / `medium` / `critical` |
+| kill_switch_level | VARCHAR(5) | `L1` / `L2` / `L3` / `L4` |
+| reason | TEXT | Descripción del incidente |
+| affected_agents | JSONB | Array de agent_ids afectados |
+| recovery_started | TIMESTAMPTZ | — |
+| recovery_completed | TIMESTAMPTZ | — |
+| post_mortem | TEXT | — |
+| created_at | TIMESTAMPTZ | — |
+
+### 6.4 RLS Policies (Patrón Base)
 
 ```sql
-CREATE TABLE agent_memory (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID NOT NULL REFERENCES organizations(id),
-    agent_id UUID NOT NULL REFERENCES agents(id),
-    content TEXT NOT NULL,               -- cifrado at-rest
-    metadata JSONB DEFAULT '{}',         -- source, tags, sensitivity_level, purpose
-    embedding VECTOR(1536),
-    memory_type TEXT DEFAULT 'episodic' CHECK (memory_type IN ('episodic','semantic','procedural')),
-    importance_score NUMERIC(3,2) DEFAULT 0.5,
-    access_count INTEGER DEFAULT 0,
-    last_accessed_at TIMESTAMPTZ,
-    expires_at TIMESTAMPTZ DEFAULT (now() + interval '90 days'),
-    created_at TIMESTAMPTZ DEFAULT now()
-);
+-- Patrón aplicado a TODAS las tablas con org_id:
+ALTER TABLE {table} ENABLE ROW LEVEL SECURITY;
 
--- Indice HNSW para busqueda semantica
-CREATE INDEX ON agent_memory USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
-CREATE INDEX idx_memory_org_agent ON agent_memory(org_id, agent_id);
-```
+CREATE POLICY "org_isolation_{table}" ON {table}
+  FOR ALL USING (
+    org_id IN (
+      SELECT org_id FROM org_memberships WHERE user_id = auth.uid()
+    )
+  );
 
-### 8.10 Tabla `payment_transactions`
-
-```sql
-CREATE TABLE payment_transactions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID NOT NULL REFERENCES organizations(id),
-    approval_ticket_id UUID REFERENCES approval_tickets(id),
-    transaction_type TEXT NOT NULL,
-    amount NUMERIC(12,2) NOT NULL,
-    currency TEXT DEFAULT 'EUR',
-    status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING','PROCESSING','COMPLETED','FAILED','REFUNDED')),
-    payment_provider TEXT CHECK (payment_provider IN ('stripe','wise','sepa')),
-    external_transaction_id TEXT,
-    description TEXT,
-    metadata JSONB DEFAULT '{}',
-    executed_by UUID REFERENCES auth.users(id),
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX idx_tx_org ON payment_transactions(org_id, created_at DESC);
-```
-
-### 8.11 Tabla `incident_logs` (Kill Switch)
-
-```sql
-CREATE TABLE incident_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID NOT NULL REFERENCES organizations(id),
-    incident_type TEXT NOT NULL CHECK (incident_type IN ('anomaly','security','manual','rate_limit','constitutional_violation')),
-    trigger_type TEXT NOT NULL CHECK (trigger_type IN ('auto','manual')),
-    severity TEXT NOT NULL CHECK (severity IN ('low','medium','high','critical')),
-    kill_switch_level TEXT CHECK (kill_switch_level IN ('L1','L2','L3','L4')),
-    reason TEXT,
-    affected_agents JSONB,
-    affected_tickets JSONB,
-    recovery_started_at TIMESTAMPTZ,
-    recovery_completed_at TIMESTAMPTZ,
-    post_mortem TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-```
-
-### 8.12 Tabla `constitutional_limits`
-
-```sql
-CREATE TABLE constitutional_limits (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID NOT NULL REFERENCES organizations(id),
-    action_type TEXT NOT NULL CHECK (action_type IN ('lead_purchase','api_subscription','data_enrichment','transfer','general')),
-    per_transaction_max NUMERIC(10,2),
-    daily_max NUMERIC(10,2),
-    weekly_max NUMERIC(10,2),
-    monthly_max NUMERIC(10,2),
-    require_approval BOOLEAN DEFAULT true,
-    risk_score_threshold NUMERIC(3,2) DEFAULT 0.7,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX idx_limits_org_action ON constitutional_limits(org_id, action_type);
-```
-
-### 8.13 Row-Level Security (RLS) Multi-Tenant
-
-```sql
--- Funcion helper: obtener org_id del usuario actual
-CREATE OR REPLACE FUNCTION get_user_org_id() RETURNS UUID AS $$
-  SELECT org_id FROM user_profiles WHERE id = auth.uid()
-$$ LANGUAGE SQL SECURITY DEFINER STABLE;
-
--- Habilitar RLS en todas las tablas
-ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE agents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE skills ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE approval_tickets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
-ALTER TABLE agent_memory ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payment_transactions ENABLE ROW LEVEL SECURITY;
-
--- Politicas de aislamiento por organizacion
-CREATE POLICY "org_isolation" ON agents FOR ALL TO authenticated
-  USING (org_id = get_user_org_id());
-CREATE POLICY "org_isolation" ON tasks FOR ALL TO authenticated
-  USING (org_id = get_user_org_id());
-CREATE POLICY "org_isolation" ON approval_tickets FOR ALL TO authenticated
-  USING (org_id = get_user_org_id());
-CREATE POLICY "audit_read" ON audit_log FOR SELECT TO authenticated
-  USING (org_id = get_user_org_id());
-CREATE POLICY "audit_insert" ON audit_log FOR INSERT TO service_role
-  WITH CHECK (true);
-CREATE POLICY "skills_visibility" ON skills FOR SELECT TO authenticated
-  USING (org_id IS NULL OR org_id = get_user_org_id());
-CREATE POLICY "memory_isolation" ON agent_memory FOR ALL TO authenticated
-  USING (org_id = get_user_org_id());
-
--- Indices para performance RLS
-CREATE INDEX idx_agents_org ON agents(org_id);
-CREATE INDEX idx_approval_org ON approval_tickets(org_id);
+-- Admin override para approval_tickets:
+CREATE POLICY "admin_approve_tickets" ON approval_tickets
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM org_memberships
+      WHERE user_id = auth.uid()
+        AND org_id = approval_tickets.org_id
+        AND role IN ('admin', 'owner', 'cto')
+    )
+  );
 ```
 
 ---
 
-## 9. ORQUESTACION AGENTICA (LangGraph)
+## 7. CAPA DE AUTENTICACIÓN Y AUTORIZACIÓN
 
-### 9.1 State Schema
+### 7.1 Flujo de Autenticación
+
+1. Usuario se registra vía email/password u OAuth (Google, GitHub, Microsoft).
+2. Supabase Auth emite JWT con claims: `{sub: user_id, role: authenticated, aal: aal1}`.
+3. Cliente almacena JWT en `httpOnly` cookie (web) o secure keychain (mobile).
+4. Toda request incluye JWT en header `Authorization: Bearer <token>`.
+5. Edge Functions validan firma y expiración del JWT.
+6. Si MFA habilitado: verificación TOTP/WebAuthn → upgrade a `aal2`.
+
+### 7.2 Configuración JWT
+
+| Parámetro | Valor |
+|---|---|
+| Access Token TTL | 30 minutos |
+| Refresh Token TTL | 7 días |
+| Session Timeout (inactividad) | 15 minutos |
+| MFA obligatorio para | Aprobación HITL, Kill Switch recovery, cambio de límites |
+
+### 7.3 MFA Enforcement
+
+```sql
+CREATE OR REPLACE FUNCTION check_mfa_required()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.require_approval = true
+     AND (SELECT mfa_enabled FROM auth.users WHERE id = NEW.user_id) = false
+  THEN
+    RAISE EXCEPTION 'MFA required for approval-gated actions';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+---
+
+## 8. CAPA DE ORQUESTACIÓN AGENTICA (LangGraph) `[ADAPTADO v0: 7 nodos]`
+
+> **Referencia primaria v0:** product-spec-v0.md Sección 3.6 define el StateGraph simplificado
+> de 7 nodos (process_input → planner → limit_check → executor → result_handler → audit_logger → finalize).
+> Esta sección muestra la arquitectura base OpenClaw como referencia. Nodos eliminados en v0:
+> constitutional_check (fusionado con limit_check), tool_selector (fusionado con planner),
+> transaction_detector (sin transacciones), human_approval (single-user), payment_processor (sin pagos).
+
+### 8.1 State Schema
 
 ```python
 class AgentState(TypedDict):
-    messages: Sequence[BaseMessage]
+    messages: Sequence[HumanMessage | AIMessage]
     org_id: str
     user_id: str
-    agent_id: str
-    session_id: str
-    thread_id: str
     skill_id: str
-    current_task: str
-    plan: list[dict]               # [{step, tool, status}]
-    iteration: int                  # max 10 (Constitution Art. 8.1)
-    max_iterations: int             # Default: 10
+    iteration: int          # max 10 (Constitution Art. 8.1)
     tool_calls: list[dict]
-    tool_results: list[dict]
-    pending_approval: dict | None
-    approval_ticket_id: str | None
-    risk_score: float               # [0.0, 1.0]
-    risk_factors: list[str]
-    budget_remaining: dict          # {daily, weekly, monthly}
-    cost_accumulated: float
-    constitutional_violations: list[str]
     reasoning: str
-    execution_log: list[dict]
-    status: str                     # idle | running | waiting_approval | completed | failed | killed
-    started_at: str
-    completed_at: str | None
+    risk_score: float       # [0.0, 1.0]
+    budget_remaining: dict  # {daily, weekly, monthly}
+    approval_required: bool
+    approval_ticket_id: str | None
+    status: str             # running | executing_tools | waiting_approval | completed | failed
 ```
 
-### 9.2 State Graph (Nodos y Edges)
+### 8.2 State Graph (Nodos y Edges)
 
 ```
-[process_input] > [planner] > [constitutional_check] > (conditional)
-                                                            |
-                      +-------------------------------------+
-                      |                                     |
-                      v                                     v
-              [tool_selector]                        [emergency_stop] > END
-                      |
-                      v
-           [transaction_detector] > (conditional)
-                  |           |            |
-                  v           v            v
-            [executor]  [human_approval]  [emergency_stop]
-                  |           |
-                  v           v
-         [result_evaluator]  [payment_processor]
-                  |                |
-          (conditional)            |
-           |         |             v
-           v         v      [result_evaluator]
-       [finalize]  [planner]       |
-           |       (re-plan)   (conditional)
-           v                   |         |
-          END              [finalize]  [planner]
+[process_input] → [think] → (conditional) → [execute_tools] → (conditional) → [think] (loop)
+                                │                                    │
+                                └→ [finalize]                        └→ [finalize] (if waiting_approval)
 ```
 
-**Nodos (11 nodos):**
-
-1. `process_input`: Carga contexto del usuario desde Supabase (limites, perfil, historial). Construye system prompt con reglas constitucionales. Inicializa budget_remaining.
-2. `planner`: Invoca LLM (Llama 3.3 70B). Descompone objetivo en sub-tareas. Incrementa iteracion. Si iteracion >= max_iterations, finaliza.
-3. `constitutional_check`: Valida cada sub-tarea contra `constitutional_limits`. Verifica presupuesto, permisos de skill, risk level. Si violation critica: ruta a `emergency_stop`.
-4. `tool_selector`: Resuelve herramientas MCP desde tabla `skills`. Valida permisos y sandbox level.
-5. `transaction_detector`: Detecta intenciones monetarias en tool_calls. Calcula risk_score (Constitution Titulo V). Ruteo condicional segun riesgo.
-6. `human_approval`: Crea `approval_ticket` en Supabase. Usa `interrupt()` para pausar el grafo. Espera decision humana. Retorna `Command` con goto condicional.
-7. `executor`: Ejecuta herramientas en sandbox Docker via MCP. Non-financial tools only.
-8. `payment_processor`: Invoca Edge Function para pago post-aprobacion. Stripe con idempotency_key.
-9. `result_evaluator`: Evalua si objetivo se cumplio. Decide: completed, re-plan, o escalar.
-10. `finalize`: Persiste resultados en `tasks`, embeddings en `agent_memory`, logs en `audit_log`.
-11. `emergency_stop`: Kill Switch inmediato. Status = 'killed'. Log en `incident_logs`.
+**Nodos:**
+1. `process_input`: Recupera contexto del usuario desde Supabase (límites, perfil, historial). Construye system prompt con reglas constitucionales.
+2. `think`: Invoca el LLM. Incrementa iteración. Si iteración >= 10, finaliza. Analiza si se requieren tool calls.
+3. `execute_tools`: Ejecuta herramientas MCP. Si detecta `execute_payment`, intercepción HITL: crea `approval_ticket` en Supabase y pausa el grafo (`interrupt()`).
+4. `finalize`: Registra ejecución en `agent_executions`. Genera respuesta final.
 
 **Edges condicionales:**
+- `think → execute_tools` si `status == 'executing_tools'`.
+- `think → finalize` si `status == 'completed'` o iteración >= 10.
+- `execute_tools → think` si `status == 'running'` (loop de razonamiento).
+- `execute_tools → finalize` si `status == 'waiting_approval'`.
 
-- `constitutional_check > tool_selector` si sin violaciones.
-- `constitutional_check > emergency_stop` si violacion critica.
-- `transaction_detector > executor` si no monetario.
-- `transaction_detector > human_approval` si monetario (beta: SIEMPRE).
-- `transaction_detector > emergency_stop` si violacion de limites.
-- `result_evaluator > finalize` si status == 'completed'.
-- `result_evaluator > planner` si status == 'running' (re-plan con ajustes).
+### 8.3 LLM Service (Multi-Provider) `[ADAPTADO v0]`
 
-### 9.3 HITL con interrupt()
-
-```python
-def request_human_approval(state: AgentState) -> Command[Literal["payment_processor", "planner"]]:
-    transaction = state["pending_approval"]
-    risk_score = state["risk_score"]
-
-    approval = interrupt({
-        "type": "transaction_approval",
-        "ticket_id": state["approval_ticket_id"],
-        "amount": transaction["amount"],
-        "currency": transaction["currency"],
-        "recipient": transaction["recipient"],
-        "risk_score": risk_score,
-        "risk_factors": state["risk_factors"],
-        "budget_remaining": state["budget_remaining"],
-        "requires_mfa": risk_score > 0.7 or transaction["amount"] > 500,
-        "expires_at": (datetime.now() + timedelta(hours=24)).isoformat()
-    })
-
-    if approval.get("decision") == "approved":
-        return Command(
-            update={"pending_approval": {**transaction, "status": "APPROVED"}},
-            goto="payment_processor"
-        )
-    return Command(
-        update={"pending_approval": {**transaction, "status": "REJECTED"}},
-        goto="planner"
-    )
-```
-
-### 9.4 LLM Service (Multi-Provider)
-
-| Provider | Modelo | Uso |
+| Provider | Modelo | Uso v0 |
 |---|---|---|
-| vLLM (self-hosted/GKE) | Llama 3.3 70B | Primary — razonamiento |
-| vLLM (self-hosted/GKE) | Mistral Large 3 675B MoE | Secondary — vision + parallel tools |
-| vLLM (self-hosted/GKE) | Ministral 3-14B | Triage + clasificacion rapida |
-| Together AI | Llama 3.3 | Cloud fallback si vLLM no disponible |
-| Groq | Mistral | Cloud fallback |
-| Anthropic | Claude Sonnet | Ultimo recurso. Ceiling de calidad |
+| OpenAI | GPT-4o-mini | Primary — resúmenes, análisis, clasificación |
+| Anthropic | Claude 3.5 Sonnet | Creative — copy de lujo, insights cualitativos |
 
-**Seleccion automatica:** vLLM no responde en 5s > Together AI/Groq. Si cloud falla > Claude.
-
-### 9.5 Checkpointing
-
-```python
-checkpointer = AsyncPostgresSaver.from_conn_string(SUPABASE_DB_URL)
-app = graph.compile(checkpointer=checkpointer, interrupt_before=["human_approval"])
-```
-
-El checkpointing persiste el estado completo del grafo en PostgreSQL. Tras aprobacion HITL, el grafo se resume desde el checkpoint exacto con `Command` routing.
+**Selección v0:** GPT-4o-mini para summarize/analyze. Claude 3.5 Sonnet para generate_copy. Fallback: si primary falla → creative.
 
 ---
 
-## 10. PROTOCOLO HITL Y FLUJOS MONETARIOS
+## 9. ~~PROTOCOLO MCP Y SANDBOXING~~ `[ELIMINADO v0]`
 
-El protocolo HITL se define en su totalidad en la Constitucion (Titulo IV). Esta seccion especifica su implementacion tecnica.
+> **Razón:** En Anclora Nexus v0, los skills son módulos Python internos invocados directamente
+> por el nodo `executor` del StateGraph. No hay sandbox Docker ni MCP protocol. Reactivar en v2+
+> cuando se añadan skills de terceros o marketplace. Ver `spec-openclaw-full.md` para referencia.
 
-### 10.1 Los 6 Pasos (Constitution Art. 4.2)
-
-1. **Deteccion:** Nodo `transaction_detector` analiza tool_calls buscando senales monetarias (palabras clave, MCP annotations, patrones de API).
-2. **Validacion Constitucional:** `constitutional_check` verifica limites, permisos, horario, frecuencia.
-3. **Generacion de Ticket:** Insert en `approval_tickets` con justificacion LLM, evidencia, risk score, expiracion 24h.
-4. **Notificacion:** Supabase Realtime broadcast al widget Monetary Pulse + n8n workflow envia email/push/SMS.
-5. **Verificacion MFA:** Segun risk score (Constitution Art. 4.8): < 0.3 click simple, 0.3-0.7 OTP, > 0.7 MFA completo. **Beta: MFA para todo.**
-6. **Ejecucion:** Edge Function valida APPROVED + MFA + no expirado. Stripe con idempotency_key = ticket.id.
-
-### 10.2 Estados del Ticket
-
-```
-PENDING_USER > APPROVAL_MFA_SENT > APPROVED > EXECUTING > COMPLETED
-                                           |                  |
-                                           v                  v
-                                        FAILED             FAILED
-PENDING_USER > REJECTED
-PENDING_USER > EXPIRED (24h sin respuesta)
-PENDING_USER > ESCALATED (sin respuesta en threshold configurado)
-```
-
-### 10.3 Expiracion y Escalacion
-
-- **Timeout default:** 24 horas.
-- **Cron de expiracion:** Cada 5 minutos, busca tickets con `expires_at < now()` y `status = 'PENDING_USER'`, marca como EXPIRED.
-- **Escalacion:** Si no hay respuesta en 30 min, segundo recordatorio urgente. Si no hay respuesta en umbral configurable, escala a admin superior.
-
-```sql
-SELECT cron.schedule(
-  'expire-approval-tickets',
-  '*/5 * * * *',
-  $$UPDATE approval_tickets SET status = 'EXPIRED'
-    WHERE expires_at < now() AND status = 'PENDING_USER'$$
-);
-```
-
----
-
-## 11. MCP, SKILLS Y SANDBOXING
-
-### 11.1 Arquitectura MCP
+### 9.1 Arquitectura MCP
 
 Cada herramienta ejecuta en un contenedor Docker aislado con las siguientes restricciones (Constitution Art. 8.2):
 
-| Restriccion | Valor |
+| Restricción | Valor |
 |---|---|
-| Red | Sin acceso por defecto. Whitelist explicita por skill |
+| Red | Sin acceso por defecto. Whitelist explícita por skill |
 | Filesystem | Read-only excepto `/tmp` |
-| CPU | 1 core maximo |
-| RAM | 512 MB maximo |
-| Timeout | 30 segundos por invocacion (standard) / 10s (strict) |
+| CPU | 1 core máximo |
+| RAM | 512 MB máximo |
+| Timeout | 30 segundos por invocación |
 | Privilegios | `no-new-privileges: true`, `cap_drop: ALL` |
 | Usuario | Non-root (uid 1000) |
 
-### 11.2 Niveles de Sandbox
-
-| Nivel | Restricciones | Ejemplo |
-|---|---|---|
-| `none` | Ejecucion directa, solo lectura pura | Busqueda en memoria local |
-| `standard` | Timeout 30s, network whitelist, sin filesystem write | API externa, scraping |
-| `strict` | Timeout 10s, sin network, sin I/O | Calculos, transformaciones puras |
-
-### 11.3 Docker Compose (MCP Servers)
+### 9.2 Docker Compose (MCP Servers)
 
 ```yaml
 services:
@@ -830,222 +716,173 @@ networks:
     driver: bridge
 ```
 
-### 11.4 Servidor MCP (TypeScript SDK)
-
-```typescript
-import { Server } from "@modelcontextprotocol/sdk/server";
-
-const server = new Server({
-  name: "openclaw-skills",
-  version: "1.0.0",
-  capabilities: {
-    tools: { listChanged: true },
-    resources: { subscribe: true }
-  }
-});
-
-server.setRequestHandler("tools/list", async () => {
-  const skills = await supabase.from("skills").select("*").eq("status", "active");
-  return {
-    tools: skills.data.map(skill => ({
-      name: skill.slug,
-      description: skill.description,
-      inputSchema: skill.input_schema,
-      annotations: {
-        cost: skill.estimated_cost,
-        risk_level: skill.risk_level,
-        requires_approval: skill.requires_hitl
-      }
-    }))
-  };
-});
-
-server.setRequestHandler("tools/call", async (request) => {
-  const { name, arguments: args } = request.params;
-  // Validacion constitucional ANTES de ejecucion
-  const validation = await validateConstitutional(await resolveSkill(name), args);
-  if (!validation.passed) {
-    return { content: [{ type: "text", text: `BLOCKED: ${validation.reason}` }] };
-  }
-  return { content: [{ type: "text", text: JSON.stringify(await executeSandboxed(name, args)) }] };
-});
-```
-
 ---
 
-## 12. SISTEMA DE COLAS Y CONCURRENCIA (LANES)
+## 10. ~~SISTEMA DE COLAS Y CONCURRENCIA (LANES)~~ `[ELIMINADO v0]`
 
-| Tipo de Lane | Proposito | Concurrencia Default |
+> **Razón:** Single-user, sin concurrencia. Invocaciones síncronas directas. Ver `spec-openclaw-full.md`.
+
+| Tipo de Lane | Propósito | Concurrencia Default |
 |---|---|---|
-| Session Lane | Cola FIFO por conversacion | 1 (serial) |
+| Session Lane | Cola FIFO por conversación | 1 (serial) |
 | Global Main Lane | Tareas de usuario cross-session | 4 |
 | Cron Lane | Jobs recurrentes programados | 2 |
-| Subagent Lane | Agentes hijos para delegacion paralela | 8 |
+| Subagent Lane | Agentes hijos para delegación paralela | 8 |
 
-**Implementacion:** Semaforos anidados. Session lock (serial per-user) > Global lane slot (rate limit global). Garantiza que un usuario no bloquea a otros.
-
-```typescript
-class LaneQueue {
-  private sessionQueues: Map<string, Semaphore> = new Map();
-  private globalLane: Semaphore = new Semaphore(4);
-
-  async enqueue(sessionId: string, task: Task) {
-    const sessionQueue = this.getOrCreateQueue(sessionId);
-    const sessionRelease = await sessionQueue.acquire();
-    try {
-      const globalRelease = await this.globalLane.acquire();
-      try {
-        await this.executeTask(task);
-      } finally {
-        globalRelease();
-      }
-    } finally {
-      sessionRelease();
-    }
-  }
-}
-```
+**Implementación:** Semáforos anidados. Session lock (serial per-user) → Global lane slot (rate limit global). Garantiza que un usuario no bloquea a otros.
 
 ---
 
-## 13. HEARTBEAT Y MONITORIZACION DE AGENTES
+## 11. ~~HEARTBEAT Y MONITORIZACIÓN DE AGENTES~~ `[ELIMINADO v0]`
 
-Cada agente envia senal heartbeat cada 60 segundos durante tareas long-running.
+> **Razón:** Skills son invocaciones cortas (< 30s lead_intake, < 5min prospection). Sin agentes
+> long-running que requieran heartbeat. Ver `spec-openclaw-full.md`.
 
-| Condicion | Accion |
+Cada agente envía señal heartbeat cada 60 segundos durante tareas long-running.
+
+| Condición | Acción |
 |---|---|
 | Sin actividad > 2 minutos | Alerta warning al dashboard |
 | Sin actividad > 5 minutos | Kill Switch L2 (agente pausado) |
 
-Canales de alerta configurables: Slack, Telegram, Discord. Deduplicacion de alertas en ventana de 24 horas.
-
-**Timeout configurable por skill:** Skills de procesamiento pesado (data analysis) pueden configurar timeout extendido hasta 15 minutos, siempre que emitan heartbeat "thinking" messages cada 60 segundos.
+Canales de alerta configurables: Slack, Telegram, Discord. Deduplicación de alertas en ventana de 24 horas.
 
 ---
 
-## 14. PERSISTENCIA, MEMORIA VECTORIAL Y RAG
+## 12. ~~INTEGRACIÓN DE PAGOS~~ `[ELIMINADO v0]`
 
-### 14.1 Funcion de Busqueda Semantica
+> **Razón:** No hay monetización ni transacciones en v0. Sin Stripe, sin SEPA, sin webhooks de pago.
+> Reactivar en v2+ si se añade funcionalidad B2B. Ver `spec-openclaw-full.md`.
+
+### 12.1 Stripe (Primary)
+
+**Flujo:**
+1. Edge Function recibe `approval_ticket_id` aprobado.
+2. Verifica: ticket en estado APPROVED, MFA verificado, ticket no expirado.
+3. Crea `PaymentIntent` en Stripe con `idempotency_key = ticket.id`.
+4. Amount en céntimos: `Math.round(ticket.amount * 100)`.
+5. Metadata: `{approval_ticket_id, skill_id, org_id}`.
+6. Si éxito: status → COMPLETED, registra en `transactions`, actualiza presupuesto.
+7. Si fallo: 3 reintentos con backoff exponencial. Si todos fallan: status → FAILED, rollback.
+
+### 12.2 Webhook Handling
+
+```
+POST /webhooks/stripe
+  → Validar firma Stripe (stripe-signature header)
+  → Si payment_intent.succeeded:
+      → Actualizar approval_ticket → COMPLETED
+      → Registrar en transactions
+      → Resumir LangGraph desde checkpoint
+  → Si payment_intent.failed:
+      → Actualizar approval_ticket → FAILED
+      → Notificar usuario
+```
+
+---
+
+## 13. ~~SUPABASE EDGE FUNCTIONS~~ `[DIFERIDO v2+]`
+
+> **Razón:** Las transacciones aprobadas via Edge Function no aplican en v0 (sin pagos, sin HITL
+> activo). Reactivar cuando se implemente el protocolo HITL completo.
+
+### 13.1 execute-approved-transaction
+
+**Trigger:** POST request tras aprobación HITL verificada.
+
+**Secuencia:**
+1. Fetch `approval_ticket` por ID + verificar `org_id` match.
+2. Verificar `mfa_verified_at` no nulo.
+3. Verificar `expires_at > NOW()`.
+4. Update status → `EXECUTING`.
+5. Llamar a procesador de pago (Stripe/Wise).
+6. Si éxito: insert en `transactions`, update ticket → `COMPLETED`, crear audit log, enviar notificación, deducir presupuesto.
+7. Si fallo: update ticket → `FAILED`, log error, notificar usuario.
+
+**Idempotencia:** La `idempotency_key` es el `approval_ticket_id`, garantizando que una re-ejecución no duplica el pago.
+
+---
+
+## 14. ~~MEMORIA VECTORIAL Y RAG~~ `[DIFERIDO v2+]`
+
+> **Razón:** Sin pgvector en v0. agent_memory tabla preparada pero sin embeddings.
+> RAG para enriquecer respuestas se implementará en v2+.
+
+### 14.1 Función de Búsqueda Semántica
 
 ```sql
-CREATE OR REPLACE FUNCTION search_agent_memory(
-    p_agent_id UUID,
-    p_query_embedding VECTOR(1536),
-    p_match_count INT DEFAULT 5,
-    p_threshold FLOAT DEFAULT 0.7,
-    p_memory_type TEXT DEFAULT NULL
-) RETURNS TABLE (id UUID, content TEXT, metadata JSONB, similarity FLOAT, memory_type TEXT)
-LANGUAGE plpgsql SECURITY DEFINER AS $$
+CREATE OR REPLACE FUNCTION search_knowledge(
+  query_embedding VECTOR(1536),
+  match_threshold FLOAT DEFAULT 0.7,
+  match_count INT DEFAULT 5,
+  filter_org_id UUID
+)
+RETURNS TABLE (id UUID, content TEXT, similarity FLOAT)
+LANGUAGE plpgsql AS $$
 BEGIN
-    RETURN QUERY
-    SELECT m.id, m.content, m.metadata,
-           1 - (m.embedding <=> p_query_embedding) AS similarity,
-           m.memory_type
-    FROM agent_memory m
-    WHERE m.agent_id = p_agent_id
-      AND m.org_id = get_user_org_id()
-      AND (p_memory_type IS NULL OR m.memory_type = p_memory_type)
-      AND 1 - (m.embedding <=> p_query_embedding) > p_threshold
-    ORDER BY m.embedding <=> p_query_embedding
-    LIMIT p_match_count;
+  RETURN QUERY
+    SELECT k.id, k.content,
+           1 - (k.embedding <=> query_embedding) AS similarity
+    FROM knowledge_chunks k
+    WHERE k.org_id = filter_org_id
+      AND 1 - (k.embedding <=> query_embedding) > match_threshold
+    ORDER BY k.embedding <=> query_embedding
+    LIMIT match_count;
 END;
 $$;
 ```
 
-### 14.2 Tipos de Memoria
-
-| Tipo | Proposito | Ejemplo |
-|---|---|---|
-| `episodic` | Hechos de conversaciones pasadas | "El usuario prefirio la propiedad en Palma" |
-| `semantic` | Conocimiento general del dominio | "Los precios en Mallorca subieron 12% en 2025" |
-| `procedural` | Procedimientos aprendidos | "Para comprar leads en Apollo, primero filtrar por industry" |
-
-### 14.3 Limpieza GDPR
+### 14.2 Limpieza GDPR
 
 ```sql
 SELECT cron.schedule(
   'delete-expired-memories',
   '0 2 * * *',  -- Diario a las 02:00 UTC
-  $$DELETE FROM agent_memory WHERE expires_at < NOW()$$
+  $$DELETE FROM knowledge_chunks WHERE expires_at < NOW()$$
 );
 ```
 
-PII se redacta ANTES de vectorizacion. Los embeddings nunca contienen datos personales en crudo. Retencion default: 90 dias (configurable por org).
-
 ---
 
-## 15. INTEGRACION DE PAGOS
+## 15. n8n — ORQUESTACIÓN DE WORKFLOWS
 
-### 15.1 Stripe (Primary)
+### 15.1 Arquitectura de Integración
 
-**Flujo:**
-1. Edge Function recibe `approval_ticket_id` aprobado.
-2. Verifica: ticket en estado APPROVED, MFA verificado, ticket no expirado.
-3. Marca ticket como EXECUTING.
-4. Crea `PaymentIntent` en Stripe con `idempotency_key = ticket.id`.
-5. Amount en centimos: `Math.round(ticket.amount * 100)`.
-6. Metadata: `{approval_ticket_id, skill_id, org_id}`.
-7. Si exito: status COMPLETED, registra en `payment_transactions`, deduce presupuesto via `deduct_budget`, audit log.
-8. Si fallo: 3 reintentos con backoff exponencial. Si todos fallan: status FAILED, rollback, notificacion.
+n8n se despliega en entorno privado. Acceso exclusivo vía autenticación API desde OpenClaw server. Los flujos se exponen como webhooks que el LangGraph invoca vía MCP.
 
-### 15.2 Webhook Handling
+### 15.2 Workflow: Lead Purchase
 
 ```
-POST /webhooks/stripe
-  > Validar firma Stripe (stripe-signature header)
-  > Si payment_intent.succeeded:
-      > Actualizar approval_ticket > COMPLETED
-      > Registrar en payment_transactions
-      > Resumir LangGraph desde checkpoint
-  > Si payment_intent.failed:
-      > Actualizar approval_ticket > FAILED
-      > Notificar usuario
+[Webhook Trigger]
+  → [Validate Leads (HTTP)] (3 retries, 5s delay)
+  → [Calculate ROI (Function)]
+  → [Create Approval Ticket (Supabase API)]
+  → [Wait for Approval (Webhook, timeout 24h)]
+  → [Execute Purchase (HTTP)] (2 retries)
+  → [Record Transaction (Supabase)]
+  → [Notify User (Slack)]
+  → [Error Handler → #ops-alerts]
 ```
 
-### 15.3 Idempotencia
-
-La `idempotency_key` es el `approval_ticket_id`, garantizando que una re-ejecucion no duplica el pago. Stripe rechaza automaticamente PaymentIntents duplicados con la misma key.
-
-
 ---
 
-## 16. n8n — ORQUESTACION DE WORKFLOWS
+## 16. ESPECIFICACIÓN DE API
 
-### 16.1 Arquitectura de Integracion
+### 16.1 REST API
 
-n8n se despliega self-hosted en entorno privado. Acceso exclusivo via autenticacion API desde OpenClaw server. Los flujos se exponen como webhooks que el LangGraph invoca via MCP.
+**Base URL:** `https://api.openclaw.anclora.dev/v1`  
+**Auth:** Todas las rutas requieren `Authorization: Bearer <jwt>`.
 
-### 16.2 Workflows Criticos
-
-| Workflow | Trigger | Accion | Frecuencia |
+| Endpoint | Method | Descripción | Auth Level |
 |---|---|---|---|
-| HITL Notification | Webhook desde LangGraph | Push + email con ticket pendiente via Supabase + SendGrid | Real-time |
-| Payment Execution | Post-aprobacion (APPROVED) | Stripe API via Edge Function, audit_log | Real-time |
-| Skill Scheduler | Cron expression | Skills recurrentes (Sentinel cada 6h, audits mensuales) | Configurable |
-| Audit Aggregation | Supabase Realtime | Metricas ROI al Dashboard en tiempo real | Real-time |
-| Alert Escalation | Threshold breach | Escalacion automatica si sin respuesta en timeout configurado | 30min, 1h, 6h |
-
-
----
-
-## 17. ESPECIFICACION DE API
-
-### 17.1 REST API
-
-**Base URL:** `https://api.openclaw.ai/v1`
-
-**Auth:** Todas las rutas requieren `Authorization: Bearer <jwt>` salvo las marcadas como publicas.
-
-| Endpoint | Method | Descripcion | Auth Level |
-|---|---|---|---|
-| `/auth/register` | POST | Registro de usuario | Publico |
-| `/auth/login` | POST | Login (retorna JWT + MFA flag) | Publico |
-| `/auth/mfa/verify` | POST | Verificacion MFA | Publico |
+| `/auth/register` | POST | Registro de usuario | Público |
+| `/auth/login` | POST | Login (retorna JWT + MFA required flag) | Público |
+| `/auth/mfa/verify` | POST | Verificación MFA | Público |
 | `/auth/logout` | POST | Logout | Authenticated |
 | `/agents` | GET | Listar agentes del usuario | User |
 | `/agents` | POST | Crear nuevo agente | Admin |
 | `/agents/:id` | GET | Detalle de agente | User |
-| `/agents/:id` | PATCH | Actualizar configuracion | Admin |
+| `/agents/:id` | PATCH | Actualizar configuración | Admin |
 | `/agents/:id` | DELETE | Terminar agente | Owner |
 | `/agents/:skill_id/execute` | POST | Ejecutar agente con skill | User |
 | `/agents/kill-switch` | POST | Activar Kill Switch | Admin+ |
@@ -1055,97 +892,86 @@ n8n se despliega self-hosted en entorno privado. Acceso exclusivo via autenticac
 | `/skills` | GET | Listar skills | User |
 | `/skills` | POST | Crear skill | User |
 | `/skills/:id` | PUT | Actualizar skill | User |
-| `/limits` | GET | Obtener limites constitucionales | User |
-| `/limits` | PUT | Actualizar limites | POWER_USER |
+| `/limits` | GET | Obtener límites constitucionales | User |
+| `/limits` | PUT | Actualizar límites | POWER_USER |
 | `/memory/chunks` | POST | Ingestar documento en RAG | User |
-| `/memory/search` | GET | Busqueda semantica | User |
+| `/memory/search` | GET | Búsqueda semántica | User |
 | `/transactions` | GET | Historial de transacciones | User |
 | `/transactions/:id` | GET | Detalle + audit log | User |
-| `/audit-logs` | GET | Logs de auditoria | Admin+ |
-| `/sessions/:id/history` | GET | Historial de conversacion | User |
+| `/audit-logs` | GET | Logs de auditoría | Admin+ |
+| `/sessions/:id/history` | GET | Historial de conversación | User |
 
-### 17.2 WebSocket API
+### 16.2 WebSocket API
 
-**Conexion:** `wss://gateway.openclaw.ai/v1/connect`
+**Conexión:** `wss://gateway.openclaw.ai/v1/connect`
 
-**Mensajes Server > Client:**
+**Mensajes Server → Client:**
 
-| Tipo | Payload | Descripcion |
+| Tipo | Payload | Descripción |
 |---|---|---|
 | `agent_state` | `{iteration, reasoning, tool_calls, status}` | Estado en tiempo real del agente |
-| `tool_result` | `{tool, result, execution_time_ms}` | Resultado de ejecucion de herramienta |
+| `tool_result` | `{tool, result, execution_time_ms}` | Resultado de ejecución de herramienta |
 | `approval_required` | `{ticket_id, type, amount, justification, risk_score}` | Ticket HITL pendiente |
-| `execution_completed` | `{status, output, tokens_used}` | Ejecucion finalizada |
+| `execution_completed` | `{status, output, tokens_used}` | Ejecución finalizada |
 | `agent_response` | `{session_id, chunk, is_final}` | Streaming de respuesta |
 
-**Mensajes Client > Server:**
+**Mensajes Client → Server:**
 
-| Tipo | Payload | Descripcion |
+| Tipo | Payload | Descripción |
 |---|---|---|
-| `AUTH` | `{jwt}` | Autenticacion inicial |
+| `AUTH` | `{jwt}` | Autenticación inicial |
 | `USER_MESSAGE` | `{session_id, content, attachments?}` | Mensaje del usuario |
 | `pause` | `{}` | Pausar agente |
 
-
 ---
 
-## 18. FRONTEND — DASHBOARD BENTO GRID
+## 17. FRONTEND — DASHBOARD BENTO GRID
 
-### 18.1 Project Structure
+### 17.1 Project Structure
 
 ```
 openclaw-frontend/
-+-- app/
-|   +-- layout.tsx
-|   +-- page.tsx (dashboard root)
-|   +-- auth/ (login, mfa, setup)
-|   +-- dashboard/ (layout + bento-grid)
-|   +-- skills/ ([skill-id]/editor, lab)
-|   +-- api/ (auth routes, approvals, webhooks)
-+-- components/
-|   +-- widgets/ (AgentThoughtStream, MonetaryPulse, EfficiencySavings,
-|   |             SkillLab, MemoryNavigator, KillSwitch)
-|   +-- ui/ (shadcn/ui components)
-|   +-- common/ (Header, Navigation, ErrorBoundary)
-+-- lib/
-|   +-- api/ (axios client, approvals, agents)
-|   +-- hooks/ (useAuth, useApprovals, useAgent)
-|   +-- store/ (Zustand appStore)
-|   +-- utils/ (formatCurrency, calculateRiskScore)
-+-- styles/ (globals.css, bento-grid.css)
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx (dashboard root)
+│   ├── auth/ (login, mfa, setup)
+│   ├── dashboard/ (layout + bento-grid)
+│   ├── skills/ ([skill-id]/editor, lab)
+│   └── api/ (auth routes, approvals, webhooks)
+├── components/
+│   ├── widgets/ (AgentThoughtStream, MonetaryPulse, EfficiencySavings,
+│   │             SkillLab, MemoryNavigator, KillSwitch)
+│   ├── ui/ (shadcn/ui components)
+│   └── common/ (Header, Navigation, ErrorBoundary)
+├── lib/
+│   ├── api/ (axios client, approvals, agents)
+│   ├── hooks/ (useAuth, useApprovals, useAgent)
+│   ├── store/ (Zustand appStore)
+│   └── utils/ (formatCurrency, calculateRiskScore)
+├── styles/ (globals.css, bento-grid.css)
+└── config/ (env.example)
 ```
 
-### 18.2 Layout del Bento Grid
+### 17.2 Layout del Bento Grid
 
 ```
-6 columnas x 4 filas (responsive: 1-col mobile, 2-col tablet, 6-col desktop)
+6 columnas × 4 filas (responsive)
 
-+------------------------------+  +------------------+
-|  Agent Thought-Stream        |  |  Monetary Pulse  |
-|  (4 col x 2 rows)           |  |  (2 col x 2 rows)|
-+------------------------------+  +------------------+
-+------------------+  +------------------+  +--------+
-| Efficiency &     |  | Skill Lab        |  |Memory  |
-| Savings (2x1)    |  | (2 col x 2 rows) |  |Nav(2x1)|
-+------------------+  +------------------+  +--------+
-                                            +--------+
-                                            |Kill-Sw.|
-                                            | (1x1)  |
-                                            +--------+
+┌──────────────────────────────┐  ┌──────────────────┐
+│  Agent Thought-Stream        │  │  Monetary Pulse  │
+│  (4 col × 2 rows)           │  │  (2 col × 2 rows)│
+└──────────────────────────────┘  └──────────────────┘
+┌──────────────────┐  ┌──────────────────┐  ┌────────┐
+│ Efficiency &     │  │ Skill Lab        │  │Memory  │
+│ Savings (2x1)    │  │ (2 col × 2 rows) │  │Nav(2x1)│
+└──────────────────┘  └──────────────────┘  └────────┘
+                                            ┌────────┐
+                                            │Kill-Sw.│
+                                            │ (1x1)  │
+                                            └────────┘
 ```
 
-### 18.3 Widgets
-
-| Widget | Grid Size | Datos en Tiempo Real | Fuente |
-|---|---|---|---|
-| Agent Thought-Stream | 4x2 | Reasoning, tool calls, iteration progress, status | WebSocket `agent_state` |
-| Monetary Pulse | 2x2 | Budget bars, pending approvals, Approve/Reject buttons | Supabase Realtime `approval_tickets` |
-| Efficiency & Savings | 2x1 | ROI estimado, horas ahorradas, costos optimizados | REST `/analytics` |
-| Skill Lab | 2x2 | Lista de skills, editor, estado de aprobacion | REST `/skills` |
-| Memory Navigator | 2x1 | Busqueda semantica, chunks recientes | REST `/memory/search` |
-| Kill Switch | 1x1 | Boton rojo con confirmacion doble + MFA. Borde pulsante si incidente activo | REST `/agents/kill-switch` |
-
-### 18.4 Glassmorphism CSS
+### 17.3 Glassmorphism CSS
 
 ```css
 .glassmorphism {
@@ -1166,687 +992,459 @@ openclaw-frontend/
 }
 ```
 
+### 17.4 Widgets — Especificación
+
+| Widget | Grid Size | Datos en Tiempo Real | Fuente |
+|---|---|---|---|
+| Agent Thought-Stream | 4×2 | Reasoning, tool calls, iteration progress, status | WebSocket `agent_state` |
+| Monetary Pulse | 2×2 | Daily/Monthly budget bars, pending approvals count, Approve/Reject buttons | Supabase Realtime `approval_tickets` |
+| Efficiency & Savings | 2×1 | ROI estimado, horas ahorradas, costos optimizados, top skill | REST `/analytics` |
+| Skill Lab | 2×2 | Lista de skills, editor de código, estado de aprobación | REST `/skills` |
+| Memory Navigator | 2×1 | Búsqueda semántica, chunks recientes, embeddings stats | REST `/memory/search` |
+| Kill Switch | 1×1 | Botón rojo con confirmación doble + MFA. Borde pulsante si hay incidente activo | REST `/agents/kill-switch` |
 
 ---
 
-## 19. CATALOGO DE SKILLS MONETIZABLES
+## 18. ~~CATÁLOGO DE SKILLS MONETIZABLES~~ `[REEMPLAZADO v0]`
 
-### 19.1 Real Estate
+> **Razón:** El catálogo genérico (Real Estate sniper, B2B SDR, Marketplace) está reemplazado
+> por los 4 skills Anclora definidos en product-spec-v0.md Sección 3.3 y constitution-canonical.md
+> Título XIV. Skills v0: lead_intake, prospection_weekly, recap_weekly, dossier_generator (Q2).
 
-| Skill | MCP Tools | Limite Diario | Limite Mensual | Revenue Model |
+### 18.1 Real Estate
+
+| Skill | MCP Tools | Límite Diario | Límite Mensual | Modelo de Revenue |
 |---|---|---|---|---|
-| Sniper de Oportunidades | zillow_api, mls_search, property_valuation, roi_calculator | EUR 10,000 | EUR 50,000 | EUR 500/mes + 5% deal value |
-| Property Management Sentinel | expense_tracking, vendor_price_comparison, payment_automation | EUR 5,000 | EUR 30,000 | 20% de costos reducidos |
-| Inversionista Predictivo | market_analysis, financial_modeling | EUR 0 | EUR 0 | Solo analisis |
-| Lead Qualifier | lead_scoring, crm_enrichment | N/A | N/A | +35% conversion |
-| Contract Analyzer | contract_analysis, compliance_check | N/A | N/A | EUR 500-2K/contrato |
+| Sniper de Oportunidades | zillow_api, mls_search, property_valuation, roi_calculator | €10,000 | €50,000 | €500/mes + 5% deal value |
+| Property Management Sentinel | expense_tracking, vendor_price_comparison, payment_automation | €5,000 | €30,000 | 20% de costos reducidos |
+| Inversionista Predictivo | market_analysis, financial_modeling | €0 | €0 | Solo análisis (no ejecuta pagos) |
 
-### 19.2 B2B SDR
+### 18.2 B2B SDR
 
-| Skill | MCP Tools | Limite Diario | Limite Mensual | Revenue Model |
+| Skill | MCP Tools | Límite Diario | Límite Mensual | Modelo de Revenue |
 |---|---|---|---|---|
-| SDR Autonomo | lead_providers, smtp_send, hubspot_integration, personalization | EUR 2,000 | EUR 20,000 | EUR 0.50/lead + EUR 5/qualified |
-| Meeting Prep | calendar_api, crm_lookup, news_search | N/A | N/A | 2h/reunion ahorro |
-| CRM Enrichment | apollo_api, clearbit, hunter | N/A | N/A | +60% data completeness |
-| Legal Auditor | contract_analysis, compliance_check | EUR 0 | EUR 0 | Solo analisis |
+| SDR Autónomo | lead_providers, smtp_send, hubspot_integration, personalization | €2,000 | €20,000 | €0.50/lead + €5/qualified click |
+| Legal Auditor | contract_analysis, compliance_check | €0 | €0 | Solo análisis |
 
-### 19.3 Verticales Adicionales
+### 18.3 Marketplace (Terceros)
 
-| Skill | Vertical | Risk | HITL | ROI Estimado |
-|---|---|---|---|---|
-| Legal Document Auditor | Legal | High | Si | EUR 200-500/hora |
-| Compliance Monitor | Legal | Medium | No | Prevencion multas |
-| Due Diligence Automator | Legal | High | Si | 40h/operacion |
-| Supply Chain Oracle | Supply Chain | Medium | No | -15% disrupciones |
-| Inventory Optimizer | Supply Chain | Medium | Si | -20% stock muerto |
-| Wealth Advisor | Wealth | Critical | Si (siempre) | 24/7 advisory |
-| Tax Optimizer | Wealth | High | Si | 5-15% ahorro fiscal |
-| Expense Categorizer | Wealth | Low | No | 10h/mes |
-
-### 19.4 Marketplace (Terceros)
-
-| Parametro | Valor |
+| Parámetro | Valor |
 |---|---|
-| Comision Anclora | 20% del revenue generado |
-| Pago a creators | Mensual via Wise (80%) |
-| Sandbox obligatorio | Nivel `strict` |
-| Revocacion automatica | Risk score promedio > 0.80 durante 30 dias |
-| Failure rate maximo | 10% en 30 dias (si supera: deprecated) |
-
+| Comisión Anclora | 20% del revenue generado |
+| Pago a creators | Mensual vía Wise (80%) |
+| Sandbox obligatorio | Nivel strict |
+| Revocación automática | Risk score promedio > 0.80 durante 30 días |
+| Failure rate máximo | 10% en 30 días (si supera → deprecated) |
 
 ---
 
-## 20. SEGURIDAD, AUDITORIA Y COMPLIANCE
+## 19. SEGURIDAD, CIFRADO Y OWASP
 
-### 20.1 Cifrado
+### 19.1 Cifrado
 
-| Capa | Estandar |
+| Capa | Estándar |
 |---|---|
-| En transito | TLS 1.3 minimo. mTLS entre servicios internos |
-| En reposo | AES-256-GCM para campos PII. Transparent encryption Supabase |
-| Gestion de claves | Supabase Vault. Rotacion: master keys 90 dias, API keys 180 dias |
-| Embeddings | PII redactada antes de vectorizacion |
+| En tránsito | TLS 1.3 mínimo. Mutual TLS entre servicios internos. Certificate pinning para APIs críticas |
+| En reposo | AES-256-GCM para campos con PII. Transparent encryption en Supabase |
+| Gestión de claves | Supabase Vault. Rotación: master keys 90 días, API keys 180 días |
+| Embeddings | PII redactada antes de vectorización |
 | Backups | Cifrado en disco (server-side encryption) |
 
-### 20.2 OWASP LLM Top 10 2025
+### 19.2 Matriz de Control de Acceso
 
-| OWASP LLM Risk | Mitigacion OpenClaw |
-|---|---|
-| LLM01: Prompt Injection | Input sanitization pre-LLM con regex + XML delimiters + output validation |
-| LLM02: Sensitive Info Disclosure | PII redaction con `redact_pii()`, RLS isolation, log sanitization |
-| LLM03: Supply Chain | Modelos verificados con SHA256, SBOM, checksum validation |
-| LLM04: Data/Model Poisoning | Embeddings solo de fuentes verificadas, source whitelisting |
-| LLM05: Improper Output | Typed MCP schemas, JSON schema validation, `sanitize_html()` |
-| LLM06: Excessive Agency | HITL obligatorio, budget caps, Kill-Switch, constitutional validation |
-| LLM07: System Prompt Leakage | Prompts en Supabase (no hardcoded), no secrets en prompts |
-| LLM08: Vector/Embedding Weakness | pgvector HNSW cosine, dimensionality validation, rate limiting |
-| LLM09: Misinformation | Confidence metadata, source citations, disclaimers |
-| LLM10: Unbounded Consumption | Rate limiting por org, token budgets, skill timeouts, iteration limits |
+| Rol | Datos Visibles | Aprobar TX | Kill Switch | Audit Logs |
+|---|---|---|---|---|
+| End User | Propios | Propias | Propios agentes | Propios |
+| Manager | Equipo | Equipo | Escalar | Equipo |
+| CFO/Ejecutivo | Company-wide | TX > €5K | Escalar | Company |
+| CTO | Todos | Todas | Sí (total) | Todos |
+| SOC/Security | Audit trail | No | Sí | Todos |
+| Auditor Externo | Compliance (limited) | No | No | Compliance |
 
-### 20.3 Rate Limiting (Upstash Redis)
+### 19.3 Headers de Seguridad
 
-| Recurso | Limite | Ventana |
-|---|---|---|
-| API calls | 100 | por minuto por org |
-| LLM calls | 50 | por minuto por org |
-| Vector search | 200 | por minuto por org |
-| Approval create | 10 | por minuto por org |
+HSTS (Strict-Transport-Security), CSP (Content-Security-Policy), X-Frame-Options: DENY, X-Content-Type-Options: nosniff. Solo HTTPS.
 
-### 20.4 Input Sanitization
+### 19.4 Runbook: SQL Injection Detectada
 
-```python
-import re, html, hmac, hashlib
-
-def sanitize_user_input(user_message: str) -> str:
-    dangerous_patterns = [
-        r'ignore previous instructions',
-        r'disregard above',
-        r'you are now',
-        r'system:',
-        r'<\|system\|>',
-        r'<\|assistant\|>',
-    ]
-    for pattern in dangerous_patterns:
-        user_message = re.sub(pattern, '[REDACTED]', user_message, flags=re.IGNORECASE)
-    user_message = html.escape(user_message)
-    return f"<user_message>{user_message}</user_message>"
-
-def redact_pii(text: str) -> str:
-    """Redacta PII antes de vectorizacion."""
-    patterns = {
-        r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b': '[EMAIL]',
-        r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b': '[PHONE]',
-        r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b': '[CREDIT_CARD]',
-        r'\b\d{3}-\d{2}-\d{4}\b': '[SSN]',
-    }
-    for pattern, replacement in patterns.items():
-        text = re.sub(pattern, replacement, text)
-    return text
-```
-
-### 20.5 Audit Logging con HMAC-SHA256
-
-```python
-async def log_audit(org_id, actor_type, actor_id, action, resource_type, details):
-    timestamp = datetime.utcnow().isoformat()
-    message = f"{actor_id}||{action}||{timestamp}||{json.dumps(details)}"
-    signature = hmac.new(
-        os.getenv("AUDIT_SECRET_KEY").encode(), message.encode(), hashlib.sha256
-    ).hexdigest()
-    await supabase.table("audit_log").insert({
-        "org_id": org_id, "actor_type": actor_type, "actor_id": actor_id,
-        "action": action, "resource_type": resource_type,
-        "details": {**details, "signature": signature}
-    }).execute()
-```
-
-### 20.6 Verificacion de Integridad de Audit Log
-
-```python
-async def verify_audit_log(entry: dict) -> bool:
-    """Verifica que un registro de audit no ha sido manipulado."""
-    details = entry["details"]
-    signature = details.pop("signature", None)
-    if not signature:
-        return False
-    message = f"{entry['actor_id']}||{entry['action']}||{entry['created_at']}||{json.dumps(details)}"
-    expected = hmac.new(
-        os.getenv("AUDIT_SECRET_KEY").encode(), message.encode(), hashlib.sha256
-    ).hexdigest()
-    return hmac.compare_digest(signature, expected)
-```
-
-### 20.7 Security Headers
-
-```
-Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff
-X-XSS-Protection: 1; mode=block
-Referrer-Policy: strict-origin-when-cross-origin
-```
-
-### 20.8 Runbook: SQL Injection Detectada
-
-1. **0-5 min:** Kill Switch automatico. Aislar conexiones DB afectadas.
-2. **5-10 min:** PagerDuty a CTO + SOC. Slack #security-incidents.
-3. **5-30 min:** Pull query logs de Supabase audit.
-4. **30 min-2h:** Verificar exfiltracion. Parche en staging, code review, deploy produccion.
-5. **2-24h:** Notificar usuarios afectados. GDPR breach assessment. Post-mortem.
-
+1. Kill Switch automático (0-5 min).
+2. Aislar conexiones DB afectadas.
+3. PagerDuty → CTO + SOC. Slack #security-incidents.
+4. Pull query logs de Supabase audit (5-30 min).
+5. Verificar exfiltración de datos.
+6. Parche → staging → code review → producción (30min-2h).
+7. Notificar usuarios afectados. GDPR breach assessment. Post-mortem (2-24h).
 
 ---
 
-## 21. INFRAESTRUCTURA, DESPLIEGUE Y CI/CD
+## 20. ~~INFRAESTRUCTURA, CI/CD Y DEPLOYMENT~~ `[ELIMINADO v0]`
 
-### 21.1 Componentes de Infraestructura
+> **Razón:** GKE, Terraform, Cloud Run eliminados. v0 usa Vercel (frontend) + Railway (backend + n8n).
+> CI/CD simplificado: GitHub Actions para tests + deploy a Vercel/Railway.
 
-| Componente | Servicio | Config |
+### 20.1 Componentes de Infraestructura
+
+| Componente | Servicio | Configuración |
 |---|---|---|
-| Frontend | Vercel | Auto-deploy desde `main`, preview deployments desde PR |
-| Database | Supabase PostgreSQL | 2 vCPU, 8 GB RAM, eu-central-1, connection pooling |
-| Agent Core | GCP Cloud Run | Auto-scaling 0-10, europe-west1, 2 vCPU, 4Gi RAM |
-| LLM Serving | GKE | 2 replicas Llama 3.3: A100 GPU, 8Gi RAM, 4 CPU |
-| MCP Servers | Docker (Cloud Run) | Isolated networking, per-skill containers |
-| Load Balancer | Cloudflare | DDoS protection, WAF rules, WebSocket proxying |
-| Object Storage | Supabase Storage + S3 | Documentos, audit frios, backups |
-| Workflow Engine | n8n (self-hosted) | Docker Compose, persistent volume |
-| Monitoring | Prometheus + Grafana | Cloud Run sidecar + Grafana Cloud |
+| Frontend | Vercel | Auto-deploy desde GitHub. Preview deployments por PR |
+| Database | Supabase PostgreSQL | 2 vCPU, 8GB RAM, 100GB SSD. Region: eu-central-1 |
+| LangGraph Agent | GCP Cloud Run | Auto-scaling. Region: europe-west1 |
+| LLM (Ollama) | GKE | 2 replicas, 8Gi RAM, 4 CPU por pod. GPU opcional |
+| MCP Containers | Docker (GCP) | Isolated network, auto-scaling |
+| Load Balancer | Cloudflare | WebSocket support, TLS 1.3, DDoS protection |
+| Object Storage | Supabase Storage + S3 | Documentos, audit logs fríos, backups |
+| Workflows | n8n (auto-hosted) | Entorno privado, acceso solo vía API interna |
 
-### 21.2 CI/CD Pipeline (GitHub Actions)
+### 20.2 CI/CD Pipeline (GitHub Actions)
 
 ```yaml
-name: OpenClaw CI/CD
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+  push: [main, staging]
+  pull_request: [main, staging]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Python Tests
-        run: |
-          pip install -r requirements.txt
-          pytest --cov=backend --cov-report=xml -v
-      - name: TypeScript Tests
-        run: |
-          cd frontend && npm ci && npm test
-      - name: Security Scan (Trivy)
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-
-  security:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: OWASP ZAP Scan
-        uses: zaproxy/action-baseline@v0.7.0
-        with:
-          target: ${{ secrets.STAGING_URL }}
-      - name: Container Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'openclaw-agent:latest'
-          severity: 'CRITICAL,HIGH'
-
-  deploy-staging:
-    if: github.ref == 'refs/heads/develop'
-    needs: [test, security]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy Frontend (Vercel)
-        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Backend (Cloud Run)
-        run: |
-          gcloud run deploy openclaw-agent \
-            --image gcr.io/$PROJECT_ID/openclaw-agent:$GITHUB_SHA \
-            --region europe-west1 \
-            --platform managed
-      - name: Run Supabase Migrations
-        run: supabase db push --linked
-
-  deploy-production:
-    if: github.ref == 'refs/heads/main'
-    needs: [test, security]
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Deploy Frontend
-        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Backend
-        run: |
-          gcloud run deploy openclaw-agent \
-            --image gcr.io/$PROJECT_ID/openclaw-agent:$GITHUB_SHA \
-            --region europe-west1 \
-            --platform managed \
-            --no-traffic
-          gcloud run services update-traffic openclaw-agent \
-            --to-latest --region europe-west1
-      - name: Smoke Tests
-        run: npm run test:smoke -- --target=$PRODUCTION_URL
+  test:          # npm ci → npm test → npm audit → npm lint
+  security:      # Trivy filesystem scan + super-linter
+  deploy-staging:  # if staging → Vercel staging
+  deploy-production: # if main → Vercel prod + Cloud Run deploy
 ```
 
-### 21.3 Infrastructure as Code (Terraform)
+### 20.3 IaC (Terraform)
 
-Terraform gestiona: Vercel project, Supabase project, GCP Cloud Run services, GKE cluster, networking (VPC, firewall rules), secrets (GCP Secret Manager).
-
-Estructura:
-```
-infrastructure/
-+-- terraform/
-|   +-- main.tf
-|   +-- variables.tf
-|   +-- outputs.tf
-|   +-- modules/
-|       +-- vercel/
-|       +-- supabase/
-|       +-- gcp/
-|       +-- networking/
-|       +-- secrets/
-```
-
+Recursos gestionados: Vercel project, Supabase project (eu-central-1), GCP Cloud Run service, GKE deployment (Ollama), networking, secrets.
 
 ---
 
-## 22. OBSERVABILIDAD, METRICAS Y ALERTAS
+## 21. ~~MONITORIZACIÓN Y OBSERVABILIDAD~~ `[ELIMINADO v0]`
 
-### 22.1 Metricas Prometheus
+> **Razón:** Prometheus/Grafana eliminados. v0 usa Supabase Dashboard + Railway logs.
+> AgentStream widget del dashboard muestra actividad de agentes en tiempo real.
 
-| Metrica | Tipo | Descripcion |
+### 21.1 Métricas Prometheus
+
+| Métrica | Tipo | Descripción |
 |---|---|---|
 | `openclaw_active_sessions` | Gauge | Sesiones de agente activas |
-| `openclaw_token_consumption_total` | Counter | Tokens LLM consumidos (por modelo, org) |
+| `openclaw_token_consumption_total` | Counter | Tokens LLM consumidos (por modelo) |
 | `openclaw_approval_queue_size` | Gauge | Tickets HITL pendientes |
-| `openclaw_tool_call_duration_seconds` | Histogram | Latencia de ejecucion de herramientas MCP |
-| `openclaw_error_rate` | Counter | Errores por tipo (4xx, 5xx, timeout) |
-| `openclaw_budget_burn_rate` | Gauge | Velocidad de consumo presupuestario por org |
+| `openclaw_tool_call_duration_seconds` | Histogram | Latencia de ejecución de herramientas |
+| `openclaw_error_rate` | Counter | Operaciones fallidas (por tipo) |
+| `openclaw_budget_burn_rate` | Gauge | Ritmo de gasto presupuestario |
 
-### 22.2 Dashboards Grafana
+### 21.2 Alertas Grafana
 
-| Dashboard | Metricas Clave |
+| Condición | Severidad | Canal |
+|---|---|---|
+| Error rate > 10% (5min window) | Warning | Slack |
+| Approval queue > 10 tickets (10min) | Critical | PagerDuty |
+| Budget > 80% | Warning | Email |
+| 5 MFA failures | Critical | Security + bloqueo |
+| Agent unresponsive > 2min | Warning | Dashboard |
+| Agent unresponsive > 5min | Critical | Kill Switch L2 |
+
+---
+
+## 22. ~~BACKUP, DISASTER RECOVERY Y SLA~~ `[DIFERIDO v2+]`
+
+> **Razón:** SLA enterprise, DR formal, backup automatizado diferidos. v0 depende de
+> Supabase built-in backups y Railway snapshots.
+
+### 22.1 Backups
+
+| Tipo | Frecuencia | Retención |
+|---|---|---|
+| Supabase automated snapshots | Diario | 30 días |
+| Point-in-time recovery (WAL) | Continuo | 7 días |
+| Manual snapshots | Pre-migración | Indefinido |
+
+### 22.2 Objetivos de Recuperación
+
+| Métrica | Objetivo |
 |---|---|
-| Agent Health | Sessions activas, iteration rate, error rate, kill switch events |
-| Financial Monitoring | Budget burn rate, transaction volume, approval latency |
-| LLM Usage | Tokens por modelo, latencia P50/P95/P99, fallback rate |
-| System Resources | CPU, memory, disk, network por servicio |
-| Security Events | Failed auth attempts, constitutional violations, rate limit hits |
+| RTO (Recovery Time Objective) | 1 hora |
+| RPO (Recovery Point Objective) | 15 minutos (Supabase WAL replication) |
 
-### 22.3 Alertas
+### 22.3 Procedimiento de Recovery
 
-| Alerta | Condicion | Canal | Severidad |
+1. Identificar fallo (alertas de monitorización, reports de usuarios).
+2. Evaluar impacto (usuarios afectados, alcance de pérdida de datos).
+3. Restaurar desde backup más cercano (Supabase dashboard o CLI).
+4. Replay audit logs para recuperar transacciones perdidas.
+5. Validar integridad con checksums.
+6. Comunicar estado a usuarios afectados.
+
+---
+
+## 23. GUÍA DE DESARROLLO
+
+### 23.1 Code Style
+
+| Lenguaje | Estándar | Herramientas |
+|---|---|---|
+| Python (Agent Core) | PEP 8. Type hints obligatorios (`mypy --strict`). Docstrings Google format. Max 100 chars/línea | mypy, black, ruff |
+| TypeScript (Gateway + Frontend) | Strict mode. No `any` (usar `unknown` + type guards). Async/await over callbacks | ESLint + Prettier |
+
+### 23.2 Testing Strategy
+
+| Tipo | Cobertura Objetivo | Framework | Scope |
 |---|---|---|---|
-| High Error Rate | Error rate > 5% en 5 min | Slack + PagerDuty | Critical |
-| Budget Near Limit | Budget > 80% consumed | Email + Push | Warning |
-| HITL Queue Backlog | > 10 tickets pendientes > 30 min | Slack | Warning |
-| Agent Stuck | Sin heartbeat > 5 min | Slack + SMS | High |
-| Kill Switch Activated | Cualquier activacion | PagerDuty + SMS + Email | Critical |
-| Constitutional Violation | Cualquier violacion detectada | PagerDuty + Slack | Critical |
+| Unit | > 80% | pytest (Python), Jest (TS) | Lógica de negocio, risk scoring, validaciones |
+| Integration | Key flows | pgTAP + pytest | RLS policies, HITL workflow E2E, vector search accuracy |
+| Load | 1000 concurrent WS | k6 / Artillery | WebSocket connections, lane queue throughput, DB query perf |
+| Security | OWASP Top 10 | OWASP ZAP | Staging environment scans |
 
+### 23.3 Security Best Practices
+
+1. Nunca loguear datos sensibles (API keys, JWTs, tarjetas de crédito).
+2. Queries parametrizadas exclusivamente (prevención SQL injection).
+3. Validar todos los inputs contra allowlists.
+4. Rotar secrets cada 90 días.
+5. OWASP ZAP scans en staging antes de cada release.
 
 ---
 
-## 23. BACKUP, DISASTER RECOVERY Y SLA
+## 24. ~~ROADMAP DE IMPLEMENTACIÓN~~ `[REEMPLAZADO]`
 
-### 23.1 Estrategia de Backup
+> **Razón:** El roadmap OpenClaw genérico está reemplazado por el roadmap Anclora Nexus
+> en product-spec-v0.md Sección 4: Q1 Foundation + Lead Intake, Q2 Prospection + Recap,
+> Q3-Q4 Validación + Decisión B2B.
 
-| Tipo | Frecuencia | Retencion | Metodo |
+| Fase | Período | Entregables |
+|---|---|---|
+| **Phase 0: Foundation** | M0 – M1 | Supabase setup + RLS. Next.js boilerplate + Bento Grid. LangGraph skeleton. HITL flow básico (sin pagos) |
+| **Phase 1: Core Agent** | M1 – M3 | LLM integration (Ollama + Llama 3.3). 3-5 MCP tools iniciales. WebSocket streaming. Risk scoring. Approval ticket UI |
+| **Phase 2: Real Estate MVP** | M3 – M5 | Sniper de Oportunidades funcional. Zillow/MLS API. ROI engine. Stripe payments. Audit logging |
+| **Phase 3: B2B SDR** | M5 – M7 | SDR Autónomo. Lead provider APIs (Apollo, Hunter). Email personalization. HubSpot CRM integration |
+| **Phase 4: Marketplace** | M7 – M9 | Skill submission/approval flow. Creator dashboard. Commission tracking. Performance monitoring |
+| **Phase 5: Scale & Polish** | M9 – M12 | Multi-language (EN/ES). Advanced ML models. Custom skill builder UI. SOC 2 certification |
+
+---
+
+## 25. REQUISITOS NO FUNCIONALES
+
+| Requisito | Métrica | Objetivo |
+|---|---|---|
+| Latencia de respuesta (P95) | Tiempo desde input hasta primer token streaming | < 2 segundos |
+| Disponibilidad | Uptime mensual | 99.9% (excluye mantenimiento programado) |
+| Throughput WebSocket | Conexiones concurrentes | 1,000 mínimo |
+| Throughput API REST | Requests por segundo | 500 rps |
+| Time to HITL Notification | Tiempo desde detección monetaria hasta alerta en dashboard | < 3 segundos |
+| Audit Log Write Latency | Tiempo de escritura en audit_log | < 100ms |
+| Vector Search Latency | Búsqueda semántica (top-5) | < 500ms |
+| Kill Switch Activation | Tiempo desde trigger hasta congelación de agentes | < 5 segundos |
+| GDPR Data Export | Tiempo para generar export completo | < 30 minutos |
+
+---
+
+## 26. CHECKLIST DE ACEPTACIÓN / QA
+
+- [ ] Todas las tablas tienen RLS habilitado y policies testeadas con pgTAP
+- [ ] audit_log es inmutable (UPDATE/DELETE bloqueados para todos los roles)
+- [ ] HITL flow E2E: creación de ticket → notificación → MFA → ejecución → audit log
+- [ ] Kill Switch L1-L4 testeados con chaos engineering
+- [ ] Risk scoring produce valores correctos para los 20 escenarios de test definidos
+- [ ] MFA enforcement verificado (no se puede aprobar sin MFA si risk > 0.7)
+- [ ] Stripe webhook handling con idempotency verificada
+- [ ] Docker MCP sandboxes sin acceso a red por defecto (verificado con nmap)
+- [ ] JWT expiration y refresh flow funcionando (30min / 7d)
+- [ ] WebSocket streaming de agent state con < 3s latency
+- [ ] Lane queue maneja 1000 concurrent sessions sin deadlock
+- [ ] Heartbeat detecta agent unresponsive en < 3 minutos
+- [ ] Glassmorphism rendering correcto en Chrome, Firefox, Safari, Edge
+- [ ] OWASP ZAP scan sin findings Critical/High en staging
+- [ ] Budget hard stop funciona (gasto = límite → agentes pausados)
+- [ ] Backup restore testeado (RTO < 1h, RPO < 15min)
+- [ ] Variables de entorno nunca expuestas al cliente
+- [ ] Error boundaries en todos los widgets del dashboard
+
+---
+
+## 27. SUPUESTOS Y DECISIONES TOMADAS
+
+| ID | Decisión | Alternativa Descartada | Justificación |
 |---|---|---|---|
-| Supabase Automated | Diario | 30 dias | Supabase built-in |
-| Point-in-Time Recovery (PITR) | Continuo | 7 dias WAL | Supabase PITR |
-| Manual (pre-migracion) | Bajo demanda | Indefinida | `pg_dump` cifrado a S3 |
-| Config & Secrets | En cada cambio | Git history + Vault | Git encrypted + Supabase Vault |
-
-### 23.2 Objetivos de Recuperacion
-
-| Metrica | Objetivo |
-|---|---|
-| RTO (Recovery Time Objective) | < 1 hora |
-| RPO (Recovery Point Objective) | < 15 minutos |
-
-### 23.3 Procedimiento de Recuperacion
-
-1. Identificar punto de fallo y ultimo backup valido.
-2. Restaurar base de datos desde PITR o backup diario.
-3. Verificar integridad de `audit_log` (HMAC signatures).
-4. Restaurar servicios en orden: DB > Auth > Agent Core > Frontend.
-5. Ejecutar smoke tests automatizados.
-6. Notificar stakeholders. Post-mortem en 24h.
-
+| D-01 | Multi-tenant con `org_id` en todas las tablas | `user_id` como unit of isolation (V1/V4) | Escalabilidad para equipos y empresas. Alineado con SaaS B2B |
+| D-02 | EUR como divisa principal | USD (V1/V4) | Mercado target EU/España. Parametrizable para otros mercados |
+| D-03 | Supabase Vault para secrets | AWS KMS / HashiCorp Vault (V2) | Reduce complejidad operativa. Vault integrado con Supabase |
+| D-04 | Ollama como LLM primary, Claude como fallback | Solo Claude / Solo Ollama | Open-source first (Constitution Art. 2.8) con ceiling de calidad como safety net |
+| D-05 | TTL de tickets HITL: 24 horas | 1 hora (V1) | Más implementable con flujos de escalación multi-nivel |
+| D-06 | Risk score scale [0.0, 1.0] con NUMERIC(3,2) | INT 0-100 (V2 en approval_tickets) | Consistencia con Constitution Título V. Normalizado |
+| D-07 | Gateway WebSocket separado (Node.js) | WebSocket integrado en Next.js API routes | Separación de concerns. Escalado independiente del frontend |
+| D-08 | n8n como orquestador de workflows complejos | Todo en LangGraph | n8n aporta 400+ integraciones out-of-box, visual debugging, retry nativo |
+| D-09 | `weekly_limit` incluido en `agent_limits` | Solo daily + monthly (V1) | Granularidad adicional para control presupuestario (Constitution Art. 3.7) |
+| D-10 | Glassmorphism dark theme | Light theme / Material UI | Identidad visual diferenciadora. Alineado con branding Anclora |
 
 ---
 
-## 24. GUIA DE DESARROLLO
-
-### 24.1 Estructura del Proyecto
-
-```
-openclaw/
-+-- app/                    # Next.js 15 frontend (App Router)
-+-- components/             # React components (widgets, ui, common)
-+-- lib/                    # Frontend utilities (api, hooks, store)
-+-- styles/                 # CSS (globals, bento-grid, glassmorphism)
-+-- backend/                # Python agent core
-|   +-- agents/             # LangGraph definitions
-|   +-- tools/              # MCP tool implementations
-|   +-- services/           # LLM, payment, audit services
-|   +-- models/             # Pydantic models
-+-- supabase/
-|   +-- migrations/         # SQL migrations (ordered)
-|   +-- functions/          # Edge Functions (Deno/TypeScript)
-|   +-- seed.sql            # Development seed data
-+-- mcp-servers/            # Docker-based MCP tool servers
-+-- n8n/workflows/          # n8n workflow JSON exports
-+-- infrastructure/         # Terraform, Docker Compose
-+-- .github/workflows/      # CI/CD pipelines
-+-- tests/
-|   +-- unit/
-|   +-- integration/
-|   +-- load/
-|   +-- security/
-+-- docs/                   # Architecture docs, runbooks
-```
-
-### 24.2 Code Style
-
-| Lenguaje | Estandar | Herramienta |
-|---|---|---|
-| Python | PEP 8, `mypy --strict` | Black + isort + Ruff + mypy |
-| TypeScript | ESLint + Prettier, `strict: true`, no `any` | ESLint + Prettier |
-| SQL | Queries parametrizadas siempre. RLS habilitado en todas las tablas | pgTAP para tests |
-
-### 24.3 Testing
-
-| Tipo | Cobertura Minima | Herramienta |
-|---|---|---|
-| Unit Tests | > 80% | pytest (Python), Jest (TypeScript) |
-| Integration Tests | RLS policies, HITL E2E, payment flow | pgTAP, Playwright |
-| Load Tests | 1000 WebSocket concurrentes | k6 |
-| Security Tests | OWASP ZAP sin Critical/High findings | ZAP, Trivy |
-
-### 24.4 Mejores Practicas de Seguridad
-
-1. Queries SQL siempre parametrizadas. Jamas concatenacion de strings.
-2. JWT validado en cada request. Access token 30 min, refresh 7 dias. httpOnly cookies.
-3. Rate limiting en todos los endpoints publicos.
-4. Secrets exclusivamente en variables de entorno o Supabase Vault. Jamas en codigo.
-5. Logs nunca contienen PII, tokens ni secrets.
-6. Error messages genericos al usuario. Detalles solo en logs internos.
-7. Dependency scanning semanal con Dependabot + Trivy.
-
-
----
-
-## 25. ROADMAP DE IMPLEMENTACION
-
-### Phase 0 — Foundation (M0, Semanas 1-4)
-
-- Repositorio monorepo, CI/CD basico, linting
-- Supabase project: schema inicial, RLS policies, Edge Functions skeleton
-- Next.js 15 boilerplate con shadcn/ui
-- Autenticacion Supabase Auth + MFA
-- Docker Compose para desarrollo local
-
-### Phase 1 — Core Agent (M1-M2)
-
-- LangGraph StateGraph con nodos: planner, constitutional_check, tool_selector, executor, finalize
-- Gateway WebSocket server
-- Lane-based queue system
-- Heartbeat monitoring
-- MCP server skeleton con 2 herramientas demo
-- Bento Grid dashboard con 3 widgets (Thought-Stream, Kill Switch, Efficiency)
-- Audit log inmutable con HMAC
-
-### Phase 2 — Real Estate MVP (M3-M4)
-
-- Skills: Sniper de Oportunidades, Property Management Sentinel, Inversionista Predictivo
-- HITL completo: approval_tickets, Monetary Pulse widget, notificaciones n8n
-- Stripe integration + Edge Function payment processor
-- pgvector + RAG memory
-- Constitutional limits enforcement
-
-### Phase 3 — B2B SDR (M5-M6)
-
-- Skills: SDR Autonomo, Meeting Prep, CRM Enrichment
-- HubSpot + Apollo integrations via MCP
-- Email sending con SendGrid
-- Performance dashboards
-
-### Phase 4 — Marketplace (M7-M9)
-
-- SDK para third-party skill development
-- Sandbox enforcement (strict obligatorio)
-- Commission tracking (20%)
-- Skill approval workflow
-- Wise integration para pagos a creators
-
-### Phase 5 — Scale & Polish (M10-M12)
-
-- Multi-region deployment (EU + US)
-- Advanced analytics y ML-based risk scoring
-- SOC 2 Type II audit preparation
-- Performance optimization (P95 < 2s)
-- Onboarding automatizado
-
-
----
-
-## 26. REQUISITOS NO FUNCIONALES
-
-| Requisito | Metrica | Objetivo |
-|---|---|---|
-| Latencia API | P95 response time | < 2 segundos |
-| Disponibilidad | Uptime mensual | 99.9% |
-| Throughput WebSocket | Conexiones concurrentes | 1,000 simultaneas |
-| Throughput API | Requests por segundo | 500 rps |
-| HITL Notification | Tiempo desde creacion de ticket hasta notificacion | < 3 segundos |
-| Audit Log Write | Tiempo de escritura | < 100 ms |
-| Vector Search | Latencia de busqueda semantica | < 500 ms |
-| Kill Switch | Tiempo desde activacion hasta detencion total | < 5 segundos |
-| GDPR Export | Tiempo para generar export completo de datos de usuario | < 30 minutos |
-| Memory Recall | Precision de recuperacion semantica relevante | > 85% |
-| Budget Compliance | Transacciones que respetan limites presupuestarios | 100% |
-| Security Incidents | Incidentes de seguridad criticos por mes | 0 |
-| Test Coverage | Unit test coverage | > 80% |
-| False Positive Rate | Tickets HITL innecesarios | < 5% |
-
----
-
-## 27. CHECKLIST DE ACEPTACION / QA
-
-Cada item debe ser verificado antes de release a produccion:
-
-| # | Criterio | Verificacion |
-|---|---|---|
-| 1 | RLS testeado: usuario A no ve datos de org B | pgTAP + test manual |
-| 2 | `audit_log` inmutable: UPDATE y DELETE bloqueados | pgTAP + intentos de modificacion |
-| 3 | HITL E2E: creacion ticket > notificacion < 3s > aprobacion > ejecucion > audit | Playwright E2E |
-| 4 | Kill Switch L1-L4: agente se detiene en < 5s | Test automatizado |
-| 5 | Risk scoring: 20 escenarios pre-definidos con resultados esperados | pytest parametrizado |
-| 6 | MFA enforcement: transaccion > EUR 500 requiere MFA | Test E2E |
-| 7 | Stripe idempotency: doble-click no duplica pago | Test con misma idempotency_key |
-| 8 | Docker sandbox: MCP server sin network no resuelve DNS | Test de aislamiento |
-| 9 | JWT: access token expira en 30 min, refresh en 7 dias | Test de expiracion |
-| 10 | WebSocket: reconexion automatica < 3 segundos | Test de resiliencia |
-| 11 | Lane queue: 1000 sesiones simultaneas sin deadlock | k6 load test |
-| 12 | Heartbeat: agente sin respuesta > 5 min activa Kill Switch L2 | Test con agente mock |
-| 13 | Glassmorphism: widgets renderizan correctamente en Chrome, Firefox, Safari | Visual regression (Chromatic) |
-| 14 | OWASP ZAP: 0 findings Critical, 0 findings High | Security scan report |
-| 15 | Budget hard stop: transaccion bloqueada cuando budget agotado | Test con budget = 0 |
-| 16 | Backup: RTO < 1h, RPO < 15 min verificado | Drill de recuperacion |
-| 17 | Env vars: ninguna variable sensible expuesta en logs o frontend | Grep automatizado |
-| 18 | Error boundaries: error en widget no crashea dashboard | Test con error inyectado |
-| 19 | Constitutional validation: violacion critica bloquea accion + log | Test con accion prohibida |
-| 20 | GDPR: export de datos de usuario completo en < 30 min | Test de export |
-
----
-
-## 28. SUPUESTOS, DECISIONES Y TRADE-OFFS
-
-### 28.1 Decisiones Arquitectonicas
-
-| # | Decision | Alternativa Considerada | Justificacion |
-|---|---|---|---|
-| D1 | Multi-tenant con `org_id` + RLS | Schema-per-tenant | Escalabilidad, menor overhead operativo, alineado con Supabase |
-| D2 | EUR como moneda base | USD | Mercado objetivo ES/UE. Configurable por org |
-| D3 | Supabase Vault para secrets | HashiCorp Vault / AWS KMS | Integrado en stack. HSM para PCI-DSS evaluado en M6+ |
-| D4 | vLLM para LLM serving | Ollama | vLLM superior en produccion (PagedAttention, tensor parallelism). Ollama para dev local |
-| D5 | Ticket HITL TTL = 24 horas | 1 hora | Permite aprobacion asicrona razonable. Escalacion a 30 min |
-| D6 | `risk_score` NUMERIC(3,2) [0.0-1.0] | INT [0-100] | Consistente con Constitution Art. 5.2. Precision decimal |
-| D7 | Gateway WebSocket separado | Supabase Realtime unico | Mejor control de routing, lane management, heartbeat |
-| D8 | n8n para workflows | Temporal.io | n8n cubre 100% de casos de uso actuales. Temporal evaluado M6+ |
-| D9 | `weekly_limit` en presupuesto | Solo daily + monthly | Granularidad tri-nivel (Constitution Art. 3.7) |
-| D10 | Glassmorphism dark theme | Light theme / Material | Diferenciacion visual, premium feel |
-| D11 | pgvector (MVP) | Pinecone / Weaviate | Integrado en PostgreSQL, sin servicio adicional. Migracion path documentado |
-| D12 | Zustand (state management) | Redux Toolkit | Menor boilerplate, TypeScript-first, suficiente para MVP |
-| D13 | httpOnly cookies para refresh tokens | localStorage | Proteccion contra XSS |
-
-### 28.2 Trade-Offs Asumidos
-
-| Trade-Off | Consecuencia | Mitigacion |
-|---|---|---|
-| pgvector vs vector DB dedicada | Menor rendimiento a >1M vectores | Migracion a Pinecone planificada si necesario |
-| vLLM self-hosted vs cloud-only | Mayor costo infra, mas complejo | Fallback chain a cloud providers |
-| n8n vs Temporal | Menor durabilidad en workflows largos | Evaluacion Temporal en M6 |
-| Supabase Vault vs HSM | No certificable PCI-DSS Level 1 | HSM evaluado para M6+ si necesario |
-
-### 28.3 Preguntas Abiertas (Requieren Decision)
-
-| # | Pregunta | Impacto | Deadline |
-|---|---|---|---|
-| Q1 | HSM vs Supabase Vault para PCI-DSS Level 1 | Compliance pagos | M4 |
-| Q2 | Llama 3.3 70B vs Mistral 7B para triage | Costo vs precision | M2 |
-| Q3 | Edge Functions (Deno) vs Cloud Run para payment processor | Latencia vs flexibilidad | M3 |
-| Q4 | Bento Grid breakpoints exactos para tablet | UX responsive | M2 |
-| Q5 | DocuSign integration para contratos Real Estate | Feature scope | M4 |
-| Q6 | Skill Marketplace comision 20% competitiva | Business model | M6 |
-| Q7 | vLLM en GKE vs cloud GPU (Together AI) coste-eficacia | Infra cost | M3 |
-| Q8 | GDPR 90 dias retencion suficiente para all verticals | Compliance | M3 |
-
----
-
-## 29. VARIABLES DE ENTORNO
+## 28. VARIABLES DE ENTORNO
 
 ```bash
 # === Supabase ===
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-SUPABASE_DB_URL=postgresql://...
-SUPABASE_JWT_SECRET=...
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_ANON_KEY=xxxxx
+SUPABASE_SERVICE_ROLE_KEY=xxxxx
+SUPABASE_DB_URL=postgresql://postgres:password@db.supabase.co:5432/postgres
 
 # === LLM ===
-VLLM_BASE_URL=http://localhost:8000/v1
-VLLM_MODEL_PRIMARY=meta-llama/Llama-3.3-70B-Instruct
-VLLM_MODEL_SECONDARY=mistralai/Mistral-Large-3
-VLLM_MODEL_TRIAGE=mistralai/Ministral-3-14B
-TOGETHER_API_KEY=...
-GROQ_API_KEY=...
-ANTHROPIC_API_KEY=...
-
-# === Embeddings ===
-OPENAI_API_KEY=...  # Solo para text-embedding-3-small
-EMBEDDING_MODEL=text-embedding-3-small
-EMBEDDING_DIMENSIONS=1536
+OLLAMA_BASE_URL=http://ollama-service:11434
+OLLAMA_MODEL=llama3.3:70b
+REPLICATE_API_TOKEN=xxxxx
+ANTHROPIC_API_KEY=xxxxx  # Fallback
 
 # === Payments ===
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PUBLISHABLE_KEY=pk_live_...
-WISE_API_KEY=...  # Phase 3+
+STRIPE_SECRET_KEY=sk_live_xxxxx
+STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+WISE_API_KEY=xxxxx
 
 # === Security ===
-AUDIT_SECRET_KEY=...  # HMAC-SHA256 signing key (min 256 bits)
-ENCRYPTION_KEY=...    # AES-256-GCM
-JWT_SECRET=...
-MFA_ISSUER=OpenClaw
+JWT_SECRET=xxxxx
+AUDIT_SECRET_KEY=xxxxx  # HMAC-SHA256 signing
+ENCRYPTION_KEY=xxxxx    # AES-256 at-rest
 
 # === Monitoring ===
-SENTRY_DSN=https://...
-PROMETHEUS_PUSHGATEWAY=http://...
-GRAFANA_API_KEY=...
+SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
 
 # === n8n ===
-N8N_BASE_URL=http://localhost:5678
-N8N_API_KEY=...
-N8N_WEBHOOK_SECRET=...
-
-# === Infrastructure ===
-GCP_PROJECT_ID=...
-GCP_REGION=europe-west1
-VERCEL_TOKEN=...
-CLOUDFLARE_API_TOKEN=...
+N8N_HOST=n8n-internal.openclaw.ai
+N8N_API_KEY=xxxxx
 ```
 
-Todas las variables sensibles se almacenan en Supabase Vault o GCP Secret Manager. Jamas en codigo fuente, logs, ni frontend bundles.
+**Regla:** Ningún secret se expone al cliente. `NEXT_PUBLIC_` solo para `SUPABASE_URL` y `SUPABASE_ANON_KEY`.
 
 ---
 
-## 30. METADATOS DEL DOCUMENTO
+## 29. METADATOS DEL DOCUMENTO
 
-| Campo | Valor |
-|---|---|
-| Version | 1.0.0 |
-| Estado | VIGENTE — Production Ready (Beta) |
-| Fecha | Febrero 2026 |
-| Clasificacion | Internal / Confidential |
-| Owner | System Architect & Engineering Team |
-| Mantenido por | Toni (CTO, Anclora) |
-| Revision | Bi-semanal (features), Mensual (arquitectura) |
-| Enmienda | PR review + CTO approval |
-| Compliance | GDPR + PCI-DSS + SOC 2 Type II readiness |
-| Documento supremo | `constitution.md` (prevalece en caso de conflicto) |
-| Hash de integridad | Se generara al cierre de esta version |
+```yaml
+Title: "Anclora Nexus — Especificación Técnica (OpenClaw Kernel)"
+Version: 1.1.0-nexus
+Base: spec-openclaw-full.md v1.0.0
+Status: "VIGENTE — Anclora Nexus v0 (Beta)"
+Date: Febrero 2026
+Classification: Internal / Confidential
+Owner: Toni Amengual (Owner, Anclora Private Estates)
+Context: Single-tenant, inmobiliaria de lujo, Mallorca SW
+Related Documents:
+  - constitution-canonical.md (Norma Suprema)
+  - product-spec-v0.md (Definición de Producto)
+  - prompt-antigravity-anclora-nexus-v0.md (Prompt de construcción)
+  - spec-openclaw-full.md (Spec completa archivada)
+  - constitution-openclaw-full.md (Constitución completa archivada)
+Compliance: GDPR básico (v0). PCI-DSS + SOC 2 diferidos a v2+.
+```
 
-### 30.1 Informe de Consolidacion
+---
 
-Este documento canonico fue producido mediante la consolidacion de 4 especificaciones tecnicas:
+*FIN DE ESPECIFICACIÓN TÉCNICA — ANCLORA NEXUS v0*
 
-| Fuente | Tipo | Lineas | Contribucion principal |
+---
+---
+
+# ARCHITECTURAL & EDITORIAL REPORT
+
+---
+
+## A) Mejoras Introducidas
+
+### A.1. Multi-Tenant con `org_id` (reemplazo de `user_id`)
+
+**Cambio:** Todas las tablas del schema usan `org_id` como clave de aislamiento en lugar de `user_id`.
+
+**Origen:** V1/V4 utilizaban `user_id` como unidad de aislamiento, lo que limita a un modelo single-user. V2 mencionaba roles (manager, CFO, CTO) que implícitamente requieren organizaciones. V3 mencionaba "aislamiento multi-inquilino" pero sin schema.
+
+**Beneficio:** Permite equipos, roles jerárquicos y facturación por organización. Alineado con el modelo SaaS B2B descrito en la Constitution (que usa `org_id` consistentemente). Se añadió tabla `org_memberships` para la relación N:N entre users y organizations.
+
+### A.2. Schema `agent_limits` con `weekly_limit`
+
+**Cambio:** Se añadió `weekly_limit` y `current_weekly_usage` al schema de `agent_limits`.
+
+**Origen:** V1/V4 solo tenían daily + monthly. V3 mencionaba weekly en texto. V2 no lo incluía en schema.
+
+**Beneficio:** Consistencia con Constitution Art. 3.7 (tope semanal). Granularidad adicional para control presupuestario.
+
+### A.3. `incident_logs` con `kill_switch_level`
+
+**Cambio:** Se añadió campo `kill_switch_level` (L1-L4) a la tabla `incident_logs`, alineando el schema con los 4 niveles definidos en la Constitution Título VII.
+
+**Origen:** V2 tenía la tabla pero sin granularidad de niveles. V1/V4 no tenían tabla de incidentes.
+
+**Beneficio:** Trazabilidad completa de qué nivel de Kill Switch se activó en cada incidente.
+
+### A.4. Sección de Requisitos No Funcionales con Métricas Cuantificables
+
+**Cambio:** Se añadió sección 25 con 9 requisitos no funcionales, cada uno con métrica y objetivo numérico.
+
+**Origen:** Ninguna versión incluía NFRs formales. V1/V4 mencionaban RTO/RPO. V3 mencionaba "performance" de forma narrativa.
+
+**Beneficio:** Criterios de aceptación verificables. Un equipo de QA puede validar cada NFR con herramientas estándar.
+
+### A.5. Checklist de Aceptación / QA (Sección 26)
+
+**Cambio:** Se añadió checklist de 18 ítems verificables que cubren seguridad, funcionalidad, performance y UX.
+
+**Origen:** V1/V4 tenían testing guidelines genéricas. Ninguna versión tenía checklist de aceptación formal.
+
+**Beneficio:** Go/No-Go verificable antes de launch. Cada ítem es binario (pasa/no pasa).
+
+### A.6. Decisiones Documentadas (Sección 27)
+
+**Cambio:** Se documentaron 10 decisiones arquitectónicas con alternativa descartada y justificación.
+
+**Origen:** Las versiones tomaban decisiones implícitas sin documentar alternativas.
+
+**Beneficio:** Trazabilidad de decisiones. Un futuro arquitecto entiende por qué se eligió cada opción.
+
+### A.7. Eliminación de Código Implementación Extenso
+
+**Cambio:** Se redujo el código inline de ~800 líneas (V2) a snippets representativos en las secciones de schema y funciones críticas.
+
+**Origen:** V2 incluía componentes React completos (~200 líneas cada uno), Edge Functions completas (~150 líneas), clase LangGraph completa (~250 líneas).
+
+**Beneficio:** La spec define *qué* se construye y *cómo* se integra, no la implementación línea por línea. El código extenso pertenece al repositorio, no al spec.md. Se conservaron los snippets SQL (schema, RLS, vector search) porque definen contratos de datos.
+
+---
+
+## B) Conflictos Resueltos
+
+| Tema | Decisión Final | Versiones | Criterio |
 |---|---|---|---|
-| spec-master-1-perplexity | Exhaustiva | 2,841 | Constitution, LLM stack (vLLM), security OWASP, deployment |
-| spec-master-3-Claude | Exhaustiva | 1,409 | Estructura legislativa, MCP SDK, Docker sandbox levels, vLLM commands |
-| spec-final-1-perplexity | Optimizada | 3,729 | LangGraph 11 nodos completo, rate limiting Upstash, audit HMAC, sanitization code |
-| spec-final-3-Claude | Optimizada | 1,398 | Glosario, actores/roles, NFRs, QA checklist, decisions table, env vars |
-
-### 30.2 Conflictos Resueltos
-
-| # | Conflicto | Fuentes | Resolucion | Criterio |
-|---|---|---|---|---|
-| C1 | `org_id` multi-tenant vs `user_id` | master-1 vs final-3 | `org_id` | SaaS B2B, Constitution Art. 1.4 |
-| C2 | Ollama vs vLLM | final-3 vs master-1/3 | vLLM produccion, Ollama dev | Rendimiento produccion |
-| C3 | pgvector vs Pinecone | Todos | pgvector MVP, migracion path | Integracion, costo |
-| C4 | Stripe only vs multi-provider | master-1 vs final-1 | Stripe MVP, Wise Phase 3+ | Implementabilidad |
-| C5 | Heartbeat 60s vs 30s | master-1 vs final-1 | 60s default, configurable | Equilibrio carga/deteccion |
-| C6 | text-embedding-ada-002 vs 3-small | master-1 vs final-1 | text-embedding-3-small | ada-002 deprecated |
-| C7 | Sandbox 3 vs 4 niveles | master-3 vs master-1 | 3 niveles (none/standard/strict) | Simplicidad |
-| C8 | Budget daily+monthly vs tri-nivel | master-1 vs final-3 | Tri-nivel (daily+weekly+monthly) | Constitution Art. 3.7 |
-| C9 | risk_score NUMERIC vs INT | final-3 vs master-1 | NUMERIC(3,2) [0.0-1.0] | Constitution Art. 5.2 |
-| C10 | Ticket TTL 1h vs 24h | master-1 vs final-3 | 24h con escalacion a 30min | Aprobacion asincrona |
-| C11 | knowledge_chunks vs agent_memory | master-1 vs master-3 | `agent_memory` | Nombre mas descriptivo |
-| C12 | Zustand vs Redux | final-3 vs master-1 | Zustand | Menos boilerplate, MVP |
-| C13 | Gateway separado vs Supabase Realtime | final-3 vs master-1 | Gateway separado | Control de lanes, heartbeat |
-
-### 30.3 Decisiones Propuestas (No Implementadas)
-
-| Decision | Estado | Evaluacion |
-|---|---|---|
-| Pinecone para escala > 1M vectores | Diferida | M6+ si pgvector insuficiente |
-| Redis para cache/rate-limiting | Diferida | Upstash Redis evaluado M3 |
-| Temporal.io para workflows duraderos | Diferida | M6+ si n8n insuficiente |
-| GKE Autopilot para Ollama/vLLM | Activa | GKE con A100 GPUs |
-| mTLS entre servicios internos | Recomendada | Implementar M3 |
+| **Unit of isolation: `org_id` vs `user_id`** | `org_id` (multi-tenant) | V1/V4: user_id. V2: implícito org. V3: multi-tenant narrativo | A2 (más extensible) + A3 (alineado con Constitution) |
+| **Divisa: EUR vs USD** | EUR como default, parametrizable | V1/V4: USD. V2/V3: EUR | A1 (mayoría) + mercado target EU |
+| **Risk score en DB: NUMERIC(3,2) vs INT** | NUMERIC(3,2) [0.00, 1.00] | V2: `risk_score INT DEFAULT 0` en approval_tickets. V1: NUMERIC(3,2) | A2 (consistencia con Constitution Título V que define escala 0.0-1.0) |
+| **Ticket TTL: 1h vs 24h** | 24 horas | V1: `expires_at` con 1h. V2/V3: 24h implícito | A2 (implementable con escalación multi-nivel de Constitution Art. 6.3) |
+| **Gateway: separado vs integrado en Next.js** | Gateway WebSocket separado (Node.js) | V1: Gateway server explícito. V2: WebSocket en Next.js API routes | A3 (separación de concerns, escalado independiente) |
+| **LLM fallback chain** | Ollama → Replicate → Claude | V1: No especificaba fallback. V2: Ollama → Replicate. V3: mencionaba Claude | A2 (máxima disponibilidad con 3 niveles) |
+| **n8n: incluido vs excluido** | Incluido como orquestador secundario | V1: no mencionaba n8n. V2: n8n con workflow detallado. V3: n8n como integración MCP | A1 (consenso V2+V3) + A2 (400+ integraciones out-of-box) |
+| **Monitoring: Prometheus vs nativo Supabase** | Prometheus + Grafana | V1: Prometheus explícito con config. V2: mencionaba Sentry/ELK. V3: SIEM genérico | A1 (V1 más detallado) + A2 (estándar de industria) |
+| **Frontend state: Zustand vs Redux** | Zustand | V2: Zustand explícito en package.json. V1/V3: no especificaban | A4 (menos boilerplate, suficiente para MVP) |
+| **Soft delete en skills** | Sí (`deleted_at` nullable) | V2: incluía `deleted_at`. V1: no | A3 (recuperabilidad, auditoría) |
 
 ---
 
-**FIN DEL DOCUMENTO**
+## C) Decisiones Propuestas
 
-*Este documento es la fuente tecnica canonica de OpenClaw. `constitution.md` prevalece en caso de conflicto. Toda modificacion requiere PR review + aprobacion CTO.*
+| ID | Decisión Propuesta | Alternativas | Impacto |
+|---|---|---|---|
+| DP-01 | **Pinecone omitido del MVP.** pgvector es suficiente para el volumen beta. Si se supera 1M embeddings, evaluar Pinecone | Incluir Pinecone desde M0 (V2 lo mencionaba como opcional) | Reduce complejidad operativa. Riesgo: si el volumen crece rápido, migración vectorial requerida |
+| DP-02 | **Redis omitido del MVP.** Session management vía Supabase Auth + JWT. Si se requiere caché de alta velocidad, añadir Redis | V2 incluía Redis en docker-compose | Reduce infraestructura. Riesgo: si rate limiting o caching se vuelven críticos, añadir post-MVP |
+| DP-03 | **Temporal (event sourcing) diferido.** El audit_log append-only en Supabase cubre requisitos de auditoría. Temporal se evalúa para M6+ | V2 mencionaba Temporal Event Store. V3 lo referenciaba | Reduce complejidad M0-M6. Constitution compatible con ambos (Art. 10.1) |
+| DP-04 | **Cookie httpOnly para JWT en web** (en lugar de localStorage mencionado en V1) | localStorage (V1), sessionStorage | httpOnly previene XSS access al token. Más seguro |
+| DP-05 | **GKE para Ollama** (en lugar de EC2 de V1) | EC2 t3.medium (V1), Railway | GPU support nativo, auto-scaling, managed Kubernetes |
 
+---
+
+## D) Preguntas Abiertas
+
+| ID | Pregunta | Impacto | Versiones que la plantean |
+|---|---|---|---|
+| Q-01 | ¿HSM (Hardware Security Module) para claves de pago o Supabase Vault es suficiente para PCI-DSS? | Afecta certificación PCI-DSS Level 1. HSM añade coste pero mayor seguridad | V3 sugiere HSM. V1/V2 usan Vault |
+| Q-02 | ¿El modelo Ollama primary será Llama 3.3 70B o Mistral 7B? Depende de la GPU disponible en GKE | Afecta costes de infraestructura y calidad de reasoning | V2 menciona ambos. V3 menciona Llama 2 / Mistral 7B |
+| Q-03 | ¿Se requiere mTLS entre todos los servicios internos o solo TLS estándar? | mTLS añade seguridad pero complejidad operativa | V2 menciona mTLS. V1 solo TLS |
+| Q-04 | ¿Las Edge Functions para pagos se ejecutan en Supabase Edge Runtime (Deno) o en Cloud Run (Docker)? | Afecta timeout limits (Supabase Edge: 60s max) y cold starts | V2 usa Supabase Edge. V1 no especifica runtime |
+| Q-05 | ¿El dashboard Bento Grid es responsive o se diseña desktop-first con mobile como secundario? | Afecta UX/UI scope del MVP | Ninguna versión lo especifica explícitamente |
+| Q-06 | ¿Integración con DocuSign para firmas digitales en workflow de escalación C-level? | Feature opcional. No bloquea MVP | V3 de constitution lo mencionaba |
+
+---
+
+*FIN DEL ARCHITECTURAL & EDITORIAL REPORT*
