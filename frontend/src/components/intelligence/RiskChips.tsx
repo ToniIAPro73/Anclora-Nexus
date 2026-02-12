@@ -40,7 +40,7 @@ export function RiskChips({ risks }: RiskChipsProps) {
         >
           {getRiskIcon(risk.level)}
           <span>{t(`${risk.category}Risk` as any)}</span>
-          <span className="opacity-60 text-[10px] uppercase ml-1">{risk.level}</span>
+          <span className="opacity-60 text-[10px] uppercase ml-1">{t(risk.level as any)}</span>
         </div>
       ))}
     </div>

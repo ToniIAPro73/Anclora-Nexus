@@ -33,38 +33,55 @@ export function ChatConsole({}: ChatConsoleProps) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] bg-navy-surface/30 backdrop-blur-xl border border-blue-light/10 rounded-2xl overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-full bg-navy-surface/30 backdrop-blur-xl border border-blue-light/10 rounded-2xl overflow-hidden shadow-2xl">
       {/* HEADER / MODE SELECTOR */}
-      <div className="px-6 py-4 border-b border-soft-subtle flex items-center justify-between bg-navy-darker/20">
-        <div className="flex items-center gap-2">
-          <Brain className="w-5 h-5 text-gold" />
-          <h2 className="font-display font-bold text-soft-white uppercase tracking-wider">{t('intelligence')}</h2>
-        </div>
-        
-        <div className="flex bg-navy-surface p-1 rounded-xl border border-soft-subtle">
-          <button 
-            onClick={() => setMode('fast')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 ${mode === 'fast' ? 'bg-gold/20 text-gold shadow-[0_0_10px_rgba(212,175,55,0.2)]' : 'text-soft-muted hover:text-soft-white'}`}
-          >
-            <Zap className="w-3 h-3" />
-            {t('fastMode')}
-          </button>
-          <button 
-            onClick={() => setMode('deep')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 ${mode === 'deep' ? 'bg-blue-light/20 text-blue-light shadow-[0_0_10px_rgba(175,210,250,0.2)]' : 'text-soft-muted hover:text-soft-white'}`}
-          >
-            <Clock className="w-3 h-3" />
-            {t('deepMode')}
-          </button>
+      <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between bg-navy-darker/40 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 rounded-lg bg-gold/5 border border-gold/10 flex items-center justify-center">
+            <Brain className="w-4.5 h-4.5 text-gold/80" />
+          </div>
+          <h2 className="font-display font-medium text-soft-white/90 text-[10px] uppercase tracking-[0.3em] hidden sm:block">
+            {t('intelligence')}
+          </h2>
         </div>
 
-        <button 
-          onClick={clearIntelligenceHistory}
-          className="text-soft-muted hover:text-red-400 p-2 transition-colors"
-          title="Clear History"
-        >
-          <History className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Ultra-Minimalist Mode Selector */}
+          <div className="flex bg-navy-surface/80 p-0.5 rounded-full border border-white/10 shadow-inner">
+            <button 
+              onClick={() => setMode('fast')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all duration-500 rounded-r-none ${
+                mode === 'fast' 
+                  ? 'bg-gold text-navy-deep font-bold shadow-lg shadow-gold/10' 
+                  : 'text-soft-muted hover:text-soft-white hover:bg-white/5'
+              }`}
+            >
+              <Zap className={`w-3 h-3 ${mode === 'fast' ? 'fill-current' : ''}`} />
+              <span className="text-[8px] uppercase font-bold tracking-wider">{t('fast')}</span>
+            </button>
+            <button 
+              onClick={() => setMode('deep')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all duration-500 rounded-l-none ${
+                mode === 'deep' 
+                  ? 'bg-blue-light text-navy-deep font-bold shadow-lg shadow-blue-light/10' 
+                  : 'text-soft-muted hover:text-soft-white hover:bg-white/5'
+              }`}
+            >
+              <Clock className={`w-3 h-3 ${mode === 'deep' ? 'fill-current' : ''}`} />
+              <span className="text-[8px] uppercase font-bold tracking-wider">{t('deep')}</span>
+            </button>
+          </div>
+
+          <div className="w-px h-3 bg-white/10 shrink-0" />
+
+          <button 
+            onClick={clearIntelligenceHistory}
+            className="text-soft-muted hover:text-red-400 hover:bg-white/5 p-1.5 rounded-full transition-all shrink-0"
+            title={t('clearHistory')}
+          >
+            <History className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* MESSAGES AREA */}
@@ -109,7 +126,7 @@ export function ChatConsole({}: ChatConsoleProps) {
                 <div className="bg-navy-surface border border-blue-light/10 rounded-2xl rounded-tl-none px-5 py-4 max-w-[90%] shadow-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 rounded-full bg-blue-light animate-pulse" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-light">Nexus Intelligence Unit</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-light">{t('nexusIntelligenceUnit')}</span>
                   </div>
                   <div className="text-soft-white text-sm leading-relaxed whitespace-pre-wrap font-display">
                     {item.response.response}
@@ -177,8 +194,8 @@ export function ChatConsole({}: ChatConsoleProps) {
           </button>
         </form>
         <div className="mt-2 flex items-center justify-between text-[10px] text-soft-muted px-2 uppercase tracking-tighter">
-          <span>Shift+Enter for newline</span>
-          <span>Strategic Mode v1.0.4-Luxe</span>
+          <span>{t('newlineHint')}</span>
+          <span>{t('strategicModeVersion')}</span>
         </div>
       </div>
     </div>

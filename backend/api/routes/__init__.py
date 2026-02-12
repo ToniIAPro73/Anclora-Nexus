@@ -2,6 +2,10 @@
 Anclora Intelligence API Routes Module
 """
 
-from . import intelligence
+from fastapi import APIRouter
+from .intelligence import router as intelligence_router
 
-__all__ = ["intelligence"]
+router = APIRouter()
+router.include_router(intelligence_router, prefix="/intelligence", tags=["Intelligence"])
+
+__all__ = ["router"]

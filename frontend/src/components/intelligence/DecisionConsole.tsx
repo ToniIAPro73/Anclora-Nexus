@@ -24,7 +24,7 @@ export function DecisionConsole({ decision }: DecisionConsoleProps) {
   const style = getRecommendationStyle(decision.recommendation)
 
   return (
-    <div className="bg-navy-surface/80 backdrop-blur-2xl border border-blue-light/10 rounded-2xl p-6 flex flex-col gap-6 shadow-2xl">
+    <div className="bg-navy-surface/80 backdrop-blur-2xl border border-blue-light/10 rounded-2xl p-5 flex flex-col gap-5 shadow-2xl">
       {/* RECOMMENDATION HEADER */}
       <div className={`p-4 rounded-xl border ${style.bg} ${style.border} flex items-center justify-between`}>
         <div className="flex items-center gap-4">
