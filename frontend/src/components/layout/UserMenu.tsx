@@ -69,11 +69,23 @@ export function UserMenu() {
             </div>
 
             <div className="p-2">
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-soft-muted hover:text-soft-white hover:bg-white/5 transition-colors group">
+              <button 
+                onClick={() => {
+                  router.push('/profile')
+                  setIsOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-soft-muted hover:text-soft-white hover:bg-white/5 transition-colors group text-left"
+              >
                 <UserCircle className="w-4 h-4 text-gold/60 group-hover:text-gold transition-colors" />
                 <span>{t('profile')}</span>
               </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-soft-muted hover:text-soft-white hover:bg-white/5 transition-colors group">
+              <button 
+                onClick={() => {
+                  router.push('/settings')
+                  setIsOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-soft-muted hover:text-soft-white hover:bg-white/5 transition-colors group text-left"
+              >
                 <Settings className="w-4 h-4 text-gold/60 group-hover:text-gold transition-colors" />
                 <span>{t('settings')}</span>
               </button>
@@ -81,8 +93,11 @@ export function UserMenu() {
 
             <div className="p-2 border-t border-soft-subtle/50">
               <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-danger hover:bg-danger/10 transition-colors group"
+                onClick={() => {
+                  handleLogout()
+                  setIsOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-danger hover:bg-danger/10 transition-colors group text-left"
               >
                 <LogOut className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
                 <span>{t('logout')}</span>
