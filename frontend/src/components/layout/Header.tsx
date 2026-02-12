@@ -1,7 +1,8 @@
 'use client'
-import { Search, User } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { LanguageSelector } from './LanguageSelector'
 import { NotificationPanel } from './NotificationPanel'
+import { UserMenu } from './UserMenu'
 import { useI18n } from '@/lib/i18n'
 
 export function Header() {
@@ -30,9 +31,7 @@ export function Header() {
 
         <LanguageSelector />
 
-        <div className="w-10 h-10 rounded-full border border-gold/30 bg-gold/10 flex items-center justify-center text-gold cursor-pointer hover:bg-gold/20 transition-all">
-          <User className="w-6 h-6" />
-        </div>
+        <UserMenu />
       </div>
     </header>
   )

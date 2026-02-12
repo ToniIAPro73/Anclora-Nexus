@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Save, User, Mail, Phone, Euro, AlertCircle, Sparkles, Home } from 'lucide-react'
+import { X, Save, User, Mail, Phone, Euro, AlertCircle, Sparkles, Home, Loader2 } from 'lucide-react'
 import { useStore, Lead } from '@/lib/store'
 import { useI18n } from '@/lib/i18n'
+import { createLead } from '@/lib/api'
 
 interface LeadFormModalProps {
   isOpen: boolean
@@ -13,8 +14,8 @@ interface LeadFormModalProps {
 
 export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormModalProps) {
   const { t } = useI18n()
-  const addLead = useStore((state) => state.addLead)
   const updateLead = useStore((state) => state.updateLead)
+  const [loading, setLoading] = useState(false)
 
   const [formData, setFormData] = useState<Partial<Lead>>({
     name: '',
@@ -44,16 +45,24 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
     }
   }, [editLead, isOpen])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name || !formData.email) return // Basic validation
+    if (!formData.name || !formData.email) return
 
-    if (editLead) {
-      updateLead(editLead.id, formData)
-    } else {
-      addLead(formData as Omit<Lead, 'id' | 'created_at'>)
+    setLoading(true)
+    try {
+      if (editLead) {
+        updateLead(editLead.id, formData)
+      } else {
+        await createLead(formData)
+        await useStore.getState().initialize()
+      }
+      onClose()
+    } catch (error) {
+      console.error('Failed to save lead:', error)
+    } finally {
+      setLoading(false)
     }
-    onClose()
   }
 
   return (
@@ -212,10 +221,11 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2"
+                  disabled={loading}
+                  className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Save className="w-4 h-4" />
-                  {editLead ? 'Guardar Cambios' : 'Crear Contacto'}
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {editLead ? 'Guardar Cambios' : (loading ? 'Creando...' : 'Crear Contacto')}
                 </button>
               </div>
             </form>

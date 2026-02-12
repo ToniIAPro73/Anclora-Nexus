@@ -1,8 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Save, Home, MapPin, Euro, Activity } from 'lucide-react'
+import { X, Save, Home, MapPin, Euro, Activity, Loader2 } from 'lucide-react'
 import { useStore, Property } from '@/lib/store'
+import { createProperty } from '@/lib/api'
 
 interface PropertyFormModalProps {
   isOpen: boolean
@@ -13,6 +14,7 @@ interface PropertyFormModalProps {
 export default function PropertyFormModal({ isOpen, onClose, editProperty }: PropertyFormModalProps) {
   const addProperty = useStore((state) => state.addProperty)
   const updateProperty = useStore((state) => state.updateProperty)
+  const [loading, setLoading] = useState(false)
 
   // Estado inicial
   const [formData, setFormData] = useState<Partial<Property>>({
@@ -39,17 +41,25 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
     }
   }, [editProperty, isOpen])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Validation: Title/Address required
-    if (!formData.address) return // Title is optional in interface but let's encourage it
+    if (!formData.address) return
 
-    if (editProperty) {
-      updateProperty(editProperty.id, formData)
-    } else {
-      addProperty(formData as Omit<Property, 'id'>)
+    setLoading(true)
+    try {
+      if (editProperty) {
+        updateProperty(editProperty.id, formData)
+      } else {
+        await createProperty(formData)
+        // Refresh to get real ID and correct mapping
+        await useStore.getState().initialize()
+      }
+      onClose()
+    } catch (error) {
+      console.error('Failed to save property:', error)
+    } finally {
+      setLoading(false)
     }
-    onClose()
   }
 
   return (
@@ -169,10 +179,11 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2"
+                  disabled={loading}
+                  className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Save className="w-4 h-4" />
-                  {editProperty ? 'Guardar Cambios' : 'Crear Propiedad'}
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {editProperty ? 'Guardar Cambios' : (loading ? 'Guardando...' : 'Crear Propiedad')}
                 </button>
               </div>
             </form>

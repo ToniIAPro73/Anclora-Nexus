@@ -99,21 +99,37 @@ async def result_handler_node(state: AgentState) -> AgentState:
     
     if state.get("skill_output") and state["selected_skill"] == "lead_intake":
         output = state["skill_output"]
-        org_id = state.get("org_id", state["input_data"].get("org_id"))
+        org_id = state.get("org_id", state["input_data"].get("org_id", supabase_service.fixed_org_id))
         
-        # 1. Update Lead
+        # 1. Update or Insert Lead
         lead_id = state["input_data"].get("lead_id")
+        lead_data = {
+            "ai_summary": output["ai_summary"],
+            "ai_priority": output["ai_priority"],
+            "priority_score": output["priority_score"],
+            "next_action": output["next_action"],
+            "copy_email": output["copy_email"],
+            "copy_whatsapp": output["copy_whatsapp"],
+            "processed_at": output["processed_at"],
+            "status": "new"
+        }
+        
         if lead_id:
-            await supabase_service.update_lead(lead_id, {
-                "ai_summary": output["ai_summary"],
-                "ai_priority": output["ai_priority"],
-                "priority_score": output["priority_score"],
-                "next_action": output["next_action"],
-                "copy_email": output["copy_email"],
-                "copy_whatsapp": output["copy_whatsapp"],
-                "processed_at": output["processed_at"],
-                "status": "new"
-            })
+            await supabase_service.update_lead(lead_id, lead_data)
+        else:
+            # Insert new lead with input data + AI output
+            full_lead_data = {
+                "org_id": org_id,
+                "name": state["input_data"].get("name", "Unknown"),
+                "email": state["input_data"].get("email"),
+                "phone": state["input_data"].get("phone"),
+                "source": state["input_data"].get("source", "manual"),
+                "property_interest": state["input_data"].get("property_interest"),
+                "budget_range": state["input_data"].get("budget"), # Map budget -> budget_range
+                **lead_data
+            }
+            new_lead = await supabase_service.insert_lead(full_lead_data)
+            lead_id = new_lead["id"]
             
         # 2. Create Task
         await supabase_service.insert_task({
@@ -126,7 +142,7 @@ async def result_handler_node(state: AgentState) -> AgentState:
             "ai_generated": True
         })
         
-        state["final_result"] = output
+        state["final_result"] = {**output, "lead_id": lead_id}
     elif state.get("skill_output") and state["selected_skill"] == "prospection_weekly":
         output = state["skill_output"]
         org_id = state.get("org_id", state["input_data"].get("org_id"))

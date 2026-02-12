@@ -6,6 +6,8 @@ export const translations = {
     properties: 'Propiedades',
     tasks: 'Tareas',
     logout: 'Cerrar sesión',
+    profile: 'Perfil',
+    settings: 'Configuración',
 
     // Dashboard widgets
     leadsPulse: 'Contactos Activos',
@@ -27,6 +29,7 @@ export const translations = {
     leadsThisWeek: 'Contactos esta semana',
     responseRate: 'Tasa de respuesta',
     activeMandates: 'Propiedades en Cartera',
+    weeklyInsight: 'Insight Semanal de IA',
 
     // Agent Stream
     noRecentActivity: 'No hay actividad reciente',
@@ -98,6 +101,8 @@ export const translations = {
     properties: 'Properties',
     tasks: 'Tasks',
     logout: 'Logout',
+    profile: 'Profile',
+    settings: 'Settings',
 
     // Dashboard widgets
     leadsPulse: 'Active Contacts',
@@ -119,6 +124,7 @@ export const translations = {
     leadsThisWeek: 'Contacts this week',
     responseRate: 'Response rate',
     activeMandates: 'Properties in Portfolio',
+    weeklyInsight: 'AI Weekly Insight',
 
     // Agent Stream
     noRecentActivity: 'No recent activity',
@@ -188,6 +194,8 @@ export const translations = {
     properties: 'Immobilien',
     tasks: 'Aufgaben',
     logout: 'Abmelden',
+    profile: 'Profil',
+    settings: 'Einstellungen',
 
     // Dashboard widgets
     leadsPulse: 'Aktive Kontakte',
@@ -209,6 +217,7 @@ export const translations = {
     leadsThisWeek: 'Kontakte diese Woche',
     responseRate: 'Antwortrate',
     activeMandates: 'Immobilien im Portfolio',
+    weeklyInsight: 'KI-Wochenbericht',
 
     // Agent Stream
     noRecentActivity: 'Keine aktuelle Aktivität',

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
 import { useStore } from '@/lib/store'
 import LeadFormModal from '@/components/modals/LeadFormModal'
+import { runSkill } from '@/lib/api'
 
 export function QuickActions() {
   const { t } = useI18n()
@@ -17,38 +18,71 @@ export function QuickActions() {
     { label: t('forceRecap'), icon: FileText, sub: t('generateReport') },
   ]
 
-  const handleAction = (idx: number) => {
+  const handleAction = async (idx: number) => {
     if (idx === 0) {
       setIsLeadModalOpen(true)
-    } else if (idx === 1) {
-      // Simulate Prospection
-      setLoadingIndex(idx)
+      return
+    }
+
+    setLoadingIndex(idx)
+    
+    // Add 'active' log based on index
+    const logAgent = idx === 1 ? 'Prospection' : 'Weekly Recap'
+    const logMsg = idx === 1 
+      ? 'Iniciando búsqueda semanal en fuentes configuradas...' 
+      : 'Generando resumen ejecutivo y KPIs de la semana...'
+    
+    const currentLogs = useStore.getState().agentLogs
+    useStore.getState().setAgentLogs([...currentLogs, {
+      id: Date.now().toString(),
+      agent: logAgent,
+      status: 'active',
+      message: logMsg,
+      timestamp: 'Justo ahora'
+    }])
+
+    try {
+      // Call backend skill
+      const skillName = idx === 1 ? 'prospection_weekly' : 'recap_weekly'
+      const skillParams = idx === 1 ? { priority_min: 3 } : {}
       
-      // Add 'active' log
-      const currentLogs = useStore.getState().agentLogs
-      useStore.getState().setAgentLogs([...currentLogs, {
-        id: Date.now().toString(),
-        agent: 'Prospection',
-        status: 'active',
-        message: 'Iniciando búsqueda semanal en fuentes configuradas...',
+      const result = await runSkill(skillName, skillParams)
+      
+      // Parse result for message
+      let finalMsg = ''
+      if (idx === 1) {
+        const matches = result.matches_found || 0
+        const processed = result.leads_processed || 0
+        finalMsg = `Prospección finalizada. ${processed} leads analizados, ${matches} coincidencias encontradas.`
+      } else {
+        finalMsg = `Recap semanal generado. Resumen: ${result.luxury_summary?.substring(0, 60)}...`
+      }
+
+      // Add 'success' log
+      const updatedLogs = useStore.getState().agentLogs
+      useStore.getState().setAgentLogs([...updatedLogs, {
+        id: (Date.now() + 1).toString(),
+        agent: logAgent,
+        status: 'success',
+        message: finalMsg,
         timestamp: 'Justo ahora'
       }])
 
-      setTimeout(() => {
-        // Add 'success' log
-        const updatedLogs = useStore.getState().agentLogs
-        useStore.getState().setAgentLogs([...updatedLogs, {
-          id: (Date.now() + 1).toString(),
-          agent: 'Prospection',
-          status: 'success',
-          message: 'Prospección finalizada. Se han analizado 142 propiedades.',
-          timestamp: 'Justo ahora'
-        }])
-        
-        setLoadingIndex(null)
-      }, 3000)
-    } else {
-      console.log('Action not implemented:', idx)
+      // Initialize store to get new data (recap, matches, etc)
+      await useStore.getState().initialize()
+
+    } catch (error) {
+      console.error('Skill error:', error)
+      const updatedLogs = useStore.getState().agentLogs
+      useStore.getState().setAgentLogs([...updatedLogs, {
+        id: (Date.now() + 1).toString(),
+        agent: logAgent,
+        status: 'error',
+        message: `Error al ejecutar ${idx === 1 ? 'prospección' : 'recap'}. Verifica la conexión.`,
+        timestamp: 'Justo ahora'
+      }])
+    } finally {
+      setLoadingIndex(null)
     }
   }
 

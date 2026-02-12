@@ -60,6 +60,7 @@ interface AppState {
     leadsThisWeek: number
     responseRate: number
     activeMandates: number
+    latestInsight: string
   }
 
   setLeads: (leads: Lead[]) => void
@@ -536,6 +537,7 @@ export const useStore = create<AppState>((set) => ({
     leadsThisWeek: 15,
     responseRate: 98,
     activeMandates: 12,
+    latestInsight: 'Generando análisis de mercado...'
   },
 
   setLeads: (leads) => set({ leads }),
@@ -594,19 +596,81 @@ export const useStore = create<AppState>((set) => ({
       const { data: leads } = await supabase.from('leads').select('*').order('created_at', { ascending: false })
       const { data: tasks } = await supabase.from('tasks').select('*').order('due_date', { ascending: true })
       const { data: props } = await supabase.from('properties').select('*')
-      const { data: logs } = await supabase.from('agent_logs').select('*').order('created_at', { ascending: false }).limit(20)
+      const { data: logs } = await supabase.from('agent_logs').select('*').order('timestamp', { ascending: false }).limit(20)
 
-      if (leads && leads.length > 0) set({ leads })
-      if (tasks && tasks.length > 0) set({ tasks })
-      if (props && props.length > 0) set({ properties: props })
-      if (logs && logs.length > 0) set({ agentLogs: logs })
+      if (leads && leads.length > 0) {
+        set({
+          leads: leads.map((l: any) => ({
+            id: l.id,
+            name: l.name,
+            email: l.email || '',
+            phone: l.phone || '',
+            budget: l.budget_range || '',
+            priority: l.ai_priority || 3,
+            source: l.source || 'Direct',
+            status: l.status || 'New',
+            property_interest: l.property_interest || '',
+            created_at: l.created_at
+          }))
+        })
+      }
+
+      if (tasks && tasks.length > 0) {
+        set({
+          tasks: tasks.map((t: any) => ({
+            id: t.id,
+            title: t.title,
+            due_time: t.due_date ? new Date(t.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '09:00',
+            status: t.status === 'done' ? 'done' : 'pending'
+          }))
+        })
+      }
+
+      if (props && props.length > 0) {
+        set({
+          properties: props.map((p: any) => ({
+            id: p.id,
+            title: p.address.split(',')[0], // Use first part of address as title
+            address: p.address,
+            price: p.price || 0,
+            type: p.property_type || 'Villa',
+            status: p.status === 'listed' ? 'listed' : p.status === 'sold' ? 'sold' : 'prospect',
+            zone: p.city || 'Mallorca',
+            match_score: p.prospection_score ? Math.round(p.prospection_score * 100) : undefined
+          }))
+        })
+      }
+      
+      if (logs && logs.length > 0) {
+        set({ 
+          agentLogs: logs.map((log: any) => {
+            const date = new Date(log.timestamp)
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            
+            return {
+              id: log.id,
+              agent: log.agent_name || log.skill_name || 'Agente',
+              status: log.status === 'success' ? 'success' : log.status === 'running' ? 'active' : 'error',
+              message: log.output?.ai_summary || log.output?.luxury_summary || log.output?.summary || log.output?.message || log.skill_name || 'Ejecución finalizada',
+              timestamp: timeStr
+            }
+          })
+        })
+      }
 
       // Update stats
+      const latestRecap = logs && logs.length > 0 ? logs[0] : null // Placeholder or fetch actual recap
+      
+      // Fetch actual latest recap for insight
+      const { data: recaps } = await supabase.from('weekly_recaps').select('insights').order('created_at', { ascending: false }).limit(1)
+      const latestInsight = recaps && recaps.length > 0 ? recaps[0].insights : 'Ejecuta el Recap Semanal para generar insights.'
+
       set({
         stats: {
-          leadsThisWeek: leads?.length || 15,
+          leadsThisWeek: leads?.length || 0,
           responseRate: 98,
-          activeMandates: props?.filter((p: Property) => p.status === 'listed').length || 12,
+          activeMandates: props?.filter((p: any) => p.status === 'listed').length || 0,
+          latestInsight: latestInsight
         }
       })
     } catch (error) {

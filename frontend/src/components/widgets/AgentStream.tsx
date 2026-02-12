@@ -10,6 +10,9 @@ export function AgentStream() {
   const { t } = useI18n()
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  // Limit to last 5 for cleaner stream
+  const displayLogs = logs.slice(-5)
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -21,26 +24,27 @@ export function AgentStream() {
       <h3 className="widget-title">{t('agentStream')}</h3>
       <div 
         ref={scrollRef} 
-        className="flex-1 overflow-auto flex flex-col justify-start scrollbar-thin scroll-smooth"
+        className="flex-1 overflow-auto flex flex-col justify-start scrollbar-thin scroll-smooth px-1 mask-fade-y"
+        style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)' }}
       >
-        <StaggerList className="space-y-4 w-full">
-          {logs.length === 0 ? (
+        <StaggerList className="space-y-5 py-4 w-full">
+          {displayLogs.length === 0 ? (
             <p className="text-xs text-soft-muted italic">{t('noRecentActivity')}</p>
           ) : (
-            logs.map((log, i) => (
+            displayLogs.map((log, i) => (
               <StaggerItem key={log.id} className="flex gap-3">
-                <div className="mt-1">
+                <div className="mt-1 shrink-0">
                   <PulseOrb status={log.status === 'success' ? 'active' : log.status} size={6} />
                 </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-gold uppercase tracking-tighter">
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[10px] font-bold text-gold uppercase tracking-tighter truncate">
                       {t(`TYPE_${log.agent.replace(/\s+/g, '_').toUpperCase()}` as any) || log.agent}
                     </span>
-                    <span className="text-[9px] text-white/30">{log.timestamp}</span>
+                    <span className="text-[9px] text-white/30 whitespace-nowrap">{log.timestamp}</span>
                   </div>
-                  <p className="text-xs text-white/80 leading-relaxed">
-                    {i === logs.length - 1 ? (
+                  <p className="text-xs text-white/80 leading-relaxed font-light">
+                    {i === displayLogs.length - 1 ? (
                       <TypeWriter text={log.message} speed={20} />
                     ) : (
                       log.message
