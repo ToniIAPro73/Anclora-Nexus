@@ -24,15 +24,24 @@ export interface Task {
 
 export interface Property {
   id: string
+  title?: string
   address: string
   price: number | string
   type: string
-  status: 'prospect' | 'listed' | 'offer' | 'sold'
+  status: 'prospect' | 'listed' | 'offer' | 'sold' | 'rejected'
   stage?: string
   zone?: string
   commission_est?: string
   last_update?: string
+  match_score?: number
+  image?: string
 }
+
+// ...
+
+// ...
+
+
 
 export interface AgentLog {
   id: string
@@ -57,7 +66,16 @@ interface AppState {
   setTasks: (tasks: Task[]) => void
   setProperties: (properties: Property[]) => void
   setAgentLogs: (logs: AgentLog[]) => void
+  addLead: (lead: Omit<Lead, 'id' | 'created_at'>) => void
+  updateLead: (id: string, updates: Partial<Lead>) => void
+  addTask: (task: Omit<Task, 'id'>) => void
+  updateTask: (id: string, updates: Partial<Task>) => void
+  addProperty: (property: Omit<Property, 'id'>) => void
+  updateProperty: (id: string, updates: Partial<Property>) => void
   toggleTask: (id: string) => void
+  deleteLead: (id: string) => void
+  deleteTask: (id: string) => void
+  deleteProperty: (id: string) => void
   initialize: () => Promise<void>
 }
 
@@ -123,6 +141,126 @@ const MOCK_LEADS: Lead[] = [
     property_interest: 'Apartamento 2-3 hab en Santa Ponsa',
     created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
   },
+  {
+    id: '6',
+    name: 'Elena Rossi',
+    email: 'elena.rossi@milano.it',
+    phone: '+39 333 1234567',
+    budget: '€4M - €6M',
+    priority: 4,
+    source: 'Partner',
+    status: 'New',
+    property_interest: 'Villa histórica en Son Vida',
+    created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '7',
+    name: 'Lars Svensson',
+    email: 'lars.svensson@stockholm.se',
+    phone: '+46 70 123 45 67',
+    budget: '€1.5M - €2.5M',
+    priority: 3,
+    source: 'Web',
+    status: 'Qualified',
+    property_interest: 'Ático con terraza en Palma centro',
+    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '8',
+    name: 'Sarah Jones',
+    email: 'sarah.jones@nyrealestate.com',
+    phone: '+1 212 555 1234',
+    budget: '€5M+',
+    priority: 5,
+    source: 'Referral',
+    status: 'Negotiating',
+    property_interest: 'Propiedad exclusiva acceso directo mar',
+    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '9',
+    name: 'Dr. Hans Weber',
+    email: 'h.weber@klinik-muenchen.de',
+    phone: '+49 171 9876543',
+    budget: '€2.2M - €3M',
+    priority: 4,
+    source: 'Web',
+    status: 'Contacted',
+    property_interest: 'Casa vacacional familiar en Camp de Mar',
+    created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '10',
+    name: 'Isabella Garcia',
+    email: 'isabella.garcia@madrid.es',
+    phone: '+34 611 222 333',
+    budget: '€1M - €1.5M',
+    priority: 2,
+    source: 'Instagram',
+    status: 'New',
+    property_interest: 'Inversión para alquiler',
+    created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '11',
+    name: 'Oliver Smith',
+    email: 'oliver.smith@techlondon.uk',
+    phone: '+44 7800 111222',
+    budget: '€3M - €4M',
+    priority: 4,
+    source: 'LinkedIn',
+    status: 'Qualified',
+    property_interest: 'Villa moderna minimalista',
+    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '12',
+    name: 'Ana Silva',
+    email: 'ana.silva@lisboa.pt',
+    phone: '+351 91 234 56 78',
+    budget: '€1.8M - €2.2M',
+    priority: 3,
+    source: 'Web',
+    status: 'Contacted',
+    property_interest: 'Vista mar indispensable',
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '13',
+    name: 'Dmitry Volkov',
+    email: 'd.volkov@invest.ru',
+    phone: '+7 903 123 45 67',
+    budget: '€6M - €8M',
+    priority: 5,
+    source: 'Partner',
+    status: 'New',
+    property_interest: 'Mansión privada alta seguridad',
+    created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '14',
+    name: 'Emma Wilson',
+    email: 'emma.wilson@artgallery.com',
+    phone: '+44 7900 333444',
+    budget: '€2.5M',
+    priority: 3,
+    source: 'Event',
+    status: 'Contacted',
+    property_interest: 'Casa con carácter y jardín',
+    created_at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '15',
+    name: 'Lucas Martin',
+    email: 'lucas.martin@paris.fr',
+    phone: '+33 6 99 88 77 66',
+    budget: '€1.5M',
+    priority: 2,
+    source: 'Web',
+    status: 'New',
+    property_interest: 'Apartamento cerca de la playa',
+    created_at: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString(),
+  }
 ]
 
 const MOCK_TASKS: Task[] = [
@@ -130,8 +268,20 @@ const MOCK_TASKS: Task[] = [
   { id: '2', title: 'Enviar dossier propiedades a James Richardson', due_time: 'Hoy 15:00', status: 'pending' },
   { id: '3', title: 'Responder consulta Sophie Dubois', due_time: 'Hoy 16:00', status: 'pending' },
   { id: '4', title: 'Visita urgente Carlos Fernández', due_time: 'Hoy 18:00', status: 'pending' },
-  { id: '5', title: 'Follow-up Marie & Pierre Laurent', due_time: 'Ayer 14:00', status: 'done' },
-  { id: '6', title: 'Actualizar fotos villa Port Andratx', due_time: 'Pasado mañana', status: 'pending' },
+  { id: '5', title: 'Actualizar fotos villa Port Andratx', due_time: 'Pasado mañana', status: 'pending' },
+  { id: '6', title: 'Preparar contrato arras Sarah Jones', due_time: 'Viernes 11:00', status: 'pending' },
+  { id: '7', title: 'Reunión equipo eXp', due_time: 'Lunes 09:30', status: 'pending' },
+  { id: '8', title: 'Revisar nuevas captaciones Idealista', due_time: 'Martes 10:00', status: 'pending' },
+  { id: '9', title: 'Llamar a Elena Rossi (Partner)', due_time: 'Miércoles 12:00', status: 'pending' },
+  { id: '10', title: 'Enviar valoración Dr. Hans Weber', due_time: 'Jueves 16:00', status: 'pending' },
+  
+  { id: '11', title: 'Follow-up Marie & Pierre Laurent', due_time: 'Ayer 14:00', status: 'done' },
+  { id: '12', title: 'Email bienvenida Isabella Garcia', due_time: 'Ayer 09:00', status: 'done' },
+  { id: '13', title: 'Cierre notaría propiedad Calvià', due_time: 'Hace 2 días', status: 'done' },
+  { id: '14', title: 'Publicar tour virtual Finca S\'Arracó', due_time: 'Hace 3 días', status: 'done' },
+  { id: '15', title: 'Reunión mensual objetivos', due_time: 'Hace 4 días', status: 'done' },
+  { id: '16', title: 'Actualizar CRM con nuevos leads', due_time: 'Hace 5 días', status: 'done' },
+  { id: '17', title: 'Llamada prospección zona Costa d\'en Blanes', due_time: 'Hace 1 semana', status: 'done' },
 ]
 
 const MOCK_PROPERTIES: Property[] = [
@@ -179,16 +329,174 @@ const MOCK_PROPERTIES: Property[] = [
     commission_est: '€96K',
     last_update: 'Hace 5 horas',
   },
+  {
+    id: '5',
+    address: 'Carrer de la Salut, 12, Sol de Mallorca',
+    price: '€5.5M',
+    type: 'Villa',
+    status: 'listed',
+    stage: 'Captación',
+    zone: 'Sol de Mallorca',
+    commission_est: '€165K',
+    last_update: 'Hace 1 día',
+  },
+  {
+    id: '6',
+    address: 'Via Rei Sanxo, 4, Santa Ponsa',
+    price: '€1.2M',
+    type: 'Penthouse',
+    status: 'offer',
+    stage: 'Negociación',
+    zone: 'Santa Ponsa',
+    commission_est: '€36K',
+    last_update: 'Hace 6 horas',
+  },
+  {
+    id: '7',
+    address: 'Camí de Son Pillo, 15, Calvià',
+    price: '€2.1M',
+    type: 'Finca',
+    status: 'prospect',
+    stage: 'Captación',
+    zone: 'Calvià',
+    commission_est: '€63K',
+    last_update: 'Hace 4 días',
+  },
+  {
+    id: '8',
+    address: 'Bulevar de Paguera, 88, Paguera',
+    price: '€650K',
+    type: 'Apartamento',
+    status: 'sold',
+    stage: 'Vendido',
+    zone: 'Paguera',
+    commission_est: '€19.5K',
+    last_update: 'Hace 1 semana',
+  },
+  {
+    id: '9',
+    address: 'Carrer del Mar, 22, Camp de Mar',
+    price: '€4.8M',
+    type: 'Villa',
+    status: 'listed',
+    stage: 'Listado',
+    zone: 'Camp de Mar',
+    commission_est: '€144K',
+    last_update: 'Hace 2 días',
+  },
+  {
+    id: '10',
+    address: 'Avinguda de la Mar, 10, Costa de la Calma',
+    price: '€1.1M',
+    type: 'Chalet',
+    status: 'offer',
+    stage: 'Oferta',
+    zone: 'Costa de la Calma',
+    commission_est: '€33K',
+    last_update: 'Hace 3 horas',
+  },
+  {
+    id: '11',
+    address: 'Carrer del Golf, 5, Nova Santa Ponsa',
+    price: '€3.9M',
+    type: 'Villa',
+    status: 'listed',
+    stage: 'Listado',
+    zone: 'Santa Ponsa',
+    commission_est: '€117K',
+    last_update: 'Hace 5 días',
+  },
+  {
+    id: '12',
+    address: 'Paseo del Mar, 100, Palmanova',
+    price: '€550K',
+    type: 'Piso',
+    status: 'prospect',
+    stage: 'Captación',
+    zone: 'Palmanova',
+    commission_est: '€16.5K',
+    last_update: 'Hace 2 semanas',
+  },
+  {
+    id: '13',
+    address: 'Carrer de la Playa, 1, Magaluf',
+    price: '€450K',
+    type: 'Atico',
+    status: 'listed',
+    stage: 'Listado',
+    zone: 'Magaluf',
+    commission_est: '€13.5K',
+    last_update: 'Hace 3 días',
+  },
+  {
+    id: '14',
+    address: 'Camí de Na Fita, 9, Es Capdellà',
+    price: '€1.8M',
+    type: 'Finca',
+    status: 'offer',
+    stage: 'Negociación',
+    zone: 'Es Capdellà',
+    commission_est: '€54K',
+    last_update: 'Hace 8 horas',
+  },
+  {
+    id: '15',
+    address: 'Carrer de la Torre, 3, Portals Vells',
+    price: '€2.5M',
+    type: 'Casa',
+    status: 'listed',
+    stage: 'Listado',
+    zone: 'Portals Vells',
+    commission_est: '€75K',
+    last_update: 'Hace 1 día',
+  },
+  {
+    id: '16',
+    address: 'Avinguda de Bendinat, 15, Bendinat',
+    price: '€6.2M',
+    type: 'Villa',
+    status: 'prospect',
+    stage: 'Captación',
+    zone: 'Bendinat',
+    commission_est: '€186K',
+    last_update: 'Hace 4 horas',
+  },
+  {
+    id: '17',
+    address: 'Passeig de Illetas, 40, Illetas',
+    price: '€950K',
+    type: 'Apartamento',
+    status: 'sold',
+    stage: 'Vendido',
+    zone: 'Illetas',
+    commission_est: '€28.5K',
+    last_update: 'Hace 2 semanas',
+  },
+  {
+    id: '18',
+    address: 'Carrer de la Rosa, 7, Cas Català',
+    price: '€1.4M',
+    type: 'Chalet',
+    status: 'listed',
+    stage: 'Listado',
+    zone: 'Cas Català',
+    commission_est: '€42K',
+    last_update: 'Hace 1 mes',
+  },
+  {
+    id: '19',
+    address: 'Carrer del Sol, 1, Son Vida',
+    price: '€8.5M',
+    type: 'Villa',
+    status: 'listed',
+    stage: 'Listado',
+    zone: 'Son Vida',
+    commission_est: '€255K',
+    last_update: 'Hace 10 horas',
+  },
 ]
 
 const MOCK_AGENT_LOGS: AgentLog[] = [
-  {
-    id: '1',
-    agent: 'Lead Intake',
-    status: 'success',
-    message: 'Nuevo lead cualificado: Klaus Müller (P5)',
-    timestamp: 'Hace 2 días',
-  },
   {
     id: '2',
     agent: 'Prospection',
@@ -202,6 +510,13 @@ const MOCK_AGENT_LOGS: AgentLog[] = [
     status: 'success',
     message: 'Nuevo lead cualificado: Carlos Fernández (P5)',
     timestamp: 'Hace 3 horas',
+  },
+  {
+    id: '1',
+    agent: 'Lead Intake',
+    status: 'success',
+    message: 'Nuevo lead cualificado: Klaus Müller (P5)',
+    timestamp: 'Hace 2 días',
   },
   {
     id: '4',
@@ -227,8 +542,51 @@ export const useStore = create<AppState>((set) => ({
   setTasks: (tasks) => set({ tasks }),
   setProperties: (properties) => set({ properties }),
   setAgentLogs: (agentLogs) => set({ agentLogs }),
+
+  addLead: (leadData) => set((state) => ({
+    leads: [{
+      id: Math.random().toString(36).substr(2, 9),
+      created_at: new Date().toISOString(),
+      ...leadData
+    } as Lead, ...state.leads]
+  })),
+  updateLead: (id, updates) => set((state) => ({
+    leads: state.leads.map(l => l.id === id ? { ...l, ...updates } : l)
+  })),
+
+  addTask: (taskData) => set((state) => ({
+    tasks: [{
+      id: Math.random().toString(36).substr(2, 9),
+      ...taskData
+    } as Task, ...state.tasks]
+  })),
+  updateTask: (id, updates) => set((state) => ({
+    tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
+  })),
+
+  addProperty: (propertyData: Omit<Property, 'id'>) => set((state) => ({
+    properties: [{
+      id: Math.random().toString(36).substr(2, 9),
+      last_update: 'Justo ahora',
+      ...propertyData
+    } as Property, ...state.properties]
+  })),
+  updateProperty: (id: string, updates: Partial<Property>) => set((state) => ({
+    properties: state.properties.map(p => p.id === id ? { ...p, ...updates } : p)
+  })),
+  
   toggleTask: (id) => set((state) => ({
     tasks: state.tasks.map(t => t.id === id ? { ...t, status: t.status === 'done' ? 'pending' : 'done' } : t)
+  })),
+
+  deleteLead: (id) => set((state) => ({
+    leads: state.leads.filter(l => l.id !== id)
+  })),
+  deleteTask: (id) => set((state) => ({
+    tasks: state.tasks.filter(t => t.id !== id)
+  })),
+  deleteProperty: (id) => set((state) => ({
+    properties: state.properties.filter(p => p.id !== id)
   })),
   initialize: async () => {
     try {

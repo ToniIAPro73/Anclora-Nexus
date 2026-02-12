@@ -1,54 +1,61 @@
 export const translations = {
   es: {
     // Navigation
-    dashboard: 'Dashboard',
-    leads: 'Leads',
+    dashboard: 'Panel de Control',
+    leads: 'Contactos',
     properties: 'Propiedades',
     tasks: 'Tareas',
     logout: 'Cerrar sesión',
 
     // Dashboard widgets
-    leadsPulse: 'Leads Pulse',
+    leadsPulse: 'Contactos Activos',
     tasksToday: 'Tareas de Hoy',
-    propertyPipeline: 'Pipeline de Propiedades',
+    propertyPipeline: 'Cartera de Propiedades',
     quickStats: 'Estadísticas Rápidas',
-    agentStream: 'Agent Stream',
+    agentStream: 'Actividad del Agente',
     quickActions: 'Acciones Rápidas',
 
     // Quick Actions
-    newLead: 'Nuevo Lead',
+    newLead: 'Nuevo Contacto',
     manualEntry: 'Alta Manual',
-    prospectionRun: 'Prospection Run',
-    weeklySearch: 'Scan Semanal',
-    forceRecap: 'Force Recap',
-    generateReport: 'Generar Reporte',
+    prospectionRun: 'Ejecutar Prospección',
+    weeklySearch: 'Escaneo Semanal',
+    forceRecap: 'Generar Resumen',
+    generateReport: 'Reporte Semanal',
 
     // Stats
-    leadsThisWeek: 'Leads esta semana',
+    leadsThisWeek: 'Contactos esta semana',
     responseRate: 'Tasa de respuesta',
-    activeMandates: 'Mandatos activos',
+    activeMandates: 'Propiedades en Cartera',
 
     // Agent Stream
     noRecentActivity: 'No hay actividad reciente',
-    live: 'LIVE',
+    live: 'EN VIVO',
+
+    // Activity Types
+    TYPE_LEAD_INTAKE: 'NUEVO CONTACTO',
+    TYPE_PROSPECTION: 'PROSPECCIÓN',
+    TYPE_WEEKLY_RECAP: 'RESUMEN SEMANAL',
 
     // Leads
-    lead: 'Lead',
-    contact: 'Contacto',
-    budget: 'Budget',
+    lead: 'Contacto',
+    contact: 'Datos de contacto',
+    budget: 'Presupuesto',
     priority: 'Prioridad',
     source: 'Fuente',
     status: 'Estado',
-    noLeadsRegistered: 'No hay leads registrados',
+    actions: 'Acciones',
+    confirmDelete: '¿Eliminar?',
+    noLeadsRegistered: 'No hay contactos registrados',
     total: 'Total',
     contactManagement: 'Gestión de contactos y oportunidades',
 
     // Properties
+    propertyManagement: 'Cartera de propiedades en gestión',
     price: 'Precio',
     estimatedCommission: 'Comisión Est.',
     lastUpdate: 'Última actualización',
     noPipelineProperties: 'No hay propiedades en el pipeline',
-    propertyManagement: 'Pipeline de propiedades en gestión',
 
     // Tasks
     pending: 'Pendientes',
@@ -59,20 +66,41 @@ export const translations = {
 
     // Common
     backToDashboard: 'Volver al Dashboard',
+    viewAll: 'Ver todos',
+    more: 'más',
     loading: 'Cargando...',
     error: 'Error',
     success: 'Éxito',
+
+    // Header
+    projectDashboard: 'Panel de Control',
+    welcomeBack: 'Bienvenido de nuevo',
+    agentStatus: 'Estado del agente',
+    optimal: 'ÓPTIMO',
+    searchPlaceholder: 'Buscar en nexus...',
+
+    // Property stages
+    prospect: 'PROSPECCIÓN',
+    listed: 'LISTADO',
+    offer: 'OFERTA',
+    sold: 'VENDIDO',
+
+    // Notifications
+    notifications: 'Notificaciones',
+    unread: 'sin leer',
+    markAllAsRead: 'Marcar todas',
+    noNotifications: 'No hay notificaciones',
   },
   en: {
     // Navigation
     dashboard: 'Dashboard',
-    leads: 'Leads',
+    leads: 'Contacts',
     properties: 'Properties',
     tasks: 'Tasks',
     logout: 'Logout',
 
     // Dashboard widgets
-    leadsPulse: 'Leads Pulse',
+    leadsPulse: 'Active Contacts',
     tasksToday: 'Today\'s Tasks',
     propertyPipeline: 'Property Pipeline',
     quickStats: 'Quick Stats',
@@ -80,39 +108,44 @@ export const translations = {
     quickActions: 'Quick Actions',
 
     // Quick Actions
-    newLead: 'New Lead',
+    newLead: 'New Contact',
     manualEntry: 'Manual Entry',
-    prospectionRun: 'Prospection Run',
+    prospectionRun: 'Run Prospection',
     weeklySearch: 'Weekly Scan',
-    forceRecap: 'Force Recap',
-    generateReport: 'Generate Report',
+    forceRecap: 'Generate Recap',
+    generateReport: 'Weekly Report',
 
     // Stats
-    leadsThisWeek: 'Leads this week',
+    leadsThisWeek: 'Contacts this week',
     responseRate: 'Response rate',
-    activeMandates: 'Active mandates',
+    activeMandates: 'Properties in Portfolio',
 
     // Agent Stream
     noRecentActivity: 'No recent activity',
     live: 'LIVE',
 
+    // Activity Types
+    TYPE_LEAD_INTAKE: 'NEW CONTACT',
+    TYPE_PROSPECTION: 'PROSPECTION',
+    TYPE_WEEKLY_RECAP: 'WEEKLY RECAP',
+
     // Leads
-    lead: 'Lead',
-    contact: 'Contact',
+    lead: 'Contact',
+    contact: 'Contact Info',
     budget: 'Budget',
     priority: 'Priority',
     source: 'Source',
     status: 'Status',
-    noLeadsRegistered: 'No leads registered',
+    noLeadsRegistered: 'No contacts registered',
     total: 'Total',
     contactManagement: 'Contact and opportunity management',
 
     // Properties
+    propertyManagement: 'Property portfolio under management',
     price: 'Price',
     estimatedCommission: 'Est. Commission',
     lastUpdate: 'Last update',
     noPipelineProperties: 'No properties in pipeline',
-    propertyManagement: 'Property pipeline management',
 
     // Tasks
     pending: 'Pending',
@@ -123,60 +156,86 @@ export const translations = {
 
     // Common
     backToDashboard: 'Back to Dashboard',
+    viewAll: 'View all',
+    more: 'more',
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
+
+    // Header
+    projectDashboard: 'Project Dashboard',
+    welcomeBack: 'Welcome back',
+    agentStatus: 'Agent status',
+    optimal: 'OPTIMAL',
+    searchPlaceholder: 'Search nexus...',
+
+    // Property stages
+    prospect: 'PROSPECT',
+    listed: 'LISTED',
+    offer: 'OFFER',
+    sold: 'SOLD',
+
+    // Notifications
+    notifications: 'Notifications',
+    unread: 'unread',
+    markAllAsRead: 'Mark all as read',
+    noNotifications: 'No notifications',
   },
   de: {
     // Navigation
-    dashboard: 'Dashboard',
-    leads: 'Leads',
+    dashboard: 'Übersicht',
+    leads: 'Kontakte',
     properties: 'Immobilien',
     tasks: 'Aufgaben',
     logout: 'Abmelden',
 
     // Dashboard widgets
-    leadsPulse: 'Leads Pulse',
+    leadsPulse: 'Aktive Kontakte',
     tasksToday: 'Heutige Aufgaben',
-    propertyPipeline: 'Immobilien-Pipeline',
+    propertyPipeline: 'Immobilien-Portfolio',
     quickStats: 'Schnellstatistiken',
-    agentStream: 'Agent Stream',
+    agentStream: 'Agentenaktivität',
     quickActions: 'Schnellaktionen',
 
     // Quick Actions
-    newLead: 'Neuer Lead',
+    newLead: 'Neuer Kontakt',
     manualEntry: 'Manuelle Eingabe',
-    prospectionRun: 'Prospektionssuche',
+    prospectionRun: 'Prospektion Starten',
     weeklySearch: 'Wöchentlicher Scan',
-    forceRecap: 'Zusammenfassung erzwingen',
-    generateReport: 'Bericht erstellen',
+    forceRecap: 'Zusammenfassung',
+    generateReport: 'Bericht Erstellen',
 
     // Stats
-    leadsThisWeek: 'Leads diese Woche',
+    leadsThisWeek: 'Kontakte diese Woche',
     responseRate: 'Antwortrate',
-    activeMandates: 'Aktive Mandate',
+    activeMandates: 'Immobilien im Portfolio',
 
     // Agent Stream
     noRecentActivity: 'Keine aktuelle Aktivität',
     live: 'LIVE',
 
+    // Activity Types
+    TYPE_LEAD_INTAKE: 'NEUER KONTAKT',
+    TYPE_PROSPECTION: 'PROSPEKTION',
+    TYPE_WEEKLY_RECAP: 'WOCHENBERICHT',
+
     // Leads
-    lead: 'Lead',
-    contact: 'Kontakt',
+    lead: 'Kontakt',
+    contact: 'Kontaktdaten',
     budget: 'Budget',
     priority: 'Priorität',
     source: 'Quelle',
     status: 'Status',
-    noLeadsRegistered: 'Keine Leads registriert',
+    noLeadsRegistered: 'Keine Kontakte registriert',
     total: 'Gesamt',
     contactManagement: 'Kontakt- und Chancenverwaltung',
 
     // Properties
+    propertyManagement: 'Immobilienportfolio in Verwaltung',
     price: 'Preis',
     estimatedCommission: 'Geschätzte Provision',
     lastUpdate: 'Letzte Aktualisierung',
     noPipelineProperties: 'Keine Immobilien in der Pipeline',
-    propertyManagement: 'Immobilien-Pipeline-Verwaltung',
 
     // Tasks
     pending: 'Ausstehend',
@@ -187,9 +246,30 @@ export const translations = {
 
     // Common
     backToDashboard: 'Zurück zum Dashboard',
+    viewAll: 'Alle anzeigen',
+    more: 'mehr',
     loading: 'Lädt...',
     error: 'Fehler',
     success: 'Erfolg',
+
+    // Header
+    projectDashboard: 'Projekt-Übersicht',
+    welcomeBack: 'Willkommen zurück',
+    agentStatus: 'Agentenstatus',
+    optimal: 'OPTIMAL',
+    searchPlaceholder: 'Nexus durchsuchen...',
+
+    // Property stages
+    prospect: 'PROSPEKTION',
+    listed: 'GELISTET',
+    offer: 'ANGEBOT',
+    sold: 'VERKAUFT',
+
+    // Notifications
+    notifications: 'Benachrichtigungen',
+    unread: 'ungelesen',
+    markAllAsRead: 'Alle als gelesen markieren',
+    noNotifications: 'Keine Benachrichtigungen',
   },
 } as const
 

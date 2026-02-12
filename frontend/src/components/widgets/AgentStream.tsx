@@ -11,8 +11,8 @@ export function AgentStream() {
   return (
     <div className="widget-card h-full flex flex-col">
       <h3 className="widget-title">{t('agentStream')}</h3>
-      <div className="flex-1 overflow-auto">
-        <StaggerList className="space-y-4">
+      <div className="flex-1 overflow-auto flex flex-col justify-start scrollbar-thin">
+        <StaggerList className="space-y-4 w-full">
           {logs.length === 0 ? (
             <p className="text-xs text-soft-muted italic">{t('noRecentActivity')}</p>
           ) : (
@@ -24,7 +24,7 @@ export function AgentStream() {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-gold uppercase tracking-tighter">
-                      {log.agent}
+                      {t(`TYPE_${log.agent.replace(/\s+/g, '_').toUpperCase()}` as any) || log.agent}
                     </span>
                     <span className="text-[9px] text-white/30">{log.timestamp}</span>
                   </div>

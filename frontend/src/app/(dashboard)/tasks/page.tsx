@@ -1,18 +1,45 @@
 'use client'
-import { useStore } from '@/lib/store'
-import { ArrowLeft, Check, Clock, Calendar } from 'lucide-react'
+import { useState } from 'react'
+import { useStore, Task } from '@/lib/store' // Added Task type import
+import { ArrowLeft, Check, Clock, Calendar, ChevronLeft, ChevronRight, Trash2, Edit2, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
+import TaskFormModal from '@/components/modals/TaskFormModal'
 
 export default function TasksPage() {
   const tasks = useStore((state) => state.tasks)
   const toggleTask = useStore((state) => state.toggleTask)
+  const deleteTask = useStore((state) => state.deleteTask)
   const { t } = useI18n()
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   const pendingTasks = tasks.filter(t => t.status === 'pending')
   const doneTasks = tasks.filter(t => t.status === 'done')
 
+  const ITEMS_PER_PAGE = 5
+  const [pendingPage, setPendingPage] = useState(1)
+  const [donePage, setDonePage] = useState(1)
+
+  const pendingTotalPages = Math.ceil(pendingTasks.length / ITEMS_PER_PAGE)
+  const doneTotalPages = Math.ceil(doneTasks.length / ITEMS_PER_PAGE)
+
+  const visiblePending = pendingTasks.slice((pendingPage - 1) * ITEMS_PER_PAGE, pendingPage * ITEMS_PER_PAGE)
+  const visibleDone = doneTasks.slice((donePage - 1) * ITEMS_PER_PAGE, donePage * ITEMS_PER_PAGE)
+
+  const handleEdit = (task: Task) => {
+    setEditingTask(task)
+    setIsModalOpen(true)
+  }
+
+  const handleNewTask = () => {
+    setEditingTask(null)
+    setIsModalOpen(true)
+  }
+
+  // ... (inside return) 
   return (
     <div className="min-h-screen p-8">
       <motion.div
@@ -35,32 +62,39 @@ export default function TasksPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-              <span className="text-sm text-soft-muted">{t('pending')}: </span>
-              <span className="text-lg font-bold text-amber-400">{pendingTasks.length}</span>
-            </div>
-            <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-              <span className="text-sm text-soft-muted">{t('completed')}: </span>
-              <span className="text-lg font-bold text-emerald-400">{doneTasks.length}</span>
-            </div>
+             <button
+                onClick={handleNewTask}
+                className="px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold border border-gold/20 rounded-lg text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Nueva Tarea
+              </button>
+             <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                <span className="text-sm text-soft-muted">{t('pending')}: </span>
+                <span className="text-lg font-bold text-amber-400">{pendingTasks.length}</span>
+             </div>
+             <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                <span className="text-sm text-soft-muted">{t('completed')}: </span>
+                <span className="text-lg font-bold text-emerald-400">{doneTasks.length}</span>
+             </div>
           </div>
         </div>
 
         {/* Tasks List */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pending Tasks */}
-          <div className="bg-navy-surface/40 border border-soft-subtle rounded-2xl p-6">
+          <div className="bg-navy-surface/40 border border-soft-subtle rounded-2xl p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-6">
               <Clock className="w-5 h-5 text-amber-400" />
               <h2 className="text-xl font-bold text-soft-white">{t('pending')}</h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1">
               {pendingTasks.length === 0 ? (
                 <p className="text-sm text-soft-muted italic text-center py-8">
                   {t('noPendingTasks')}
                 </p>
               ) : (
-                pendingTasks.map((task, index) => (
+                visiblePending.map((task, index) => (
                   <motion.div
                     key={task.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -83,25 +117,69 @@ export default function TasksPage() {
                         </span>
                       </div>
                     </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEdit(task)
+                        }}
+                        className="p-2 text-soft-muted/50 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all shrink-0"
+                        title="Editar tarea"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (window.confirm('¿Eliminar esta tarea?')) deleteTask(task.id)
+                        }}
+                        className="p-2 text-soft-muted/50 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all shrink-0"
+                        title="Eliminar tarea"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </motion.div>
                 ))
               )}
             </div>
+            {/* Pagination Pending */}
+            {pendingTotalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-soft-subtle/30 pt-4 mt-4">
+                <button
+                  onClick={() => setPendingPage(p => Math.max(1, p - 1))}
+                  disabled={pendingPage === 1}
+                  className="p-1 rounded-md hover:bg-white/5 disabled:opacity-30 transition-colors text-soft-muted"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-[10px] text-soft-muted">
+                  {pendingPage} / {pendingTotalPages}
+                </span>
+                <button
+                  onClick={() => setPendingPage(p => Math.min(pendingTotalPages, p + 1))}
+                  disabled={pendingPage === pendingTotalPages}
+                  className="p-1 rounded-md hover:bg-white/5 disabled:opacity-30 transition-colors text-soft-muted"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Done Tasks */}
-          <div className="bg-navy-surface/40 border border-soft-subtle rounded-2xl p-6">
+          <div className="bg-navy-surface/40 border border-soft-subtle rounded-2xl p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-6">
               <Check className="w-5 h-5 text-emerald-400" />
               <h2 className="text-xl font-bold text-soft-white">{t('completed')}</h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1">
               {doneTasks.length === 0 ? (
                 <p className="text-sm text-soft-muted italic text-center py-8">
                   {t('noCompletedTasks')}
                 </p>
               ) : (
-                doneTasks.map((task, index) => (
+                visibleDone.map((task, index) => (
                   <motion.div
                     key={task.id}
                     initial={{ opacity: 0, x: 20 }}
@@ -124,13 +202,63 @@ export default function TasksPage() {
                         </span>
                       </div>
                     </div>
+                     <div className="flex gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEdit(task)
+                        }}
+                        className="p-2 text-soft-muted/50 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all shrink-0"
+                        title="Editar tarea"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (window.confirm('¿Eliminar esta tarea?')) deleteTask(task.id)
+                        }}
+                        className="p-2 text-soft-muted/50 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all shrink-0"
+                        title="Eliminar tarea"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </motion.div>
                 ))
               )}
             </div>
+            {/* Pagination Done */}
+            {doneTotalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-soft-subtle/30 pt-4 mt-4">
+                <button
+                  onClick={() => setDonePage(p => Math.max(1, p - 1))}
+                  disabled={donePage === 1}
+                  className="p-1 rounded-md hover:bg-white/5 disabled:opacity-30 transition-colors text-soft-muted"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-[10px] text-soft-muted">
+                  {donePage} / {doneTotalPages}
+                </span>
+                <button
+                  onClick={() => setDonePage(p => Math.min(doneTotalPages, p + 1))}
+                  disabled={donePage === doneTotalPages}
+                  className="p-1 rounded-md hover:bg-white/5 disabled:opacity-30 transition-colors text-soft-muted"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
+
+      <TaskFormModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editTask={editingTask}
+      />
     </div>
   )
 }
