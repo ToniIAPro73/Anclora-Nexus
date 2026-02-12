@@ -2,6 +2,8 @@
 import { useStore } from '@/lib/store'
 import { PulseOrb } from '@/components/effects/PulseOrb'
 import { GoldShimmer } from '@/components/effects/GoldShimmer'
+import { StaggerList, StaggerItem } from '@/components/effects/animations'
+import { format } from 'date-fns'
 
 export function LeadsPulse() {
   const leads = useStore((state) => state.leads)
@@ -22,31 +24,43 @@ export function LeadsPulse() {
             <thead>
               <tr className="text-[10px] uppercase tracking-widest text-soft-muted border-b border-soft-subtle">
                 <th className="pb-3 font-semibold">Lead</th>
-                <th className="pb-3 font-semibold">Budget</th>
-                <th className="pb-3 font-semibold">Priority</th>
-                <th className="pb-3 font-semibold">Status</th>
+                <th className="pb-3 font-semibold text-right">Budget</th>
+                <th className="pb-3 font-semibold text-center">Priority</th>
+                <th className="pb-3 font-semibold text-right">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-soft-subtle">
-              {leads.map((lead) => (
-                <tr key={lead.id} className="group hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-soft-white">{lead.name}</span>
-                      <span className="text-xs text-soft-muted">{lead.source}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 text-sm font-medium text-blue-light">{lead.budget}</td>
-                  <td className="py-4">
-                    <span className={`priority-badge priority-${lead.priority}`}>
-                      P{lead.priority}
-                    </span>
-                  </td>
-                  <td className="py-4">
-                    <span className="text-xs text-soft-muted font-medium">{lead.status}</span>
-                  </td>
-                </tr>
-              ))}
+              <StaggerList>
+                {leads.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-sm text-soft-muted italic">
+                      No hay leads registrados
+                    </td>
+                  </tr>
+                ) : (
+                  leads.map((lead) => (
+                    <StaggerItem key={lead.id} className="contents">
+                      <tr className="group hover:bg-white/[0.02] transition-colors">
+                        <td className="py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-soft-white">{lead.name}</span>
+                            <span className="text-[10px] text-soft-muted uppercase tracking-tighter">{lead.source}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 text-sm font-medium text-blue-light text-right">{lead.budget}</td>
+                        <td className="py-4 text-center">
+                          <span className={`priority-badge priority-${lead.priority}`}>
+                            P{lead.priority}
+                          </span>
+                        </td>
+                        <td className="py-4 text-right">
+                          <span className="text-[10px] uppercase tracking-wider text-soft-muted font-bold">{lead.status}</span>
+                        </td>
+                      </tr>
+                    </StaggerItem>
+                  ))
+                )}
+              </StaggerList>
             </tbody>
           </table>
         </div>
@@ -54,3 +68,4 @@ export function LeadsPulse() {
     </GoldShimmer>
   )
 }
+

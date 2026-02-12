@@ -4,9 +4,9 @@ import { motion } from 'framer-motion'
 
 export function QuickActions() {
   const actions = [
-    { label: 'New Lead', icon: Plus, sub: 'Manual intake' },
-    { label: 'Run Prospection', icon: Search, sub: 'Weekly batch' },
-    { label: 'Force Recap', icon: FileText, sub: 'Generate report' },
+    { label: 'Nuevo Lead', icon: Plus, sub: 'Alta manual' },
+    { label: 'Prospection Run', icon: Search, sub: 'Scan semanal' },
+    { label: 'Force Recap', icon: FileText, sub: 'Generar reporte' },
   ]
 
   return (
@@ -16,17 +16,18 @@ export function QuickActions() {
           key={idx}
           whileHover={{ scale: 1.02, translateY: -2 }}
           whileTap={{ scale: 0.98 }}
-          className="widget-card-gold flex flex-col items-center justify-center gap-2 text-center group"
+          className="widget-card flex flex-col items-center justify-center gap-2 text-center group border-gold/10 hover:border-gold/30"
         >
-          <div className="p-3 rounded-xl bg-gold/10 text-gold group-hover:bg-gold/20 transition-colors">
-            <action.icon className="w-6 h-6" />
+          <div className="p-3 rounded-xl bg-gold/5 text-gold group-hover:bg-gold/10 transition-colors border border-gold/10">
+            <action.icon className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-sm font-bold text-gold tracking-tight">{action.label}</div>
-            <div className="text-[10px] uppercase tracking-widest text-gold/60">{action.sub}</div>
+            <div className="text-xs font-bold text-gold uppercase tracking-tighter">{action.label}</div>
+            <div className="text-[9px] uppercase tracking-widest text-soft-muted">{action.sub}</div>
           </div>
         </motion.button>
       ))}
     </div>
   )
 }
+

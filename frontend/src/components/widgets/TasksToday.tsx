@@ -1,55 +1,46 @@
 'use client'
 import { useStore } from '@/lib/store'
-import { CheckCircle2, Circle, Clock } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { StaggerList, StaggerItem } from '@/components/effects/animations'
+import { Check } from 'lucide-react'
 
 export function TasksToday() {
-  const { tasks, toggleTask } = useStore()
+  const { tasks, toggleTask } = useStore((state) => ({ 
+    tasks: state.tasks, 
+    toggleTask: state.toggleTask 
+  }))
 
   return (
     <div className="widget-card h-full flex flex-col">
-      <h3 className="widget-title">Tasks Today</h3>
-      
-      <div className="flex-1 space-y-3 overflow-auto pr-2">
-        <AnimatePresence mode='popLayout'>
-          {tasks.map((task) => (
-            <motion.div
-              layout
-              key={task.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className={`flex items-start gap-3 p-3 rounded-widget-inner border transition-all ${
-                task.status === 'done' 
-                  ? 'bg-soft-subtle border-transparent' 
-                  : 'bg-navy-mid/30 border-soft-subtle hover:border-gold/30'
-              }`}
-            >
-              <button 
-                onClick={() => toggleTask(task.id)}
-                className="mt-0.5 text-soft-muted hover:text-gold transition-colors"
-              >
-                {task.status === 'done' ? (
-                  <CheckCircle2 className="w-5 h-5 text-gold" />
-                ) : (
-                  <Circle className="w-5 h-5" />
-                )}
-              </button>
-              
-              <div className="flex-1">
-                <p className={`text-sm font-medium transition-all ${
-                  task.status === 'done' ? 'text-soft-muted line-through' : 'text-soft-white'
-                }`}>
-                  {task.title}
-                </p>
-                <div className="flex items-center gap-1.5 mt-1 text-[10px] uppercase tracking-wider text-soft-muted">
-                  <Clock className="w-3 h-3" />
-                  <span>{task.due_time}</span>
+      <h3 className="widget-title">Tareas de Hoy</h3>
+      <div className="flex-1 overflow-auto">
+        <StaggerList className="space-y-3">
+          {tasks.length === 0 ? (
+            <p className="text-xs text-soft-muted italic">No hay tareas para hoy</p>
+          ) : (
+            tasks.map((task) => (
+              <StaggerItem key={task.id}>
+                <div 
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 border border-transparent hover:border-soft-subtle cursor-pointer ${
+                    task.status === 'done' ? 'bg-white/5 opacity-50' : 'bg-navy-surface/40'
+                  }`}
+                  onClick={() => toggleTask(task.id)}
+                >
+                  <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
+                    task.status === 'done' ? 'bg-gold border-gold' : 'border-soft-subtle group-hover:border-gold/50'
+                  }`}>
+                    {task.status === 'done' && <Check className="w-3 h-3 text-navy-deep" strokeWidth={4} />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-medium truncate ${task.status === 'done' ? 'line-through text-soft-muted' : 'text-soft-white'}`}>
+                      {task.title}
+                    </p>
+                    <p className="text-[10px] text-soft-muted uppercase tracking-wider">{task.due_time}</p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              </StaggerItem>
+            ))
+          )}
+        </StaggerList>
       </div>
     </div>
   )

@@ -1,26 +1,43 @@
 'use client'
 import { createClient } from '@supabase/supabase-js'
 
-// Stub client for development - will connect to real URL later
-const supabase = createClient(
-  'https://placeholder.supabase.co',
-  'placeholder-key'
-)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export function subscribeToLeads(cb: (p: any) => void) {
-  console.log('Subscribed to leads realtime stub')
-  // No-op for mock data
-  return { unsubscribe: () => {} }
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+export function subscribeToLeads(cb: (payload: any) => void) {
+  return supabase
+    .channel('leads-realtime')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'leads' },
+      cb
+    )
+    .subscribe()
 }
 
-export function subscribeToAgentLogs(cb: (p: any) => void) {
-  console.log('Subscribed to agent logs realtime stub')
-  return { unsubscribe: () => {} }
+export function subscribeToAgentLogs(cb: (payload: any) => void) {
+  return supabase
+    .channel('agent-logs-realtime')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'agent_logs' },
+      cb
+    )
+    .subscribe()
 }
 
-export function subscribeToTasks(cb: (p: any) => void) {
-  console.log('Subscribed to tasks realtime stub')
-  return { unsubscribe: () => {} }
+export function subscribeToTasks(cb: (payload: any) => void) {
+  return supabase
+    .channel('tasks-realtime')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'tasks' },
+      cb
+    )
+    .subscribe()
 }
 
 export default supabase
+

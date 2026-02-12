@@ -1,5 +1,6 @@
 'use client'
 import { create } from 'zustand'
+import supabase from './supabase'
 
 export interface Lead {
   id: string
@@ -51,40 +52,54 @@ interface AppState {
   setProperties: (properties: Property[]) => void
   setAgentLogs: (logs: AgentLog[]) => void
   toggleTask: (id: string) => void
+  initialize: () => Promise<void>
 }
 
 export const useStore = create<AppState>((set) => ({
-  leads: [
-    { id: '1', name: 'Julianne Moore', email: 'j.moore@luxury.com', budget: '2.5M€', priority: 5, source: 'Web', status: 'New', created_at: '2024-02-12T10:00:00Z' },
-    { id: '2', name: 'Robert De Niro', email: 'deniro@film.com', budget: '8.0M€', priority: 4, source: 'Referral', status: 'Contacted', created_at: '2024-02-12T09:30:00Z' },
-    { id: '3', name: 'Lady Gaga', email: 'gaga@art.it', budget: '1.2M€', priority: 3, source: 'Web', status: 'Qualified', created_at: '2024-02-12T08:15:00Z' },
-  ],
-  tasks: [
-    { id: '1', title: 'Call Julianne Moore re: Villa Son Vida', due_time: '14:00', status: 'pending' },
-    { id: '2', title: 'Send dossier to De Niro', due_time: '16:30', status: 'pending' },
-    { id: '3', title: 'Check new listings in Andratx', due_time: '18:00', status: 'done' },
-  ],
-  properties: [
-    { id: '1', address: 'Calle Mar, 12, Andratx', price: 1250000, type: 'Villa', status: 'prospect' },
-    { id: '2', address: 'Av. Costa, 5, Calvià', price: 850000, type: 'Apartment', status: 'listed' },
-    { id: '3', address: 'Son Ferrer Estate', price: 3400000, type: 'Finca', status: 'sold' },
-  ],
-  agentLogs: [
-    { id: '1', agent: 'LeadIntake', status: 'success', message: 'New lead qualified: Julianne Moore (Priority 5)', timestamp: '10:05' },
-    { id: '2', agent: 'Prospection', status: 'active', message: 'Analyzing data from Idealista for Calvià...', timestamp: '09:45' },
-    { id: '3', agent: 'Recap', status: 'success', message: 'Weekly report generated and sent to Toni.', timestamp: '08:00' },
-  ],
+  leads: [],
+  tasks: [],
+  properties: [],
+  agentLogs: [],
   stats: {
-    leadsThisWeek: 14,
-    responseRate: 98,
-    activeMandates: 6,
+    leadsThisWeek: 0,
+    responseRate: 0,
+    activeMandates: 0,
   },
 
+  addLead: (lead: Lead) => set((s) => ({ leads: [lead, ...s.leads] })),
+  updateLead: (id: string, data: Partial<Lead>) => set((s) => ({
+    leads: s.leads.map((l) => l.id === id ? { ...l, ...data } : l)
+  })),
+  addAgentLog: (log: AgentLog) => set((s) => ({ agentLogs: [log, ...s.agentLogs].slice(0, 20) })),
   setLeads: (leads) => set({ leads }),
   setTasks: (tasks) => set({ tasks }),
   setProperties: (properties) => set({ properties }),
   setAgentLogs: (agentLogs) => set({ agentLogs }),
+  setStats: (stats: AppState['stats']) => set({ stats }),
   toggleTask: (id) => set((state) => ({
     tasks: state.tasks.map(t => t.id === id ? { ...t, status: t.status === 'done' ? 'pending' : 'done' } : t)
   })),
+  initialize: async () => {
+    try {
+      const { data: leads } = await supabase.from('leads').select('*').order('created_at', { ascending: false })
+      const { data: tasks } = await supabase.from('tasks').select('*').order('due_time', { ascending: true })
+      const { data: props } = await supabase.from('properties').select('*')
+      const { data: logs } = await supabase.from('agent_logs').select('*').order('timestamp', { ascending: false }).limit(20)
+
+      if (leads) set({ leads })
+      if (tasks) set({ tasks })
+      if (props) set({ properties: props })
+      if (logs) set({ agentLogs: logs })
+
+      set({
+         stats: {
+           leadsThisWeek: leads?.length || 0,
+           responseRate: 98,
+           activeMandates: props?.filter((p: Property) => p.status === 'listed').length || 0,
+         }
+      })
+    } catch (error) {
+      console.error('Failed to initialize store:', error)
+    }
+  }
 }))

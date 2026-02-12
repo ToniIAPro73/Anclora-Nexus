@@ -24,7 +24,40 @@ async def planner_node(state: AgentState) -> AgentState:
 
 async def limit_check_node(state: AgentState) -> AgentState:
     print("--- LIMIT CHECK ---")
+    from backend.services.supabase_service import supabase_service
+    
+    org_id = state.get("org_id", supabase_service.fixed_org_id)
+    limits = await supabase_service.get_constitutional_limits(org_id)
+    
     state["limits_ok"] = True
+    
+    # 1. Check max_daily_leads
+    if "max_daily_leads" in limits:
+        daily_leads = await supabase_service.count_daily_leads(org_id)
+        if daily_leads >= limits["max_daily_leads"]:
+            state["limits_ok"] = False
+            state["error"] = f"Constitutional limit reached: max_daily_leads ({limits['max_daily_leads']})"
+            print(f"LIMIT BLOCKED: {state['error']}")
+            
+    # 2. Check max_llm_tokens_per_day
+    if state["limits_ok"] and "max_llm_tokens_per_day" in limits:
+        daily_tokens = await supabase_service.get_daily_token_usage(org_id)
+        if daily_tokens >= limits["max_llm_tokens_per_day"]:
+            state["limits_ok"] = False
+            state["error"] = f"Constitutional limit reached: max_llm_tokens_per_day ({limits['max_llm_tokens_per_day']})"
+            print(f"LIMIT BLOCKED: {state['error']}")
+
+    if not state["limits_ok"]:
+        # Log rejection to audit_log
+        await supabase_service.insert_audit_log({
+            "org_id": org_id,
+            "actor_type": "system",
+            "actor_id": "constitutional_validator",
+            "action": "limit_check.rejected",
+            "resource_type": "constitutional_limit",
+            "details": {"reason": state["error"]}
+        })
+
     return state
 
 async def executor_node(state: AgentState) -> AgentState:
@@ -168,20 +201,20 @@ async def audit_logger_node(state: AgentState) -> AgentState:
     print("--- AUDIT LOGGER ---")
     from backend.services.supabase_service import supabase_service
     
-    org_id = state.get("org_id", state["input_data"].get("org_id"))
-    user_id = state.get("user_id", "system")
+    org_id = state.get("org_id", state["input_data"].get("org_id", supabase_service.fixed_org_id))
     
-    # Audit Log Entry
+    # Audit Log Entry (Constitutional Compliance Título X)
     audit_data = {
         "org_id": org_id,
         "actor_type": "agent",
-        "actor_id": "nexus-agent-v0",
-        "action": f"execute_skill_{state['selected_skill']}",
-        "resource_type": "lead",
-        "resource_id": state["input_data"].get("lead_id"),
+        "actor_id": f"nexus-agent-{state['selected_skill']}",
+        "action": f"{state['selected_skill']}.executed",
+        "resource_type": "lead" if state['selected_skill'] == "lead_intake" else "agent_execution",
+        "resource_id": str(state["input_data"].get("lead_id", state.get("agent_id", "unknown"))),
         "details": {
             "input": state["input_data"],
-            "output": state.get("skill_output")
+            "output": state.get("skill_output"),
+            "status": state.get("status", "success")
         }
     }
     await supabase_service.insert_audit_log(audit_data)
@@ -189,10 +222,12 @@ async def audit_logger_node(state: AgentState) -> AgentState:
     # Agent Execution Log
     agent_log_data = {
         "org_id": org_id,
-        "agent_name": "Nexus Lead Agent",
+        "agent_name": f"Nexus {state['selected_skill'].capitalize()} Agent",
         "skill_name": state["selected_skill"],
         "input": state["input_data"],
         "output": state.get("skill_output"),
+        "llm_model": state.get("skill_output", {}).get("llm_model", "gpt-4o-mini"),
+        "tokens_used": state.get("skill_output", {}).get("tokens_used", 0),
         "status": "success" if not state.get("error") else "error"
     }
     await supabase_service.insert_agent_log(agent_log_data)

@@ -13,6 +13,7 @@ class SupabaseService:
             settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_ANON_KEY
         )
         self.audit_secret = settings.OPENAI_API_KEY # Using OpenAI key as a placeholder secret if dedicated not found
+        self.fixed_org_id = "00000000-0000-0000-0000-000000000000" # Fixed Org ID for v0
 
     def _generate_signature(self, data: Dict[str, Any]) -> str:
         """Generates HMAC-SHA256 signature for audit log integrity."""
@@ -40,11 +41,29 @@ class SupabaseService:
         return response.data[0]
 
     async def insert_audit_log(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        # Ensure org_id is present
+        if "org_id" not in data:
+            data["org_id"] = self.fixed_org_id
+            
         # Generate signature before insert
         signature = self._generate_signature(data)
         audit_data = {**data, "signature": signature, "timestamp": datetime.utcnow().isoformat()}
         response = self.client.table("audit_log").insert(audit_data).execute()
         return response.data[0]
+
+    async def get_constitutional_limits(self, org_id: str) -> Dict[str, Any]:
+        response = self.client.table("constitutional_limits").select("*").eq("org_id", org_id).execute()
+        return {item["limit_type"]: float(item["limit_value"]) for item in response.data}
+
+    async def count_daily_leads(self, org_id: str) -> int:
+        today = datetime.utcnow().date().isoformat()
+        response = self.client.table("leads").select("id", count="exact").eq("org_id", org_id).gte("created_at", today).execute()
+        return response.count or 0
+
+    async def get_daily_token_usage(self, org_id: str) -> int:
+        today = datetime.utcnow().date().isoformat()
+        response = self.client.table("agent_logs").select("tokens_used").eq("org_id", org_id).gte("timestamp", today).execute()
+        return sum(item.get("tokens_used", 0) for item in response.data if item.get("tokens_used"))
 
     async def get_active_leads(self, priority_min: int = 3) -> List[Dict[str, Any]]:
         response = self.client.table("leads").select("*").eq("status", "new").gte("ai_priority", priority_min).execute()

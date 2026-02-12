@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { LayoutDashboard, Users, Home, CheckSquare, Settings, LogOut } from 'lucide-react'
 import { usePathname } from 'next/navigation'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -17,15 +17,11 @@ export function Sidebar() {
   return (
     <aside className="w-64 border-r border-soft-subtle bg-navy-darker/50 backdrop-blur-xl flex flex-col pt-8">
       <div className="px-8 mb-10 flex flex-col items-center">
-        <div className="relative w-16 h-16 mb-4 animate-float">
-          <Image 
-            src="/brand/logo-nexus.jpeg" 
-            alt="Anclora Nexus Logo" 
-            fill 
-            className="rounded-full object-cover border-2 border-gold/30 shadow-gold-glow"
-          />
+        <div className="mb-4 animate-float">
+          <BrandLogo size={64} />
         </div>
         <h1 className="font-display text-xl text-soft-white">Anclora Nexus</h1>
+
         <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 mt-1">Intelligence Layer</p>
       </div>
 
