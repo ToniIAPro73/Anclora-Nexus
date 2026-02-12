@@ -26,24 +26,24 @@ export function QuickActions() {
       
       // Add 'active' log
       const currentLogs = useStore.getState().agentLogs
-      useStore.getState().setAgentLogs([{
+      useStore.getState().setAgentLogs([...currentLogs, {
         id: Date.now().toString(),
         agent: 'Prospection',
         status: 'active',
         message: 'Iniciando búsqueda semanal en fuentes configuradas...',
         timestamp: 'Justo ahora'
-      }, ...currentLogs])
+      }])
 
       setTimeout(() => {
         // Add 'success' log
         const updatedLogs = useStore.getState().agentLogs
-        useStore.getState().setAgentLogs([{
+        useStore.getState().setAgentLogs([...updatedLogs, {
           id: (Date.now() + 1).toString(),
           agent: 'Prospection',
           status: 'success',
           message: 'Prospección finalizada. Se han analizado 142 propiedades.',
           timestamp: 'Justo ahora'
-        }, ...updatedLogs])
+        }])
         
         setLoadingIndex(null)
       }, 3000)

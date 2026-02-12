@@ -498,18 +498,11 @@ const MOCK_PROPERTIES: Property[] = [
 
 const MOCK_AGENT_LOGS: AgentLog[] = [
   {
-    id: '2',
-    agent: 'Prospection',
-    status: 'active',
-    message: 'Prospección zona Puerto Portals en progreso...',
-    timestamp: 'Hace 2 horas',
-  },
-  {
-    id: '3',
-    agent: 'Lead Intake',
+    id: '4',
+    agent: 'Weekly Recap',
     status: 'success',
-    message: 'Nuevo lead cualificado: Carlos Fernández (P5)',
-    timestamp: 'Hace 3 horas',
+    message: 'Recap semanal generado: 15 leads, €8.2M pipeline',
+    timestamp: 'Hace 3 días',
   },
   {
     id: '1',
@@ -519,11 +512,18 @@ const MOCK_AGENT_LOGS: AgentLog[] = [
     timestamp: 'Hace 2 días',
   },
   {
-    id: '4',
-    agent: 'Weekly Recap',
+    id: '3',
+    agent: 'Lead Intake',
     status: 'success',
-    message: 'Recap semanal generado: 15 leads, €8.2M pipeline',
-    timestamp: 'Hace 3 días',
+    message: 'Nuevo lead cualificado: Carlos Fernández (P5)',
+    timestamp: 'Hace 3 horas',
+  },
+  {
+    id: '2',
+    agent: 'Prospection',
+    status: 'active',
+    message: 'Prospección zona Puerto Portals en progreso...',
+    timestamp: 'Hace 2 horas',
   },
 ]
 

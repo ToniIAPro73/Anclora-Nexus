@@ -1,4 +1,5 @@
 'use client'
+import { useEffect, useRef } from 'react'
 import { useStore } from '@/lib/store'
 import { PulseOrb } from '@/components/effects/PulseOrb'
 import { TypeWriter, StaggerList, StaggerItem } from '@/components/effects/animations'
@@ -7,11 +8,21 @@ import { useI18n } from '@/lib/i18n'
 export function AgentStream() {
   const logs = useStore((state) => state.agentLogs)
   const { t } = useI18n()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+    }
+  }, [logs])
 
   return (
     <div className="widget-card h-full flex flex-col">
       <h3 className="widget-title">{t('agentStream')}</h3>
-      <div className="flex-1 overflow-auto flex flex-col justify-start scrollbar-thin">
+      <div 
+        ref={scrollRef} 
+        className="flex-1 overflow-auto flex flex-col justify-start scrollbar-thin scroll-smooth"
+      >
         <StaggerList className="space-y-4 w-full">
           {logs.length === 0 ? (
             <p className="text-xs text-soft-muted italic">{t('noRecentActivity')}</p>
@@ -29,7 +40,7 @@ export function AgentStream() {
                     <span className="text-[9px] text-white/30">{log.timestamp}</span>
                   </div>
                   <p className="text-xs text-white/80 leading-relaxed">
-                    {i === 0 ? (
+                    {i === logs.length - 1 ? (
                       <TypeWriter text={log.message} speed={20} />
                     ) : (
                       log.message
