@@ -1,149 +1,73 @@
-# conftest.py - Pytest fixtures para Multi-Tenant tests
-
 import pytest
+import pytest_asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
+from fastapi.testclient import TestClient
 from uuid import uuid4
 from datetime import datetime, timedelta
 
-# ============================================================================
-# FIXTURES: ORGANIZATIONS
-# ============================================================================
+from backend.main import app
+from backend.services.supabase_service import supabase_service
+from backend.models.membership import UserRole, MembershipStatus
 
 @pytest.fixture
-def test_org():
-    """Create test organization"""
+def api_client():
+    return TestClient(app)
+
+@pytest.fixture
+def mock_supabase():
+    with patch("backend.services.supabase_service.supabase_service.client") as mock:
+        yield mock
+
+@pytest.fixture
+def test_org_id():
+    return uuid4()
+
+@pytest.fixture
+def test_user_id():
+    return uuid4()
+
+def create_auth_headers(user_id):
+    # In a real scenario, this would be a valid JWT
+    return {"Authorization": f"Bearer mock-token-{user_id}"}
+
+@pytest.fixture
+def owner_headers(mock_supabase):
+    user_id = uuid4()
+    mock_user = MagicMock()
+    mock_user.id = user_id
+    mock_supabase.auth.get_user.return_value = MagicMock(user=mock_user)
+    return create_auth_headers(user_id), user_id
+
+@pytest.fixture
+def manager_headers(mock_supabase):
+    user_id = uuid4()
+    mock_user = MagicMock()
+    mock_user.id = user_id
+    mock_supabase.auth.get_user.return_value = MagicMock(user=mock_user)
+    return create_auth_headers(user_id), user_id
+
+@pytest.fixture
+def agent_headers(mock_supabase):
+    user_id = uuid4()
+    mock_user = MagicMock()
+    mock_user.id = user_id
+    mock_supabase.auth.get_user.return_value = MagicMock(user=mock_user)
+    return create_auth_headers(user_id), user_id
+
+@pytest.fixture
+def mock_membership_verification():
+    with patch("backend.api.routes.memberships.verify_org_membership") as mock:
+        mock.return_value = {"role": UserRole.OWNER, "status": MembershipStatus.ACTIVE}
+        yield mock
+
+@pytest.fixture
+def test_membership_data(test_org_id, test_user_id):
     return {
         "id": str(uuid4()),
-        "name": "Test Organization",
-        "status": "active",
+        "org_id": str(test_org_id),
+        "user_id": str(test_user_id),
+        "role": UserRole.AGENT,
+        "status": MembershipStatus.ACTIVE,
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat()
     }
-
-# ============================================================================
-# FIXTURES: USERS
-# ============================================================================
-
-@pytest.fixture
-def test_owner():
-    """Create owner user"""
-    return {
-        "id": str(uuid4()),
-        "email": "owner@test.com",
-        "full_name": "Owner User",
-    }
-
-@pytest.fixture
-def test_manager():
-    """Create manager user"""
-    return {
-        "id": str(uuid4()),
-        "email": "manager@test.com",
-        "full_name": "Manager User",
-    }
-
-@pytest.fixture
-def test_agent():
-    """Create agent user"""
-    return {
-        "id": str(uuid4()),
-        "email": "agent@test.com",
-        "full_name": "Agent User",
-    }
-
-# ============================================================================
-# FIXTURES: MEMBERSHIPS
-# ============================================================================
-
-@pytest.fixture
-def owner_membership(test_org, test_owner):
-    """Owner membership"""
-    return {
-        "id": str(uuid4()),
-        "org_id": test_org["id"],
-        "user_id": test_owner["id"],
-        "role": "owner",
-        "status": "active",
-    }
-
-@pytest.fixture
-def manager_membership(test_org, test_manager):
-    """Manager membership"""
-    return {
-        "id": str(uuid4()),
-        "org_id": test_org["id"],
-        "user_id": test_manager["id"],
-        "role": "manager",
-        "status": "active",
-    }
-
-@pytest.fixture
-def agent_membership(test_org, test_agent):
-    """Agent membership"""
-    return {
-        "id": str(uuid4()),
-        "org_id": test_org["id"],
-        "user_id": test_agent["id"],
-        "role": "agent",
-        "status": "active",
-    }
-
-# ============================================================================
-# FIXTURES: INVITATIONS
-# ============================================================================
-
-@pytest.fixture
-def pending_invitation(test_org):
-    """Pending invitation"""
-    return {
-        "id": str(uuid4()),
-        "org_id": test_org["id"],
-        "email": "pending@test.com",
-        "role": "manager",
-        "status": "pending",
-        "invitation_code": "abc123xyz" * 4,
-        "expires_at": (datetime.utcnow() + timedelta(days=7)).isoformat(),
-    }
-
-# ============================================================================
-# FIXTURES: API CLIENT
-# ============================================================================
-
-@pytest.fixture
-def api_client_owner(test_owner):
-    """API client with owner authentication"""
-    return {
-        "headers": {
-            "Authorization": f"Bearer test-token-owner-{test_owner['id']}",
-            "X-User-ID": test_owner["id"],
-        }
-    }
-
-@pytest.fixture
-def api_client_manager(test_manager):
-    """API client with manager authentication"""
-    return {
-        "headers": {
-            "Authorization": f"Bearer test-token-manager-{test_manager['id']}",
-            "X-User-ID": test_manager["id"],
-        }
-    }
-
-@pytest.fixture
-def api_client_agent(test_agent):
-    """API client with agent authentication"""
-    return {
-        "headers": {
-            "Authorization": f"Bearer test-token-agent-{test_agent['id']}",
-            "X-User-ID": test_agent["id"],
-        }
-    }
-
-# ============================================================================
-# PYTEST CONFIGURATION
-# ============================================================================
-
-pytest_plugins = []
-
-def pytest_configure(config):
-    """Configure pytest"""
-    config.addinivalue_line(
-        "markers", "asyncio: mark test as async"
-    )
