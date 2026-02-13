@@ -4,6 +4,7 @@ import React from 'react'
 import { useOrgMembership } from '@/lib/hooks/useOrgMembership'
 import { motion } from 'framer-motion'
 import { ShieldAlert, Loader2 } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 interface RoleBasedUIShellProps {
   children: React.ReactNode
@@ -17,6 +18,7 @@ export function RoleBasedUIShell({
   fallback 
 }: RoleBasedUIShellProps) {
   const { role, loading, status } = useOrgMembership()
+  const { t } = useI18n()
 
   if (loading) {
     return (
@@ -30,7 +32,7 @@ export function RoleBasedUIShell({
           <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 text-gold animate-pulse" />
         </div>
         <p className="text-sm font-medium text-soft-muted animate-pulse tracking-widest uppercase">
-          Verifying Access...
+          {t('verifyingAccess')}
         </p>
       </div>
     )
@@ -42,9 +44,9 @@ export function RoleBasedUIShell({
         <div className="w-16 h-16 bg-danger/10 rounded-full flex items-center justify-center mb-6">
           <ShieldAlert className="w-8 h-8 text-danger" />
         </div>
-        <h3 className="text-xl font-bold text-soft-white mb-2">Account Inactive</h3>
+        <h3 className="text-xl font-bold text-soft-white mb-2">{t('accountInactive')}</h3>
         <p className="text-soft-muted max-w-md mx-auto">
-          Your membership in this organization is currently {status}. Please contact your administrator for access.
+          {t('accountInactiveDesc')} <span className="font-bold text-soft-white">{status || 'inactive'}</span>. {t('contactAdmin')}
         </p>
       </div>
     )
@@ -56,9 +58,9 @@ export function RoleBasedUIShell({
         <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mb-6">
           <ShieldAlert className="w-8 h-8 text-gold" />
         </div>
-        <h3 className="text-xl font-bold text-soft-white mb-2">Access Restricted</h3>
+        <h3 className="text-xl font-bold text-soft-white mb-2">{t('restrictedAccessTitle')}</h3>
         <p className="text-soft-muted max-w-md mx-auto">
-          This area is reserved for {requiredRole.join(' or ')} level access. Your current role is {role}.
+          {t('restrictedAccessDesc')} <span className="font-bold">{requiredRole.join(' or ')}</span>. {t('currentRole')} <span className="font-bold">{role}</span>.
         </p>
       </div>
     )

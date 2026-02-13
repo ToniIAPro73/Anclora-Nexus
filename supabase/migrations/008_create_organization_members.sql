@@ -4,7 +4,16 @@
 
 BEGIN;
 
--- 1. Create organization_members table
+-- 1. Create helper function if not exists
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Create organization_members table
 CREATE TABLE IF NOT EXISTS organization_members (
   -- Identifiers
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -30,7 +39,7 @@ CREATE TABLE IF NOT EXISTS organization_members (
   UNIQUE(org_id, user_id)
 );
 
--- 2. Create optimized indices
+-- 3. Create optimized indices
 CREATE INDEX IF NOT EXISTS idx_org_members_org_id ON organization_members(org_id);
 CREATE INDEX IF NOT EXISTS idx_org_members_user_id ON organization_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_org_members_role ON organization_members(role);
@@ -39,18 +48,11 @@ CREATE INDEX IF NOT EXISTS idx_org_members_org_user ON organization_members(org_
 CREATE INDEX IF NOT EXISTS idx_org_members_code ON organization_members(invitation_code) 
   WHERE status = 'pending';
 
--- 3. Trigger for updated_at (assuming trigger function exists from 002_core_schema)
-DO $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'update_updated_at_column') THEN
-        CREATE TRIGGER update_organization_members_updated_at
-        BEFORE UPDATE ON organization_members
-        FOR EACH ROW
-        EXECUTE FUNCTION update_updated_at_column();
-    END IF;
-END $$;
+-- 4. Create trigger
+DROP TRIGGER IF EXISTS update_organization_members_updated_at ON organization_members;
+CREATE TRIGGER update_organization_members_updated_at
+BEFORE UPDATE ON organization_members
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
 
 COMMIT;
-
--- Rollback Procedure:
--- DROP TABLE IF EXISTS organization_members;

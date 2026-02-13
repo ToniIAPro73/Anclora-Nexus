@@ -57,7 +57,7 @@ export default function TeamManagement() {
     setSuccessMessage(null)
     try {
       await inviteMember(inviteEmail, inviteRole)
-      setSuccessMessage(`Invitation sent to ${inviteEmail}`)
+      setSuccessMessage(`${t('invitationSent')} ${inviteEmail}`)
       setInviteEmail('')
       loadMembers()
     } catch (err: any) {
@@ -68,7 +68,8 @@ export default function TeamManagement() {
   const handleRoleChange = async (memberId: string, newRole: OrgRole) => {
     try {
       await changeMemberRole(memberId, newRole)
-      setSuccessMessage('Role updated successfully')
+      await changeMemberRole(memberId, newRole)
+      setSuccessMessage(t('roleUpdated'))
       loadMembers()
     } catch (err: any) {
       setErrorMessage(err.message)
@@ -76,10 +77,10 @@ export default function TeamManagement() {
   }
 
   const handleRemove = async (memberId: string) => {
-    if (!confirm('Are you sure you want to remove this member?')) return
+    if (!confirm(t('confirmRemoveMember'))) return
     try {
       await removeMember(memberId)
-      setSuccessMessage('Member removed')
+      setSuccessMessage(t('memberRemoved'))
       loadMembers()
     } catch (err: any) {
       setErrorMessage(err.message)
@@ -89,7 +90,7 @@ export default function TeamManagement() {
   if (!canManageTeam) {
     return (
       <div className="p-8 text-center text-soft-muted">
-        Access Restricted. Only Owners can manage the team.
+        {t('accessRestricted')}. {t('onlyOwner')}
       </div>
     )
   }
@@ -99,8 +100,8 @@ export default function TeamManagement() {
       {/* Header section with Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-navy-surface/30 border border-soft-subtle/20 rounded-3xl p-6 backdrop-blur-xl">
-          <p className="text-xs font-bold text-gold uppercase tracking-widest mb-1">Total Team</p>
-          <h3 className="text-3xl font-bold text-soft-white">{members.length} Members</h3>
+          <p className="text-xs font-bold text-gold uppercase tracking-widest mb-1">{t('totalTeam')}</p>
+          <h3 className="text-3xl font-bold text-soft-white">{members.length} {t('members')}</h3>
         </div>
         <div className="bg-navy-surface/30 border border-soft-subtle/20 rounded-3xl p-6 backdrop-blur-xl col-span-2">
            <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4">
@@ -108,7 +109,7 @@ export default function TeamManagement() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/50" />
                 <Input 
                   type="email" 
-                  placeholder="agent@anclora.es" 
+                  placeholder={t('emailPlaceholder')}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   className="bg-navy-deep/50 border-gold/20 pl-10 h-12 rounded-xl focus:border-gold/50 transition-all text-soft-white"
@@ -130,7 +131,7 @@ export default function TeamManagement() {
                 className="bg-gold hover:bg-gold-muted text-navy-deep font-bold px-6 h-12 rounded-xl transition-all flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
-                Invite
+                {t('invite')}
               </Button>
            </form>
         </div>
@@ -167,10 +168,10 @@ export default function TeamManagement() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-soft-subtle/10 bg-navy-deep/40">
-              <th className="px-6 py-4 text-xs font-bold text-gold uppercase tracking-widest">Member</th>
-              <th className="px-6 py-4 text-xs font-bold text-gold uppercase tracking-widest whitespace-nowrap">Role</th>
-              <th className="px-6 py-4 text-xs font-bold text-gold uppercase tracking-widest">Status</th>
-              <th className="px-6 py-4 text-xs font-bold text-gold uppercase tracking-widest text-right">Actions</th>
+              <th className="px-6 py-4 text-xs font-bold text-gold uppercase tracking-widest">{t('member')}</th>
+              <th className="px-6 py-4 text-xs font-bold text-gold uppercase tracking-widest whitespace-nowrap">{t('role')}</th>
+              <th className="px-6 py-4 text-xs font-bold text-gold uppercase tracking-widest">{t('status')}</th>
+              <th className="px-6 py-4 text-xs font-bold text-gold uppercase tracking-widest text-right">{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -243,7 +244,7 @@ export default function TeamManagement() {
         {!loading && members.length === 0 && (
           <div className="p-12 text-center text-soft-muted">
             <UserCog className="w-12 h-12 mx-auto mb-4 opacity-20" />
-            <p className="text-sm">No team members found yet.</p>
+            <p className="text-sm">{t('noMembersFound')}</p>
           </div>
         )}
       </div>

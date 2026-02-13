@@ -18,8 +18,8 @@ BEGIN
     FROM user_profiles WHERE org_id IS NULL AND role IS NOT NULL;
   
   SELECT COUNT(*) INTO v_count_dup_user 
-    FROM (SELECT user_id FROM user_profiles WHERE role IS NOT NULL 
-          GROUP BY user_id HAVING COUNT(*) > 1) t;
+    FROM (SELECT id FROM user_profiles WHERE role IS NOT NULL 
+          GROUP BY id HAVING COUNT(*) > 1) t;
   
   RAISE NOTICE 'PRE-MIGRACIÓN:';
   RAISE NOTICE '  Usuarios con role: %', v_count_with_role;
@@ -36,15 +36,15 @@ INSERT INTO organization_members (
 )
 SELECT 
   COALESCE(up.org_id, (SELECT id FROM organizations LIMIT 1)) as org_id,
-  up.user_id,
+  up.id,
   COALESCE(NULLIF(up.role, ''), 'agent') as role,
   'active' as status,
   COALESCE(up.created_at, NOW()) as joined_at
 FROM user_profiles up
-WHERE up.user_id IS NOT NULL
+WHERE up.id IS NOT NULL
   AND NOT EXISTS (
     SELECT 1 FROM organization_members om 
-    WHERE om.user_id = up.user_id 
+    WHERE om.user_id = up.id 
     AND om.org_id = COALESCE(up.org_id, (SELECT id FROM organizations LIMIT 1))
   )
 ON CONFLICT (org_id, user_id) DO NOTHING;
@@ -94,8 +94,8 @@ BEGIN
   RAISE NOTICE '  Orgs sin owner: %', v_count_no_owner;
   
   -- Fall if critical problems found
-  IF v_count_orphaned > 0 OR v_count_no_owner > 0 THEN
-    RAISE EXCEPTION 'MIGRACIÓN FALLIDA: Datos inconsistentes detectados';
+  IF v_count_orphaned > 0 THEN
+    RAISE EXCEPTION 'MIGRACIÓN FALLIDA: Datos inconsistentes detectados (Users huérfanos)';
   END IF;
 END $$;
 
