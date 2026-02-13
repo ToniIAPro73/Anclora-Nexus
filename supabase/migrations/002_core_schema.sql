@@ -1,3 +1,8 @@
+-- ============================================================
+-- 002_core_schema.sql — Core tables for Anclora Nexus v0
+-- Tables: organizations, user_profiles, agents, tasks
+-- ============================================================
+
 -- organizations: single-tenant pero mantiene estructura
 CREATE TABLE IF NOT EXISTS organizations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -6,13 +11,19 @@ CREATE TABLE IF NOT EXISTS organizations (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- user_profiles: link a Supabase Auth
+-- user_profiles: link a Supabase Auth (full schema)
 CREATE TABLE IF NOT EXISTS user_profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id),
   org_id UUID NOT NULL REFERENCES organizations(id),
   email TEXT NOT NULL,
   full_name TEXT,
   role TEXT DEFAULT 'owner',
+  bio TEXT,
+  specialization JSONB DEFAULT '[]',
+  achievements JSONB DEFAULT '[]',
+  location TEXT DEFAULT 'Mallorca, ES',
+  job_title TEXT DEFAULT 'Luxury Estate Consultant',
+  avatar_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

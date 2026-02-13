@@ -1,4 +1,9 @@
--- audit_log: inmutable (REVOKE UPDATE, DELETE)
+-- ============================================================
+-- 003_audit_and_limits.sql — Audit, traceability & limits
+-- Tables: audit_log, agent_logs, constitutional_limits, agent_executions
+-- ============================================================
+
+-- audit_log: inmutable (REVOKE UPDATE, DELETE) — Constitution Título XI
 CREATE TABLE IF NOT EXISTS audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id UUID NOT NULL REFERENCES organizations(id),
@@ -29,8 +34,6 @@ BEGIN
 END
 $$;
 
--- Note: Revoking from authenticated and anon roles should be handled carefully.
--- Supabase RLS is the primary mechanism.
 REVOKE UPDATE, DELETE ON audit_log FROM authenticated, anon;
 
 -- agent_logs: trazabilidad de ejecuciones IA
@@ -57,3 +60,45 @@ CREATE TABLE IF NOT EXISTS constitutional_limits (
   description TEXT,
   UNIQUE(org_id, limit_type)
 );
+
+-- agent_executions: trazabilidad detallada de ejecuciones de skills
+CREATE TABLE IF NOT EXISTS agent_executions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id UUID NOT NULL REFERENCES organizations(id),
+  user_id UUID REFERENCES auth.users(id),
+  skill_id UUID REFERENCES agents(id),
+  agent_id UUID REFERENCES agents(id),
+  status TEXT DEFAULT 'PENDING', -- PENDING, RUNNING, COMPLETED, FAILED, INTERRUPTED
+  input JSONB,
+  output JSONB,
+  reasoning TEXT,
+  tool_calls JSONB,
+  iteration_count INT DEFAULT 0,
+  tokens_used INT DEFAULT 0,
+  execution_time_ms INT,
+  error_message TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  completed_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_executions_org_id ON agent_executions(org_id);
+CREATE INDEX IF NOT EXISTS idx_agent_executions_skill_id ON agent_executions(skill_id);
+CREATE INDEX IF NOT EXISTS idx_agent_executions_created_at ON agent_executions(created_at DESC);
+
+-- RLS for agent_executions
+ALTER TABLE agent_executions ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE tablename = 'agent_executions' AND policyname = 'org_isolation_agent_executions'
+    ) THEN
+        CREATE POLICY "org_isolation_agent_executions" ON agent_executions
+          FOR ALL USING (
+            org_id IN (
+              SELECT id FROM organizations
+            )
+          );
+    END IF;
+END $$;

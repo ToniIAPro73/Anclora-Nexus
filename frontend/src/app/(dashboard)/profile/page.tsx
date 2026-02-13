@@ -4,13 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   User, Mail, Shield, Calendar, MapPin, Building, 
   Briefcase, Trophy, Edit2, Camera, X, Check, Loader2,
-  Globe, UserCircle, ExternalLink, Image as ImageIcon, AlertCircle
+  Globe, UserCircle, ExternalLink, AlertCircle, ChevronLeft, Save
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import supabase from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { BrandLogo } from '@/components/brand/BrandLogo'
+
 
 export default function ProfilePage() {
   const { t } = useI18n()
@@ -21,11 +22,10 @@ export default function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   const [errorStatus, setErrorStatus] = useState<string | null>(null)
   
+  const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const logoInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
     full_name: '',
@@ -132,22 +132,21 @@ export default function ProfilePage() {
     }
   }
 
-  const handleUpload = async (file: File, bucket: string, field: string) => {
+  const handleUpload = async (file: File) => {
     if (!user || !file) return
-    const isLogo = bucket === 'logos'
-    if (isLogo) setIsUploadingLogo(true); else setIsUploading(true)
+    setIsUploading(true)
     setErrorStatus(null)
     
     try {
       // 1. Ensure bucket exists (Supabase specific error handling)
       const fileName = `${Date.now()}-${file.name}`
+      const bucket = 'avatars'
       
       const { error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, { cacheControl: '3600', upsert: true })
 
       if (uploadError) {
-        // If bucket is not found or other storage error
         if (uploadError.message.includes('not found')) {
           setErrorStatus(`Bucket "${bucket}" is not ready. Please check Supabase Storage settings.`)
           throw uploadError
@@ -161,19 +160,14 @@ export default function ProfilePage() {
         .getPublicUrl(fileName)
 
       // 3. Update Database
-      if (isLogo && org) {
-        await supabase.from('organizations').update({ logo_url: publicUrl }).eq('id', org.id)
-      } else {
-        await supabase.from('user_profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
-        await supabase.auth.updateUser({ data: { avatar_url: publicUrl } })
-      }
+      await supabase.from('user_profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
+      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } })
 
       await fetchProfile()
     } catch (error: any) {
       console.error('Upload process error:', error)
       setErrorStatus(`Upload failed: ${error.message}`)
     } finally {
-      setIsUploadingLogo(false)
       setIsUploading(false)
     }
   }
@@ -198,6 +192,13 @@ export default function ProfilePage() {
       )}
 
       {/* Header Profile Section */}
+      <div className="flex items-center gap-4 mb-2">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-navy-surface text-soft-muted">
+            <ChevronLeft className="w-6 h-6" />
+        </Button>
+        <span className="text-soft-muted text-sm uppercase tracking-widest font-bold">Volver</span>
+      </div>
+
       <div className="relative group">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-gold/50 via-blue-light/50 to-gold/50 rounded-[2rem] blur opacity-20 transition duration-1000 group-hover:opacity-40"></div>
         <div className="relative bg-navy-surface border border-soft-subtle/30 rounded-[2rem] p-8 md:p-12 overflow-hidden">
@@ -218,20 +219,10 @@ export default function ProfilePage() {
               <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-1 right-1 p-2.5 bg-gold rounded-full text-navy-deep hover:scale-110 shadow-lg z-10">
                 <Camera className="w-4 h-4" />
               </button>
-              <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'avatars', 'avatar_url')} className="hidden" accept="image/*" />
+              <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} className="hidden" accept="image/*" />
             </div>
 
-            {/* Brand Logo Section */}
-            <div className="hidden md:block absolute top-8 right-8 text-right">
-              <div className="relative inline-block group/logo">
-                <BrandLogo size={48} src={org?.logo_url} />
-                <button onClick={() => logoInputRef.current?.click()} className="absolute -bottom-2 -right-2 p-1.5 bg-navy-deep border border-gold/40 rounded-lg text-gold opacity-0 group-hover/logo:opacity-100 transition-opacity hover:bg-gold hover:text-navy-deep">
-                  {isUploadingLogo ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />}
-                </button>
-                <input type="file" ref={logoInputRef} onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'logos', 'logo_url')} className="hidden" accept="image/*" />
-              </div>
-              <p className="text-[10px] uppercase tracking-widest text-gold/60 mt-2 font-bold">{org?.name || 'Anclora'}</p>
-            </div>
+
 
             <div className="flex-1 text-center md:text-left space-y-4">
               <div className="space-y-1">
@@ -271,6 +262,44 @@ export default function ProfilePage() {
               {profile?.bio || t('professionalBio')}
             </p>
           </Card>
+
+          {/* Specializations & Achievements */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="bg-navy-surface border-soft-subtle/30 p-8 space-y-6">
+              <h3 className="text-xl font-bold text-soft-white flex items-center gap-3">
+                <Trophy className="w-5 h-5 text-gold" /> {t('specializationsLabel')}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {profile?.specialization && profile.specialization.length > 0 ? (
+                  profile.specialization.map((spec: string, index: number) => (
+                    <span key={index} className="px-3 py-1 bg-navy-deep/50 border border-gold/20 rounded-full text-sm text-gold/80">
+                      {spec}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-soft-muted italic text-sm">No specializations added.</p>
+                )}
+              </div>
+            </Card>
+
+            <Card className="bg-navy-surface border-soft-subtle/30 p-8 space-y-6">
+              <h3 className="text-xl font-bold text-soft-white flex items-center gap-3">
+                <Shield className="w-5 h-5 text-gold" /> {t('achievementsLabel')}
+              </h3>
+              <ul className="space-y-3">
+                {profile?.achievements && profile.achievements.length > 0 ? (
+                  profile.achievements.map((achievement: string, index: number) => (
+                    <li key={index} className="flex items-center gap-3 text-soft-muted">
+                      <Check className="w-4 h-4 text-gold" />
+                      <span>{achievement}</span>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-soft-muted italic text-sm">No achievements added.</p>
+                )}
+              </ul>
+            </Card>
+          </div>
         </div>
         <div className="space-y-8">
           <Card className="bg-navy-surface border-soft-subtle/30 p-8 space-y-8 relative overflow-hidden">
@@ -289,30 +318,80 @@ export default function ProfilePage() {
         {isEditModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditModalOpen(false)} className="absolute inset-0 bg-navy-deep/80 backdrop-blur-md" />
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="relative w-full max-w-2xl bg-navy-surface border border-soft-subtle/30 rounded-[2rem] p-8 shadow-2xl">
-              <div className="flex justify-between items-center mb-8">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-7xl bg-navy-surface border border-soft-subtle/30 rounded-[1.5rem] p-8 shadow-2xl overflow-hidden">
+              <div className="flex justify-between items-center mb-6 border-b border-soft-subtle/10 pb-4">
                 <h2 className="text-2xl font-bold text-soft-white flex items-center gap-3"><Edit2 className="w-6 h-6 text-gold" /> {t('editProfile')}</h2>
-                <button onClick={() => setIsEditModalOpen(false)} className="text-soft-muted"><X className="w-6 h-6" /></button>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-soft-muted hover:text-white transition-colors"><X className="w-6 h-6" /></button>
               </div>
-              <form onSubmit={handleUpdateProfile} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleUpdateProfile} className="flex flex-col gap-6">
+                
+                {/* Row 1: Core Info */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gold uppercase">Full Name</label>
-                    <input type="text" value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl px-4 py-3 text-soft-white focus:border-gold/50" />
+                    <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('fullName')}</label>
+                    <div className="relative">
+                        <UserCircle className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
+                        <input type="text" value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" placeholder="John Doe" />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gold uppercase">Job Title</label>
-                    <input type="text" value={formData.job_title} onChange={(e) => setFormData({...formData, job_title: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl px-4 py-3 text-soft-white focus:border-gold/50" />
+                    <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('jobTitle')}</label>
+                    <div className="relative">
+                        <Briefcase className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
+                        <input type="text" value={formData.job_title} onChange={(e) => setFormData({...formData, job_title: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" placeholder="Real Estate Agent" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('locationLabel')}</label>
+                    <div className="relative">
+                        <MapPin className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
+                        <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" placeholder="City, Country" />
+                    </div>
+                  </div>
+                 </div>
+
+                {/* Row 2: Metadata */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('specializationsLabel')} (comma separated)</label>
+                    <div className="relative">
+                        <Trophy className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
+                        <input 
+                          type="text" 
+                          value={Array.isArray(formData.specialization) ? formData.specialization.join(', ') : formData.specialization} 
+                          onChange={(e) => setFormData({...formData, specialization: e.target.value.split(',').map(s => s.trim())})} 
+                          className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" 
+                          placeholder="Luxury, Waterfront, Investments" 
+                        />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('achievementsLabel')} (comma separated)</label>
+                     <div className="relative">
+                        <Shield className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
+                        <input 
+                          type="text" 
+                          value={Array.isArray(formData.achievements) ? formData.achievements.join(', ') : formData.achievements} 
+                          onChange={(e) => setFormData({...formData, achievements: e.target.value.split(',').map(s => s.trim())})} 
+                          className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" 
+                          placeholder="Top Seller 2025, 50+ Deals Closed" 
+                        />
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gold uppercase">Biography</label>
-                  <textarea rows={4} value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl px-4 py-3 text-soft-white resize-none" />
+
+                {/* Row 3: Bio */}
+                <div className="space-y-2 flex-1">
+                  <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('professionalSummary')}</label>
+                  <textarea rows={3} value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl px-4 py-3 text-soft-white resize-none focus:border-gold/50 outline-none transition-colors h-24" placeholder="Tell us about yourself..." />
                 </div>
-                <div className="flex justify-end gap-4 pt-4">
-                  <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)} className="text-soft-muted">Cancel</Button>
-                  <Button type="submit" disabled={isSaving} className="bg-gold hover:bg-gold-muted text-navy-deep font-bold px-8 rounded-xl shadow-lg">
-                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : t('saveChanges')}
+
+                <div className="flex justify-end gap-4 pt-4 border-t border-soft-subtle/10 mt-auto">
+                  <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)} className="text-soft-muted hover:text-white hover:bg-white/5">{t('cancel')}</Button>
+                  <Button type="submit" disabled={isSaving} className="bg-gold hover:bg-gold-muted text-navy-deep font-bold px-8 rounded-xl shadow-lg transition-transform active:scale-95">
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                    {isSaving ? 'Saving...' : t('saveChanges')}
                   </Button>
                 </div>
               </form>
