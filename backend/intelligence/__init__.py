@@ -7,7 +7,7 @@ Central entry point for Intelligence system
 __version__ = "1.0"
 
 # Type definitions
-from .types import (
+from .intelligence_types import (
     # Enums
     Recommendation,
     DomainKey,

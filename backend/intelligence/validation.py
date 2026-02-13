@@ -4,7 +4,7 @@ Validate all dataclasses against their invariants
 """
 
 from typing import Tuple
-from .types import (
+from .intelligence_types import (
     QueryPlan, GovernorDecision, SynthesizerOutput,
     IntelligenceAuditEntry, NotebookLMRetrievalLog,
     RiskLevel, Confidence, AuditStatus

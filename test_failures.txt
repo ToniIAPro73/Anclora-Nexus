@@ -1,0 +1,788 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.8, pytest-8.4.2, pluggy-1.6.0
+rootdir: C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\tests\test-code
+configfile: pytest.ini
+plugins: anyio-4.11.0, langsmith-0.6.8, asyncio-1.2.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 64 items
+
+sdd\features\intelligence\tests\test-code\test_governor.py ....F.F....F. [ 20%]
+FF...F..                                                                 [ 32%]
+sdd\features\intelligence\tests\test-code\test_orchestrator.py ........F [ 46%]
+.........                                                                [ 60%]
+sdd\features\intelligence\tests\test-code\test_skills.py FF.FFFF..FFF... [ 84%]
+....F.....                                                               [100%]
+
+================================== FAILURES ===================================
+_________________________ test_evaluate_empty_domains _________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000013FABB292D0>
+sample_query_plan = QueryPlan(query_plan_id='785b76d7-b55e-49c8-8e86-bf92014adddd', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:34:14.345002+00:00')
+
+    def test_evaluate_empty_domains(governor, sample_query_plan):
+        """Test handling of empty domains."""
+        sample_query_plan.domains_selected = []
+        decision, error = governor.evaluate(sample_query_plan)
+    
+>       assert error is None
+E       AssertionError: assert 'GovernorDecision validation failed: domains_used is required' is None
+
+sdd\features\intelligence\tests\test-code\test_governor.py:57: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:34:14.345002+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+---------------------------- Captured stderr call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.346700+00:00", "level": "INFO", "message": "Starting evaluation", "module": "governor", "funcName": "evaluate"}
+{"timestamp": "2026-02-13T20:34:14.346700+00:00", "level": "ERROR", "message": "Decision validation failed", "module": "governor", "funcName": "evaluate"}
+------------------------------ Captured log call ------------------------------
+INFO     intelligence.governor:governor.py:76 Starting evaluation
+ERROR    intelligence.governor:governor.py:136 Decision validation failed
+_________________________ test_hard_constraint_hc_005 _________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000013FABB232D0>
+sample_query_plan = QueryPlan(query_plan_id='3c053186-2eae-4f09-9039-3a19005f5734', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:34:14.359350+00:00')
+
+    def test_hard_constraint_hc_005(governor, sample_query_plan):
+        """TC-GOV-04: Transition domain triggers hc_005 (no emotional labor)."""
+        sample_query_plan.domains_selected = [DomainKey.TRANSITION.value]
+        decision, error = governor.evaluate(sample_query_plan)
+    
+>       assert "hc_005" in decision.flags[0] or any("hc_005" in f for f in decision.flags)
+E       AssertionError: assert ('hc_005' in 'hitl_required=true' or False)
+E        +  where False = any(<generator object test_hard_constraint_hc_005.<locals>.<genexpr> at 0x0000013FABB54040>)
+
+sdd\features\intelligence\tests\test-code\test_governor.py:75: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:34:14.358316+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+---------------------------- Captured stderr call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.361124+00:00", "level": "INFO", "message": "Starting evaluation", "module": "governor", "funcName": "evaluate"}
+{"timestamp": "2026-02-13T20:34:14.361426+00:00", "level": "INFO", "message": "Evaluation complete", "module": "governor", "funcName": "evaluate"}
+------------------------------ Captured log call ------------------------------
+INFO     intelligence.governor:governor.py:76 Starting evaluation
+INFO     intelligence.governor:governor.py:139 Evaluation complete
+___________________________ test_evaluate_exception ___________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000013FABB3BAD0>
+sample_query_plan = QueryPlan(query_plan_id='12fc401d-b591-48e0-99fe-8f94a40531e5', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:34:14.380545+00:00')
+
+    def test_evaluate_exception(governor, sample_query_plan):
+        """Test governor handles internal exceptions gracefully."""
+        # Force an exception by passing None
+>       decision, error = governor.evaluate(None)
+                          ^^^^^^^^^^^^^^^^^^^^^^^
+
+sdd\features\intelligence\tests\test-code\test_governor.py:120: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.intelligence.components.governor.Governor object at 0x0000013FABB3BAD0>
+query_plan = None
+
+    def evaluate(self, query_plan: QueryPlan) -> Tuple[Optional[GovernorDecision], Optional[str]]:
+        """
+        Evaluate QueryPlan and generate GovernorDecision.
+    
+        Logic:
+        1. Analyze intent from domains
+        2. Assess under principle reactor
+        3. Evaluate risks (4 dimensions)
+        4. Check hard constraints
+        5. Generate recommendation
+        6. Create next_steps (exactly 3)
+        7. Create dont_do (2-5)
+        8. Validate and return
+    
+        Args:
+            query_plan (QueryPlan): The plan to evaluate.
+    
+        Returns:
+            Tuple[Optional[GovernorDecision], Optional[str]]: The decision and an error message if any.
+        """
+    
+        correlation_id = getattr(query_plan, "correlation_id", "unknown")
+>       logger.info("Starting evaluation", extra={"correlation_id": correlation_id, "mode": query_plan.mode})
+                                                                                            ^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'mode'
+
+backend\intelligence\components\governor.py:76: AttributeError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:34:14.379322+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+______________________ test_recommendation_reframe_only _______________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000013FABB94210>
+sample_query_plan = QueryPlan(query_plan_id='629624d0-1a7b-465d-b871-50992fb0c0d8', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:34:14.395138+00:00')
+
+    def test_recommendation_reframe_only(governor, sample_query_plan):
+        """Test REFRAME when only principle alignment fails."""
+        # Tax domain with deep mode (aligned) vs fast (not aligned)
+        # But tax domain also sets High risk tax.
+        # Fixed case: suppose a domain that isn't high risk but we force alignment fail.
+        # Governor code says: only TAX and TRANSITION trigger alignment fail if FAST.
+        # Let's mock _assess_risks to return LOW risks for everything.
+    
+        governor._assess_risks = lambda q, d: RiskProfile(
+            labor=RiskItem(level=RiskLevel.LOW, rationale=""),
+            tax=RiskItem(level=RiskLevel.LOW, rationale=""),
+            brand=RiskItem(level=RiskLevel.LOW, rationale=""),
+            focus=RiskItem(level=RiskLevel.LOW, rationale="")
+        )
+        governor._check_hard_constraints = lambda q: []
+    
+        sample_query_plan.domains_selected = [DomainKey.TRANSITION.value]
+        sample_query_plan.mode = QueryMode.FAST
+        # Align fail -> REFRAME
+        decision, error = governor.evaluate(sample_query_plan)
+>       assert decision.recommendation == Recommendation.REFRAME
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'recommendation'
+
+sdd\features\intelligence\tests\test-code\test_governor.py:160: AttributeError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:34:14.395138+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+---------------------------- Captured stderr call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.395138+00:00", "level": "INFO", "message": "Starting evaluation", "module": "governor", "funcName": "evaluate"}
+{"timestamp": "2026-02-13T20:34:14.396690+00:00", "level": "ERROR", "message": "Governor error during evaluation", "module": "governor", "funcName": "evaluate", "exception": "Traceback (most recent call last):\n  File \"C:\\Users\\Usuario\\Workspace\\01_Proyectos\\anclora-nexus\\backend\\intelligence\\components\\governor.py\", line 86, in evaluate\n    risks = self._assess_risks(query_plan, primary_domain or \"unknown\")\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Usuario\\Workspace\\01_Proyectos\\anclora-nexus\\sdd\\features\\intelligence\\tests\\test-code\\test_governor.py\", line 148, in <lambda>\n    governor._assess_risks = lambda q, d: RiskProfile(\n                                          ^^^^^^^^^^^\nNameError: name 'RiskProfile' is not defined"}
+------------------------------ Captured log call ------------------------------
+INFO     intelligence.governor:governor.py:76 Starting evaluation
+ERROR    intelligence.governor:governor.py:143 Governor error during evaluation
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\components\governor.py", line 86, in evaluate
+    risks = self._assess_risks(query_plan, primary_domain or "unknown")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\tests\test-code\test_governor.py", line 148, in <lambda>
+    governor._assess_risks = lambda q, d: RiskProfile(
+                                          ^^^^^^^^^^^
+NameError: name 'RiskProfile' is not defined
+_______________________ test_generate_diagnosis_market ________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000013FABB2B550>
+
+    def test_generate_diagnosis_market(governor):
+>       risks = RiskProfile(
+                ^^^^^^^^^^^
+            labor=RiskItem(level=RiskLevel.LOW, rationale=""),
+            tax=RiskItem(level=RiskLevel.LOW, rationale=""),
+            brand=RiskItem(level=RiskLevel.LOW, rationale=""),
+            focus=RiskItem(level=RiskLevel.LOW, rationale="")
+        )
+E       NameError: name 'RiskProfile' is not defined
+
+sdd\features\intelligence\tests\test-code\test_governor.py:165: NameError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:34:14.413681+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+________________________ test_generate_flags_multiple _________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000013FABB39850>
+sample_query_plan = QueryPlan(query_plan_id='23751027-caa5-48b6-8c2f-36b39955afc2', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:34:14.427826+00:00')
+
+    def test_generate_flags_multiple(governor, sample_query_plan):
+>       risks = RiskProfile(
+                ^^^^^^^^^^^
+            labor=RiskItem(level=RiskLevel.HIGH, rationale=""),
+            tax=RiskItem(level=RiskLevel.HIGH, rationale=""),
+            brand=RiskItem(level=RiskLevel.LOW, rationale=""),
+            focus=RiskItem(level=RiskLevel.HIGH, rationale="")
+        )
+E       NameError: name 'RiskProfile' is not defined
+
+sdd\features\intelligence\tests\test-code\test_governor.py:188: NameError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:34:14.426814+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+________________________ test_critical_panic_recovery _________________________
+
+orchestrator = <backend.intelligence.orchestrator.orchestrator.Orchestrator object at 0x0000013FABBE1990>
+
+    @pytest.mark.asyncio
+    async def test_critical_panic_recovery(orchestrator):
+        """Test unexpected exception in the pipeline."""
+        orchestrator.router.route_query = MagicMock(side_effect=RuntimeError("Unexpected!"))
+    
+        with patch("backend.intelligence.orchestrator.orchestrator.get_db_service"):
+            result, error = orchestrator.process_query("Panic query")
+    
+            assert "critical failure" in error
+>           assert result["processing_status"] == "orchestrator_panic"
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: tuple indices must be integers or slices, not str
+
+sdd\features\intelligence\tests\test-code\test_orchestrator.py:156: TypeError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:34:14.513349+00:00", "level": "INFO", "message": "Router initialized", "module": "router", "funcName": "__init__"}
+{"timestamp": "2026-02-13T20:34:14.513349+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+{"timestamp": "2026-02-13T20:34:14.513349+00:00", "level": "INFO", "message": "Synthesizer initialized", "module": "synthesizer", "funcName": "__init__"}
+{"timestamp": "2026-02-13T20:34:14.513349+00:00", "level": "INFO", "message": "Orchestrator initialized", "module": "orchestrator", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.router:router.py:54 Router initialized
+INFO     intelligence.governor:governor.py:52 Governor initialized
+INFO     intelligence.synthesizer:synthesizer.py:58 Synthesizer initialized
+INFO     intelligence.orchestrator:orchestrator.py:42 Orchestrator initialized
+---------------------------- Captured stderr call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.516305+00:00", "level": "INFO", "message": "Processing new query", "module": "orchestrator", "funcName": "process_query"}
+{"timestamp": "2026-02-13T20:34:14.518066+00:00", "level": "ERROR", "message": "Critical error in pipeline", "module": "orchestrator", "funcName": "process_query", "exception": "Traceback (most recent call last):\n  File \"C:\\Users\\Usuario\\Workspace\\01_Proyectos\\anclora-nexus\\backend\\intelligence\\orchestrator\\orchestrator.py\", line 78, in process_query\n    query_plan, router_error = self.router.route_query(message)\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\unittest\\mock.py\", line 1124, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\unittest\\mock.py\", line 1128, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\unittest\\mock.py\", line 1183, in _execute_mock_call\n    raise effect\nRuntimeError: Unexpected!"}
+{"timestamp": "2026-02-13T20:34:14.520591+00:00", "level": "ERROR", "message": "Audit transaction error: not enough values to unpack (expected 2, got 0)", "module": "orchestrator", "funcName": "_save_audit_transaction"}
+------------------------------ Captured log call ------------------------------
+INFO     intelligence.orchestrator:orchestrator.py:61 Processing new query
+ERROR    intelligence.orchestrator:orchestrator.py:160 Critical error in pipeline
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\orchestrator\orchestrator.py", line 78, in process_query
+    query_plan, router_error = self.router.route_query(message)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py", line 1124, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py", line 1128, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py", line 1183, in _execute_mock_call
+    raise effect
+RuntimeError: Unexpected!
+ERROR    intelligence.orchestrator:orchestrator.py:213 Audit transaction error: not enough values to unpack (expected 2, got 0)
+_________________________ test_lead_intake_happy_path _________________________
+
+mock_llm_service = <MagicMock id='1372976375120'>
+mock_supabase_service = <MagicMock id='1372976655376'>
+
+    @pytest.mark.asyncio
+    async def test_lead_intake_happy_path(mock_llm_service, mock_supabase_service):
+        """TC-SKL-LI-01: Success with complete data."""
+        data = {
+            "name": "Juan Perez",
+            "email": "juan@example.com",
+            "phone": "+34600000000",
+            "property_interest": "Villa in Calvia",
+            "budget": "2M",
+            "org_id": "test-org"
+        }
+    
+>       result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+sdd\features\intelligence\tests\test-code\test_skills.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+sdd\features\intelligence\skills\lead_intake.py:118: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = LeadInput(name='Juan Perez', email='juan@example.com', phone='+34600000000', property_interest='Villa in Calvia', budget='2M', source='manual', org_id='test-org')
+include = None, exclude = None, by_alias = False, exclude_unset = False
+exclude_defaults = False, exclude_none = False, encoder = PydanticUndefined
+models_as_dict = PydanticUndefined
+
+    @typing_extensions.deprecated('The `json` method is deprecated; use `model_dump_json` instead.', category=None)
+    def json(  # noqa: D102
+        self,
+        *,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        encoder: Callable[[Any], Any] | None = PydanticUndefined,  # type: ignore[assignment]
+        models_as_dict: bool = PydanticUndefined,  # type: ignore[assignment]
+        **dumps_kwargs: Any,
+    ) -> str:
+        warnings.warn(
+            'The `json` method is deprecated; use `model_dump_json` instead.',
+            category=PydanticDeprecatedSince20,
+            stacklevel=2,
+        )
+        if encoder is not PydanticUndefined:
+            raise TypeError('The `encoder` argument is no longer supported; use field serializers instead.')
+        if models_as_dict is not PydanticUndefined:
+            raise TypeError('The `models_as_dict` argument is no longer supported; use a model serializer instead.')
+        if dumps_kwargs:
+>           raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E           TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: TypeError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.597282", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Juan Perez"}}
+{"timestamp": "2026-02-13T20:34:14.605386", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+_______________________ test_lead_intake_high_priority ________________________
+
+mock_llm_service = <MagicMock id='1372975148752'>
+mock_supabase_service = <MagicMock id='1372976060880'>
+
+    @pytest.mark.asyncio
+    async def test_lead_intake_high_priority(mock_llm_service, mock_supabase_service):
+        """TC-SKL-LI-02: Priority assignment based on LLM output."""
+        mock_llm_service.analyze.return_value = json.dumps({
+            "summary": "High value lead",
+            "priority": 5,
+            "score": 0.95
+        })
+    
+        data = {"name": "Rich Client", "email": "rich@crypto.com", "budget": "10M"}
+>       result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+sdd\features\intelligence\tests\test-code\test_skills.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+sdd\features\intelligence\skills\lead_intake.py:118: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = LeadInput(name='Rich Client', email='rich@crypto.com', phone=None, property_interest=None, budget='10M', source='manual', org_id=None)
+include = None, exclude = None, by_alias = False, exclude_unset = False
+exclude_defaults = False, exclude_none = False, encoder = PydanticUndefined
+models_as_dict = PydanticUndefined
+
+    @typing_extensions.deprecated('The `json` method is deprecated; use `model_dump_json` instead.', category=None)
+    def json(  # noqa: D102
+        self,
+        *,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        encoder: Callable[[Any], Any] | None = PydanticUndefined,  # type: ignore[assignment]
+        models_as_dict: bool = PydanticUndefined,  # type: ignore[assignment]
+        **dumps_kwargs: Any,
+    ) -> str:
+        warnings.warn(
+            'The `json` method is deprecated; use `model_dump_json` instead.',
+            category=PydanticDeprecatedSince20,
+            stacklevel=2,
+        )
+        if encoder is not PydanticUndefined:
+            raise TypeError('The `encoder` argument is no longer supported; use field serializers instead.')
+        if models_as_dict is not PydanticUndefined:
+            raise TypeError('The `models_as_dict` argument is no longer supported; use a model serializer instead.')
+        if dumps_kwargs:
+>           raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E           TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: TypeError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.810943", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Rich Client"}}
+{"timestamp": "2026-02-13T20:34:14.811644", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+_________________________ test_lead_intake_llm_retry __________________________
+
+mock_llm_service = <MagicMock id='1372977645008'>
+mock_supabase_service = <MagicMock id='1372977449360'>
+
+    @pytest.mark.asyncio
+    async def test_lead_intake_llm_retry(mock_llm_service, mock_supabase_service):
+        """Test LLM retry logic on temporary failure."""
+        mock_llm_service.analyze.side_effect = [Exception("Timeout"), '{"summary": "ok", "priority": 1, "score": 0.1}']
+    
+        data = {"name": "Retry User", "email": "retry@test.com"}
+>       result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+sdd\features\intelligence\tests\test-code\test_skills.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+sdd\features\intelligence\skills\lead_intake.py:118: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = LeadInput(name='Retry User', email='retry@test.com', phone=None, property_interest=None, budget=None, source='manual', org_id=None)
+include = None, exclude = None, by_alias = False, exclude_unset = False
+exclude_defaults = False, exclude_none = False, encoder = PydanticUndefined
+models_as_dict = PydanticUndefined
+
+    @typing_extensions.deprecated('The `json` method is deprecated; use `model_dump_json` instead.', category=None)
+    def json(  # noqa: D102
+        self,
+        *,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        encoder: Callable[[Any], Any] | None = PydanticUndefined,  # type: ignore[assignment]
+        models_as_dict: bool = PydanticUndefined,  # type: ignore[assignment]
+        **dumps_kwargs: Any,
+    ) -> str:
+        warnings.warn(
+            'The `json` method is deprecated; use `model_dump_json` instead.',
+            category=PydanticDeprecatedSince20,
+            stacklevel=2,
+        )
+        if encoder is not PydanticUndefined:
+            raise TypeError('The `encoder` argument is no longer supported; use field serializers instead.')
+        if models_as_dict is not PydanticUndefined:
+            raise TypeError('The `models_as_dict` argument is no longer supported; use a model serializer instead.')
+        if dumps_kwargs:
+>           raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E           TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: TypeError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.872528", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Retry User"}}
+{"timestamp": "2026-02-13T20:34:14.872528", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+____________________ test_lead_intake_llm_parsing_fallback ____________________
+
+mock_llm_service = <MagicMock id='1372978049104'>
+mock_supabase_service = <MagicMock id='1372977583632'>
+
+    @pytest.mark.asyncio
+    async def test_lead_intake_llm_parsing_fallback(mock_llm_service, mock_supabase_service):
+        """TC-SKL-LI-05: Handle malformed JSON from LLM gracefully."""
+        mock_llm_service.analyze.return_value = "This is not JSON"
+    
+        data = {"name": "Parsing Fail", "email": "fail@test.com"}
+>       result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+sdd\features\intelligence\tests\test-code\test_skills.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+sdd\features\intelligence\skills\lead_intake.py:118: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = LeadInput(name='Parsing Fail', email='fail@test.com', phone=None, property_interest=None, budget=None, source='manual', org_id=None)
+include = None, exclude = None, by_alias = False, exclude_unset = False
+exclude_defaults = False, exclude_none = False, encoder = PydanticUndefined
+models_as_dict = PydanticUndefined
+
+    @typing_extensions.deprecated('The `json` method is deprecated; use `model_dump_json` instead.', category=None)
+    def json(  # noqa: D102
+        self,
+        *,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        encoder: Callable[[Any], Any] | None = PydanticUndefined,  # type: ignore[assignment]
+        models_as_dict: bool = PydanticUndefined,  # type: ignore[assignment]
+        **dumps_kwargs: Any,
+    ) -> str:
+        warnings.warn(
+            'The `json` method is deprecated; use `model_dump_json` instead.',
+            category=PydanticDeprecatedSince20,
+            stacklevel=2,
+        )
+        if encoder is not PydanticUndefined:
+            raise TypeError('The `encoder` argument is no longer supported; use field serializers instead.')
+        if models_as_dict is not PydanticUndefined:
+            raise TypeError('The `models_as_dict` argument is no longer supported; use a model serializer instead.')
+        if dumps_kwargs:
+>           raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E           TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: TypeError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.916239", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Parsing Fail"}}
+{"timestamp": "2026-02-13T20:34:14.916819", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+__________________ test_lead_intake_copy_generation_fallback __________________
+
+mock_llm_service = <MagicMock id='1372978455696'>
+mock_supabase_service = <MagicMock id='1372977730064'>
+
+    @pytest.mark.asyncio
+    async def test_lead_intake_copy_generation_fallback(mock_llm_service, mock_supabase_service):
+        """Test copy generation fallback when LLM fails all retries."""
+        mock_llm_service.generate_copy.side_effect = Exception("Anthropic Down")
+    
+        data = {"name": "Copy Fail", "email": "copy@test.com"}
+>       result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+sdd\features\intelligence\tests\test-code\test_skills.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+sdd\features\intelligence\skills\lead_intake.py:118: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = LeadInput(name='Copy Fail', email='copy@test.com', phone=None, property_interest=None, budget=None, source='manual', org_id=None)
+include = None, exclude = None, by_alias = False, exclude_unset = False
+exclude_defaults = False, exclude_none = False, encoder = PydanticUndefined
+models_as_dict = PydanticUndefined
+
+    @typing_extensions.deprecated('The `json` method is deprecated; use `model_dump_json` instead.', category=None)
+    def json(  # noqa: D102
+        self,
+        *,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        encoder: Callable[[Any], Any] | None = PydanticUndefined,  # type: ignore[assignment]
+        models_as_dict: bool = PydanticUndefined,  # type: ignore[assignment]
+        **dumps_kwargs: Any,
+    ) -> str:
+        warnings.warn(
+            'The `json` method is deprecated; use `model_dump_json` instead.',
+            category=PydanticDeprecatedSince20,
+            stacklevel=2,
+        )
+        if encoder is not PydanticUndefined:
+            raise TypeError('The `encoder` argument is no longer supported; use field serializers instead.')
+        if models_as_dict is not PydanticUndefined:
+            raise TypeError('The `models_as_dict` argument is no longer supported; use a model serializer instead.')
+        if dumps_kwargs:
+>           raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E           TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: TypeError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:14.967743", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Copy Fail"}}
+{"timestamp": "2026-02-13T20:34:14.968780", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+_____________________ test_lead_intake_audit_log_payload ______________________
+
+mock_llm_service = <MagicMock id='1372978707152'>
+mock_supabase_service = <MagicMock id='1372978279376'>
+
+    @pytest.mark.asyncio
+    async def test_lead_intake_audit_log_payload(mock_llm_service, mock_supabase_service):
+        """TC-SKL-LI-07: Verify logging happens (via prints in this impl)."""
+        # Simply check it runs without crashing when logging
+        data = {"name": "Log Test", "email": "log@test.com"}
+>       await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+
+sdd\features\intelligence\tests\test-code\test_skills.py:92: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+sdd\features\intelligence\skills\lead_intake.py:118: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = LeadInput(name='Log Test', email='log@test.com', phone=None, property_interest=None, budget=None, source='manual', org_id=None)
+include = None, exclude = None, by_alias = False, exclude_unset = False
+exclude_defaults = False, exclude_none = False, encoder = PydanticUndefined
+models_as_dict = PydanticUndefined
+
+    @typing_extensions.deprecated('The `json` method is deprecated; use `model_dump_json` instead.', category=None)
+    def json(  # noqa: D102
+        self,
+        *,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        encoder: Callable[[Any], Any] | None = PydanticUndefined,  # type: ignore[assignment]
+        models_as_dict: bool = PydanticUndefined,  # type: ignore[assignment]
+        **dumps_kwargs: Any,
+    ) -> str:
+        warnings.warn(
+            'The `json` method is deprecated; use `model_dump_json` instead.',
+            category=PydanticDeprecatedSince20,
+            stacklevel=2,
+        )
+        if encoder is not PydanticUndefined:
+            raise TypeError('The `encoder` argument is no longer supported; use field serializers instead.')
+        if models_as_dict is not PydanticUndefined:
+            raise TypeError('The `models_as_dict` argument is no longer supported; use a model serializer instead.')
+        if dumps_kwargs:
+>           raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E           TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: TypeError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:15.011574", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Log Test"}}
+{"timestamp": "2026-02-13T20:34:15.012103", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+__________________________ test_prospection_no_leads __________________________
+
+mock_llm_service = <MagicMock id='1372978497616'>
+mock_supabase_service = <MagicMock id='1372978614480'>
+
+    @pytest.mark.asyncio
+    async def test_prospection_no_leads(mock_llm_service, mock_supabase_service):
+        """TC-SKL-PW-08: Handle no active leads."""
+        mock_supabase_service.get_active_leads.return_value = []
+    
+        result = await run_prospection_weekly({}, mock_llm_service, mock_supabase_service)
+        assert result["status"] == "skipped"
+>       assert "no_leads" in result["reason"].lower()
+E       AssertionError: assert 'no_leads' in 'no active leads found with required priority.'
+E        +  where 'no active leads found with required priority.' = <built-in method lower of str object at 0x0000013FABAD3930>()
+E        +    where <built-in method lower of str object at 0x0000013FABAD3930> = 'No active leads found with required priority.'.lower
+
+sdd\features\intelligence\tests\test-code\test_skills.py:125: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:15.081086", "level": "INFO", "event_type": "skill_started", "skill": "prospection_weekly", "version": "1.0.0", "details": {"data": {}}}
+{"timestamp": "2026-02-13T20:34:15.081692", "level": "INFO", "event_type": "prospection_skipped", "skill": "prospection_weekly", "version": "1.0.0", "details": {"reason": "no_leads"}}
+_______________________ test_prospection_no_properties ________________________
+
+mock_llm_service = <MagicMock id='1372978610128'>
+mock_supabase_service = <MagicMock id='1372978652688'>
+
+    @pytest.mark.asyncio
+    async def test_prospection_no_properties(mock_llm_service, mock_supabase_service):
+        """TC-SKL-PW-08: Handle no properties."""
+        mock_supabase_service.get_available_properties.return_value = []
+    
+        result = await run_prospection_weekly({}, mock_llm_service, mock_supabase_service)
+        assert result["status"] == "skipped"
+>       assert "no_properties" in result["reason"].lower()
+E       AssertionError: assert 'no_properties' in 'no available properties found for matching.'
+E        +  where 'no available properties found for matching.' = <built-in method lower of str object at 0x0000013FABAD35D0>()
+E        +    where <built-in method lower of str object at 0x0000013FABAD35D0> = 'No available properties found for matching.'.lower
+
+sdd\features\intelligence\tests\test-code\test_skills.py:134: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:15.102774", "level": "INFO", "event_type": "skill_started", "skill": "prospection_weekly", "version": "1.0.0", "details": {"data": {}}}
+{"timestamp": "2026-02-13T20:34:15.103164", "level": "INFO", "event_type": "prospection_skipped", "skill": "prospection_weekly", "version": "1.0.0", "details": {"reason": "no_properties"}}
+____________________ test_prospection_llm_timeout_fallback ____________________
+
+mock_llm_service = <MagicMock id='1372977859344'>
+mock_supabase_service = <MagicMock id='1372978529744'>
+
+    @pytest.mark.asyncio
+    async def test_prospection_llm_timeout_fallback(mock_llm_service, mock_supabase_service):
+        """TC-SKL-PW-06: LLM timeout on matching."""
+        mock_llm_service.analyze.side_effect = Exception("LLM Timeout")
+    
+>       result = await run_prospection_weekly({}, mock_llm_service, mock_supabase_service)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+sdd\features\intelligence\tests\test-code\test_skills.py:141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+sdd\features\intelligence\skills\prospection_weekly.py:134: in run_prospection_weekly
+    matching_raw = await _call_llm_with_retry(llm.analyze, matching_prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sdd\features\intelligence\skills\prospection_weekly.py:69: in _call_llm_with_retry
+    raise last_error
+sdd\features\intelligence\skills\prospection_weekly.py:63: in _call_llm_with_retry
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:2237: in _execute_mock_call
+    raise effect
+sdd\features\intelligence\skills\prospection_weekly.py:63: in _call_llm_with_retry
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:2237: in _execute_mock_call
+    raise effect
+sdd\features\intelligence\skills\prospection_weekly.py:63: in _call_llm_with_retry
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <AsyncMock name='mock.analyze' id='1372975874320'>
+args = ('\n        Eres un experto inmobiliario de lujo en Mallorca.\n        Tu tarea es cruzar estos LEADS con estas PROPIE...1.0,\n              "reason": "breve explicaci�n de por qu� encaja"\n            }\n          ]\n        }\n        ',)
+kwargs = {}
+_call = call('\n        Eres un experto inmobiliario de lujo en Mallorca.\n        Tu tarea es cruzar estos LEADS con estas PR...-1.0,\n              "reason": "breve explicaci�n de por qu� encaja"\n            }\n          ]\n        }\n        ')
+effect = Exception('LLM Timeout')
+
+    async def _execute_mock_call(self, /, *args, **kwargs):
+        # This is nearly just like super(), except for special handling
+        # of coroutines
+    
+        _call = _Call((args, kwargs), two=True)
+        self.await_count += 1
+        self.await_args = _call
+        self.await_args_list.append(_call)
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               Exception: LLM Timeout
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:2237: Exception
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:15.128708", "level": "INFO", "event_type": "skill_started", "skill": "prospection_weekly", "version": "1.0.0", "details": {"data": {}}}
+{"timestamp": "2026-02-13T20:34:15.129225", "level": "WARNING", "event_type": "llm_retry", "skill": "prospection_weekly", "version": "1.0.0", "details": {"attempt": 1, "error": "LLM Timeout"}}
+{"timestamp": "2026-02-13T20:34:15.632670", "level": "WARNING", "event_type": "llm_retry", "skill": "prospection_weekly", "version": "1.0.0", "details": {"attempt": 2, "error": "LLM Timeout"}}
+{"timestamp": "2026-02-13T20:34:16.638847", "level": "WARNING", "event_type": "llm_retry", "skill": "prospection_weekly", "version": "1.0.0", "details": {"attempt": 3, "error": "LLM Timeout"}}
+{"timestamp": "2026-02-13T20:34:18.644471", "level": "CRITICAL", "event_type": "skill_failed", "skill": "prospection_weekly", "version": "1.0.0", "details": {"error": "LLM Timeout"}}
+___________________________ test_recap_llm_fallback ___________________________
+
+mock_llm_service = <MagicMock id='1372980557392'>
+mock_supabase_service = <MagicMock id='1372980537552'>
+
+    @pytest.mark.asyncio
+    async def test_recap_llm_fallback(mock_llm_service, mock_supabase_service):
+        """TC-SKL-RW-03: Use fallback luxury summary if LLM returns bad JSON."""
+        mock_llm_service.generate_copy.return_value = "Only text, not JSON"
+    
+        result = await run_recap_weekly({}, mock_llm_service, mock_supabase_service)
+        assert "Nexus" in result["luxury_summary"]
+>       assert "Normalidad" in result["luxury_summary"]
+E       AssertionError: assert 'Normalidad' in 'Resumen semanal de Anclora Nexus: Actividad estable en la zona suroeste. Los sistemas de prospecci�n y gesti�n de leads operan con normalidad.'
+
+sdd\features\intelligence\tests\test-code\test_skills.py:224: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:34:19.239654", "level": "INFO", "event_type": "skill_started", "skill": "recap_weekly", "version": "1.0.0", "details": {"data": {}}}
+{"timestamp": "2026-02-13T20:34:19.241175", "level": "DEBUG", "event_type": "data_collection_started", "skill": "recap_weekly", "version": "1.0.0", "details": {"days": 7}}
+{"timestamp": "2026-02-13T20:34:19.241754", "level": "WARNING", "event_type": "recap_parsing_failed", "skill": "recap_weekly", "version": "1.0.0", "details": {"error": "Expecting value: line 1 column 1 (char 0)"}}
+{"timestamp": "2026-02-13T20:34:19.241754", "level": "INFO", "event_type": "skill_completed", "skill": "recap_weekly", "version": "1.0.0", "details": {"new_leads": 0, "duration_ms": 2.1}}
+============================== warnings summary ===============================
+backend\intelligence\models.py:16
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\models.py:16: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474
+  C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474: PytestConfigWarning: Unknown config option: env
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+test_skills.py::test_lead_intake_happy_path
+test_skills.py::test_lead_intake_high_priority
+test_skills.py::test_lead_intake_llm_retry
+test_skills.py::test_lead_intake_llm_parsing_fallback
+test_skills.py::test_lead_intake_copy_generation_fallback
+test_skills.py::test_lead_intake_audit_log_payload
+test_skills.py::test_lead_intake_critical_failure
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\skills\lead_intake.py:118: PydanticDeprecatedSince20: The `json` method is deprecated; use `model_dump_json` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    {validated_input.json(ensure_ascii=False)}
+
+test_skills.py::test_prospection_happy_path
+test_skills.py::test_prospection_complex_matching
+test_skills.py::test_prospection_complex_matching
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\skills\prospection_weekly.py:155: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    {json.dumps([m.dict() for m in matchings], ensure_ascii=False)}
+
+test_skills.py::test_prospection_happy_path
+test_skills.py::test_prospection_matching_parsing_error
+test_skills.py::test_prospection_complex_matching
+test_skills.py::test_prospection_supabase_call
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\skills\prospection_weekly.py:177: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    return result.dict()
+
+test_skills.py::test_recap_happy_path
+test_skills.py::test_recap_empty_data
+test_skills.py::test_recap_db_failure_graceful
+test_skills.py::test_recap_llm_fallback
+test_skills.py::test_recap_high_priority_highlight
+test_skills.py::test_recap_execution_metric_calc
+test_skills.py::test_recap_duration_logging
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\skills\recap_weekly.py:185: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    return result.dict()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_evaluate_empty_domains
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_hard_constraint_hc_005
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_evaluate_exception
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_recommendation_reframe_only
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_generate_diagnosis_market
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_generate_flags_multiple
+FAILED sdd\features\intelligence\tests\test-code\test_orchestrator.py::test_critical_panic_recovery
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_happy_path
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_high_priority
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_llm_retry
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_llm_parsing_fallback
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_copy_generation_fallback
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_audit_log_payload
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_no_leads
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_no_properties
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_llm_timeout_fallback
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_llm_fallback
+================= 17 failed, 47 passed, 23 warnings in 17.61s =================

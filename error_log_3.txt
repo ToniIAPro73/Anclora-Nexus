@@ -1,0 +1,90 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.8, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\Usuario\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\tests\test-code
+configfile: pytest.ini
+plugins: anyio-4.11.0, langsmith-0.6.8, asyncio-1.2.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 25 items
+
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_happy_path PASSED [  4%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_high_priority PASSED [  8%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_invalid_email PASSED [ 12%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_llm_retry PASSED [ 16%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_llm_parsing_fallback PASSED [ 20%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_copy_generation_fallback FAILED [ 24%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_audit_log_payload PASSED [ 28%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_critical_failure PASSED [ 32%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_happy_path PASSED [ 36%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_no_leads PASSED [ 40%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_no_properties PASSED [ 44%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_llm_timeout_fallback PASSED [ 48%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_schema_validation PASSED [ 52%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_matching_parsing_error PASSED [ 56%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_complex_matching PASSED [ 60%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_supabase_call PASSED [ 64%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_happy_path PASSED [ 68%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_empty_data PASSED [ 72%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_db_failure_graceful PASSED [ 76%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_llm_fallback PASSED [ 80%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_high_priority_highlight PASSED [ 84%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_input_validation PASSED [ 88%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_execution_metric_calc PASSED [ 92%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_duration_logging PASSED [ 96%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_full_retry_failure PASSED [100%]
+
+================================== FAILURES ===================================
+__________________ test_lead_intake_copy_generation_fallback __________________
+sdd\features\intelligence\tests\test-code\test_skills.py:83: in test_lead_intake_copy_generation_fallback
+    result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sdd\features\intelligence\skills\lead_intake.py:154: in run_lead_intake
+    copy_raw = await _call_llm_with_retry(llm.generate_copy, copy_prompt)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sdd\features\intelligence\skills\lead_intake.py:79: in _call_llm_with_retry
+    raise last_error
+sdd\features\intelligence\skills\lead_intake.py:71: in _call_llm_with_retry
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:2237: in _execute_mock_call
+    raise effect
+sdd\features\intelligence\skills\lead_intake.py:71: in _call_llm_with_retry
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:2237: in _execute_mock_call
+    raise effect
+sdd\features\intelligence\skills\lead_intake.py:71: in _call_llm_with_retry
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:2237: in _execute_mock_call
+    raise effect
+E   Exception: Anthropic Down
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:57:06.617759", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Copy Fail"}}
+{"timestamp": "2026-02-13T20:57:06.618773", "level": "WARNING", "event_type": "llm_retry", "skill": "lead_intake", "version": "1.0.0", "details": {"attempt": 1, "error": "Anthropic Down", "wait_time": 0.5}}
+{"timestamp": "2026-02-13T20:57:07.125771", "level": "WARNING", "event_type": "llm_retry", "skill": "lead_intake", "version": "1.0.0", "details": {"attempt": 2, "error": "Anthropic Down", "wait_time": 1.0}}
+{"timestamp": "2026-02-13T20:57:08.134446", "level": "WARNING", "event_type": "llm_retry", "skill": "lead_intake", "version": "1.0.0", "details": {"attempt": 3, "error": "Anthropic Down", "wait_time": 2.0}}
+{"timestamp": "2026-02-13T20:57:10.142167", "level": "ERROR", "event_type": "llm_exhausted", "skill": "lead_intake", "version": "1.0.0", "details": {"attempts": 3, "final_error": "Anthropic Down"}}
+{"timestamp": "2026-02-13T20:57:10.142167", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "Anthropic Down"}}
+============================== warnings summary ===============================
+backend\intelligence\models.py:16
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\models.py:16: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474
+  C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474: PytestConfigWarning: Unknown config option: env
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+test_skills.py::test_lead_intake_happy_path
+test_skills.py::test_lead_intake_high_priority
+test_skills.py::test_lead_intake_llm_retry
+test_skills.py::test_lead_intake_llm_parsing_fallback
+test_skills.py::test_lead_intake_audit_log_payload
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\skills\lead_intake.py:199: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    return result.dict()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_copy_generation_fallback
+================== 1 failed, 24 passed, 7 warnings in 21.18s ==================

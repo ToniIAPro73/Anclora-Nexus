@@ -1,0 +1,215 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.8, pytest-8.4.2, pluggy-1.6.0
+rootdir: C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\tests\test-code
+configfile: pytest.ini
+plugins: anyio-4.11.0, langsmith-0.6.8, asyncio-1.2.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 21 items
+
+sdd\features\intelligence\tests\test-code\test_governor.py ....F.F....F. [ 61%]
+FF...F..                                                                 [100%]
+
+================================== FAILURES ===================================
+_________________________ test_evaluate_empty_domains _________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000028BD5251AD0>
+sample_query_plan = QueryPlan(query_plan_id='4e8b4fb1-43ac-4569-8519-e67d50d4e34b', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:38:10.603151+00:00')
+
+    def test_evaluate_empty_domains(governor, sample_query_plan):
+        """Test handling of empty domains."""
+        sample_query_plan.domains_selected = []
+        decision, error = governor.evaluate(sample_query_plan)
+    
+>       assert error is None
+E       AssertionError: assert 'GovernorDecision validation failed: domains_used is required' is None
+
+sdd\features\intelligence\tests\test-code\test_governor.py:57: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:38:10.603151+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+---------------------------- Captured stderr call -----------------------------
+{"timestamp": "2026-02-13T20:38:10.603151+00:00", "level": "INFO", "message": "Starting evaluation", "module": "governor", "funcName": "evaluate"}
+{"timestamp": "2026-02-13T20:38:10.603151+00:00", "level": "ERROR", "message": "Decision validation failed", "module": "governor", "funcName": "evaluate"}
+------------------------------ Captured log call ------------------------------
+INFO     intelligence.governor:governor.py:76 Starting evaluation
+ERROR    intelligence.governor:governor.py:136 Decision validation failed
+_________________________ test_hard_constraint_hc_005 _________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000028BD5213850>
+sample_query_plan = QueryPlan(query_plan_id='acbff134-0947-46f0-aaba-93adcafba4cd', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:38:10.804694+00:00')
+
+    def test_hard_constraint_hc_005(governor, sample_query_plan):
+        """TC-GOV-04: Transition domain triggers hc_005 (no emotional labor)."""
+        sample_query_plan.domains_selected = [DomainKey.TRANSITION.value]
+        decision, error = governor.evaluate(sample_query_plan)
+    
+>       assert "hc_005" in decision.flags[0] or any("hc_005" in f for f in decision.flags)
+E       AssertionError: assert ('hc_005' in 'hitl_required=true' or False)
+E        +  where False = any(<generator object test_hard_constraint_hc_005.<locals>.<genexpr> at 0x0000028BD52C8BA0>)
+
+sdd\features\intelligence\tests\test-code\test_governor.py:75: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:38:10.804694+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+---------------------------- Captured stderr call -----------------------------
+{"timestamp": "2026-02-13T20:38:10.805857+00:00", "level": "INFO", "message": "Starting evaluation", "module": "governor", "funcName": "evaluate"}
+{"timestamp": "2026-02-13T20:38:10.805857+00:00", "level": "INFO", "message": "Evaluation complete", "module": "governor", "funcName": "evaluate"}
+------------------------------ Captured log call ------------------------------
+INFO     intelligence.governor:governor.py:76 Starting evaluation
+INFO     intelligence.governor:governor.py:139 Evaluation complete
+___________________________ test_evaluate_exception ___________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000028BD52261D0>
+sample_query_plan = QueryPlan(query_plan_id='aae75e2e-d733-47a8-bf1f-0b294178d537', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:38:10.821367+00:00')
+
+    def test_evaluate_exception(governor, sample_query_plan):
+        """Test governor handles internal exceptions gracefully."""
+        # Force an exception by passing None
+>       decision, error = governor.evaluate(None)
+                          ^^^^^^^^^^^^^^^^^^^^^^^
+
+sdd\features\intelligence\tests\test-code\test_governor.py:120: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.intelligence.components.governor.Governor object at 0x0000028BD52261D0>
+query_plan = None
+
+    def evaluate(self, query_plan: QueryPlan) -> Tuple[Optional[GovernorDecision], Optional[str]]:
+        """
+        Evaluate QueryPlan and generate GovernorDecision.
+    
+        Logic:
+        1. Analyze intent from domains
+        2. Assess under principle reactor
+        3. Evaluate risks (4 dimensions)
+        4. Check hard constraints
+        5. Generate recommendation
+        6. Create next_steps (exactly 3)
+        7. Create dont_do (2-5)
+        8. Validate and return
+    
+        Args:
+            query_plan (QueryPlan): The plan to evaluate.
+    
+        Returns:
+            Tuple[Optional[GovernorDecision], Optional[str]]: The decision and an error message if any.
+        """
+    
+        correlation_id = getattr(query_plan, "correlation_id", "unknown")
+>       logger.info("Starting evaluation", extra={"correlation_id": correlation_id, "mode": query_plan.mode})
+                                                                                            ^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'mode'
+
+backend\intelligence\components\governor.py:76: AttributeError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:38:10.821367+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+______________________ test_recommendation_reframe_only _______________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000028BD5212590>
+sample_query_plan = QueryPlan(query_plan_id='653e0102-50a6-46e8-9efc-82d332695f01', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:38:10.836023+00:00')
+
+    def test_recommendation_reframe_only(governor, sample_query_plan):
+        """Test REFRAME when only principle alignment fails."""
+        # Tax domain with deep mode (aligned) vs fast (not aligned)
+        # But tax domain also sets High risk tax.
+        # Fixed case: suppose a domain that isn't high risk but we force alignment fail.
+        # Governor code says: only TAX and TRANSITION trigger alignment fail if FAST.
+        # Let's mock _assess_risks to return LOW risks for everything.
+    
+        governor._assess_risks = lambda q, d: RiskProfile(
+            labor=RiskItem(level=RiskLevel.LOW, rationale=""),
+            tax=RiskItem(level=RiskLevel.LOW, rationale=""),
+            brand=RiskItem(level=RiskLevel.LOW, rationale=""),
+            focus=RiskItem(level=RiskLevel.LOW, rationale="")
+        )
+        governor._check_hard_constraints = lambda q: []
+    
+        sample_query_plan.domains_selected = [DomainKey.TRANSITION.value]
+        sample_query_plan.mode = QueryMode.FAST
+        # Align fail -> REFRAME
+        decision, error = governor.evaluate(sample_query_plan)
+>       assert decision.recommendation == Recommendation.REFRAME
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'recommendation'
+
+sdd\features\intelligence\tests\test-code\test_governor.py:160: AttributeError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:38:10.836023+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+---------------------------- Captured stderr call -----------------------------
+{"timestamp": "2026-02-13T20:38:10.836685+00:00", "level": "INFO", "message": "Starting evaluation", "module": "governor", "funcName": "evaluate"}
+{"timestamp": "2026-02-13T20:38:10.836685+00:00", "level": "ERROR", "message": "Governor error during evaluation", "module": "governor", "funcName": "evaluate", "exception": "Traceback (most recent call last):\n  File \"C:\\Users\\Usuario\\Workspace\\01_Proyectos\\anclora-nexus\\backend\\intelligence\\components\\governor.py\", line 86, in evaluate\n    risks = self._assess_risks(query_plan, primary_domain or \"unknown\")\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Usuario\\Workspace\\01_Proyectos\\anclora-nexus\\sdd\\features\\intelligence\\tests\\test-code\\test_governor.py\", line 148, in <lambda>\n    governor._assess_risks = lambda q, d: RiskProfile(\n                                          ^^^^^^^^^^^\nNameError: name 'RiskProfile' is not defined"}
+------------------------------ Captured log call ------------------------------
+INFO     intelligence.governor:governor.py:76 Starting evaluation
+ERROR    intelligence.governor:governor.py:143 Governor error during evaluation
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\components\governor.py", line 86, in evaluate
+    risks = self._assess_risks(query_plan, primary_domain or "unknown")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\tests\test-code\test_governor.py", line 148, in <lambda>
+    governor._assess_risks = lambda q, d: RiskProfile(
+                                          ^^^^^^^^^^^
+NameError: name 'RiskProfile' is not defined
+_______________________ test_generate_diagnosis_market ________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000028BD532B510>
+
+    def test_generate_diagnosis_market(governor):
+>       risks = RiskProfile(
+                ^^^^^^^^^^^
+            labor=RiskItem(level=RiskLevel.LOW, rationale=""),
+            tax=RiskItem(level=RiskLevel.LOW, rationale=""),
+            brand=RiskItem(level=RiskLevel.LOW, rationale=""),
+            focus=RiskItem(level=RiskLevel.LOW, rationale="")
+        )
+E       NameError: name 'RiskProfile' is not defined
+
+sdd\features\intelligence\tests\test-code\test_governor.py:165: NameError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:38:10.855902+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+________________________ test_generate_flags_multiple _________________________
+
+governor = <backend.intelligence.components.governor.Governor object at 0x0000028BD5317E50>
+sample_query_plan = QueryPlan(query_plan_id='51786e6d-bac2-4e9f-b178-0a41ea7b3618', correlation_id=None, mode=<QueryMode.FAST: 'fast'>, do...rationale='Testing plan', confidence=<Confidence.HIGH: 'high'>, flags=[], timestamp='2026-02-13T20:38:10.866302+00:00')
+
+    def test_generate_flags_multiple(governor, sample_query_plan):
+>       risks = RiskProfile(
+                ^^^^^^^^^^^
+            labor=RiskItem(level=RiskLevel.HIGH, rationale=""),
+            tax=RiskItem(level=RiskLevel.HIGH, rationale=""),
+            brand=RiskItem(level=RiskLevel.LOW, rationale=""),
+            focus=RiskItem(level=RiskLevel.HIGH, rationale="")
+        )
+E       NameError: name 'RiskProfile' is not defined
+
+sdd\features\intelligence\tests\test-code\test_governor.py:188: NameError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:38:10.866302+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.governor:governor.py:52 Governor initialized
+============================== warnings summary ===============================
+backend\intelligence\models.py:16
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\models.py:16: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474
+  C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474: PytestConfigWarning: Unknown config option: env
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_evaluate_empty_domains
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_hard_constraint_hc_005
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_evaluate_exception
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_recommendation_reframe_only
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_generate_diagnosis_market
+FAILED sdd\features\intelligence\tests\test-code\test_governor.py::test_generate_flags_multiple
+================== 6 failed, 15 passed, 2 warnings in 0.30s ===================

@@ -16,6 +16,52 @@ import uuid
 Base = declarative_base()
 
 
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional, Dict, List, Any
+from .intelligence_types import Confidence, AuditStatus
+
+# ═══════════════════════════════════════════════════════════════
+# PYDANTIC SCHEMAS (Validation)
+# ═══════════════════════════════════════════════════════════════
+
+class AuditLogBase(BaseModel):
+    """Base schema for audit log entries."""
+    model_config = ConfigDict(from_attributes=True)
+    correlation_id: str
+    user_id: str
+    message: str
+    status: AuditStatus
+    confidence_overall: Confidence
+    strategic_mode_version: str
+
+class AuditLogCreate(AuditLogBase):
+    """Schema for creating a new audit log entry."""
+    query_plan_id: str
+    query_plan: Dict[str, Any]
+    governor_decision_id: str
+    governor_decision: Dict[str, Any]
+    synthesizer_output_id: str
+    synthesizer_output: Dict[str, Any]
+    execution_times: Dict[str, float]
+    error_message: Optional[str] = None
+    warnings: List[str] = Field(default_factory=list)
+    checksum: str
+    signature: Optional[str] = None
+    model_used: str = "claude-3.5-sonnet"
+
+class AuditLogRead(AuditLogBase):
+    """Schema for reading an audit log entry."""
+    id: str
+    message_length: int
+    created_at: datetime
+    stored_at: datetime
+    total_time_ms: Optional[float] = None
+    output_ai: bool
+
+# ═══════════════════════════════════════════════════════════════
+# SQLALCHEMY MODELS
+# ═══════════════════════════════════════════════════════════════
+
 class IntelligenceAuditLog(Base):
     """
     Audit log table for Intelligence operations.

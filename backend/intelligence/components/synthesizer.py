@@ -4,14 +4,44 @@ Generates SynthesizerOutput from GovernorDecision and QueryPlan
 """
 
 import uuid
+import time
+import random
 from datetime import datetime, timezone
-from typing import Tuple
-from ..types import (
+from typing import Tuple, Optional, List, Dict, Any, Callable
+from ..intelligence_types import (
     GovernorDecision, QueryPlan, SynthesizerOutput,
     Meta, MetaVersion, PlanView, Trace, EvidenceView, EvidenceStatus,
-    RiskSummary
+    RiskSummary, RiskLevel
 )
 from ..validation import validate_synthesizer_output
+from ..utils.logging import get_intelligence_logger
+
+# Initialize structured logger
+logger = get_intelligence_logger("synthesizer")
+
+
+def retry_with_backoff(retries: int = 3, backoff_in_seconds: float = 1.0) -> Callable:
+    """
+    Decorator for retry logic with exponential backoff.
+    """
+    def decorator(func: Callable) -> Callable:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            x = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if x == retries:
+                        logger.error(f"Failed after {retries} retries", extra={"error": str(e)})
+                        raise
+                    
+                    sleep_time = (backoff_in_seconds * (2 ** x) + 
+                                 random.uniform(0, 1))
+                    logger.warning(f"Retry {x+1}/{retries} after {sleep_time:.2f}s", extra={"error": str(e)})
+                    time.sleep(sleep_time)
+                    x += 1
+        return wrapper
+    return decorator
 
 
 class Synthesizer:
@@ -20,21 +50,22 @@ class Synthesizer:
     Formats response in 5 fixed blocks, includes metadata, evidence placeholder.
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Synthesizer."""
         self.schema_version = "1.0"
-        self.max_answer_length = 800  # words
-        self.max_excerpt_length = 200  # chars
+        self.strategic_mode_id = "validation-phase-v1"
+        self.domain_pack_id = "real-estate-mallorca@v0.1"
+        logger.info("Synthesizer initialized")
     
+    @retry_with_backoff(retries=3)
     def synthesize(
         self,
         query_plan: QueryPlan,
         governor_decision: GovernorDecision
-    ) -> Tuple[SynthesizerOutput, str]:
+    ) -> Tuple[Optional[SynthesizerOutput], Optional[str]]:
         """
         Synthesize SynthesizerOutput from decision and plan.
-        Returns: (SynthesizerOutput, error_message)
-        
+
         Logic:
         1. Format answer in 5 blocks (FIJO)
         2. Create meta (summary of decision + risks)
@@ -42,82 +73,90 @@ class Synthesizer:
         4. Create trace (for audit)
         5. Create evidence view (empty Phase 1)
         6. Validate and return
+
+        Args:
+            query_plan (QueryPlan): The query plan used.
+            governor_decision (GovernorDecision): The decision from the governor.
+
+        Returns:
+            Tuple[Optional[SynthesizerOutput], Optional[str]]: The synthesized output and error message.
         """
         
+        correlation_id = getattr(query_plan, "correlation_id", "unknown")
+        logger.info("Starting synthesis", extra={"correlation_id": correlation_id})
+        
         try:
-            # Step 1: Format answer in 5 fixed blocks
+            # Step 1: Format answer in 5 FIXED blocks
             answer = self._format_answer_5_blocks(governor_decision, query_plan)
             
-            # Step 2: Create RiskSummary
-            risk_summary = RiskSummary(
-                labor=governor_decision.risks.labor.level,
-                tax=governor_decision.risks.tax.level,
-                brand=governor_decision.risks.brand.level,
-                focus=governor_decision.risks.focus.level,
-            )
-            
-            # Step 3: Create MetaVersion
-            meta_version = MetaVersion(
-                schema_version=self.schema_version,
-                strategic_mode_id=governor_decision.strategic_mode_version,
-                domain_pack_id="real-estate-mallorca@v0.1"
-            )
-            
-            # Step 4: Create Meta
+            # Step 2: Create meta
             meta = Meta(
                 mode=query_plan.mode,
                 domain_hint=query_plan.domain_hint,
-                confidence=query_plan.confidence,
-                flags=query_plan.flags + governor_decision.flags,
+                confidence=governor_decision.confidence,
+                flags=governor_decision.flags,
                 recommendation=governor_decision.recommendation,
-                risk_summary=risk_summary,
-                version=meta_version
+                risk_summary=RiskSummary(
+                    labor=governor_decision.risks.labor.level,
+                    tax=governor_decision.risks.tax.level,
+                    brand=governor_decision.risks.brand.level,
+                    focus=governor_decision.risks.focus.level,
+                ),
+                version=MetaVersion(
+                    schema_version=self.schema_version,
+                    strategic_mode_id=self.strategic_mode_id,
+                    domain_pack_id=self.domain_pack_id
+                )
             )
             
-            # Step 5: Create PlanView
+            # Step 3: Create plan view
             plan_view = PlanView(
                 domains_selected=query_plan.domains_selected,
                 rationale=query_plan.rationale,
                 lab_policy={
-                    "status": query_plan.lab_policy.status.value,
-                    "rationale": query_plan.lab_policy.rationale
+                    "status": query_plan.lab_policy.status if query_plan.lab_policy else "unknown",
+                    "rationale": query_plan.lab_policy.rationale if query_plan.lab_policy else ""
                 }
             )
             
-            # Step 6: Create Trace
+            # Step 4: Create trace (ID creation for Audit)
             trace = Trace(
-                query_plan_id=str(uuid.uuid4()),
+                query_plan_id=str(uuid.uuid4()),  # Placeholder for real IDs if not passed
                 governor_decision_id=str(uuid.uuid4()),
                 created_at=datetime.now(timezone.utc).isoformat(),
                 output_ai=True
             )
             
-            # Step 7: Create EvidenceView (empty Phase 1)
-            evidence_view = EvidenceView(
+            # Step 5: Create evidence view (Empty for Phase 1)
+            evidence = EvidenceView(
                 status=EvidenceStatus.NOT_AVAILABLE,
                 items=[]
             )
             
-            # Step 8: Create SynthesizerOutput
+            # Step 6: Create SynthesizerOutput
             output = SynthesizerOutput(
                 answer=answer,
                 meta=meta,
                 plan=plan_view,
                 trace=trace,
-                evidence=evidence_view
+                evidence=evidence
             )
             
-            # Step 9: Validate
+            # Step 7: Validate
             is_valid, error = validate_synthesizer_output(output)
             
             if not is_valid:
+                logger.error("Synthesis validation failed", extra={"error": error, "correlation_id": correlation_id})
                 return None, f"SynthesizerOutput validation failed: {error}"
             
+            logger.info("Synthesis complete", extra={"correlation_id": correlation_id})
             return output, None
-        
+            
         except Exception as e:
-            return None, f"Synthesizer error: {str(e)}"
-    
+            logger.exception("Synthesizer error", extra={"correlation_id": correlation_id})
+            # Graceful degradation: return a generic but valid response if possible
+            return self._generate_fallback_output(query_plan, governor_decision, str(e))
+
     def _format_answer_5_blocks(
         self,
         decision: GovernorDecision,
@@ -126,103 +165,130 @@ class Synthesizer:
         """
         Format answer in 5 FIXED blocks.
         Order NEVER changes.
+
+        Args:
+            decision (GovernorDecision): The governor's decision.
+            query_plan (QueryPlan): The query plan.
+
+        Returns:
+            str: The formatted answer string.
         """
         
-        # Block 1: DIAGNÓSTICO
-        block1 = f"## DIAGNÓSTICO\n{decision.diagnosis}\n"
-        
-        # Block 2: RECOMENDACIÓN
         recommendation_text = self._recommendation_to_text(decision.recommendation)
-        block2 = (
-            f"\n## RECOMENDACIÓN\n"
-            f"**{recommendation_text}**\n"
-            f"{self._generate_recommendation_justification(decision)}\n"
-        )
+        justification = self._generate_recommendation_justification(decision)
         
-        # Block 3: RIESGOS ASOCIADOS
-        block3 = (
-            f"\n## RIESGOS ASOCIADOS\n"
-            f"- Labor: **{decision.risks.labor.level.value.upper()}** — "
-            f"{decision.risks.labor.rationale}\n"
-            f"- Tax: **{decision.risks.tax.level.value.upper()}** — "
-            f"{decision.risks.tax.rationale}\n"
-            f"- Brand: **{decision.risks.brand.level.value.upper()}** — "
-            f"{decision.risks.brand.rationale}\n"
-            f"- Focus: **{decision.risks.focus.level.value.upper()}** — "
-            f"{decision.risks.focus.rationale}\n"
-        )
+        blocks = [
+            "# DIAGNÓSTICO",
+            decision.diagnosis,
+            "",
+            "# RECOMENDACIÓN",
+            f"**{recommendation_text}**",
+            justification,
+            "",
+            "# RIESGOS",
+            self._format_risks(decision),
+            "",
+            "# PRÓXIMOS PASOS",
+            "\n".join([f"- {step}" for step in decision.next_steps]),
+            "",
+            "# QUÉ NO HACER",
+            "\n".join([f"- {item}" for item in decision.dont_do])
+        ]
         
-        # Block 4: PRÓXIMOS 3 PASOS
-        block4 = (
-            f"\n## PRÓXIMOS 3 PASOS\n"
-            f"1. {decision.next_steps[0]}\n"
-            f"2. {decision.next_steps[1]}\n"
-            f"3. {decision.next_steps[2]}\n"
-        )
-        
-        # Block 5: QUÉ NO HACER AHORA
-        dont_do_list = "\n".join([f"- {item}" for item in decision.dont_do])
-        block5 = (
-            f"\n## QUÉ NO HACER AHORA\n"
-            f"{dont_do_list}\n"
-        )
-        
-        # Metadata footer (minimal, no prominent)
-        footer = (
-            f"\n---\n"
-            f"**Análisis:** {', '.join(query_plan.domains_selected)} | "
-            f"**Confianza:** {query_plan.confidence.value} | "
-            f"**Modo:** {query_plan.mode.value}"
-        )
-        
-        # Combine all blocks (FIXED ORDER)
-        answer = block1 + block2 + block3 + block4 + block5 + footer
-        
-        return answer
-    
-    def _recommendation_to_text(self, recommendation) -> str:
+        return "\n".join(blocks)
+
+    def _recommendation_to_text(self, recommendation: str) -> str:
         """Convert recommendation enum to readable text."""
-        texts = {
-            "execute": "EJECUTAR",
-            "postpone": "POSTERGAR",
-            "reframe": "REFORMULAR",
-            "discard": "DESCARTAR",
+        mapping = {
+            "execute": "EJECUTAR ACCIÓN",
+            "postpone": "POSPONER / EN PAUSA",
+            "reframe": "REENCUADRAR ESTRATEGIA",
+            "discard": "DESCARTAR IDEA"
         }
-        return texts.get(recommendation.value, "EVALUAR")
-    
+        return mapping.get(recommendation, "ANALIZAR MÁS A FONDO")
+
     def _generate_recommendation_justification(self, decision: GovernorDecision) -> str:
         """Generate brief justification for recommendation."""
+        if decision.recommendation == "execute":
+            return "La situación está alineada con el principio rector y los riesgos son gestionables."
+        elif decision.recommendation == "postpone":
+            return "Existen riesgos críticos o falta de validación que aconsejan esperar."
+        elif decision.recommendation == "reframe":
+            return "La aproximación actual no optimiza la base del negocio; requiere ajuste estructural."
+        else:
+            return "La acción propuesta viola restricciones de seguridad fundamentales."
+
+    def _format_risks(self, decision: GovernorDecision) -> str:
+        """Format risks for the answer block."""
+        risk_lines = []
+        for dim in ["labor", "tax", "brand", "focus"]:
+            risk_item = getattr(decision.risks, dim)
+            risk_lines.append(f"- **{dim.capitalize()}**: {risk_item.level.value.upper()} — {risk_item.rationale}")
+        return "\n".join(risk_lines)
+
+    def _generate_fallback_output(
+        self, 
+        query_plan: QueryPlan, 
+        governor_decision: GovernorDecision, 
+        error_msg: str
+    ) -> Tuple[SynthesizerOutput, str]:
+        """
+        Generate a safe fallback output in case of error.
         
-        if decision.recommendation.value == "execute":
-            return "La acción está alineada con el principio rector y no presenta riesgos críticos."
+        Args:
+            query_plan (QueryPlan): The query plan.
+            governor_decision (GovernorDecision): The governor's decision.
+            error_msg (str): The error that occurred.
+            
+        Returns:
+            Tuple[SynthesizerOutput, str]: A synthesized output in a safer but degraded state.
+        """
+        logger.warning("Generating fallback output due to error", extra={"error": error_msg})
         
-        elif decision.recommendation.value == "postpone":
-            return (
-                "El momento no es óptimo. Requiere validación previa de factores críticos. "
-                "Seguir los próximos 3 pasos antes de reconsiderar."
-            )
+        # We try to at least provide the core information from the governor's decision
+        answer = (
+            "# DIAGNÓSTICO\nError en procesamiento detallado. Use con precaución.\n\n"
+            f"# RECOMENDACIÓN\n{governor_decision.recommendation.value.upper()}\n\n"
+            "# RIESGOS\nEvaluación parcial disponible.\n\n"
+            "# PRÓXIMOS PASOS\n- Validar manualmente con experto.\n\n"
+            "# QUÉ NO HACER\n- No tomar decisiones críticas basadas en este reporte parcial."
+        )
         
-        elif decision.recommendation.value == "reframe":
-            return (
-                "El enfoque requiere ajustes. Reformular la estrategia "
-                "para alinearse mejor con objetivos y restricciones."
-            )
+        fallback_output = SynthesizerOutput(
+            answer=answer,
+            meta=Meta(
+                mode=query_plan.mode,
+                domain_hint=query_plan.domain_hint,
+                confidence=Confidence.LOW,
+                flags=["degraded-output", "error-recovery"],
+                recommendation=governor_decision.recommendation,
+                risk_summary=RiskSummary(
+                    labor=governor_decision.risks.labor.level,
+                    tax=governor_decision.risks.tax.level,
+                    brand=governor_decision.risks.brand.level,
+                    focus=governor_decision.risks.focus.level,
+                ),
+                version=MetaVersion(
+                    schema_version=self.schema_version,
+                    strategic_mode_id=self.strategic_mode_id,
+                    domain_pack_id=self.domain_pack_id
+                )
+            ),
+            plan=PlanView(
+                domains_selected=query_plan.domains_selected,
+                rationale="Recovery mode rationale.",
+                lab_policy={"status": "denied", "rationale": "Error during synthesis"}
+            ),
+            trace=Trace(
+                query_plan_id="error",
+                governor_decision_id="error",
+                created_at=datetime.now(timezone.utc).isoformat(),
+                output_ai=True
+            ),
+            evidence=EvidenceView(status=EvidenceStatus.NOT_AVAILABLE, items=[])
+        )
         
-        else:  # discard
-            return (
-                "La acción no está alineada con el principio rector o viola restricciones. "
-                "Descartar y explorar alternativas."
-            )
-    
-    def _is_valid_answer(self, answer: str) -> bool:
-        """Validate that answer has all 5 blocks."""
-        required_blocks = ["DIAGNÓSTICO", "RECOMENDACIÓN", "RIESGOS", "PRÓXIMOS", "NO HACER"]
-        
-        for block in required_blocks:
-            if block not in answer.upper():
-                return False
-        
-        return True
+        return fallback_output, f"Synthesizer recovered from error: {error_msg}"
 
 
 # ═══════════════════════════════════════════════════════════════

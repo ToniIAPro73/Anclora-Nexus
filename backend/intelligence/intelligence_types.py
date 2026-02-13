@@ -1,12 +1,13 @@
 """
 Anclora Intelligence v1 — Type Definitions
-All dataclasses for Contracts #1-6
+All pydantic models for Contracts #1-6
 """
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Literal, Optional, List, Tuple
+import uuid
+from datetime import datetime, timezone
+from typing import Literal, Optional, List, Tuple, Dict, Any
 from enum import Enum
+from pydantic import BaseModel, Field, validator, ConfigDict
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -66,29 +67,41 @@ class EvidenceStatus(str, Enum):
     DEGRADED = "degraded"
 
 
+class StateEnum(str, Enum):
+    """Orchestrator pipeline states."""
+    IDLE = "idle"
+    ROUTING = "routing"
+    GOVERNING = "governing"
+    SYNTHESIZING = "synthesizing"
+    AUDITING = "auditing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
 # ═══════════════════════════════════════════════════════════════
 # CONTRACT #1: GovernorDecision v1
 # ═══════════════════════════════════════════════════════════════
 
-@dataclass
-class RiskItem:
+class RiskItem(BaseModel):
     """Un riesgo específico con nivel y justificación."""
+    model_config = ConfigDict(from_attributes=True)
     level: RiskLevel
     rationale: str
 
 
-@dataclass
-class RiskProfile:
+class RiskProfile(BaseModel):
     """Evaluación de riesgos en 4 dimensiones."""
+    model_config = ConfigDict(from_attributes=True)
     labor: RiskItem
     tax: RiskItem
     brand: RiskItem
     focus: RiskItem
 
 
-@dataclass
-class GovernorDecision:
+class GovernorDecision(BaseModel):
     """Salida oficial del Governor: decisión estratégica estructurada."""
+    model_config = ConfigDict(from_attributes=True)
+    decision_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     diagnosis: str
     recommendation: Recommendation
     risks: RiskProfile
@@ -98,61 +111,63 @@ class GovernorDecision:
     confidence: Confidence
     strategic_mode_version: str
     domains_used: List[str]
-    timestamp: str  # ISO-8601
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 # ═══════════════════════════════════════════════════════════════
 # CONTRACT #2: QueryPlan v1
 # ═══════════════════════════════════════════════════════════════
 
-@dataclass
-class LabPolicy:
+class LabPolicy(BaseModel):
     """Control de acceso a laboratorio tecnológico."""
+    model_config = ConfigDict(from_attributes=True)
     allow_lab: bool
     status: LabStatus
     rationale: str
 
 
-@dataclass
-class QueryPlan:
+class QueryPlan(BaseModel):
     """Plan de consulta emitido por Router: entrada a Governor."""
+    model_config = ConfigDict(from_attributes=True)
+    query_plan_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    correlation_id: Optional[str] = None
     mode: QueryMode
-    domain_hint: str  # "auto" or DomainKey
+    domain_hint: str = "auto"
     domains_selected: List[str]
-    agents_selected: List[str] = field(default_factory=list)
+    agents_selected: List[str] = []
     needs_evidence: bool = False
     needs_skills: bool = False
-    lab_policy: LabPolicy = None
+    lab_policy: Optional[LabPolicy] = None
     rationale: str = ""
     confidence: Confidence = Confidence.MEDIUM
-    flags: List[str] = field(default_factory=list)
-    timestamp: str = ""
+    flags: List[str] = []
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 # ═══════════════════════════════════════════════════════════════
 # CONTRACT #3: SynthesizerOutput v1
 # ═══════════════════════════════════════════════════════════════
 
-@dataclass
-class RiskSummary:
+class RiskSummary(BaseModel):
     """Resumen de riesgos para UI (chips de color)."""
+    model_config = ConfigDict(from_attributes=True)
     labor: RiskLevel
     tax: RiskLevel
     brand: RiskLevel
     focus: RiskLevel
 
 
-@dataclass
-class MetaVersion:
+class MetaVersion(BaseModel):
     """Versionado de componentes."""
+    model_config = ConfigDict(from_attributes=True)
     schema_version: str
     strategic_mode_id: str
     domain_pack_id: str
 
 
-@dataclass
-class Meta:
+class Meta(BaseModel):
     """Metadatos de la decisión."""
+    model_config = ConfigDict(from_attributes=True)
     mode: QueryMode
     domain_hint: str
     confidence: Confidence
@@ -162,42 +177,43 @@ class Meta:
     version: MetaVersion
 
 
-@dataclass
-class PlanView:
+class PlanView(BaseModel):
     """Vista de alto nivel del plan para UI."""
+    model_config = ConfigDict(from_attributes=True)
     domains_selected: List[str]
     rationale: str
-    lab_policy: dict  # {status, rationale}
+    lab_policy: Dict[str, Any]  # {status, rationale}
 
 
-@dataclass
-class Trace:
+class Trace(BaseModel):
     """Trazabilidad y explicabilidad auditables."""
+    model_config = ConfigDict(from_attributes=True)
     query_plan_id: str
     governor_decision_id: str
-    created_at: str  # ISO-8601
+    created_at: str
     output_ai: bool = True
 
 
-@dataclass
-class EvidenceItemView:
+class EvidenceItemView(BaseModel):
     """Un ítem de evidencia de NotebookLM."""
+    model_config = ConfigDict(from_attributes=True)
     notebook_id: str
     source_title: str
     excerpt: str
     relevance_score: float
 
 
-@dataclass
-class EvidenceView:
+class EvidenceView(BaseModel):
     """Vista de evidencia (vacía en Phase 1)."""
+    model_config = ConfigDict(from_attributes=True)
     status: EvidenceStatus
-    items: List[EvidenceItemView] = field(default_factory=list)
+    items: List[EvidenceItemView] = []
 
 
-@dataclass
-class SynthesizerOutput:
+class SynthesizerOutput(BaseModel):
     """Respuesta final de Intelligence: lo que ve el usuario."""
+    model_config = ConfigDict(from_attributes=True)
+    output_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     answer: str
     meta: Meta
     plan: PlanView
@@ -209,11 +225,11 @@ class SynthesizerOutput:
 # CONTRACT #5: Audit Log v1
 # ═══════════════════════════════════════════════════════════════
 
-@dataclass
-class IntelligenceAuditEntry:
+class IntelligenceAuditEntry(BaseModel):
     """Un registro de auditoría inmutable de una operación."""
-    entry_id: str  # UUID
-    timestamp: str  # ISO-8601
+    model_config = ConfigDict(from_attributes=True)
+    entry_id: str
+    timestamp: str
     correlation_id: str
     user_id: str
     
@@ -223,15 +239,15 @@ class IntelligenceAuditEntry:
     
     # Plan
     query_plan_id: str
-    query_plan: dict  # JSON snapshot
+    query_plan: Dict[str, Any]
     
     # Decision
     governor_decision_id: str
-    governor_decision: dict  # JSON snapshot
+    governor_decision: Dict[str, Any]
     
     # Output
     synthesizer_output_id: str
-    synthesizer_output: dict  # JSON snapshot
+    synthesizer_output: Dict[str, Any]
     
     # Governance
     strategic_mode_version: str
@@ -240,7 +256,7 @@ class IntelligenceAuditEntry:
     # State
     status: AuditStatus
     error_message: Optional[str] = None
-    warnings: List[str] = field(default_factory=list)
+    warnings: List[str] = []
     
     # AI Metadata
     output_ai: bool = True
@@ -260,9 +276,9 @@ class IntelligenceAuditEntry:
 # CONTRACT #6: NotebookLM Retrieval Policy v1
 # ═══════════════════════════════════════════════════════════════
 
-@dataclass
-class EvidenceResult:
+class EvidenceResult(BaseModel):
     """Un resultado individual de búsqueda en NotebookLM."""
+    model_config = ConfigDict(from_attributes=True)
     notebook_id: str
     source_title: str
     excerpt: str
@@ -270,11 +286,11 @@ class EvidenceResult:
     confidence_level: Confidence
 
 
-@dataclass
-class NotebookLMQuery:
+class NotebookLMQuery(BaseModel):
     """Una búsqueda individual en NotebookLM."""
-    query_id: str  # UUID
-    timestamp: str  # ISO-8601
+    model_config = ConfigDict(from_attributes=True)
+    query_id: str
+    timestamp: str
     original_domain: str
     original_intent: str
     formulated_query: str
@@ -282,7 +298,7 @@ class NotebookLMQuery:
     
     # Output
     status: AuditStatus
-    results: List[EvidenceResult] = field(default_factory=list)
+    results: List[EvidenceResult] = []
     average_relevance: float = 0.0
     search_duration_ms: int = 0
     
@@ -291,11 +307,11 @@ class NotebookLMQuery:
     reason_for_inclusion: str = ""
 
 
-@dataclass
-class NotebookLMRetrievalLog:
+class NotebookLMRetrievalLog(BaseModel):
     """Registro de todas las operaciones de retrieval."""
-    entry_id: str  # UUID
-    timestamp: str  # ISO-8601
+    model_config = ConfigDict(from_attributes=True)
+    entry_id: str
+    timestamp: str
     correlation_id: str
     
     # Context
@@ -308,7 +324,7 @@ class NotebookLMRetrievalLog:
     policy_mode: str = "active"
     
     # Queries executed
-    queries: List[NotebookLMQuery] = field(default_factory=list)
+    queries: List[NotebookLMQuery] = []
     total_queries_executed: int = 0
     total_items_retrieved: int = 0
     total_items_used: int = 0

@@ -62,12 +62,12 @@ async def limit_check_node(state: AgentState) -> AgentState:
 
 async def executor_node(state: AgentState) -> AgentState:
     print("--- EXECUTOR ---")
-    from backend.skills.lead_intake import run_lead_intake
+    from sdd.features.intelligence.skills.lead_intake import run_lead_intake
     from backend.services.llm_service import llm_service
     from backend.services.supabase_service import supabase_service
     
     if state["selected_skill"] == "lead_intake":
-        from backend.skills.lead_intake import run_lead_intake
+        from sdd.features.intelligence.skills.lead_intake import run_lead_intake
         try:
             output = await run_lead_intake(state["input_data"], llm_service, supabase_service)
             state["skill_output"] = output
@@ -75,7 +75,7 @@ async def executor_node(state: AgentState) -> AgentState:
             state["error"] = str(e)
             state["status"] = "error"
     elif state["selected_skill"] == "prospection_weekly":
-        from backend.skills.prospection_weekly import run_prospection_weekly
+        from sdd.features.intelligence.skills.prospection_weekly import run_prospection_weekly
         try:
             output = await run_prospection_weekly(state["input_data"], llm_service, supabase_service)
             state["skill_output"] = output
@@ -83,7 +83,7 @@ async def executor_node(state: AgentState) -> AgentState:
             state["error"] = str(e)
             state["status"] = "error"
     elif state["selected_skill"] == "recap_weekly":
-        from backend.skills.recap_weekly import run_recap_weekly
+        from sdd.features.intelligence.skills.recap_weekly import run_recap_weekly
         try:
             output = await run_recap_weekly(state["input_data"], llm_service, supabase_service)
             state["skill_output"] = output

@@ -1,0 +1,143 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.8, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\Usuario\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\tests\test-code
+configfile: pytest.ini
+plugins: anyio-4.11.0, langsmith-0.6.8, asyncio-1.2.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 25 items
+
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_happy_path FAILED [  4%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_high_priority FAILED [  8%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_invalid_email PASSED [ 12%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_llm_retry FAILED [ 16%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_llm_parsing_fallback FAILED [ 20%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_copy_generation_fallback FAILED [ 24%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_audit_log_payload FAILED [ 28%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_critical_failure PASSED [ 32%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_happy_path PASSED [ 36%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_no_leads PASSED [ 40%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_no_properties PASSED [ 44%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_llm_timeout_fallback PASSED [ 48%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_schema_validation PASSED [ 52%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_matching_parsing_error PASSED [ 56%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_complex_matching PASSED [ 60%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_prospection_supabase_call PASSED [ 64%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_happy_path PASSED [ 68%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_empty_data PASSED [ 72%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_db_failure_graceful PASSED [ 76%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_llm_fallback PASSED [ 80%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_high_priority_highlight PASSED [ 84%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_input_validation PASSED [ 88%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_execution_metric_calc PASSED [ 92%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_duration_logging PASSED [ 96%]
+sdd\features\intelligence\tests\test-code\test_skills.py::test_recap_full_retry_failure PASSED [100%]
+
+================================== FAILURES ===================================
+_________________________ test_lead_intake_happy_path _________________________
+sdd\features\intelligence\tests\test-code\test_skills.py:25: in test_lead_intake_happy_path
+    result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sdd\features\intelligence\skills\lead_intake.py:145: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: in json
+    raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E   TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:55:40.882159", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Juan Perez"}}
+{"timestamp": "2026-02-13T20:55:40.885180", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+_______________________ test_lead_intake_high_priority ________________________
+sdd\features\intelligence\tests\test-code\test_skills.py:42: in test_lead_intake_high_priority
+    result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sdd\features\intelligence\skills\lead_intake.py:145: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: in json
+    raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E   TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:55:40.920326", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Rich Client"}}
+{"timestamp": "2026-02-13T20:55:40.920326", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+_________________________ test_lead_intake_llm_retry __________________________
+sdd\features\intelligence\tests\test-code\test_skills.py:60: in test_lead_intake_llm_retry
+    result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sdd\features\intelligence\skills\lead_intake.py:145: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: in json
+    raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E   TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:55:41.101519", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Retry User"}}
+{"timestamp": "2026-02-13T20:55:41.101519", "level": "WARNING", "event_type": "llm_retry", "skill": "lead_intake", "version": "1.0.0", "details": {"attempt": 1, "error": "Timeout", "wait_time": 0.5}}
+{"timestamp": "2026-02-13T20:55:41.611048", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+____________________ test_lead_intake_llm_parsing_fallback ____________________
+sdd\features\intelligence\tests\test-code\test_skills.py:71: in test_lead_intake_llm_parsing_fallback
+    result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sdd\features\intelligence\skills\lead_intake.py:145: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: in json
+    raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E   TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:55:41.642400", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Parsing Fail"}}
+{"timestamp": "2026-02-13T20:55:41.642721", "level": "WARNING", "event_type": "analysis_parsing_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"raw": "This is not JSON", "error": "Expecting value: line 1 column 1 (char 0)"}}
+{"timestamp": "2026-02-13T20:55:41.642721", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+__________________ test_lead_intake_copy_generation_fallback __________________
+sdd\features\intelligence\tests\test-code\test_skills.py:83: in test_lead_intake_copy_generation_fallback
+    result = await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sdd\features\intelligence\skills\lead_intake.py:145: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: in json
+    raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E   TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:55:41.679086", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Copy Fail"}}
+{"timestamp": "2026-02-13T20:55:41.679770", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+_____________________ test_lead_intake_audit_log_payload ______________________
+sdd\features\intelligence\tests\test-code\test_skills.py:92: in test_lead_intake_audit_log_payload
+    await run_lead_intake(data, mock_llm_service, mock_supabase_service)
+sdd\features\intelligence\skills\lead_intake.py:145: in run_lead_intake
+    {validated_input.json(ensure_ascii=False)}
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\pydantic\main.py:1317: in json
+    raise TypeError('`dumps_kwargs` keyword arguments are no longer supported.')
+E   TypeError: `dumps_kwargs` keyword arguments are no longer supported.
+---------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-02-13T20:55:41.710871", "level": "INFO", "event_type": "skill_started", "skill": "lead_intake", "version": "1.0.0", "details": {"input_summary": "Log Test"}}
+{"timestamp": "2026-02-13T20:55:41.711392", "level": "CRITICAL", "event_type": "skill_failed", "skill": "lead_intake", "version": "1.0.0", "details": {"error": "`dumps_kwargs` keyword arguments are no longer supported."}}
+============================== warnings summary ===============================
+backend\intelligence\models.py:16
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\models.py:16: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474
+  C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474: PytestConfigWarning: Unknown config option: env
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+test_skills.py::test_lead_intake_happy_path
+test_skills.py::test_lead_intake_high_priority
+test_skills.py::test_lead_intake_llm_retry
+test_skills.py::test_lead_intake_llm_parsing_fallback
+test_skills.py::test_lead_intake_copy_generation_fallback
+test_skills.py::test_lead_intake_audit_log_payload
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\skills\lead_intake.py:145: PydanticDeprecatedSince20: The `json` method is deprecated; use `model_dump_json` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+    {validated_input.json(ensure_ascii=False)}
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_happy_path
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_high_priority
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_llm_retry
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_llm_parsing_fallback
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_copy_generation_fallback
+FAILED sdd\features\intelligence\tests\test-code\test_skills.py::test_lead_intake_audit_log_payload
+================== 6 failed, 19 passed, 8 warnings in 17.54s ==================

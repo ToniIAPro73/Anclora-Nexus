@@ -1,0 +1,75 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.8, pytest-8.4.2, pluggy-1.6.0
+rootdir: C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\sdd\features\intelligence\tests\test-code
+configfile: pytest.ini
+plugins: anyio-4.11.0, langsmith-0.6.8, asyncio-1.2.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 18 items
+
+sdd\features\intelligence\tests\test-code\test_orchestrator.py ........F [ 50%]
+.........                                                                [100%]
+
+================================== FAILURES ===================================
+________________________ test_critical_panic_recovery _________________________
+
+orchestrator = <backend.intelligence.orchestrator.orchestrator.Orchestrator object at 0x00000223C67C7110>
+
+    @pytest.mark.asyncio
+    async def test_critical_panic_recovery(orchestrator):
+        """Test unexpected exception in the pipeline."""
+        orchestrator.router.route_query = MagicMock(side_effect=RuntimeError("Unexpected!"))
+    
+        with patch("backend.intelligence.orchestrator.orchestrator.get_db_service"):
+            result, error = orchestrator.process_query("Panic query")
+    
+            assert "critical failure" in error
+>           assert result["processing_status"] == "orchestrator_panic"
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: tuple indices must be integers or slices, not str
+
+sdd\features\intelligence\tests\test-code\test_orchestrator.py:156: TypeError
+---------------------------- Captured stderr setup ----------------------------
+{"timestamp": "2026-02-13T20:38:30.750193+00:00", "level": "INFO", "message": "Router initialized", "module": "router", "funcName": "__init__"}
+{"timestamp": "2026-02-13T20:38:30.750193+00:00", "level": "INFO", "message": "Governor initialized", "module": "governor", "funcName": "__init__"}
+{"timestamp": "2026-02-13T20:38:30.750193+00:00", "level": "INFO", "message": "Synthesizer initialized", "module": "synthesizer", "funcName": "__init__"}
+{"timestamp": "2026-02-13T20:38:30.750193+00:00", "level": "INFO", "message": "Orchestrator initialized", "module": "orchestrator", "funcName": "__init__"}
+----------------------------- Captured log setup ------------------------------
+INFO     intelligence.router:router.py:54 Router initialized
+INFO     intelligence.governor:governor.py:52 Governor initialized
+INFO     intelligence.synthesizer:synthesizer.py:58 Synthesizer initialized
+INFO     intelligence.orchestrator:orchestrator.py:42 Orchestrator initialized
+---------------------------- Captured stderr call -----------------------------
+{"timestamp": "2026-02-13T20:38:30.751217+00:00", "level": "INFO", "message": "Processing new query", "module": "orchestrator", "funcName": "process_query"}
+{"timestamp": "2026-02-13T20:38:30.752972+00:00", "level": "ERROR", "message": "Critical error in pipeline", "module": "orchestrator", "funcName": "process_query", "exception": "Traceback (most recent call last):\n  File \"C:\\Users\\Usuario\\Workspace\\01_Proyectos\\anclora-nexus\\backend\\intelligence\\orchestrator\\orchestrator.py\", line 78, in process_query\n    query_plan, router_error = self.router.route_query(message)\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\unittest\\mock.py\", line 1124, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\unittest\\mock.py\", line 1128, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\unittest\\mock.py\", line 1183, in _execute_mock_call\n    raise effect\nRuntimeError: Unexpected!"}
+{"timestamp": "2026-02-13T20:38:30.755414+00:00", "level": "ERROR", "message": "Audit transaction error: not enough values to unpack (expected 2, got 0)", "module": "orchestrator", "funcName": "_save_audit_transaction"}
+------------------------------ Captured log call ------------------------------
+INFO     intelligence.orchestrator:orchestrator.py:61 Processing new query
+ERROR    intelligence.orchestrator:orchestrator.py:160 Critical error in pipeline
+Traceback (most recent call last):
+  File "C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\orchestrator\orchestrator.py", line 78, in process_query
+    query_plan, router_error = self.router.route_query(message)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py", line 1124, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py", line 1128, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py", line 1183, in _execute_mock_call
+    raise effect
+RuntimeError: Unexpected!
+ERROR    intelligence.orchestrator:orchestrator.py:213 Audit transaction error: not enough values to unpack (expected 2, got 0)
+============================== warnings summary ===============================
+backend\intelligence\models.py:16
+  C:\Users\Usuario\Workspace\01_Proyectos\anclora-nexus\backend\intelligence\models.py:16: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474
+  C:\Users\Usuario\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:1474: PytestConfigWarning: Unknown config option: env
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED sdd\features\intelligence\tests\test-code\test_orchestrator.py::test_critical_panic_recovery
+================== 1 failed, 17 passed, 2 warnings in 0.37s ===================
