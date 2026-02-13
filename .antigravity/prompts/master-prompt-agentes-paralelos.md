@@ -1,585 +1,414 @@
-# MASTER PROMPT: MULTI-TENANT MEMBERSHIPS V1 - AGENTES PARALELOS
+# MASTER PROMPT: ANCLORA-MTM-001 PARALLEL AGENTS STRATEGY
 
-**Para**: Google Antigravity (3 agentes simultáneos)  
-**Feature**: ANCLORA-MTM-001  
-**Timeline**: ~5 horas (paralelo vs 7-8 secuencial)  
-**Status**: Listo para lanzar
-
----
-
-## ⚠️ INSTRUCCIÓN CRÍTICA DE COORDINACIÓN
-
-Este prompt define una **estrategia de 3 agentes en paralelo**.
-
-**NO LANZAR AGENTES HASTA QUE TODOS LEAN**:
-→ `multitenant-shared-context.md` (secciones 1-4 comunes)
-
-**FASE COMPARTIDA** (0h - 0.33h):
-1. Agent A lee contexto compartido
-2. Agent B lee contexto compartido  
-3. Agent C lee contexto compartido
-
-**FASE PARALELA** (0.33h - 3.83h):
-1. Agent A genera DB (2.5h)
-2. Agent B genera Backend (3.5h)
-3. Agent C genera Frontend (3.25h)
-
-**FASE INTEGRACIÓN** (3.83h - 5h):
-- Merge código
-- Tests E2E
-- Validaciones finales
+**Versión**: 2.0 (CON AGENT D)  
+**Feature**: Multi-Tenant Memberships v1  
+**Timeline**: 5-5.5 horas (paralelo + testing)  
+**Status**: Ready for Antigravity execution
 
 ---
 
-## ESTRATEGIA GENERAL
-
-Multi-Tenant Memberships v1 se divide en **3 capas independientes**:
+## ESTRATEGIA PARALELA (3 + 1 AGENTES)
 
 ```
-┌─ LAYER 1: DATABASE        (Agent A)
-│  └─ 3 migrations SQL
-│  └─ Schema + indices + validaciones
-│  └─ Scripts migración
-│
-├─ LAYER 2: BACKEND API     (Agent B)
-│  └─ 6 endpoints nuevos
-│  └─ Middleware + servicios
-│  └─ Validaciones de negocio
-│  └─ Tests unitarios
-│
-└─ LAYER 3: FRONTEND        (Agent C)
-   └─ 3 componentes React
-   └─ Context + Hooks
-   └─ Rutas nuevas
-   └─ Guards de rutas
+T=0h:        Agents A/B/C comienzan EN PARALELO
+             (todos simultáneamente)
+
+T=0-0.33h:   Lectura shared-context.md (todos)
+
+T=0.33-2.83h: Agent A SOLO: Database (2.5 hours)
+              └─ 3 migrations SQL
+              └─ Índices, constraints, FK
+
+T=0.33-3.58h: Agent C SOLO: Frontend (3.25 hours)
+              └─ 3 componentes React
+              └─ Context, hooks, pages
+
+T=0.33-3.83h: Agent B SOLO: Backend (3.5 hours)
+              └─ 6 endpoints API
+              └─ Middleware, servicios, modelos
+
+T=3.83h:     Agents A/B/C TERMINAN (código completo en repo)
+             Agent D COMIENZA (PRE-REQUISITO: código listo)
+
+T=3.83-5h:   Agent D SOLO: Testing (1.17 hours)
+             └─ conftest.py
+             └─ test_membership_crud.py (32 tests)
+             └─ test_role_isolation.py (20 tests)
+             └─ test_invitation_flow.py (18 tests)
+             └─ test_team_management.tsx (20 tests)
+             └─ test_org_context.tsx (15 tests)
+             └─ Coverage: 85%+ backend, 85%+ frontend
+
+T=5h:        Feature COMPLETA (código + tests)
+             Validaciones E2E: 15 min
+             Listo para STAGING
+
+T=5.25h:     TOTAL: Feature lista
 ```
 
-**Dependencias**: Mínimas hasta integración.
+---
+
+## REQUISITOS PRE-EJECUCIÓN
+
+### 1. Todos los Agentes leen primero:
+- `multitenant-shared-context.md` (20 min)
+  - Secciones 1-4 de spec-multitenant-v1.md
+  - Data model
+  - Roles & RBAC matrix
+  - Alineación entre agentes
+
+### 2. Agent A SOLO lee:
+- `spec-multitenant-v1.md` sección 3 (Data Model)
+- `spec-multitenant-migration.md` (migration plan)
+- Database design patterns
+
+### 3. Agent B SOLO lee:
+- `spec-multitenant-v1.md` secciones 5-6 (API, Backend)
+- `feature-multitenant.md` (rules & validation)
+- FastAPI/Supabase patterns
+
+### 4. Agent C SOLO lee:
+- `spec-multitenant-v1.md` sección 7 (Frontend)
+- React/Next.js patterns
+- Component composition
+
+### 5. Agent D SOLO lee (después T=3.83h):
+- `test-plan-v1.md`
+- `test-cases-*.md` (all 5 files)
+- `Agent-D-Testing-Specialist.md`
 
 ---
 
-# SUB-AGENT A: DATABASE SPECIALIST
+## SUB-AGENT A: DATABASE SPECIALIST
 
-## OBJETIVO
+**Timeline**: 2.5 hours (T=0.33 - T=2.83)  
+**Deliverables**: 3 migration files
 
-Generar **3 migraciones SQL idempotentes** para crear tabla `organization_members`, alterar `organizations`, y migrar datos históricos.
+### A.1 Pre-requisitos
+- ✅ Lee: `multitenant-shared-context.md` (20 min)
+- ✅ Lee: `spec-multitenant-migration.md` (30 min)
 
-## PRE-REQUISITO
+### A.2 Artefactos a generar
 
-1. **Leer primero**: `multitenant-shared-context.md` (completo)
-   - Sección 1: Resumen ejecutivo (context)
-   - Sección 2: Alcance v1 (entiende scope)
-   - Sección 3: Modelo de datos (CRÍTICO - usa schema exacto)
-   - Sección 4: Roles y aislamiento (entiende validaciones)
+**Migration 008: Create organization_members table**
+```sql
+-- File: supabase/migrations/008_create_organization_members.sql
+-- Lines: ~80
+-- Contiene:
+-- - Table definition (8 columns)
+-- - Constraints (UNIQUE, CHECK, FK)
+-- - Indices (6 índices)
+-- - Validations
+```
 
-2. **Luego leer**: `spec-multitenant-migration.md` (referencia scripts)
+**Migration 009: Alter organizations table**
+```sql
+-- File: supabase/migrations/009_alter_organizations.sql
+-- Lines: ~40
+-- Contiene:
+-- - ALTER TABLE organizations ADD COLUMN owner_id
+-- - ALTER TABLE organizations ADD COLUMN status
+-- - ALTER TABLE organizations ADD COLUMN metadata
+-- - Índices nuevos
+```
 
-## ARTEFACTOS A GENERAR
+**Migration 010: Migrate user roles**
+```sql
+-- File: supabase/migrations/010_migrate_user_roles.sql
+-- Lines: ~50
+-- Contiene:
+-- - Data migration: user_profiles.role → organization_members.role
+-- - Validations (no nulls, UNIQUE enforced)
+-- - Rollback procedure
+```
 
-### 1. `supabase/migrations/008_create_organization_members.sql`
+### A.3 Success Criteria
+- ✅ 3 migrations generadas (008, 009, 010)
+- ✅ Todas las migrations son idempotentes
+- ✅ Validaciones pre/post inline
+- ✅ Rollback procedures documentados
+- ✅ Índices optimizados (6 por tabla)
+- ✅ Constraints enforced (UNIQUE, FK, CHECK)
+- ✅ No data loss in migration 010
 
-**Propósito**: Crear tabla central de membresía + índices
-
-**Debe incluir**:
-- Definición tabla completa (ver sección 3.1 contexto compartido)
-- Todos los campos: id, org_id, user_id, role, status, joined_at, invited_by, invitation_code, invitation_accepted_at, created_at, updated_at
-- Constraints: CHECK (role), CHECK (status), UNIQUE(org_id, user_id)
-- Foreign keys: organizations(id), auth.users(id)
-- Índices: org_id, user_id, role, status, composite (org_id, user_id), code (WHERE status='pending')
-- Comentarios SQL explicativos
-- Idempotent (IF NOT EXISTS)
-
-**Duración esperada**: 30 minutos
-**Testing**: Ejecutar en test DB, verificar índices creados
-
----
-
-### 2. `supabase/migrations/009_alter_organizations.sql`
-
-**Propósito**: Agregar campos a tabla organizations
-
-**Debe incluir**:
-- ALTER TABLE organizations ADD COLUMN owner_id UUID (con FK a auth.users)
-- ALTER TABLE organizations ADD COLUMN status TEXT DEFAULT 'active' (con CHECK)
-- ALTER TABLE organizations ADD COLUMN metadata JSONB DEFAULT '{}'
-- Índice en owner_id
-- Comentarios explicativos
-- Idempotent (ADD COLUMN IF NOT EXISTS)
-
-**Duración esperada**: 15 minutos
-**Testing**: Verificar columnas agregadas, no rompan datos existentes
-
----
-
-### 3. `supabase/migrations/010_migrate_roles.sql`
-
-**Propósito**: Migrar datos históricos de user_profiles.role → organization_members.role
-
-**Debe incluir**:
-- Script INSERT que migra de user_profiles a organization_members
-- Validaciones PRE-migración (counts, orphans check)
-- Actualización de organizations.owner_id
-- Validaciones POST-migración (no duplicados, no nulos, integridad)
-- Mensajes NOTICE/RAISE para diagnosticar
-- Rollback-safe (usar transacciones)
-- Comentarios detallados
-
-**Ver**: `spec-multitenant-migration.md` para scripts referencia completos
-
-**Duración esperada**: 60 minutos
-**Testing**: Ejecutar en test DB, validar migrations pre/post inline, rollback test
+### A.4 Test Validation
+- Agent D validará migrations con test-cases-isolation.md (21 tests)
+- Coverage: 100% (todas las constraints validadas)
 
 ---
 
-## CRITERIOS DE ACEPTACIÓN
+## SUB-AGENT B: BACKEND FASTAPI SPECIALIST
 
-- ✅ 3 migrations creadas e idempotentes
-- ✅ Todos los índices presentes y optimizados
-- ✅ Constraints (CHECK, UNIQUE, FK) funcionales
-- ✅ Scripts validación pre/post migración inline
-- ✅ Comentarios SQL presentes
-- ✅ Duración estimada <5 min por migration
-- ✅ Rollback procedures documentadas
-- ✅ Tested en PostgreSQL 14+
+**Timeline**: 3.5 hours (T=0.33 - T=3.83)  
+**Deliverables**: 6 endpoints + middleware + servicios + modelos
 
----
+### B.1 Pre-requisitos
+- ✅ Lee: `multitenant-shared-context.md` (20 min)
+- ✅ Lee: `spec-multitenant-v1.md` secciones 5-6 (40 min)
+- ✅ Lee: `feature-multitenant.md` rules (20 min)
 
-## REFERENCIAS
+### B.2 Artefactos a generar
 
-**Contexto**: `multitenant-shared-context.md` sección 3 (Modelo de datos)  
-**Detalles**: `spec-multitenant-migration.md` (Scripts SQL completos)  
-**Reglas**: `.agent/rules/feature-multitenant.md`
+**6 Endpoints nuevos**:
+1. POST `/api/organizations/{org_id}/members` (invite)
+2. GET `/api/organizations/{org_id}/members` (list)
+3. PATCH `/api/organizations/{org_id}/members/{member_id}` (change role)
+4. DELETE `/api/organizations/{org_id}/members/{member_id}` (remove)
+5. GET `/api/invitations/{code}` (validate)
+6. POST `/api/invitations/{code}/accept` (accept)
 
----
+**5+ Endpoints modificados** (org_id filtering):
+- GET `/api/leads`
+- GET `/api/properties`
+- GET `/api/tasks`
+- POST `/api/leads`
+- POST `/api/properties`
 
-# SUB-AGENT B: BACKEND FASTAPI SPECIALIST
+**Archivos a generar**:
+- `backend/api/routes/memberships.py` (200 líneas, 6 endpoints)
+- `backend/api/middleware.py` (50 líneas, verify_org_membership)
+- `backend/models/membership.py` (60 líneas, Pydantic models)
+- `backend/services/membership_service.py` (150 líneas, business logic)
+- `backend/tests/test_memberships.py` (100 líneas, basic tests)
 
-## OBJETIVO
-
-Generar **API endpoints + middleware + servicios + tests** para gestión de membresías con validación de roles y aislamiento de datos.
-
-## PRE-REQUISITO
-
-1. **Leer primero**: `multitenant-shared-context.md` (completo)
-   - Sección 1: Resumen ejecutivo
-   - Sección 2: Alcance v1 (CRÍTICO - qué endpoints NO incluir)
-   - Sección 3: Modelo datos (para modelos Pydantic)
-   - Sección 4: Roles y aislamiento (CRÍTICO - filtrado por rol)
-
-2. **Luego leer**: `spec-multitenant-v1.md` secciones 5-6 (API specification)
-
-## ARTEFACTOS A GENERAR
-
-### 1. `backend/api/routes/memberships.py`
-
-**Propósito**: 6 endpoints CRUD para memberships + invitaciones
-
-**Endpoints (ver sección 5.1 spec-multitenant-v1.md)**:
-1. `POST /api/organizations/{org_id}/members` - Invitar
-2. `GET /api/organizations/{org_id}/members` - Listar
-3. `PATCH /api/organizations/{org_id}/members/{member_id}` - Cambiar rol
-4. `DELETE /api/organizations/{org_id}/members/{member_id}` - Remover
-5. `GET /api/invitations/{code}` - Validar código
-6. `POST /api/invitations/{code}/accept` - Aceptar invitación
-
-**Cada endpoint debe**:
-- Type hints 100% (FastAPI + Pydantic)
-- Request/response schemas claros
+### B.3 Requirements
+- Type hints 100%
 - Docstrings (Google format)
-- Error handling (401, 403, 422, 409)
-- Usar middleware `verify_org_membership()`
-- Logging de operaciones críticas
+- Error handling: 403, 404, 409, 422
+- Middleware validating org_id before route
+- Pydantic validation
+- Database transactions where needed
 
-**Duración esperada**: 90 minutos
-
----
-
-### 2. `backend/api/middleware.py`
-
-**Propósito**: Middleware central de validación
-
-**Debe incluir**:
-```python
-async def verify_org_membership(
-    user_id: UUID,
-    org_id: UUID,
-    required_role: Optional[str] = None
-) -> OrganizationMember
-```
-
-**Validaciones**:
-1. Usuario autenticado existe
-2. Pertenece a org_id (status='active')
-3. Tiene rol requerido (si especificado)
-4. Retorna OrganizationMember o raise PermissionDenied
-
-**Duración esperada**: 30 minutos
-
----
-
-### 3. `backend/models/membership.py`
-
-**Propósito**: Modelos Pydantic para membership
-
-**Debe incluir**:
-- `OrganizationMember` (tabla)
-- `MemberRequest` (invitar miembro)
-- `MemberUpdate` (cambiar rol)
-- `InvitationResponse`
-- Type hints exactos del schema (sección 3.1)
-
-**Duración esperada**: 45 minutos
-
----
-
-### 4. `backend/models/schemas.py`
-
-**Propósito**: Schemas request/response
-
-**Debe incluir**:
-- `InviteRequest` (email, role)
-- `MemberResponse` (con email si disponible)
-- `InvitationResponse` (valid, email, role, org_name, expires_at)
-- Validaciones Pydantic (role enum, email format)
-
-**Duración esperada**: 30 minutos (integrado con 3)
-
----
-
-### 5. `backend/services/membership_service.py`
-
-**Propósito**: Lógica de negocio
-
-**Métodos críticos**:
-- `invite_member(org_id, email, role, invited_by)` - Con validaciones
-- `accept_invitation(code, user_id)` - Con validaciones código expiration
-- `change_member_role(org_id, member_id, new_role, changed_by)` - Solo Owner
-- `remove_member(org_id, member_id, removed_by)` - Solo Owner
-- Validaciones: owner exists, unique org_user, role constraints, invitation code
-
-**Validaciones de negocio** (sección 4.4 contexto):
-1. Cada org DEBE tener mínimo 1 Owner
-2. Usuario NO puede eliminar su propio membership
-3. Status pending expira 7 días
-4. Un usuario = una org en v1
-5. Solo Owner puede cambiar roles
-6. invitation_code único
-
-**Duración esperada**: 45 minutos
-
----
-
-### 6. `backend/tests/`
-
-**Propósito**: Unit + integration tests
-
-**Tests requeridos**:
-- `test_membership_crud.py` - CRUD operations
-- `test_role_isolation.py` - Role-based filtering
-- `test_invitation_flow.py` - Invitación end-to-end
-- Coverage 80%+
-- Fixtures para setup
-- Mock DB queries
-
-**Duración esperada**: 60 minutos
-
----
-
-## MODIFICACIONES A ENDPOINTS EXISTENTES
-
-**Todos los endpoints que retornan org_data DEBEN**:
-
-```python
-# Antes: SELECT * FROM leads
-# Después: 
-member = await verify_org_membership(user_id, user_org_id)
-query = "SELECT * FROM leads WHERE org_id = $1"
-if member.role == 'agent':
-    query += " AND agent_id = $2"
-    leads = await db.fetch(query, user_org_id, user_id)
-else:
-    leads = await db.fetch(query, user_org_id)
-```
-
-**Aplica a**: GET leads, GET properties, GET tasks, POST (validar org_id), etc.
-
----
-
-## CRITERIOS DE ACEPTACIÓN
-
-- ✅ 6 endpoints nuevos CRUD funcionales
-- ✅ Middleware protect todas rutas críticas
-- ✅ Validaciones de negocio implementadas (sección 4.4)
-- ✅ Tests 80%+ cobertura
+### B.4 Success Criteria
+- ✅ 6 endpoints funcionando
+- ✅ 5+ endpoints org_id filtering aplicado
+- ✅ Middleware enforcing verify_org_membership
 - ✅ Type hints 100%
-- ✅ Docstrings presentes
-- ✅ Error handling (401, 403, 422, 409)
-- ✅ FastAPI 0.100+ async
+- ✅ Docstrings completos
+- ✅ Error responses correct status codes
+
+### B.5 Test Validation
+- Agent D validará con test-cases-crud.md (32 tests) + test-cases-roles.md (20 tests)
+- Coverage: 85%+ backend
 
 ---
 
-## REFERENCIAS
+## SUB-AGENT C: REACT/NEXT.JS FRONTEND SPECIALIST
 
-**Contexto**: `multitenant-shared-context.md` secciones 2-4  
-**Especificación**: `spec-multitenant-v1.md` secciones 5-6  
-**Reglas**: `.agent/rules/feature-multitenant.md`
+**Timeline**: 3.25 hours (T=0.33 - T=3.58)  
+**Deliverables**: 3 componentes + context + hooks + pages
 
----
+### C.1 Pre-requisitos
+- ✅ Lee: `multitenant-shared-context.md` (20 min)
+- ✅ Lee: `spec-multitenant-v1.md` sección 7 (30 min)
 
-# SUB-AGENT C: REACT/NEXTJS FRONTEND SPECIALIST
+### C.2 Artefactos a generar
 
-## OBJETIVO
+**Context & Hooks**:
+- `frontend/src/lib/contexts/OrgContext.tsx` (80 líneas)
+  - Provider
+  - Hooks: useOrg()
+  
+- `frontend/src/lib/hooks/useOrgMembership.ts` (60 líneas)
+  - canManageTeam
+  - canViewAll
+  - canEditOwn
+  
+- `frontend/src/lib/hooks/useTeamManagement.ts` (70 líneas)
+  - inviteCallback
+  - changeRoleCallback
+  - removeCallback
 
-Generar **componentes React + contexto + hooks + rutas** para Team Management y Invitation flow.
+**Componentes**:
+- `frontend/src/components/TeamManagement.tsx` (150 líneas)
+  - Member table
+  - Invite form (owner only)
+  - Role change dropdown
+  - Remove button with confirmation
+  
+- `frontend/src/components/InvitationAccept.tsx` (100 líneas)
+  - Public form (no auth required)
+  - Code validation
+  - Accept flow
+  
+- `frontend/src/components/RoleBasedUIShell.tsx` (60 líneas)
+  - Conditional rendering per role
 
-## PRE-REQUISITO
+**Pages**:
+- `frontend/src/app/(dashboard)/team/page.tsx` (40 líneas)
+  - Layout
+  - TeamManagement integration
+  
+- `frontend/src/app/invite/[code]/page.tsx` (50 líneas)
+  - Dynamic route
+  - InvitationAccept integration
 
-1. **Leer primero**: `multitenant-shared-context.md` (completo)
-   - Sección 1: Resumen ejecutivo
-   - Sección 2: Alcance v1 (CRÍTICO - qué NO crear)
-   - Sección 3: Modelo datos (TypeScript interfaces)
-   - Sección 4: Roles y aislamiento (CRÍTICO - renderizado condicional)
+### C.3 Requirements
+- Type hints 100% (TypeScript)
+- React hooks best practices
+- Proper loading/error states
+- Responsive design
+- Accessible (a11y)
+- Form validation
 
-2. **Luego leer**: `spec-multitenant-v1.md` sección 7 (Componentes)
-
-## ARTEFACTOS A GENERAR
-
-### 1. `frontend/src/lib/contexts/OrgContext.tsx`
-
-**Propósito**: React Context para membresía organizativa
-
-**Debe incluir**:
-```typescript
-interface OrgMembership {
-  org_id: UUID;
-  user_id: UUID;
-  role: 'owner' | 'manager' | 'agent';
-  joined_at: Date;
-  status: 'active' | 'pending' | 'suspended' | 'removed';
-}
-
-const OrgContext = createContext<OrgMembership | null>(null);
-```
-
-**Inicialización**: En RootLayout post-auth
-
-**Duración esperada**: 30 minutos
-
----
-
-### 2. `frontend/src/lib/hooks/useOrgMembership.ts`
-
-**Propósito**: Hook para acceder contexto + helpers
-
-**Retorna**:
-```typescript
-{
-  org_id: UUID,
-  user_id: UUID,
-  role: 'owner' | 'manager' | 'agent',
-  canManageTeam: boolean,
-  canViewAll: boolean,
-  canCreateLead: boolean,
-  canAssignAgent: boolean
-}
-```
-
-**Mapea role → permisos** (sección 4.2 contexto)
-
-**Duración esperada**: 45 minutos
-
----
-
-### 3. `frontend/src/lib/hooks/useTeamManagement.ts`
-
-**Propósito**: Lógica invitación + cambio rol + remoción
-
-**Funciones**:
-- `inviteMember(email, role)` - POST /api/organizations/{org_id}/members
-- `changeMemberRole(memberId, newRole)` - PATCH
-- `removeMember(memberId)` - DELETE
-- Manejo errores y loading states
-
-**Duración esperada**: 45 minutos
-
----
-
-### 4. `frontend/src/components/TeamManagement.tsx`
-
-**Propósito**: Componente gestión de equipo (Owner only)
-
-**Debe incluir**:
-- Tabla de miembros (nombre, email, rol, status)
-- Form invitar (email + rol dropdown)
-- Button cambiar rol (per row)
-- Button remover (per row)
-- Confirmación modals
-- Loading states
-- Paginación
-
-**Render condicional**: Solo si `role === 'owner'`
-
-**Duración esperada**: 75 minutos
-
----
-
-### 5. `frontend/src/components/InvitationAccept.tsx`
-
-**Propósito**: Página pública para aceptar invitación
-
-**Debe incluir**:
-- Captar `code` de URL query param
-- GET /api/invitations/{code} para validar
-- Mostrar: "Invitado a [org] como [role]"
-- Button "Aceptar"
-- POST /api/invitations/{code}/accept
-- Redirigir a /dashboard post-accept
-- Manejo de código inválido/expirado
-
-**Ubicación**: `/invite/[code]`
-
-**Duración esperada**: 30 minutos
-
----
-
-### 6. `frontend/src/components/RoleBasedUIShell.tsx`
-
-**Propósito**: Wrapper para renderizado condicional
-
-**Lógica**:
-```typescript
-const canAccess = {
-  owner: ['dashboard', 'leads', 'properties', 'tasks', 'team'],
-  manager: ['dashboard', 'leads', 'properties', 'tasks', 'team-view'],
-  agent: ['dashboard', 'my-leads', 'my-properties', 'my-tasks']
-}[role];
-```
-
-**Duración esperada**: 30 minutos
-
----
-
-### 7. `frontend/src/components/ProtectedRoute.tsx`
-
-**Propósito**: Guard de rutas por rol
-
-```typescript
-<ProtectedRoute requiredRole={['owner']}>
-  <TeamManagement />
-</ProtectedRoute>
-```
-
-**Duración esperada**: 15 minutos
-
----
-
-### 8. `frontend/src/app/(dashboard)/team/page.tsx`
-
-**Propósito**: Ruta /team para Team Management
-
-**Debe incluir**:
-- Import TeamManagement
-- Guard con ProtectedRoute requiredRole=['owner']
-- Layout dashboard
-
-**Duración esperada**: 10 minutos
-
----
-
-### 9. `frontend/src/app/invite/[code]/page.tsx`
-
-**Propósito**: Ruta pública /invite/{code}
-
-**Debe incluir**:
-- Import InvitationAccept
-- Pasar `code` como prop
-- Sin guard (público)
-
-**Duración esperada**: 10 minutos
-
----
-
-## CRITERIOS DE ACEPTACIÓN
-
-- ✅ 3 componentes compilando sin TS errors
-- ✅ Context + hooks funcionales
-- ✅ 2 rutas nuevas creadas
-- ✅ TypeScript strict mode
-- ✅ Responsive design (Tailwind)
-- ✅ Loading/error states
+### C.4 Success Criteria
+- ✅ 3 componentes renderizando
+- ✅ Context provider functional
+- ✅ 2 hooks custom functional
 - ✅ Type hints 100%
-- ✅ Next.js 14+ compatible
+- ✅ Responsive design
+- ✅ No console errors
+
+### C.5 Test Validation
+- Agent D validará con test_team_management.tsx (20 tests) + test_org_context.tsx (15 tests)
+- Coverage: 85%+ frontend
 
 ---
 
-## REFERENCIAS
+## SUB-AGENT D: TESTING SPECIALIST
 
-**Contexto**: `multitenant-shared-context.md` secciones 2-4  
-**Especificación**: `spec-multitenant-v1.md` sección 7  
-**Reglas**: `.agent/rules/feature-multitenant.md`
+**Timeline**: 1.17 hours (T=3.83 - T=5.0)  
+**PRE-REQUISITO**: Agents A/B/C código completado en repo  
+**Deliverables**: 105 tests ejecutables (pytest + Vitest)
 
----
+### D.1 Pre-requisitos
+- ✅ Lee: `test-plan-v1.md` (20 min)
+- ✅ Lee: `test-cases-*.md` (5 files) (30 min)
+- ✅ Lee: `Agent-D-Testing-Specialist.md` (10 min)
+- ⚠️ ESPERA: Agents A/B/C completen código (T=3.83h)
 
-# FASE INTEGRACIÓN (Post-Paralelo)
+### D.2 Artefactos a generar
 
-Una vez completados los 3 agentes:
+**Backend Tests (pytest)**:
+- `conftest.py` (150 líneas)
+  - Fixtures: test_org, test_owner, test_manager, test_agent
+  - DB fixtures, API clients
+  
+- `test_membership_crud.py` (300+ líneas, 32 tests)
+  - Basado en test-cases-crud.md
+  - CRUD endpoints + validation
+  
+- `test_role_isolation.py` (350+ líneas, 20 tests)
+  - Basado en test-cases-roles.md
+  - Role-based access control
+  
+- `test_invitation_flow.py` (350+ líneas, 18 tests)
+  - Basado en test-cases-invitation.md
+  - Invitation lifecycle
 
-## MERGE & TESTING
+**Frontend Tests (Vitest)**:
+- `test_team_management.tsx` (400+ líneas, 20+ tests)
+  - Component rendering
+  - User interactions
+  - Form submission
+  
+- `test_org_context.tsx` (300+ líneas, 15+ tests)
+  - Context provider
+  - Hooks functionality
+  - Permission flags
 
-1. **Agent A**: Ejecuta migrations 008, 009, 010 en test DB
-2. **Agent B**: Conecta API contra BD (usa fixtures de Agent A)
-3. **Agent C**: Conecta frontend contra API (usa endpoints de Agent B)
-4. **Todos**: Tests E2E - flujo completo invitación
+### D.3 Requirements
+- Type hints 100% (Python + TypeScript)
+- Docstrings (Google format)
+- No console.warn/error
+- Proper async/await
+- Fixtures cleanup
+- Coverage: Backend 85%+, Frontend 85%+
 
-## VALIDACIONES FINALES
+### D.4 Success Criteria
+- ✅ 105 tests total passing
+- ✅ Backend coverage: 85%+
+- ✅ Frontend coverage: 85%+
+- ✅ Tests run < 5 minutes
+- ✅ All fixtures clean up properly
+- ✅ Type hints 100%
 
-- [ ] DB schema está creado
-- [ ] Endpoints retornando 200/201
-- [ ] Componentes sin console errors
-- [ ] Flujo invitación end-to-end
-- [ ] Role-based filtering funcional
-- [ ] All tests passing
-
----
-
-# TIMELINE ESPERADO
-
+### D.5 Testing Timeline
 ```
-T=0h - LECTURA CONTEXTO COMPARTIDO (20 min)
-  └─ Todos leen: multitenant-shared-context.md
-
-T=0.33h - INICIO PARALELO
-  ├─ Agent A: Database
-  ├─ Agent B: Backend API
-  └─ Agent C: Frontend
-
-T=2.83h - Agent A COMPLETA (database)
-  └─ Queda en espera para integración
-
-T=3.58h - Agent C COMPLETA (frontend)
-  └─ Queda en espera para integración
-
-T=3.83h - Agent B COMPLETA (backend)
-  └─ Inicia FASE 2: Integración
-
-T=5h - FEATURE COMPLETA
-  └─ Todos los tests passing
-  └─ Listo para staging
+T=3.83-4.13h: conftest.py + backend fixtures (30 min)
+T=4.13-5h:    Backend tests (47 min)
+              - test_membership_crud.py (32 tests)
+              - test_role_isolation.py (20 tests)
+              - test_invitation_flow.py (18 tests)
+T=5-5.17h:    Frontend tests (17 min)
+              - test_team_management.tsx (20+ tests)
+              - test_org_context.tsx (15+ tests)
+T=5.17h:      COMPLETE (coverage reports generated)
 ```
 
 ---
 
-# CHECKLIST PRE-LANZAMIENTO
+## INTEGRACIÓN & VALIDACIÓN POST-PARALELO
 
-- [ ] Todos los agentes leyeron `multitenant-shared-context.md`
-- [ ] Cada agente entiende su responsabilidad
-- [ ] Referencias a specs correctas confirmadas
-- [ ] Timeline aceptado (5 horas total)
-- [ ] Criterios de aceptación claros para cada agente
+**T=5h - T=5.25h: Integration Testing (15 min)**
+
+1. Verificar todos los endpoints funcionan
+2. Validar middleware intercepts
+3. Test invitation flow end-to-end
+4. Validate data isolation
+5. Run full test suite: `pytest ... && npm run test:unit ...`
+
+**Success**: All green ✓
 
 ---
 
-**Master Prompt versión**: 1.0  
-**Generado**: 2026-02-13  
-**Status**: Listo para lanzar 3 agentes en paralelo  
-**Próximo**: Distribuir a agentes y ejecutar
+## CHECKLIST PRE-LANZAMIENTO
+
+### Pre-Antigravity
+- ✅ spec-multitenant-v1.md completado (11 secciones)
+- ✅ spec-multitenant-migration.md completado (migration plan)
+- ✅ multitenant-shared-context.md completado (shared context)
+- ✅ Test specifications creadas (5 files, 98 scenarios)
+- ✅ Agent prompts listos (A, B, C, D)
+- ✅ Feature rules documentadas
+- ✅ Development methods (SKILL) documentados
+
+### Durante Ejecución
+- ⏳ Agent A: Migrations 008, 009, 010
+- ⏳ Agent B: 6 endpoints + middleware + servicios
+- ⏳ Agent C: 3 componentes + context + hooks + pages
+- ⏳ Agent D: 105 tests (pytest + Vitest)
+
+### Post-Ejecución
+- ⏳ Validar E2E flow (15 min)
+- ⏳ Coverage report (85%+ backend, 85%+ frontend)
+- ⏳ Code review
+- ⏳ Deploy to staging
+
+---
+
+## REFERENCIAS COMPLETAS
+
+**Documentos SDD**:
+- `.sdd/features/multitenant/INDEX.md` - Navigation
+- `.sdd/features/multitenant/spec-multitenant-v1.md` - Tech spec (11 secciones)
+- `.sdd/features/multitenant/spec-multitenant-migration.md` - Migration plan
+- `.sdd/features/multitenant/tests/test-specifications/test-plan-v1.md`
+- `.sdd/features/multitenant/tests/test-specifications/test-cases-*.md` (5 files)
+
+**Agent Prompts**:
+- `multitenant-shared-context.md` - Common context (all agents)
+- `Agent-D-Testing-Specialist.md` - Agent D prompt
+
+**Rules & Methods**:
+- `.agent/rules/feature-multitenant.md` - Feature rules
+- `.agent/skills/features/multitenant/SKILL.md` - Development methods
+
+---
+
+## TIMELINE FINAL
+
+| Milestone | Time | Status |
+|-----------|------|--------|
+| Shared context reading | 0.33h | PRE-REQ |
+| Agent A (Database) | 2.5h | PARALLEL |
+| Agent B (Backend) | 3.5h | PARALLEL |
+| Agent C (Frontend) | 3.25h | PARALLEL |
+| Agent D (Testing) | 1.17h | SEQUENTIAL |
+| **TOTAL** | **5.25h** | **COMPLETE** |
+
+---
+
+**Status**: READY FOR ANTIGRAVITY EXECUTION  
+**Next**: Launch Agents A/B/C in parallel, then Agent D for testing
+
