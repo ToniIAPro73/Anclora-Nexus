@@ -67,7 +67,7 @@ async def get_weekly_stats(org_id: str = Depends(lambda: supabase_service.fixed_
         # Fetch recent leads
         leads = await supabase_service.get_recent_leads(days=7)
         # Fetch recent recap
-        recaps = await supabase_service.client.table("weekly_recaps")\
+        recaps = supabase_service.client.table("weekly_recaps")\
             .select("*")\
             .eq("org_id", org_id)\
             .order("created_at", descending=True)\

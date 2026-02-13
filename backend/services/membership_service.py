@@ -42,7 +42,7 @@ class MembershipService:
             HTTPException: If member already exists or other validation fails.
         """
         # Check if member already exists in this org
-        existing = await supabase_service.client.table("organization_members")\
+        existing = supabase_service.client.table("organization_members")\
             .select("*")\
             .eq("org_id", str(org_id))\
             .eq("user_id", str(inviter_id))\
@@ -55,7 +55,7 @@ class MembershipService:
         # However, invitations allow inviting someone who isn't a user yet.
         
         # Check if a pending invitation for this email exists in this org
-        pending = await supabase_service.client.table("organization_members")\
+        pending = supabase_service.client.table("organization_members")\
             .select("*")\
             .eq("org_id", str(org_id))\
             .eq("status", MembershipStatus.PENDING)\
@@ -92,7 +92,7 @@ class MembershipService:
         
         data["metadata"] = {"email": payload.email}
         
-        result = await supabase_service.client.table("organization_members").insert(data).execute()
+        result = supabase_service.client.table("organization_members").insert(data).execute()
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to create invitation")
             
@@ -111,7 +111,7 @@ class MembershipService:
         if status:
             query = query.eq("status", status)
             
-        result = await query.range(offset, offset + limit - 1).execute()
+        result = query.range(offset, offset + limit - 1).execute()
         
         # We would normally join with user_profiles to get emails/names
         # For now, return raw data
@@ -129,14 +129,14 @@ class MembershipService:
         # Validate last owner check
         if payload.role and payload.role != UserRole.OWNER:
             # Check if this member IS an owner
-            current = await supabase_service.client.table("organization_members")\
+            current = supabase_service.client.table("organization_members")\
                 .select("*")\
                 .eq("id", str(member_id))\
                 .execute()
             
             if current.data and current.data[0]["role"] == UserRole.OWNER:
                 # Check how many owners left
-                owners = await supabase_service.client.table("organization_members")\
+                owners = supabase_service.client.table("organization_members")\
                     .select("id")\
                     .eq("org_id", str(org_id))\
                     .eq("role", UserRole.OWNER)\
@@ -149,7 +149,7 @@ class MembershipService:
         update_data = payload.dict(exclude_unset=True)
         update_data["updated_at"] = datetime.utcnow().isoformat()
         
-        result = await supabase_service.client.table("organization_members")\
+        result = supabase_service.client.table("organization_members")\
             .update(update_data)\
             .eq("id", str(member_id))\
             .eq("org_id", str(org_id))\
@@ -165,13 +165,13 @@ class MembershipService:
         Removes a member from an organization.
         """
         # Check last owner
-        current = await supabase_service.client.table("organization_members")\
+        current = supabase_service.client.table("organization_members")\
             .select("*")\
             .eq("id", str(member_id))\
             .execute()
             
         if current.data and current.data[0]["role"] == UserRole.OWNER:
-            owners = await supabase_service.client.table("organization_members")\
+            owners = supabase_service.client.table("organization_members")\
                 .select("id")\
                 .eq("org_id", str(org_id))\
                 .eq("role", UserRole.OWNER)\
@@ -180,7 +180,7 @@ class MembershipService:
             if len(owners.data) <= 1:
                 raise HTTPException(status_code=400, detail="Cannot remove the last owner")
 
-        result = await supabase_service.client.table("organization_members")\
+        result = supabase_service.client.table("organization_members")\
             .delete()\
             .eq("id", str(member_id))\
             .eq("org_id", str(org_id))\
@@ -193,7 +193,7 @@ class MembershipService:
         """
         Validates an invitation code.
         """
-        result = await supabase_service.client.table("organization_members")\
+        result = supabase_service.client.table("organization_members")\
             .select("*, organizations(name)")\
             .eq("invitation_code", code)\
             .eq("status", MembershipStatus.PENDING)\
@@ -224,7 +224,7 @@ class MembershipService:
         inv_info = await self.validate_invitation(code)
         
         # Update membership
-        result = await supabase_service.client.table("organization_members")\
+        result = supabase_service.client.table("organization_members")\
             .update({
                 "user_id": str(user_id),
                 "status": MembershipStatus.ACTIVE,

@@ -25,7 +25,7 @@ async def verify_org_membership(
     Raises:
         HTTPException 403: If membership is invalid or role is insufficient.
     """
-    result = await supabase_service.client.table("organization_members")\
+    result = supabase_service.client.table("organization_members")\
         .select("*")\
         .eq("user_id", str(user_id))\
         .eq("org_id", str(org_id))\
