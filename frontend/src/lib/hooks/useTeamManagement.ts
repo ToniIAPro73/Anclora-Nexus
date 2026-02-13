@@ -18,9 +18,17 @@ export function useTeamManagement() {
       // In v1, we use direct API or Supabase insert
       // For this implementation, we assume we have an endpoint or we insert into organization_members
       // The spec mentions endpoints, so we'll use a fetch call to the backend
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) throw new Error('No active session')
+
       const response = await fetch(`/api/organizations/${org_id}/members`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
         body: JSON.stringify({ email, role })
       })
 
@@ -43,9 +51,17 @@ export function useTeamManagement() {
     setLoading(true)
     setError(null)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) throw new Error('No active session')
+
       const response = await fetch(`/api/organizations/${org_id}/members/${memberId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
         body: JSON.stringify({ role })
       })
 
@@ -68,8 +84,16 @@ export function useTeamManagement() {
     setLoading(true)
     setError(null)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) throw new Error('No active session')
+
       const response = await fetch(`/api/organizations/${org_id}/members/${memberId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}` 
+        }
       })
 
       if (!response.ok) {
@@ -91,7 +115,16 @@ export function useTeamManagement() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/organizations/${org_id}/members`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      if (!token) throw new Error('No active session')
+
+      const response = await fetch(`/api/organizations/${org_id}/members`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.detail || 'Failed to fetch members')
