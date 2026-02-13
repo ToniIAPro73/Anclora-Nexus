@@ -2,7 +2,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from backend.main import get_current_user
+from backend.api.deps import get_current_user
 from backend.api.middleware import verify_org_membership
 from backend.models.membership import (
     Membership,

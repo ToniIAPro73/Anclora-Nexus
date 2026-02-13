@@ -1,0 +1,7 @@
+{
+  "name": "anclora-nexus-root",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ]
+}
