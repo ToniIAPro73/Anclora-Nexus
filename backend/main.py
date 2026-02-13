@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from backend.services.supabase_service import supabase_service
 from backend.api.routes import router as api_router
+from backend.api.routes.memberships import router as memberships_router
 
 app = FastAPI(title="Anclora Nexus API", version="0.1.0")
 
@@ -45,6 +46,7 @@ async def get_org_id(user = Depends(get_current_user)):
 
 # Register Routes
 app.include_router(api_router, prefix="/api", tags=["Nexus API"])
+app.include_router(memberships_router, prefix="/api", tags=["Memberships"])
 
 @app.get("/health")
 async def health_check():
