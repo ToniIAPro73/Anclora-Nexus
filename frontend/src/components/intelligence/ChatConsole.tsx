@@ -33,14 +33,14 @@ export function ChatConsole({}: ChatConsoleProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-navy-surface/30 backdrop-blur-xl border border-blue-light/10 rounded-2xl overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-full bg-navy-surface/40 border border-soft-subtle rounded-2xl overflow-hidden hover:border-gold/30 hover:shadow-lg hover:shadow-gold/5 transition-all duration-300">
       {/* HEADER / MODE SELECTOR */}
       <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between bg-navy-darker/40 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 rounded-lg bg-gold/5 border border-gold/10 flex items-center justify-center">
             <Brain className="w-4.5 h-4.5 text-gold/80" />
           </div>
-          <h2 className="font-display font-medium text-soft-white/90 text-[10px] uppercase tracking-[0.3em] hidden sm:block">
+          <h2 className="font-bold text-soft-white/90 text-xs tracking-widest hidden sm:block">
             {t('intelligence')}
           </h2>
         </div>
@@ -99,7 +99,7 @@ export function ChatConsole({}: ChatConsoleProps) {
               <div className="w-20 h-20 rounded-full border-2 border-dashed border-gold/30 flex items-center justify-center mb-6 animate-pulse">
                  <Sparkles className="w-10 h-10 text-gold" />
               </div>
-              <h3 className="text-xl font-display text-soft-white mb-2">{t('intelligenceControlCenter')}</h3>
+              <h3 className="text-xl font-bold text-soft-white mb-2">{t('intelligenceControlCenter')}</h3>
               <p className="text-sm max-w-xs">{t('intelligenceSubtitle')}</p>
             </motion.div>
           )}

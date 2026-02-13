@@ -36,6 +36,7 @@ Estas reglas aplican SIEMPRE, incluso en v0 simplificado:
 8. Cada decisión técnica debe pasar el test: "¿Esto me acerca a mi siguiente mandato?"
 9. NUNCA inventes features que no estén en product-spec-v0.md.
 10. Consulta spec.md SOLO para arquitectura base (StateGraph, audit, LLM service).
+11. NUNCA abras el navegador para preview ni verificación visual a menos que el usuario lo solicite explícitamente.
 
 ## Stack Tecnológico (NO cambiar)
 - Frontend: Next.js 15 (App Router) + shadcn/ui + Tailwind CSS + Zustand
