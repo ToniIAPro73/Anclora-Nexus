@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import supabase from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,7 @@ import { Card } from '@/components/ui/card'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 
 export default function LoginPage() {
+  const router = useRouter()
   type Particle = {
     id: number
     x: number
@@ -53,17 +55,21 @@ export default function LoginPage() {
         setMessage('Email o contraseña incorrectos.')
       } else if (raw.includes('email not confirmed')) {
         setMessage('Debes confirmar tu email antes de iniciar sesión.')
+      } else if (raw.includes('invitation_required')) {
+        setMessage('Solo puedes crear cuenta si has sido invitado por tu organización.')
       } else {
         setMessage(error.message)
       }
       setIsError(true)
     } else {
-      setMessage(
-        mode === 'login'
-          ? 'Acceso correcto'
-          : 'Cuenta creada. Revisa tu correo si tu proyecto requiere confirmación.'
-      )
+      setMessage(mode === 'login' ? 'Acceso correcto' : 'Cuenta creada. Si tu invitación era válida, ya puedes iniciar sesión.')
       setIsError(false)
+      if (mode === 'login') {
+        router.replace('/dashboard')
+        router.refresh()
+      } else {
+        setMode('login')
+      }
     }
     setLoading(false)
   }
@@ -211,7 +217,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-soft-muted hover:text-soft-white transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-md bg-navy-deep/10 text-navy-deep/60 hover:bg-navy-deep/20 hover:text-navy-deep transition-colors flex items-center justify-center"
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

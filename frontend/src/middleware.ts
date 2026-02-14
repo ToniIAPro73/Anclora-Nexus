@@ -18,7 +18,7 @@ export async function middleware(req: NextRequest) {
         get(name: string) {
           return req.cookies.get(name)?.value
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: Record<string, unknown>) {
           req.cookies.set({
             name,
             value,
@@ -35,7 +35,7 @@ export async function middleware(req: NextRequest) {
             ...options,
           })
         },
-        remove(name: string, options: any) {
+        remove(name: string, options: Record<string, unknown>) {
           req.cookies.set({
             name,
             value: '',
@@ -62,8 +62,9 @@ export async function middleware(req: NextRequest) {
 
   const isLoginPage = req.nextUrl.pathname.startsWith('/login')
   const isAuthCallback = req.nextUrl.pathname.startsWith('/auth/callback')
+  const isInvitePage = req.nextUrl.pathname.startsWith('/invite/')
 
-  if (isAuthCallback) {
+  if (isAuthCallback || isInvitePage) {
     return res
   }
 
@@ -73,6 +74,32 @@ export async function middleware(req: NextRequest) {
 
   if (session && isLoginPage) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
+  // Harden access: authenticated users must have an ACTIVE org membership.
+  if (session && !isLoginPage) {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(new URL('/login?error=session-invalid', req.url))
+    }
+
+    const { data: membership, error: membershipError } = await supabase
+      .from('organization_members')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle()
+
+    if (membershipError || !membership) {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(new URL('/login?error=invitation-required', req.url))
+    }
   }
 
   return res
