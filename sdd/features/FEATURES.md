@@ -120,6 +120,41 @@
 
 ---
 
+### 2. Prospection & Buyer Matching v1
+
+**ID**: ANCLORA-PBM-001  
+**Versión**: 1.0  
+**Status**: Specification Phase  
+**Fase**: Growth Engine  
+**Prioridad**: CRÍTICA
+
+**Descripción**: Añade prospección de inmuebles high-ticket, prospección de compradores potenciales y motor de vinculación comprador-propiedad con scoring explicable para priorizar cierres y comisión.
+
+**Características clave**:
+- Entidades nuevas de prospección y matching.
+- `high_ticket_score` por inmueble.
+- `match_score` por vínculo buyer-property.
+- Registro de actividad comercial por match.
+- Priorización de oportunidades por score y valor esperado.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/prospection-matching-INDEX.md`
+- **Spec Técnica**: `sdd/features/prospection-matching-spec-v1.md`
+- **Spec Migración**: `sdd/features/prospection-matching-spec-migration.md`
+- **Test Plan**: `sdd/features/prospection-matching-test-plan-v1.md`
+- **Feature Rules**: `.agent/rules/feature-prospection-matching.md`
+- **SKILL**: `.agent/skills/features/prospection-matching-SKILL.md`
+- **Prompt Antigravity**: `.antigravity/prompts/feature-prospection-matching-v1.md`
+
+**Reglas de compliance**:
+- No scraping no autorizado.
+- No contacto irreversible sin paso humano.
+- Trazabilidad obligatoria de fuentes y scoring.
+
+**Status Aprobación**: ⏳ Pendiente (SDD formal)
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -149,6 +184,7 @@
 |---------|----|---------|---------|----|------|
 | Intelligence | ANCLORA-INT-001 | 1.0 | Implemented | Phase 0 | INDEX.md |
 | Multi-Tenant | ANCLORA-MTM-001 | 1.0 | Specification | Phase 1 Prerequisito | INDEX.md |
+| Prospection & Matching | ANCLORA-PBM-001 | 1.0 | Specification | Growth Engine | INDEX.md |
 
 ---
 
@@ -211,6 +247,7 @@
 
 | Fecha | Feature | Cambio |
 |-------|---------|--------|
+| 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
 | 2026-01-XX | Intelligence v1 | Implemented y deploy a producción |
 

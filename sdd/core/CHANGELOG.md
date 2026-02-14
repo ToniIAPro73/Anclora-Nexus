@@ -320,6 +320,52 @@ TRUNCATE organization_members CASCADE;
 -- Restaurar desde backup pre-migración
 ```
 
+## [UPCOMING] - Prospection & Buyer Matching v1 (Growth Engine)
+
+**Fecha anticipada**: 2026-02-XX  
+**Status**: En especificación  
+**Criticidad**: ALTA  
+**Feature**: ANCLORA-PBM-001 v1.0
+
+### Database Changes
+
+#### New Tables
+
+- `prospected_properties`
+- `buyer_profiles`
+- `property_buyer_matches`
+- `match_activity_log`
+
+#### Core Constraints
+
+- Score range: `0 <= high_ticket_score <= 100`
+- Score range: `0 <= match_score <= 100`
+- Unique link: `UNIQUE(property_id, buyer_id)`
+- Isolation: `org_id` obligatorio en todas entidades nuevas
+
+### API Changes (Feature Layer)
+
+Nuevos grupos de endpoints:
+- Prospected properties CRUD + scoring
+- Buyer profiles CRUD
+- Matching recompute/list/update
+- Match activity logging
+
+### Security & Governance
+
+- Prohibido scraping no autorizado.
+- Prohibida automatización de contacto irreversible sin intervención humana.
+- Source traceability obligatoria (`source`, `source_url`).
+- Cumplimiento de transparencia y reversibilidad conforme a Constitución.
+
+### SDD References
+
+- `sdd/features/prospection-matching-INDEX.md`
+- `sdd/features/prospection-matching-spec-v1.md`
+- `sdd/features/prospection-matching-spec-migration.md`
+- `sdd/features/prospection-matching-test-plan-v1.md`
+- `.agent/rules/feature-prospection-matching.md`
+
 **Frontend rollback**:
 - Remover componentes nuevos
 - Remover ProtectedRoute guards
@@ -432,3 +478,5 @@ TRUNCATE organization_members CASCADE;
 **Changelog maintained by**: Toni (CTO)  
 **Last updated**: 2026-02-13  
 **Next review**: Post Multi-Tenant v1 Production Deploy
+
+
