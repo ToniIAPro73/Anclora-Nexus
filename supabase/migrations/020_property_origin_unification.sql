@@ -16,10 +16,8 @@ ALTER TABLE public.properties
 ALTER TABLE public.properties
   ADD COLUMN IF NOT EXISTS source_portal TEXT;
 
--- 2) Backfill from notes JSONB when present (legacy transitional model)
--- Supported legacy keys:
---   notes.source_system
---   notes.source_portal
+-- 2) Backfill logic from notes JSONB
+-- Prioritize source_system from notes if available
 UPDATE public.properties
 SET
   source_system = COALESCE(source_system, NULLIF(lower(notes->>'source_system'), '')),
@@ -36,7 +34,7 @@ WHERE source_system IS NULL
 UPDATE public.properties
 SET source_portal = CASE
   WHEN source_portal IS NULL OR trim(source_portal) = '' THEN NULL
-  WHEN source_portal IN ('idealista', 'fotocasa', 'facebook', 'instagram', 'rightmove', 'kyero', 'other') THEN source_portal
+  WHEN lower(trim(source_portal)) IN ('idealista', 'fotocasa', 'facebook', 'instagram', 'rightmove', 'kyero', 'other') THEN lower(trim(source_portal))
   ELSE 'other'
 END;
 
@@ -47,7 +45,7 @@ ALTER TABLE public.properties
 ALTER TABLE public.properties
   ALTER COLUMN source_system SET NOT NULL;
 
--- 6) Add constraints (idempotent via catalog checks)
+-- 6) Add constraints (idempotent)
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -77,7 +75,7 @@ BEGIN
   END IF;
 END$$;
 
--- 7) Indexes for list/filter performance
+-- 7) Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_properties_org_source_system
   ON public.properties (org_id, source_system);
 

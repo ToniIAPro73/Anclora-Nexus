@@ -172,13 +172,20 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                 {/* Source Portal */}
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Portal / Fuente</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.source_portal || ''}
                     onChange={(e) => setFormData({ ...formData, source_portal: e.target.value })}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
-                    placeholder="ej. Idealista, Fotocasa, Facebook, Instagram..."
-                  />
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="">Ninguno</option>
+                    <option value="idealista">Idealista</option>
+                    <option value="fotocasa">Fotocasa</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="rightmove">Rightmove</option>
+                    <option value="kyero">Kyero</option>
+                    <option value="other">Otro</option>
+                  </select>
                 </div>
 
                 {/* Match Score (Simulated) */}

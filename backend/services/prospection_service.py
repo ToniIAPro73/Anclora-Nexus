@@ -41,6 +41,12 @@ class ProspectionService:
             **data.model_dump(exclude_none=True),
         }
 
+        # Normalize Enums to strings for Supabase
+        if "source_system" in record:
+            record["source_system"] = str(record["source_system"].value)
+        if "source_portal" in record and record["source_portal"] is not None:
+            record["source_portal"] = str(record["source_portal"].value)
+
         # Convert Decimal to float for JSON serialization
         if "price" in record and record["price"] is not None:
             record["price"] = float(record["price"])
@@ -111,6 +117,12 @@ class ProspectionService:
     ) -> Optional[Dict[str, Any]]:
         """Update a prospected property."""
         update_data: Dict[str, Any] = data.model_dump(exclude_none=True)
+
+        # Normalize Enums to strings for Supabase
+        if "source_system" in update_data:
+            update_data["source_system"] = str(update_data["source_system"].value)
+        if "source_portal" in update_data and update_data["source_portal"] is not None:
+            update_data["source_portal"] = str(update_data["source_portal"].value)
 
         if "price" in update_data and update_data["price"] is not None:
             update_data["price"] = float(update_data["price"])

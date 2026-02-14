@@ -85,10 +85,8 @@ export async function createProperty(propertyData: any) {
     status: propertyData.status || 'prospect',
     city: propertyData.zone || 'Mallorca',
     prospection_score: (propertyData.match_score || 0) / 100,
-    notes: {
-      source_system: propertyData.source_system || 'manual',
-      source_portal: propertyData.source_portal || null,
-    },
+    source_system: propertyData.source_system || 'manual',
+    source_portal: propertyData.source_portal || null,
   }
   
   const { data, error } = await supabase.from('properties').insert(dbData).select().single()

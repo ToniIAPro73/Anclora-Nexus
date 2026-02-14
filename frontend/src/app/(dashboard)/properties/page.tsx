@@ -123,7 +123,7 @@ export default function PropertiesPage() {
             ? legacy.price
             : Number(String(legacy.price).replace(/[^\d.]/g, ''))
 
-          const linkedPbm = pbmProps.find((p: ProspectedProperty) => {
+          const linkedPbm = pbmProps.find((p: any) => {
             const pbmName = normalizeText(p.title || p.city || '')
             const pbmZone = normalizeText(p.zone || p.city || '')
             const pbmType = normalizeText(p.property_type || '')
@@ -143,8 +143,11 @@ export default function PropertiesPage() {
 
           if (linkedPbm && aggByPbmPropertyId[linkedPbm.id]) {
             localMeta[legacy.id] = {
-              matchCount: aggByPbmPropertyId[linkedPbm.id].count,
+              matchCount: aggByPbmPropertyId[linkedPbm.id].matchCount,
               bestCommission: aggByPbmPropertyId[linkedPbm.id].bestCommission,
+              bestMatchScore: aggByPbmPropertyId[linkedPbm.id].bestMatchScore,
+              topBuyerName: aggByPbmPropertyId[linkedPbm.id].topBuyerName,
+              pbmSource: aggByPbmPropertyId[linkedPbm.id].pbmSource,
             }
           }
         }
@@ -231,20 +234,26 @@ export default function PropertiesPage() {
                         {getPropertyStatusLabel(property.status)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/5 text-soft-muted border border-soft-subtle">
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                        (pbmMetaByPropertyId[property.id] || property.source_system === 'pbm') 
+                          ? 'bg-gold/10 text-gold border-gold/20' 
+                          : property.source_system === 'widget'
+                          ? 'bg-blue-500/10 text-blue-300 border-blue-500/20'
+                          : 'bg-white/5 text-soft-muted border-soft-subtle'
+                      }`}>
                         {getOriginLabel(property, Boolean(pbmMetaByPropertyId[property.id]))}
                       </span>
-                      {normalizePortal(property.source_portal) ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                      {property.source_portal && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-navy-deep/60 text-blue-light border border-blue-light/20 flex items-center gap-1">
                           {normalizePortal(property.source_portal)}
                         </span>
-                      ) : null}
-                      {pbmMetaByPropertyId[property.id] ? (
+                      )}
+                      {pbmMetaByPropertyId[property.id] && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                          PBM ({pbmMetaByPropertyId[property.id].matchCount} matches)
+                          {pbmMetaByPropertyId[property.id].matchCount} MATCHES
                         </span>
-                      ) : null}
+                      )}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-soft-muted">
                       <MapPin className="w-4 h-4 shrink-0" />

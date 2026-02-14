@@ -29,8 +29,8 @@ export interface Property {
   price: number | string
   type: string
   status: 'prospect' | 'listed' | 'offer' | 'sold' | 'rejected'
-  source_system?: 'manual' | 'widget' | 'pbm' | string
-  source_portal?: string
+  source_system?: 'manual' | 'widget' | 'pbm'
+  source_portal?: 'idealista' | 'fotocasa' | 'facebook' | 'instagram' | 'rightmove' | 'kyero' | 'other' | string
   stage?: string
   zone?: string
   commission_est?: string
@@ -712,8 +712,8 @@ export const useStore = create<AppState>((set) => ({
             price: p.price || 0,
             type: p.property_type || 'Villa',
             status: p.status === 'listed' ? 'listed' : p.status === 'sold' ? 'sold' : 'prospect',
-            source_system: p.notes?.source_system || 'manual',
-            source_portal: p.notes?.source_portal || undefined,
+            source_system: p.source_system || 'manual',
+            source_portal: p.source_portal || undefined,
             zone: p.city || 'Mallorca',
             match_score: p.prospection_score ? Math.round(p.prospection_score * 100) : undefined
           }))

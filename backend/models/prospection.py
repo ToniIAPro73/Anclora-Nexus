@@ -51,6 +51,22 @@ class ActivityType(str, Enum):
     NOTE = "note"
 
 
+class PropertySourceSystem(str, Enum):
+    MANUAL = "manual"
+    WIDGET = "widget"
+    PBM = "pbm"
+
+
+class PropertySourcePortal(str, Enum):
+    IDEALISTA = "idealista"
+    FOTOCASA = "fotocasa"
+    FACEBOOK = "facebook"
+    INSTAGRAM = "instagram"
+    RIGHTMOVE = "rightmove"
+    KYERO = "kyero"
+    OTHER = "other"
+
+
 # Allowed sources for property prospection (compliance)
 ALLOWED_SOURCES: set[str] = {
     "idealista",
@@ -107,6 +123,8 @@ class PropertyCreate(BaseModel):
     bathrooms: Optional[int] = Field(default=None, ge=0)
     area_m2: Optional[Decimal] = Field(default=None, ge=0)
     status: PropertyStatus = PropertyStatus.NEW
+    source_system: PropertySourceSystem = PropertySourceSystem.MANUAL
+    source_portal: Optional[PropertySourcePortal] = None
     notes: Optional[str] = None
 
     @field_validator("source")
@@ -118,6 +136,18 @@ class PropertyCreate(BaseModel):
             msg = f"Source '{v}' is not authorized. Allowed: {sorted(ALLOWED_SOURCES)}"
             raise ValueError(msg)
         return normalized
+
+    @field_validator("source_portal", mode="before")
+    @classmethod
+    def normalize_portal(cls, v: Any) -> Any:
+        """Normalize source_portal string to enum value."""
+        if isinstance(v, str) and v.strip():
+            normalized = v.lower().strip()
+            try:
+                return PropertySourcePortal(normalized)
+            except ValueError:
+                return PropertySourcePortal.OTHER
+        return v
 
 
 class PropertyUpdate(BaseModel):
@@ -132,6 +162,8 @@ class PropertyUpdate(BaseModel):
     bathrooms: Optional[int] = Field(default=None, ge=0)
     area_m2: Optional[Decimal] = Field(default=None, ge=0)
     status: Optional[PropertyStatus] = None
+    source_system: Optional[PropertySourceSystem] = None
+    source_portal: Optional[PropertySourcePortal] = None
     notes: Optional[str] = None
 
 
@@ -153,6 +185,8 @@ class PropertyResponse(BaseModel):
     high_ticket_score: Optional[Decimal] = None
     score_breakdown: Dict[str, Any] = Field(default_factory=dict)
     status: str
+    source_system: str
+    source_portal: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
