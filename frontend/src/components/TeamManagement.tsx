@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useOrgMembership } from '@/lib/hooks/useOrgMembership'
 import { useTeamManagement } from '@/lib/hooks/useTeamManagement'
 import { useI18n } from '@/lib/i18n'
+import supabase from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   UserPlus, 
@@ -20,9 +21,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { OrgRole, OrgMembership } from '@/lib/contexts/OrgContext'
 
+type TeamMember = OrgMembership & {
+  email?: string
+  full_name?: string
+  avatar_url?: string
+}
+
 export default function TeamManagement() {
   const { t } = useI18n()
-  const { canManageTeam, org_id } = useOrgMembership()
+  const { canManageTeam, org_id, user_id: currentUserId } = useOrgMembership()
   const { 
     inviteMember, 
     changeMemberRole, 
@@ -31,12 +38,45 @@ export default function TeamManagement() {
     loading: actionLoading 
   } = useTeamManagement()
 
-  const [members, setMembers] = useState<OrgMembership[]>([])
+  const [members, setMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState<OrgRole>('agent')
+  const [inviteRole, setInviteRole] = useState<OrgRole>('manager')
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [selfProfile, setSelfProfile] = useState<{ full_name?: string; email?: string; avatar_url?: string } | null>(null)
+
+  const mapTeamError = (rawMessage?: string) => {
+    const msg = (rawMessage || '').trim()
+    if (!msg) return t('teamErrGeneric')
+
+    if (msg.includes('No active session')) return t('teamErrNoSession')
+    if (msg.includes('No user found with this email')) return t('teamErrUserNotFound')
+    if (msg.includes('already an active member')) return t('teamErrAlreadyActive')
+    if (msg.includes('already has a pending invitation')) return t('teamErrAlreadyPending')
+    if (msg.includes("Invitations for role 'owner' are not allowed")) return t('teamErrInviteOwnerNotAllowed')
+    if (msg.includes("Invitations for role 'agent' are disabled")) return t('teamErrInviteAgentDisabled')
+    if (msg.includes('Organization already has an owner')) return t('teamErrOwnerExists')
+    if (msg.includes('Insufficient permissions')) return t('teamErrForbidden')
+    if (msg.includes('Member not found')) return t('teamErrMemberNotFound')
+    if (msg.includes('Cannot change role of the last owner')) return t('teamErrLastOwnerLocked')
+    if (msg.includes('Cannot remove the last owner')) return t('teamErrLastOwnerLocked')
+    if (msg.includes('Failed to invite member')) return t('teamErrGeneric')
+    if (msg.includes('Failed to update role')) return t('teamErrGeneric')
+    if (msg.includes('Failed to remove member')) return t('teamErrGeneric')
+    if (msg.includes('Failed to fetch members')) return t('teamErrGeneric')
+
+    return msg
+  }
+
+  const getMembershipStatusLabel = (status: string) => {
+    const normalized = String(status || '').toLowerCase()
+    if (normalized === 'active') return t('membershipStatusActive')
+    if (normalized === 'pending') return t('membershipStatusPending')
+    if (normalized === 'suspended') return t('membershipStatusSuspended')
+    if (normalized === 'removed') return t('membershipStatusRemoved')
+    return status
+  }
 
   const loadMembers = async () => {
     setLoading(true)
@@ -51,6 +91,27 @@ export default function TeamManagement() {
     }
   }, [org_id])
 
+  useEffect(() => {
+    const loadSelfProfile = async () => {
+      if (!currentUserId) return
+
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('full_name,email,avatar_url')
+        .eq('id', currentUserId)
+        .maybeSingle()
+
+      setSelfProfile({
+        full_name: profile?.full_name || user?.user_metadata?.full_name,
+        email: profile?.email || user?.email || undefined,
+        avatar_url: profile?.avatar_url || user?.user_metadata?.avatar_url
+      })
+    }
+
+    loadSelfProfile()
+  }, [currentUserId])
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
@@ -61,18 +122,19 @@ export default function TeamManagement() {
       setInviteEmail('')
       loadMembers()
     } catch (err: any) {
-      setErrorMessage(err.message)
+      setErrorMessage(mapTeamError(err?.message))
     }
   }
+
+  const activeOwnersCount = members.filter((m) => m.role === 'owner' && m.status === 'active').length
 
   const handleRoleChange = async (memberId: string, newRole: OrgRole) => {
     try {
       await changeMemberRole(memberId, newRole)
-      await changeMemberRole(memberId, newRole)
       setSuccessMessage(t('roleUpdated'))
       loadMembers()
     } catch (err: any) {
-      setErrorMessage(err.message)
+      setErrorMessage(mapTeamError(err?.message))
     }
   }
 
@@ -83,7 +145,7 @@ export default function TeamManagement() {
       setSuccessMessage(t('memberRemoved'))
       loadMembers()
     } catch (err: any) {
-      setErrorMessage(err.message)
+      setErrorMessage(mapTeamError(err?.message))
     }
   }
 
@@ -121,9 +183,7 @@ export default function TeamManagement() {
                 onChange={(e) => setInviteRole(e.target.value as OrgRole)}
                 className="bg-navy-deep/50 border border-gold/20 rounded-xl px-4 h-12 text-sm text-soft-white focus:outline-none focus:border-gold/50 transition-all"
               >
-                <option value="agent">Agent</option>
-                <option value="manager">Manager</option>
-                <option value="owner">Owner</option>
+                <option value="manager">{t('teamRoleManager')}</option>
               </select>
               <Button 
                 type="submit" 
@@ -184,7 +244,25 @@ export default function TeamManagement() {
                   <td className="px-6 py-8"><div className="h-4 bg-white/5 rounded w-10 ml-auto" /></td>
                 </tr>
               ))
-            ) : members.map((member) => (
+            ) : members.map((member) => {
+              const isLastOwner =
+                member.role === 'owner' &&
+                member.status === 'active' &&
+                activeOwnersCount <= 1
+              const canPromoteToOwner = member.role === 'owner'
+              const isCurrentUser = Boolean(currentUserId && member.user_id === currentUserId)
+              const displayName = isCurrentUser
+                ? (member.full_name || selfProfile?.full_name || member.email || selfProfile?.email || t('teamMemberNameFallback'))
+                : (member.full_name || member.email || t('teamMemberNameFallback'))
+              const displayEmail = isCurrentUser
+                ? (member.email || selfProfile?.email)
+                : member.email
+              const displayAvatar = isCurrentUser
+                ? (member.avatar_url || selfProfile?.avatar_url)
+                : member.avatar_url
+              const subline = displayEmail || `${t('teamMemberIdLabel')}: ${member.id.substring(0,8)}`
+              const avatarInitial = (displayName || 'U').charAt(0).toUpperCase()
+              return (
               <motion.tr 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -193,12 +271,23 @@ export default function TeamManagement() {
               >
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold font-bold">
-                      {member.user_id ? 'U' : 'P'}
+                    <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold font-bold overflow-hidden">
+                      {displayAvatar ? (
+                        <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
+                      ) : (
+                        avatarInitial
+                      )}
                     </div>
                     <div>
-                      <p className="text-soft-white font-medium text-sm">Agent Name</p>
-                      <p className="text-soft-muted text-xs opacity-60">member_id: {member.id.substring(0,8)}</p>
+                      <p className="text-soft-white font-medium text-sm flex items-center gap-2">
+                        {displayName}
+                        {isCurrentUser && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/15 border border-gold/30 text-gold">
+                            {t('teamCurrentUserBadge')}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-soft-muted text-xs opacity-60">{subline}</p>
                     </div>
                   </div>
                 </td>
@@ -206,11 +295,15 @@ export default function TeamManagement() {
                   <select 
                     value={member.role}
                     onChange={(e) => handleRoleChange(member.id, e.target.value as OrgRole)}
-                    className="bg-navy-deep/80 border border-soft-subtle/10 rounded-lg px-3 py-1.5 text-xs text-soft-white focus:outline-none focus:border-gold/30 transition-all cursor-pointer hover:bg-navy-surface"
+                    disabled={isLastOwner}
+                    title={isLastOwner ? t('teamLastOwnerLockedHint') : ''}
+                    className={`bg-navy-deep/80 border border-soft-subtle/10 rounded-lg px-3 py-1.5 text-xs text-soft-white focus:outline-none focus:border-gold/30 transition-all hover:bg-navy-surface ${
+                      isLastOwner ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                    }`}
                   >
-                    <option value="agent">Agent</option>
-                    <option value="manager">Manager</option>
-                    <option value="owner">Owner</option>
+                    <option value="agent">{t('teamRoleAgent')}</option>
+                    <option value="manager">{t('teamRoleManager')}</option>
+                    {canPromoteToOwner && <option value="owner">{t('teamRoleOwner')}</option>}
                   </select>
                 </td>
                 <td className="px-6 py-5">
@@ -219,7 +312,7 @@ export default function TeamManagement() {
                     member.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
                     'bg-red-500/10 text-red-400 border-red-500/20'
                   }`}>
-                    {member.status}
+                    {getMembershipStatusLabel(member.status)}
                   </span>
                 </td>
                 <td className="px-6 py-5 text-right">
@@ -238,7 +331,7 @@ export default function TeamManagement() {
                   </div>
                 </td>
               </motion.tr>
-            ))}
+            )})}
           </tbody>
         </table>
         {!loading && members.length === 0 && (

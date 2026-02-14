@@ -10,6 +10,22 @@ export function useTeamManagement() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const getResponseError = async (response: Response, fallback: string) => {
+    const contentType = response.headers.get('content-type') || ''
+    if (contentType.includes('application/json')) {
+      const data = await response.json()
+      return data.detail || data.message || fallback
+    }
+
+    const raw = await response.text()
+    try {
+      const parsed = JSON.parse(raw)
+      return parsed.detail || parsed.message || fallback
+    } catch {
+      return raw || fallback
+    }
+  }
+
   const inviteMember = async (email: string, role: OrgRole) => {
     if (!canManageTeam) throw new Error('Unauthorized')
     setLoading(true)
@@ -33,8 +49,7 @@ export function useTeamManagement() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || 'Failed to invite member')
+        throw new Error(await getResponseError(response, 'Failed to invite member'))
       }
 
       return await response.json()
@@ -66,8 +81,7 @@ export function useTeamManagement() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || 'Failed to update role')
+        throw new Error(await getResponseError(response, 'Failed to update role'))
       }
 
       return await response.json()
@@ -97,8 +111,7 @@ export function useTeamManagement() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || 'Failed to remove member')
+        throw new Error(await getResponseError(response, 'Failed to remove member'))
       }
 
       return true
@@ -126,8 +139,7 @@ export function useTeamManagement() {
         }
       })
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || 'Failed to fetch members')
+        throw new Error(await getResponseError(response, 'Failed to fetch members'))
       }
       const data = await response.json()
       return data.members

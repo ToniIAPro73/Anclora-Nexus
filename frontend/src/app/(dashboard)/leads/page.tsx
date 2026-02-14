@@ -26,6 +26,26 @@ function LeadsContent() {
   const safeCurrentPage = Math.min(Math.max(1, currentPage), Math.max(1, totalPages))
   const paginatedLeads = leads.slice((safeCurrentPage - 1) * ITEMS_PER_PAGE, safeCurrentPage * ITEMS_PER_PAGE)
 
+  const getLeadStatusLabel = (status: string) => {
+    const normalized = String(status || '').toLowerCase()
+    if (normalized === 'new') return t('leadStatusNew')
+    if (normalized === 'contacted') return t('leadStatusContacted')
+    if (normalized === 'qualified') return t('leadStatusQualified')
+    if (normalized === 'negotiating') return t('leadStatusNegotiating')
+    if (normalized === 'closed') return t('leadStatusClosed')
+    return status
+  }
+
+  const getLeadStatusClasses = (status: string) => {
+    const normalized = String(status || '').toLowerCase()
+    if (normalized === 'new') return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+    if (normalized === 'contacted') return 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+    if (normalized === 'qualified') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+    if (normalized === 'negotiating') return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+    if (normalized === 'closed') return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+    return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+  }
+
   useEffect(() => {
     const hl = searchParams.get('highlight')
     if (hl) setHighlightId(hl)
@@ -174,8 +194,8 @@ function LeadsContent() {
                           </span>
                         </td>
                         <td className="px-3 py-4 text-right">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            {lead.status}
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getLeadStatusClasses(lead.status)}`}>
+                            {getLeadStatusLabel(lead.status)}
                           </span>
                         </td>
                         <td className="px-3 py-4 text-right whitespace-nowrap">

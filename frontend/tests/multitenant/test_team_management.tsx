@@ -65,7 +65,7 @@ describe('TeamManagement Component', () => {
     fireEvent.change(input, { target: { value: 'new@test.com' } })
     fireEvent.click(button)
 
-    expect(mockInviteMember).toHaveBeenCalledWith('new@test.com', 'agent')
+    expect(mockInviteMember).toHaveBeenCalledWith('new@test.com', 'manager')
     await waitFor(() => {
       expect(screen.getByText(/Invitation sent/i)).toBeInTheDocument()
     })

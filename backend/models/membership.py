@@ -32,6 +32,8 @@ class Membership(MembershipBase):
     id: UUID
     user_id: Optional[UUID] = None
     email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
     joined_at: Optional[datetime] = None
     invitation_code: Optional[str] = None
     invitation_accepted_at: Optional[datetime] = None

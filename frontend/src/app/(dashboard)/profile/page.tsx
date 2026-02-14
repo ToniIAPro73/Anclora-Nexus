@@ -138,17 +138,26 @@ export default function ProfilePage() {
     setErrorStatus(null)
     
     try {
-      // 1. Ensure bucket exists (Supabase specific error handling)
-      const fileName = `${Date.now()}-${file.name}`
+      // 1. Upload under "<uid>/..." so Storage RLS can scope ownership.
+      const extension = file.name.includes('.') ? file.name.split('.').pop() : 'jpg'
+      const fileName = `${user.id}/avatar-${Date.now()}.${extension}`
       const bucket = 'avatars'
       
       const { error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file, { cacheControl: '3600', upsert: true })
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: file.type || 'image/jpeg'
+        })
 
       if (uploadError) {
         if (uploadError.message.includes('not found')) {
           setErrorStatus(`Bucket "${bucket}" is not ready. Please check Supabase Storage settings.`)
+          throw uploadError
+        }
+        if (uploadError.message.toLowerCase().includes('row-level security')) {
+          setErrorStatus('No hay permisos para subir avatar en Storage (RLS). Aplica la migración 012 y reinicia Supabase.')
           throw uploadError
         }
         throw uploadError

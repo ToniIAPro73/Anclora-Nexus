@@ -9,7 +9,7 @@ export type MembershipStatus = 'active' | 'pending' | 'suspended' | 'removed'
 export interface OrgMembership {
   id: string
   org_id: string
-  user_id: string
+  user_id?: string | null
   role: OrgRole
   status: MembershipStatus
   joined_at: string

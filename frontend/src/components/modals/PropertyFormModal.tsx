@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save, Home, MapPin, Euro, Activity, Loader2 } from 'lucide-react'
 import { useStore, Property } from '@/lib/store'
 import { createProperty } from '@/lib/api'
+import { useI18n } from '@/lib/i18n'
 
 interface PropertyFormModalProps {
   isOpen: boolean
@@ -12,6 +13,7 @@ interface PropertyFormModalProps {
 }
 
 export default function PropertyFormModal({ isOpen, onClose, editProperty }: PropertyFormModalProps) {
+  const { t } = useI18n()
   const addProperty = useStore((state) => state.addProperty)
   const updateProperty = useStore((state) => state.updateProperty)
   const [loading, setLoading] = useState(false)
@@ -142,11 +144,11 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as Property['status'] })}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
                   >
-                    <option value="prospect">Prospect</option>
-                    <option value="listed">Listed</option>
-                    <option value="offer">Offer</option>
-                    <option value="sold">Sold</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="prospect">{t('propertyStatusProspect')}</option>
+                    <option value="listed">{t('propertyStatusListed')}</option>
+                    <option value="offer">{t('propertyStatusOffer')}</option>
+                    <option value="sold">{t('propertyStatusSold')}</option>
+                    <option value="rejected">{t('propertyStatusRejected')}</option>
                   </select>
                 </div>
 

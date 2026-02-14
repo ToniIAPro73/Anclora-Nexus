@@ -201,11 +201,11 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
                   >
-                      <option value="New">New</option>
-                      <option value="Contacted">Contacted</option>
-                      <option value="Qualified">Qualified</option>
-                      <option value="Negotiating">Negotiating</option>
-                      <option value="Closed">Closed</option>
+                      <option value="New">{t('leadStatusNew')}</option>
+                      <option value="Contacted">{t('leadStatusContacted')}</option>
+                      <option value="Qualified">{t('leadStatusQualified')}</option>
+                      <option value="Negotiating">{t('leadStatusNegotiating')}</option>
+                      <option value="Closed">{t('leadStatusClosed')}</option>
                   </select>
                 </div>
               </div>

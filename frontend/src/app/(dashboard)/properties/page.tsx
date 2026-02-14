@@ -22,6 +22,16 @@ export default function PropertiesPage() {
   const safeCurrentPage = Math.min(Math.max(1, currentPage), Math.max(1, totalPages))
   const paginatedProperties = properties.slice((safeCurrentPage - 1) * ITEMS_PER_PAGE, safeCurrentPage * ITEMS_PER_PAGE)
 
+  const getPropertyStatusLabel = (status: string) => {
+    const normalized = String(status || '').toLowerCase()
+    if (normalized === 'prospect') return t('propertyStatusProspect')
+    if (normalized === 'listed') return t('propertyStatusListed')
+    if (normalized === 'offer') return t('propertyStatusOffer')
+    if (normalized === 'sold') return t('propertyStatusSold')
+    if (normalized === 'rejected') return t('propertyStatusRejected')
+    return status
+  }
+
   const handleEdit = (property: Property) => {
     setEditingProperty(property)
     setIsModalOpen(true)
@@ -97,10 +107,7 @@ export default function PropertiesPage() {
                            property.status === 'rejected' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
                            'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         }`}>
-                           {property.status === 'prospect' ? 'Captación' :
-                            property.status === 'offer' ? 'Oferta' :
-                            property.status === 'sold' ? 'Vendido' : 
-                            property.status === 'rejected' ? 'Descartado' : 'Listado'}
+                           {getPropertyStatusLabel(property.status)}
                         </span>
                      </div>
 

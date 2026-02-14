@@ -16,6 +16,16 @@ export function LeadsPulse() {
 
   const displayLeads = leads.slice(0, 5)
 
+  const getLeadStatusLabel = (status: string) => {
+    const normalized = String(status || '').toLowerCase()
+    if (normalized === 'new') return t('leadStatusNew')
+    if (normalized === 'contacted') return t('leadStatusContacted')
+    if (normalized === 'qualified') return t('leadStatusQualified')
+    if (normalized === 'negotiating') return t('leadStatusNegotiating')
+    if (normalized === 'closed') return t('leadStatusClosed')
+    return status
+  }
+
   return (
     <GoldShimmer className="h-full">
       <div className="widget-card h-full flex flex-col">
@@ -70,7 +80,9 @@ export function LeadsPulse() {
                         </span>
                       </td>
                       <td className="py-3 pl-2 text-right">
-                        <span className="text-[9px] uppercase tracking-wider text-soft-muted font-bold group-hover:text-white transition-colors">{lead.status}</span>
+                        <span className="text-[9px] uppercase tracking-wider text-soft-muted font-bold group-hover:text-white transition-colors">
+                          {getLeadStatusLabel(lead.status)}
+                        </span>
                       </td>
                     </motion.tr>
                   ))

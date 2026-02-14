@@ -26,6 +26,22 @@ class MembershipService:
         alphabet = string.ascii_letters + string.digits
         return ''.join(secrets.choice(alphabet) for _ in range(length))
 
+    def _get_active_owner_ids(self, org_id: UUID) -> List[str]:
+        """
+        Returns active owner membership ids using case-insensitive checks.
+        """
+        rows = supabase_service.client.table("organization_members")\
+            .select("id,role,status")\
+            .eq("org_id", str(org_id))\
+            .execute()
+        owner_ids: List[str] = []
+        for row in (rows.data or []):
+            role = str(row.get("role") or "").strip().lower()
+            status = str(row.get("status") or "").strip().lower()
+            if role == UserRole.OWNER.value and status == MembershipStatus.ACTIVE.value:
+                owner_ids.append(str(row["id"]))
+        return owner_ids
+
     async def invite_member(self, org_id: UUID, payload: MembershipCreate, inviter_id: UUID) -> dict:
         """
         Invites a new member to an organization.
@@ -41,37 +57,60 @@ class MembershipService:
         Raises:
             HTTPException: If member already exists or other validation fails.
         """
-        # Check if member already exists in this org
-        existing = supabase_service.client.table("organization_members")\
-            .select("*")\
-            .eq("org_id", str(org_id))\
-            .eq("user_id", str(inviter_id))\
-            .execute() # Note: This is a bit tricky, invitation is by email. 
-            # In v1, we check if email is already a member via subquery or similar.
-            # For simplicity, we search by email if we had it in the profile.
-        
-        # Proper check: does this email have an active membership in this org?
-        # Since organization_members links to user_id, we'd need to find user by email first.
-        # However, invitations allow inviting someone who isn't a user yet.
-        
-        # Check if a pending invitation for this email exists in this org
-        pending = supabase_service.client.table("organization_members")\
-            .select("*")\
-            .eq("org_id", str(org_id))\
-            .eq("status", MembershipStatus.PENDING)\
+        # Business rules for invitations.
+        if payload.role == UserRole.AGENT:
+            raise HTTPException(status_code=400, detail="Invitations for role 'agent' are disabled. Invite as manager.")
+        if payload.role == UserRole.OWNER:
+            raise HTTPException(status_code=400, detail="Invitations for role 'owner' are not allowed.")
+
+        invited_email = str(payload.email).strip().lower()
+
+        # Resolve invited email to an existing user profile if available.
+        profile = supabase_service.client.table("user_profiles")\
+            .select("id,email")\
+            .ilike("email", invited_email)\
+            .limit(1)\
             .execute()
+
+        invited_user_id = str(profile.data[0]["id"]) if profile.data else None
+
+        # Check duplicates by invited_email first (covers pre-signup invites).
+        existing_by_email = supabase_service.client.table("organization_members")\
+            .select("*")\
+            .eq("org_id", str(org_id))\
+            .eq("invited_email", invited_email)\
+            .limit(1)\
+            .execute()
+        if existing_by_email.data:
+            existing_member = existing_by_email.data[0]
+            if existing_member["status"] == MembershipStatus.ACTIVE:
+                raise HTTPException(status_code=409, detail="User is already an active member of this organization")
+            if existing_member["status"] == MembershipStatus.PENDING:
+                raise HTTPException(status_code=409, detail="User already has a pending invitation")
+
+        # If the user already exists, also check by user_id.
+        existing_by_user = None
+        if invited_user_id:
+            existing_by_user = supabase_service.client.table("organization_members")\
+                .select("*")\
+                .eq("org_id", str(org_id))\
+                .eq("user_id", invited_user_id)\
+                .limit(1)\
+                .execute()
+            if existing_by_user.data:
+                existing_member = existing_by_user.data[0]
+                if existing_member["status"] == MembershipStatus.ACTIVE:
+                    raise HTTPException(status_code=409, detail="User is already an active member of this organization")
+                if existing_member["status"] == MembershipStatus.PENDING:
+                    raise HTTPException(status_code=409, detail="User already has a pending invitation")
         
         # Generate code
         invitation_code = self._generate_invitation_code()
         
-        # Create membership record in 'pending' status
-        # Note: In v1, we might not have a user_id yet if they haven't signed up.
-        # We store the email in a separate column or use the profile if exists.
-        # The spec says organization_members has a user_id. 
-        # If they don't have a user_id, we might need to handle late-binding.
-        
         data = {
             "org_id": str(org_id),
+            "user_id": invited_user_id,
+            "invited_email": invited_email,
             "role": payload.role,
             "status": MembershipStatus.PENDING,
             "invitation_code": invitation_code,
@@ -79,25 +118,36 @@ class MembershipService:
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
-        
-        # In this implementation, we assume we might need to store the email 
-        # somewhere if user_id is null. Let's assume we can add 'email' to the table.
-        # The SQL spec in spec-multitenant-v1.md didn't show 'email' in organization_members,
-        # but the API spec says POST returns 'email'. 
-        
-        # Let's check if we can add 'email' or if it's stored in metadata.
-        # Actually, let's just use the metadata if needed, or assume the table has it.
-        # The prompt says "(email): ID de organización" - wait, param path is org_id.
-        # Body has email.
-        
-        data["metadata"] = {"email": payload.email}
-        
-        result = supabase_service.client.table("organization_members").insert(data).execute()
+
+        reusable = None
+        if existing_by_email and existing_by_email.data:
+            reusable = existing_by_email.data[0]
+        elif existing_by_user and existing_by_user.data:
+            reusable = existing_by_user.data[0]
+
+        if reusable:
+            # Reactivate a previously removed/suspended member as a new pending invitation.
+            result = supabase_service.client.table("organization_members")\
+                .update({
+                    "user_id": invited_user_id,
+                    "invited_email": invited_email,
+                    "role": payload.role,
+                    "status": MembershipStatus.PENDING,
+                    "invitation_code": invitation_code,
+                    "invited_by": str(inviter_id),
+                    "invitation_accepted_at": None,
+                    "updated_at": datetime.utcnow().isoformat()
+                })\
+                .eq("id", str(reusable["id"]))\
+                .eq("org_id", str(org_id))\
+                .execute()
+        else:
+            result = supabase_service.client.table("organization_members").insert(data).execute()
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to create invitation")
             
         member_data = result.data[0]
-        member_data["email"] = payload.email # Inject for response
+        member_data["email"] = invited_email
         return member_data
 
     async def list_members(self, org_id: UUID, role: Optional[UserRole] = None, status: Optional[MembershipStatus] = None, limit: int = 50, offset: int = 0) -> dict:
@@ -112,12 +162,46 @@ class MembershipService:
             query = query.eq("status", status)
             
         result = query.range(offset, offset + limit - 1).execute()
-        
-        # We would normally join with user_profiles to get emails/names
-        # For now, return raw data
+
+        members = result.data or []
+        user_ids: List[str] = []
+        for member in members:
+            raw_user_id = member.get("user_id")
+            if not raw_user_id:
+                continue
+            try:
+                normalized_user_id = str(UUID(str(raw_user_id)))
+                member["user_id"] = normalized_user_id
+                user_ids.append(normalized_user_id)
+            except (ValueError, TypeError):
+                # Keep listing members even if one row has malformed user_id.
+                member["user_id"] = None
+
+        profiles_by_id = {}
+        if user_ids:
+            profiles = supabase_service.client.table("user_profiles")\
+                .select("id,email,full_name,avatar_url")\
+                .in_("id", list(dict.fromkeys(user_ids)))\
+                .execute()
+            profiles_by_id = {p["id"]: p for p in (profiles.data or [])}
+
+        for member in members:
+            profile = profiles_by_id.get(member.get("user_id"))
+            if profile:
+                member["email"] = profile.get("email")
+                member["full_name"] = profile.get("full_name")
+                member["avatar_url"] = profile.get("avatar_url")
+            else:
+                member["email"] = member.get("invited_email")
+
+            email = member.get("email")
+            if email is not None:
+                email = str(email).strip().lower()
+                member["email"] = email if "@" in email else None
+
         return {
-            "members": result.data,
-            "total": result.count,
+            "members": members,
+            "total": int(result.count) if result.count is not None else len(members),
             "limit": limit,
             "offset": offset
         }
@@ -126,27 +210,42 @@ class MembershipService:
         """
         Updates a member's role or status.
         """
+        target_role = payload.role.value if isinstance(payload.role, UserRole) else payload.role
+
         # Validate last owner check
-        if payload.role and payload.role != UserRole.OWNER:
+        if target_role and target_role != UserRole.OWNER.value:
             # Check if this member IS an owner
             current = supabase_service.client.table("organization_members")\
                 .select("*")\
                 .eq("id", str(member_id))\
+                .eq("org_id", str(org_id))\
+                .limit(1)\
                 .execute()
             
-            if current.data and current.data[0]["role"] == UserRole.OWNER:
-                # Check how many owners left
-                owners = supabase_service.client.table("organization_members")\
-                    .select("id")\
-                    .eq("org_id", str(org_id))\
-                    .eq("role", UserRole.OWNER)\
-                    .eq("status", MembershipStatus.ACTIVE)\
-                    .execute()
-                
-                if len(owners.data) <= 1:
+            if current.data and str(current.data[0].get("role") or "").strip().lower() == UserRole.OWNER.value:
+                owner_ids = self._get_active_owner_ids(org_id)
+                if len(owner_ids) <= 1:
                     raise HTTPException(status_code=400, detail="Cannot change role of the last owner")
+        elif target_role == UserRole.OWNER.value:
+            current = supabase_service.client.table("organization_members")\
+                .select("*")\
+                .eq("id", str(member_id))\
+                .eq("org_id", str(org_id))\
+                .limit(1)\
+                .execute()
+            if not current.data:
+                raise HTTPException(status_code=404, detail="Member not found")
+            current_role = str(current.data[0].get("role") or "").lower()
+            if current_role != UserRole.OWNER.value:
+                existing_owner_ids = set(self._get_active_owner_ids(org_id))
+                if existing_owner_ids and str(member_id) not in existing_owner_ids:
+                    raise HTTPException(status_code=400, detail="Organization already has an owner")
 
         update_data = payload.dict(exclude_unset=True)
+        if "role" in update_data and isinstance(update_data["role"], UserRole):
+            update_data["role"] = update_data["role"].value
+        if "status" in update_data and isinstance(update_data["status"], MembershipStatus):
+            update_data["status"] = update_data["status"].value
         update_data["updated_at"] = datetime.utcnow().isoformat()
         
         result = supabase_service.client.table("organization_members")\
@@ -157,37 +256,34 @@ class MembershipService:
             
         if not result.data:
             raise HTTPException(status_code=404, detail="Member not found")
-            
-        return result.data[0]
+
+        updated_member = result.data[0]
+        if payload.role and updated_member.get("user_id"):
+            supabase_service.client.table("user_profiles")\
+                .update({"role": payload.role})\
+                .eq("id", str(updated_member["user_id"]))\
+                .execute()
+
+        return updated_member
 
     async def remove_member(self, org_id: UUID, member_id: UUID):
         """
         Removes a member from an organization.
         """
-        # Check last owner
-        current = supabase_service.client.table("organization_members")\
-            .select("*")\
+        existing = supabase_service.client.table("organization_members")\
+            .select("id")\
             .eq("id", str(member_id))\
+            .eq("org_id", str(org_id))\
+            .limit(1)\
             .execute()
-            
-        if current.data and current.data[0]["role"] == UserRole.OWNER:
-            owners = supabase_service.client.table("organization_members")\
-                .select("id")\
-                .eq("org_id", str(org_id))\
-                .eq("role", UserRole.OWNER)\
-                .execute()
-            
-            if len(owners.data) <= 1:
-                raise HTTPException(status_code=400, detail="Cannot remove the last owner")
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Member not found")
 
-        result = supabase_service.client.table("organization_members")\
+        supabase_service.client.table("organization_members")\
             .delete()\
             .eq("id", str(member_id))\
             .eq("org_id", str(org_id))\
             .execute()
-            
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Member not found")
 
     async def validate_invitation(self, code: str) -> dict:
         """
@@ -210,7 +306,16 @@ class MembershipService:
             
         return {
             "valid": True,
-            "email": inv.get("metadata", {}).get("email", ""),
+            "email": inv.get("invited_email") or (
+                supabase_service.client.table("user_profiles")
+                .select("email")
+                .eq("id", inv["user_id"])
+                .limit(1)
+                .execute()
+                .data[0]["email"]
+                if inv.get("user_id")
+                else ""
+            ),
             "role": inv["role"],
             "org_name": inv.get("organizations", {}).get("name", "Anclora"),
             "expires_at": created_at + timedelta(days=7)
@@ -221,8 +326,30 @@ class MembershipService:
         Accepts an invitation and activates the membership.
         """
         # First validate
-        inv_info = await self.validate_invitation(code)
-        
+        _ = await self.validate_invitation(code)
+
+        invite = supabase_service.client.table("organization_members")\
+            .select("*")\
+            .eq("invitation_code", code)\
+            .eq("status", MembershipStatus.PENDING)\
+            .limit(1)\
+            .execute()
+        if not invite.data:
+            raise HTTPException(status_code=404, detail="Invalid or expired invitation code")
+
+        inv = invite.data[0]
+        org_id = inv["org_id"]
+
+        existing_active = supabase_service.client.table("organization_members")\
+            .select("id")\
+            .eq("org_id", org_id)\
+            .eq("user_id", str(user_id))\
+            .eq("status", MembershipStatus.ACTIVE)\
+            .limit(1)\
+            .execute()
+        if existing_active.data and str(existing_active.data[0]["id"]) != str(inv["id"]):
+            raise HTTPException(status_code=409, detail="User is already an active member of this organization")
+
         # Update membership
         result = supabase_service.client.table("organization_members")\
             .update({
@@ -231,12 +358,21 @@ class MembershipService:
                 "invitation_accepted_at": datetime.utcnow().isoformat(),
                 "updated_at": datetime.utcnow().isoformat()
             })\
-            .eq("invitation_code", code)\
+            .eq("id", str(inv["id"]))\
             .execute()
             
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to accept invitation")
-            
-        return result.data[0]
+
+        accepted = result.data[0]
+        supabase_service.client.table("user_profiles")\
+            .update({
+                "org_id": accepted["org_id"],
+                "role": accepted["role"]
+            })\
+            .eq("id", str(user_id))\
+            .execute()
+
+        return accepted
 
 membership_service = MembershipService()

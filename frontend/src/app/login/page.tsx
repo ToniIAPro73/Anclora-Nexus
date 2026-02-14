@@ -1,6 +1,7 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
 import supabase from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,45 +9,106 @@ import { Card } from '@/components/ui/card'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 
 export default function LoginPage() {
+  type Particle = {
+    id: number
+    x: number
+    y: number
+    offsetY: number
+    duration: number
+  }
+
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const [particles, setParticles] = useState<any[]>([])
-
-  useEffect(() => {
-    // Generate particles only on the client to avoid hydration mismatch
-    const newParticles = [...Array(12)].map((_, i) => ({
-      id: i,
-      x: Math.random() * 1000,
-      y: Math.random() * 1000,
-      offsetY: Math.random() * -100,
-      duration: 5 + Math.random() * 5,
-    }))
-    setParticles(newParticles)
-  }, [])
+  const [isError, setIsError] = useState(false)
+  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const particles: Particle[] = [...Array(12)].map((_, i) => ({
+    id: i,
+    x: (i * 97) % 1000,
+    y: (i * 173) % 1000,
+    offsetY: -40 - (i % 7) * 10,
+    duration: 5 + (i % 5),
+  }))
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
+    setIsError(false)
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+    const { error } =
+      mode === 'login'
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({
+            email,
+            password,
+            options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          })
 
     if (error) {
-      setMessage(error.message)
+      const raw = (error.message || '').toLowerCase()
+      if (raw.includes('invalid login credentials')) {
+        setMessage('Email o contraseña incorrectos.')
+      } else if (raw.includes('email not confirmed')) {
+        setMessage('Debes confirmar tu email antes de iniciar sesión.')
+      } else {
+        setMessage(error.message)
+      }
+      setIsError(true)
     } else {
-      setMessage('¡Check your email for the login link!')
+      setMessage(
+        mode === 'login'
+          ? 'Acceso correcto'
+          : 'Cuenta creada. Revisa tu correo si tu proyecto requiere confirmación.'
+      )
+      setIsError(false)
     }
     setLoading(false)
   }
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setMessage('Introduce primero tu email.')
+      setIsError(true)
+      return
+    }
+    setLoading(true)
+    setMessage('')
+    setIsError(false)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/login`,
+    })
+    if (error) {
+      setMessage(error.message)
+      setIsError(true)
+    } else {
+      setMessage('Te hemos enviado un email para restablecer la contraseña.')
+      setIsError(false)
+    }
+    setLoading(false)
+  }
+
+  const handleOAuth = async (provider: 'google' | 'github') => {
+    setLoading(true)
+    setMessage('')
+    setIsError(false)
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+    if (error) {
+      setMessage(error.message)
+      setIsError(true)
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-navy-darker relative overflow-hidden">
+    <div className="h-screen flex items-center justify-center p-3 bg-navy-darker relative overflow-hidden">
       {/* Abstract Background Particles */}
       {particles.map((p) => (
         <motion.div
@@ -74,24 +136,50 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
+        className="w-full max-w-md"
       >
-        <Card className="widget-card max-w-md w-full p-8 border-soft-subtle/20 bg-navy-surface backdrop-blur-xl">
-          <div className="flex flex-col items-center mb-8">
+        <Card className="widget-card w-full px-6 py-5 border-soft-subtle/20 bg-navy-surface backdrop-blur-xl">
+          <div className="flex flex-col items-center mb-4">
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="mb-4"
+              className="mb-2"
             >
-              <BrandLogo size={80} />
+              <BrandLogo size={64} />
             </motion.div>
-            <h1 className="font-display text-3xl text-soft-white mb-1">Anclora Nexus</h1>
+            <h1 className="font-display text-2xl text-soft-white mb-1">Anclora Nexus</h1>
             <p className="text-[10px] uppercase tracking-[0.2em] text-soft-muted">Private Estate Intelligence</p>
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent mt-4" />
+            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent mt-3" />
           </div>
 
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-navy-darker/40 rounded-lg border border-soft-subtle/20">
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className={`h-8 rounded-md text-xs font-semibold transition ${
+                  mode === 'login'
+                    ? 'bg-gold text-navy-deep'
+                    : 'text-soft-muted hover:text-soft-white'
+                }`}
+              >
+                Iniciar sesión
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                className={`h-8 rounded-md text-xs font-semibold transition ${
+                  mode === 'signup'
+                    ? 'bg-gold text-navy-deep'
+                    : 'text-soft-muted hover:text-soft-white'
+                }`}
+              >
+                Crear cuenta
+              </button>
+            </div>
+
+            <div className="space-y-1">
               <label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
                 Email Profesional
               </label>
@@ -102,26 +190,93 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-12"
+                className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-11"
               />
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
+                Contraseña
+              </label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-11 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-soft-muted hover:text-soft-white transition-colors"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-gold hover:bg-gold-muted text-navy-deep font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
+              className="w-full h-11 bg-gold hover:bg-gold-muted text-navy-deep font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
             >
-              {loading ? 'Enviando...' : 'Acceder'}
+              {loading ? 'Procesando...' : mode === 'login' ? 'Acceder' : 'Crear cuenta'}
             </Button>
 
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={loading}
+              onClick={handleForgotPassword}
+              className="w-full h-9 text-soft-muted hover:text-soft-white"
+            >
+              Olvidé mi contraseña
+            </Button>
+
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-soft-subtle/20" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-3 text-[10px] uppercase tracking-widest text-soft-muted bg-navy-surface">
+                  o continúa con
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={loading}
+                onClick={() => handleOAuth('google')}
+                className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
+              >
+                Google
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={loading}
+                onClick={() => handleOAuth('github')}
+                className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
+              >
+                GitHub
+              </Button>
+            </div>
+
             {message && (
-              <p className={`text-center text-sm ${message.includes('Check') ? 'text-emerald-400' : 'text-danger'}`}>
+              <p className={`text-center text-sm ${isError ? 'text-danger' : 'text-emerald-400'}`}>
                 {message}
               </p>
             )}
           </form>
 
-          <p className="text-center text-[10px] text-soft-muted mt-8 uppercase tracking-widest">
+          <p className="text-center text-[10px] text-soft-muted mt-4 uppercase tracking-widest">
             Powered by OpenClaw
           </p>
         </Card>
