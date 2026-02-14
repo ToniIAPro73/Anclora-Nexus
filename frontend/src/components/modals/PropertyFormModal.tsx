@@ -14,7 +14,6 @@ interface PropertyFormModalProps {
 
 export default function PropertyFormModal({ isOpen, onClose, editProperty }: PropertyFormModalProps) {
   const { t } = useI18n()
-  const addProperty = useStore((state) => state.addProperty)
   const updateProperty = useStore((state) => state.updateProperty)
   const [loading, setLoading] = useState(false)
 
@@ -24,6 +23,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
     address: '',
     price: '',
     status: 'prospect',
+    source_system: 'manual',
+    source_portal: '',
     match_score: 0,
     image: '/images/prop-placeholder.jpg'
   })
@@ -37,6 +38,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
         address: '',
         price: '',
         status: 'prospect',
+        source_system: 'manual',
+        source_portal: '',
         match_score: 0,
         image: '/images/prop-placeholder.jpg'
       })
@@ -150,6 +153,32 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                     <option value="sold">{t('propertyStatusSold')}</option>
                     <option value="rejected">{t('propertyStatusRejected')}</option>
                   </select>
+                </div>
+
+                {/* Source System */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Origen</label>
+                  <select
+                    value={formData.source_system || 'manual'}
+                    onChange={(e) => setFormData({ ...formData, source_system: e.target.value as Property['source_system'] })}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="manual">Alta manual</option>
+                    <option value="widget">Prospección automática</option>
+                    <option value="pbm">Prospección + Match</option>
+                  </select>
+                </div>
+
+                {/* Source Portal */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Portal / Fuente</label>
+                  <input
+                    type="text"
+                    value={formData.source_portal || ''}
+                    onChange={(e) => setFormData({ ...formData, source_portal: e.target.value })}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                    placeholder="ej. Idealista, Fotocasa, Facebook, Instagram..."
+                  />
                 </div>
 
                 {/* Match Score (Simulated) */}

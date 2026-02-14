@@ -28,9 +28,13 @@ app.add_middleware(
 # ═══════════════════════════════════════════════════════════════
 
 from .routes.intelligence import router as intelligence_router
+from .routes.prospection import router as prospection_router
 
 # Include Intelligence routes
 app.include_router(intelligence_router, prefix="/api/intelligence", tags=["Intelligence"])
+
+# Include Prospection & Buyer Matching routes
+app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospection"])
 
 # ═══════════════════════════════════════════════════════════════
 # HEALTH CHECK

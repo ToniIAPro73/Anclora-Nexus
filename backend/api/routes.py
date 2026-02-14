@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import Any, Dict
 from backend.services.supabase_service import supabase_service
 from backend.agents.graph import agent_executor
+from backend.api.deps import get_org_id
 
 router = APIRouter()
 
 @router.post("/leads/intake")
-async def manual_lead_intake(data: Dict[str, Any], org_id: str = Depends(lambda: supabase_service.fixed_org_id)):
+async def manual_lead_intake(data: Dict[str, Any], org_id: str = Depends(get_org_id)):
     """
     Trigger manual lead intake processing via LangGraph.
     """
@@ -30,7 +31,7 @@ async def manual_lead_intake(data: Dict[str, Any], org_id: str = Depends(lambda:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/skills/run")
-async def run_skill(payload: Dict[str, Any], org_id: str = Depends(lambda: supabase_service.fixed_org_id)):
+async def run_skill(payload: Dict[str, Any], org_id: str = Depends(get_org_id)):
     """
     Trigger any skill execution.
     Payload: { "skill": "skill_name", "data": { ... } }
@@ -59,13 +60,13 @@ async def run_skill(payload: Dict[str, Any], org_id: str = Depends(lambda: supab
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/stats/weekly")
-async def get_weekly_stats(org_id: str = Depends(lambda: supabase_service.fixed_org_id)):
+async def get_weekly_stats(org_id: str = Depends(get_org_id)):
     """
     Fetch weekly metrics for the QuickStats widget.
     """
     try:
         # Fetch recent leads
-        leads = await supabase_service.get_recent_leads(days=7)
+        leads = await supabase_service.get_recent_leads(days=7, org_id=org_id)
         # Fetch recent recap
         recaps = supabase_service.client.table("weekly_recaps")\
             .select("*")\

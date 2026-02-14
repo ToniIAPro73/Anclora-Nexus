@@ -2,6 +2,36 @@ import supabase from './supabase'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+async function resolveCurrentOrgId(userId?: string): Promise<string> {
+  if (!userId) throw new Error('No authenticated user to resolve org_id')
+
+  // Prefer active membership org (source of truth for team-enabled flows)
+  const membershipRes = await supabase
+    .from('organization_members')
+    .select('org_id')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle()
+
+  if (membershipRes.data?.org_id) {
+    return membershipRes.data.org_id
+  }
+
+  // Fallback to user profile org_id
+  const profileRes = await supabase
+    .from('user_profiles')
+    .select('org_id')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (profileRes.data?.org_id) {
+    return profileRes.data.org_id
+  }
+
+  throw new Error('No active organization found for current user')
+}
+
 export async function createLead(leadData: any) {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token
@@ -44,9 +74,7 @@ export async function runSkill(skill: string, data: any = {}) {
 
 export async function createProperty(propertyData: any) {
   const { data: { session } } = await supabase.auth.getSession()
-  
-  // Get fixed org_id (v0)
-  const org_id = '00000000-0000-0000-0000-000000000000'
+  const org_id = await resolveCurrentOrgId(session?.user?.id)
   
   // Map frontend to backend fields
   const dbData = {
@@ -56,7 +84,11 @@ export async function createProperty(propertyData: any) {
     property_type: propertyData.type || 'Villa',
     status: propertyData.status || 'prospect',
     city: propertyData.zone || 'Mallorca',
-    prospection_score: (propertyData.match_score || 0) / 100
+    prospection_score: (propertyData.match_score || 0) / 100,
+    notes: {
+      source_system: propertyData.source_system || 'manual',
+      source_portal: propertyData.source_portal || null,
+    },
   }
   
   const { data, error } = await supabase.from('properties').insert(dbData).select().single()

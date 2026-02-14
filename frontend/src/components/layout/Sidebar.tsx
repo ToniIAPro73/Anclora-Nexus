@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Home, CheckSquare, Settings, LogOut, UserCog } from 'lucide-react'
+import { LayoutDashboard, Users, Home, CheckSquare, Settings, LogOut, UserCog, Target } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
@@ -63,6 +63,7 @@ export function Sidebar() {
     { name: t('properties'), href: '/properties', icon: Home },
     { name: t('tasks'), href: '/tasks', icon: CheckSquare },
     { name: t('team'), href: '/team', icon: UserCog },
+    { name: t('prospection'), href: '/prospection', icon: Target },
     { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
   ]
 

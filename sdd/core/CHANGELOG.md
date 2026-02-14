@@ -320,7 +320,7 @@ TRUNCATE organization_members CASCADE;
 -- Restaurar desde backup pre-migración
 ```
 
-## [UPCOMING] - Prospection & Buyer Matching v1 (Growth Engine)
+## [1.0] - 2026-02-14 - Prospection & Buyer Matching v1 (Growth Engine)
 
 **Fecha anticipada**: 2026-02-XX  
 **Status**: En especificación  

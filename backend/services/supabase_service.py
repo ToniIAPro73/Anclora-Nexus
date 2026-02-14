@@ -85,9 +85,12 @@ class SupabaseService:
         response = self.client.table("weekly_recaps").insert(data).execute()
         return response.data[0]
 
-    async def get_recent_leads(self, days: int = 7) -> List[Dict[str, Any]]:
+    async def get_recent_leads(self, days: int = 7, org_id: Optional[str] = None) -> List[Dict[str, Any]]:
         threshold = (datetime.utcnow() - timedelta(days=days)).isoformat()
-        response = self.client.table("leads").select("*").gte("created_at", threshold).execute()
+        query = self.client.table("leads").select("*").gte("created_at", threshold)
+        if org_id:
+            query = query.eq("org_id", org_id)
+        response = query.execute()
         return response.data
 
     async def get_recent_executions(self, days: int = 7) -> List[Dict[str, Any]]:

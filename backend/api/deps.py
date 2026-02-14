@@ -25,6 +25,20 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
 
 async def get_org_id(user = Depends(get_current_user)):
     """
-    Injects the fixed org_id for v0 single-tenant.
+    Returns the authenticated user's organization id from user_profiles.
+    Falls back to fixed_org_id only if profile lookup fails (legacy v0 behavior).
     """
+    try:
+        response = (
+            supabase_service.client.table("user_profiles")
+            .select("org_id")
+            .eq("id", user.id)
+            .single()
+            .execute()
+        )
+        profile = response.data or {}
+        if profile.get("org_id"):
+            return profile["org_id"]
+    except Exception:
+        pass
     return supabase_service.fixed_org_id
