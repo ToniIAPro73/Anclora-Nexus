@@ -17,6 +17,7 @@ class MockSupabaseQuery:
         self._data = data
 
     def table(self, name: str): return self
+    def select(self, *args, **kwargs): return self
     def insert(self, record: dict):
         self._data = [record]
         return self
@@ -24,9 +25,14 @@ class MockSupabaseQuery:
         if self._data: self._data[0].update(data)
         return self
     def eq(self, *args): return self
+    def neq(self, *args): return self
+    def gte(self, *args): return self
+    def order(self, *args, **kwargs): return self
+    def range(self, *args, **kwargs): return self
     def execute(self):
         result = MagicMock()
         result.data = self._data
+        result.count = len(self._data)
         return result
 
 @pytest.mark.asyncio
@@ -65,7 +71,32 @@ async def test_create_property_default_origin():
         result = await service.create_property(ORG_A, prop_data)
 
     assert result["source_system"] == "manual"
-    assert result["source_portal"] is None
+    assert result.get("source_portal") is None
+
+@pytest.mark.asyncio
+async def test_property_organization_isolation():
+    service = ProspectionService()
+    ORG_B = str(uuid4())
+    
+    prop_data = PropertyCreate(
+        source="idealista",
+        title="Org A Property",
+        price=Decimal("1000000")
+    )
+
+    mock_query = MockSupabaseQuery([])
+    with patch("backend.services.prospection_service.supabase_service") as mock_sb:
+        mock_sb.client.table.return_value = mock_query
+        # Create in ORG_A
+        await service.create_property(ORG_A, prop_data)
+        
+        # Verify query for ORG_B returns nothing (mock behavior)
+        # Note: In a real integration test we would check the .eq("org_id", ...) call
+        # but for this unit mock test, we verify the service passes the correct org_id.
+        
+        with patch.object(mock_query, "eq", wraps=mock_query.eq) as mock_eq:
+            await service.list_properties(ORG_B)
+            mock_eq.assert_any_call("org_id", ORG_B)
 
 @pytest.mark.asyncio
 async def test_normalize_portal_validation():

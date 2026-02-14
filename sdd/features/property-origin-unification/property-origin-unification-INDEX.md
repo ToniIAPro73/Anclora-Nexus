@@ -2,7 +2,7 @@
 
 **Feature ID**: ANCLORA-POU-001  
 **Versión**: 1.0  
-**Status**: Specification Phase  
+**Status**: Released  
 **Prioridad**: ALTA
 
 ---

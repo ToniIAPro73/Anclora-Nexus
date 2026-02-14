@@ -320,12 +320,30 @@ TRUNCATE organization_members CASCADE;
 -- Restaurar desde backup pre-migración
 ```
 
-## [1.0] - 2026-02-14 - Prospection & Buyer Matching v1 (Growth Engine)
+## [1.0] - 2026-02-15 - Property Origin Unification (Visibility & Matching)
 
-**Fecha anticipada**: 2026-02-XX  
-**Status**: En especificación  
-**Criticidad**: ALTA  
-**Feature**: ANCLORA-PBM-001 v1.0
+**Status**: ✅ RELEASED  
+**Criticidad**: MEDIA  
+**Feature**: ANCLORA-POU-001 v1.0
+
+### Database Changes
+- **Migration 020**: Added `source_system` and `source_portal` to `properties`.
+- **Constraint**: `source_system` must be in `('manual', 'widget', 'pbm')`.
+- **Constraint**: `source_portal` restricted to allowed real estate portals or `other`.
+- **Performance**: Added composite indexes for `(org_id, source_system)` and `(org_id, source_portal)`.
+
+### API Changes
+- `POST /api/properties`: Supports `source_system` and `source_portal` field intake.
+- `GET /api/properties`: Returns normalized source data for frontend badges.
+
+### Frontend Changes
+- **Properties Page**: Integrated color-coded badges for origin and portal.
+- **Commercial Signals**: Displays Top Buyer Name, Match %, and Potential Commission for linked properties.
+- **Form Modal**: Structured select inputs for source portal categorization.
+
+---
+
+## [UPCOMING] - Multi-Tenant Memberships v1 (Phase Prerequisito)
 
 ### Database Changes
 
