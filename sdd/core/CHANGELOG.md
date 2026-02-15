@@ -399,6 +399,30 @@ TRUNCATE organization_members CASCADE;
 -- Restaurar desde backup pre-migración
 ```
 
+## [1.0] - 2026-02-15 - Currency & Surface Localization (CSL)
+
+**Status**: ✅ RELEASED
+**Criticidad**: MEDIA
+**Feature**: ANCLORA-CSL-001 v1.0
+
+### Database Changes
+- **Migration 025**: Added `useful_area_m2`, `built_area_m2`, `plot_area_m2` to `properties`.
+- **Constraints**: Non-negative checks + Logic check (`useful <= built`).
+- **Backfill**: Populated `built_area_m2` and `useful_area_m2` from legacy `surface_m2`.
+
+### API Changes
+- `POST/PUT /api/properties`: Accepts and validates new surface fields.
+- **Validation**: Enforces strict logical constraints between surface areas.
+- **Origin Contract**: Enforces read-only fields based on `origin_type`.
+
+### Frontend Changes
+- **Currency Switcher**: added to header (EUR/USD/GBP/etc).
+- **Unit Switcher**: added to sidebar (Metric/Imperial).
+- **Property Forms**: New inputs for surface breakdown + auto-conversion.
+- **Display**: All prices and areas abide by selected global preferences.
+
+---
+
 ## [1.0] - 2026-02-15 - Property Origin Unification (Visibility & Matching)
 
 **Status**: ✅ RELEASED  
