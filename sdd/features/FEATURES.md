@@ -155,6 +155,27 @@
 
 ---
 
+### 3. Lead Source Observability v1
+
+**ID**: ANCLORA-LSO-001  
+**Versión**: 1.0  
+**Status**: Specification Phase  
+**Fase**: Data Quality & Attribution  
+**Prioridad**: ALTA
+
+**Descripción**: Añade trazabilidad completa del origen de clientes/leads (manual, web CTA, social+CTA, import, referral), con metadatos de captación para atribución comercial y base de políticas de edición por origen.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/lead-source-observability/lead-source-observability-INDEX.md`
+- **Spec Técnica**: `sdd/features/lead-source-observability/lead-source-observability-spec-v1.md`
+- **Spec Migración**: `sdd/features/lead-source-observability/lead-source-observability-spec-migration.md`
+- **Test Plan**: `sdd/features/lead-source-observability/lead-source-observability-test-plan-v1.md`
+- **Feature Rules**: `.agent/rules/feature-lead-source-observability.md`
+- **SKILL**: `.agent/skills/features/lead-source-observability/SKILL.md`
+- **Prompt Antigravity**: `.antigravity/prompts/feature-lead-source-observability-v1.md`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
