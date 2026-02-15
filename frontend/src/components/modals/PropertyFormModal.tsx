@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Save, Home, MapPin, Euro, Activity, Loader2 } from 'lucide-react'
+import { X, Save, Home, MapPin, Activity, Loader2 } from 'lucide-react'
 import { useStore, Property } from '@/lib/store'
 import { createProperty } from '@/lib/api'
 import { useI18n } from '@/lib/i18n'
@@ -15,12 +15,13 @@ interface PropertyFormModalProps {
 
 export default function PropertyFormModal({ isOpen, onClose, editProperty }: PropertyFormModalProps) {
   const { t } = useI18n()
-  const { currency } = useCurrency()
+  const { currency, currencyConfig, unitSystem, parseAmount, convertFromEur } = useCurrency()
   const updateProperty = useStore((state) => state.updateProperty)
   const [loading, setLoading] = useState(false)
 
   const isSourceLocked = editProperty?.source_system !== undefined && editProperty?.source_system !== 'manual'
-  const isScoreLocked = editProperty?.source_system === 'pbm'
+  const isScoreLocked = editProperty?.source_system === 'pbm' || (formData.source_system || 'manual') === 'pbm'
+  const areaUnit = unitSystem === 'metric' ? 'm²' : 'sq ft'
 
   // Estado inicial
   const [formData, setFormData] = useState<Partial<Property>>({
@@ -36,7 +37,10 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
   useEffect(() => {
     if (editProperty) {
-      setFormData(editProperty)
+      const rawPrice = typeof editProperty.price === 'number'
+        ? String(Math.round(convertFromEur(editProperty.price)))
+        : (editProperty.price || '')
+      setFormData({ ...editProperty, price: rawPrice })
     } else {
       setFormData({
         title: '',
@@ -52,7 +56,17 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
         image: '/images/prop-placeholder.jpg'
       })
     }
-  }, [editProperty, isOpen])
+  }, [editProperty, isOpen, convertFromEur])
+
+  const toDisplayArea = (areaM2?: number) => {
+    const base = areaM2 ?? 0
+    return unitSystem === 'metric' ? base : Math.round(base * 10.7639)
+  }
+
+  const toStoredArea = (displayValue: number) => {
+    if (!Number.isFinite(displayValue) || displayValue <= 0) return 0
+    return unitSystem === 'metric' ? displayValue : Number((displayValue / 10.7639).toFixed(2))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,10 +74,17 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
     setLoading(true)
     try {
+      const normalizedPrice = parseAmount(String(formData.price ?? '')) ?? 0
+      const payload: Partial<Property> = {
+        ...formData,
+        price: normalizedPrice,
+        match_score: (formData.source_system || 'manual') === 'manual' ? 0 : (formData.match_score || 0),
+      }
+
       if (editProperty) {
-        updateProperty(editProperty.id, formData)
+        updateProperty(editProperty.id, payload)
       } else {
-        await createProperty(formData)
+        await createProperty(payload)
         // Refresh to get real ID and correct mapping
         await useStore.getState().initialize()
       }
@@ -136,7 +157,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Precio ({currency})</label>
                   <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soft-subtle" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-soft-subtle">{currencyConfig.symbol}</span>
                     <input
                       type="text"
                       value={formData.price || ''}
@@ -149,33 +170,33 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
                 {/* Built Area */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Construida (m²)</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Construida ({areaUnit})</label>
                   <input
                     type="number"
-                    value={formData.built_area_m2 || 0}
-                    onChange={(e) => setFormData({ ...formData, built_area_m2: Number(e.target.value) })}
+                    value={toDisplayArea(formData.built_area_m2)}
+                    onChange={(e) => setFormData({ ...formData, built_area_m2: toStoredArea(Number(e.target.value)) })}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
                   />
                 </div>
 
                 {/* Useful Area */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Útil (m²)</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Útil ({areaUnit})</label>
                   <input
                     type="number"
-                    value={formData.useful_area_m2 || 0}
-                    onChange={(e) => setFormData({ ...formData, useful_area_m2: Number(e.target.value) })}
+                    value={toDisplayArea(formData.useful_area_m2)}
+                    onChange={(e) => setFormData({ ...formData, useful_area_m2: toStoredArea(Number(e.target.value)) })}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
                   />
                 </div>
 
                 {/* Plot Area */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Parcela (m²)</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Parcela ({areaUnit})</label>
                   <input
                     type="number"
-                    value={formData.plot_area_m2 || 0}
-                    onChange={(e) => setFormData({ ...formData, plot_area_m2: Number(e.target.value) })}
+                    value={toDisplayArea(formData.plot_area_m2)}
+                    onChange={(e) => setFormData({ ...formData, plot_area_m2: toStoredArea(Number(e.target.value)) })}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
                   />
                 </div>
@@ -231,22 +252,32 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   </select>
                 </div>
 
-                {/* Match Score (Simulated) */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Match Score (0-100)</label>
-                  <div className="relative">
-                    <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soft-subtle" />
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={formData.match_score || 0}
-                      onChange={(e) => setFormData({ ...formData, match_score: Number(e.target.value) })}
-                      disabled={isScoreLocked}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50"
-                    />
+                {/* Match Score */}
+                {(formData.source_system || 'manual') !== 'manual' ? (
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Match Score (0-100)</label>
+                    <div className="relative">
+                      <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soft-subtle" />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.match_score || 0}
+                        onChange={(e) => setFormData({ ...formData, match_score: Number(e.target.value) })}
+                        disabled={isScoreLocked}
+                        className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50"
+                      />
+                    </div>
+                    {(formData.source_system || 'manual') === 'pbm' && (
+                      <p className="text-[11px] text-soft-muted">El score en PBM lo calcula el motor de matching.</p>
+                    )}
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Match Score</label>
+                    <p className="text-[11px] text-soft-muted">En alta manual no aplica score de match hasta asociar comprador.</p>
+                  </div>
+                )}
 
               </div>
 

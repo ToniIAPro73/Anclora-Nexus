@@ -1,8 +1,8 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
-export type CurrencyCode = 'EUR' | 'GBP' | 'USD' | 'DEM' | 'RUB'
+export type CurrencyCode = 'EUR' | 'GBP' | 'USD' | 'RUB'
 export type UnitSystem = 'metric' | 'imperial'
 
 type CurrencyConfig = {
@@ -13,11 +13,19 @@ type CurrencyConfig = {
   position: 'prefix' | 'suffix'
 }
 
+type FxRates = Record<CurrencyCode, number>
+
+const DEFAULT_RATES: FxRates = {
+  EUR: 1,
+  GBP: 0.86,
+  USD: 1.08,
+  RUB: 98,
+}
+
 export const CURRENCY_OPTIONS: CurrencyConfig[] = [
-  { code: 'EUR', label: 'Euro', locale: 'de-DE', symbol: '€', position: 'suffix' },
+  { code: 'EUR', label: 'Euro', locale: 'es-ES', symbol: '€', position: 'suffix' },
   { code: 'GBP', label: 'Libra esterlina', locale: 'en-GB', symbol: '£', position: 'prefix' },
   { code: 'USD', label: 'Dólar', locale: 'en-US', symbol: '$', position: 'prefix' },
-  { code: 'DEM', label: 'Marco alemán', locale: 'de-DE', symbol: 'DM', position: 'suffix' },
   { code: 'RUB', label: 'Rublo', locale: 'ru-RU', symbol: '₽', position: 'suffix' },
 ]
 
@@ -25,12 +33,17 @@ const CURRENCY_BY_CODE = Object.fromEntries(CURRENCY_OPTIONS.map((c) => [c.code,
 
 type CurrencyContextType = {
   currency: CurrencyCode
+  currencyConfig: CurrencyConfig
   setCurrency: (currency: CurrencyCode) => void
   unitSystem: UnitSystem
   setUnitSystem: (unit: UnitSystem) => void
-  formatMoney: (amount: number, opts?: { minFractionDigits?: number; maxFractionDigits?: number }) => string
+  ratesUpdatedAt: string | null
+  formatMoney: (amountEur: number, opts?: { minFractionDigits?: number; maxFractionDigits?: number }) => string
   formatSurface: (value_m2: number) => string
   parseAmount: (value: unknown) => number | null
+  convertFromEur: (amountEur: number) => number
+  convertToEur: (amountInCurrentCurrency: number) => number
+  formatBudgetText: (budget: string) => string
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
@@ -51,61 +64,151 @@ function normalizeNumericString(raw: string): string {
   return cleaned
 }
 
+function formatCompact(value: number): string {
+  const abs = Math.abs(value)
+  if (abs >= 1_000_000) {
+    const n = value / 1_000_000
+    return `${Number.isInteger(n) ? n.toFixed(0) : n.toFixed(1)}M`
+  }
+  if (abs >= 1_000) {
+    const n = value / 1_000
+    return `${Number.isInteger(n) ? n.toFixed(0) : n.toFixed(1)}K`
+  }
+  return `${Math.round(value)}`
+}
+
+function parseBudgetTokenToEur(token: string): number | null {
+  const clean = token.trim().toUpperCase().replace(/\s+/g, '')
+  if (!clean) return null
+  const mult = clean.endsWith('M') ? 1_000_000 : clean.endsWith('K') ? 1_000 : 1
+  const numeric = normalizeNumericString(clean.replace(/[MK]/g, ''))
+  const value = Number(numeric)
+  if (!Number.isFinite(value)) return null
+  return value * mult
+}
+
+function getInitialCurrency(): CurrencyCode {
+  if (typeof window === 'undefined') return 'EUR'
+  const saved = localStorage.getItem('anclora-currency') as CurrencyCode | null
+  return saved && CURRENCY_BY_CODE[saved] ? saved : 'EUR'
+}
+
+function getInitialUnit(): UnitSystem {
+  if (typeof window === 'undefined') return 'metric'
+  const saved = localStorage.getItem('anclora-unit-system') as UnitSystem | null
+  return saved === 'imperial' || saved === 'metric' ? saved : 'metric'
+}
+
+function getInitialRates(): { rates: FxRates; updatedAt: string | null } {
+  if (typeof window === 'undefined') return { rates: DEFAULT_RATES, updatedAt: null }
+  const raw = localStorage.getItem('anclora-fx-rates')
+  if (!raw) return { rates: DEFAULT_RATES, updatedAt: null }
+  try {
+    const parsed = JSON.parse(raw) as { rates?: Partial<FxRates>; updatedAt?: string }
+    return {
+      rates: { ...DEFAULT_RATES, ...(parsed.rates || {}) },
+      updatedAt: parsed.updatedAt || null,
+    }
+  } catch {
+    return { rates: DEFAULT_RATES, updatedAt: null }
+  }
+}
+
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrencyState] = useState<CurrencyCode>('EUR')
-  const [unitSystem, setUnitSystemState] = useState<UnitSystem>('metric')
+  const [currency, setCurrencyState] = useState<CurrencyCode>(getInitialCurrency)
+  const [unitSystem, setUnitSystemState] = useState<UnitSystem>(getInitialUnit)
+  const [ratesState, setRatesState] = useState(getInitialRates)
+
+  const currencyConfig = CURRENCY_BY_CODE[currency]
 
   useEffect(() => {
-    const savedCurrency = localStorage.getItem('anclora-currency') as CurrencyCode | null
-    if (savedCurrency && CURRENCY_BY_CODE[savedCurrency]) setCurrencyState(savedCurrency)
-    
-    const savedUnit = localStorage.getItem('anclora-unit-system') as UnitSystem | null
-    if (savedUnit === 'metric' || savedUnit === 'imperial') setUnitSystemState(savedUnit)
+    localStorage.setItem('anclora-currency', currency)
+  }, [currency])
+
+  useEffect(() => {
+    localStorage.setItem('anclora-unit-system', unitSystem)
+  }, [unitSystem])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function refreshRates() {
+      try {
+        const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=GBP,USD,RUB', { cache: 'no-store' })
+        if (!res.ok) return
+        const json = await res.json() as { rates?: Record<string, number>; date?: string }
+        const nextRates: FxRates = {
+          EUR: 1,
+          GBP: json.rates?.GBP ?? DEFAULT_RATES.GBP,
+          USD: json.rates?.USD ?? DEFAULT_RATES.USD,
+          RUB: json.rates?.RUB ?? DEFAULT_RATES.RUB,
+        }
+        const updatedAt = json.date || new Date().toISOString()
+        if (!cancelled) {
+          setRatesState({ rates: nextRates, updatedAt })
+          localStorage.setItem('anclora-fx-rates', JSON.stringify({ rates: nextRates, updatedAt }))
+        }
+      } catch {
+        // Keep cached/default rates silently.
+      }
+    }
+
+    refreshRates()
+    const id = window.setInterval(refreshRates, 10 * 60 * 1000)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
   }, [])
 
   const setCurrency = (next: CurrencyCode) => {
     setCurrencyState(next)
-    localStorage.setItem('anclora-currency', next)
   }
 
   const setUnitSystem = (next: UnitSystem) => {
     setUnitSystemState(next)
-    localStorage.setItem('anclora-unit-system', next)
   }
 
-  const formatMoney = (amount: number, opts?: { minFractionDigits?: number; maxFractionDigits?: number }) => {
-    const cfg = CURRENCY_BY_CODE[currency]
-    
-    let formatted = new Intl.NumberFormat(cfg.locale, {
+  const convertFromEur = (amountEur: number): number => {
+    const rate = ratesState.rates[currency] || 1
+    return amountEur * rate
+  }
+
+  const convertToEur = (amountInCurrentCurrency: number): number => {
+    const rate = ratesState.rates[currency] || 1
+    if (!rate) return amountInCurrentCurrency
+    return amountInCurrentCurrency / rate
+  }
+
+  const formatMoney = (
+    amountEur: number,
+    opts?: { minFractionDigits?: number; maxFractionDigits?: number },
+  ) => {
+    const value = convertFromEur(amountEur)
+    const formatted = new Intl.NumberFormat(currencyConfig.locale, {
       minimumFractionDigits: opts?.minFractionDigits ?? 2,
       maximumFractionDigits: opts?.maxFractionDigits ?? 2,
       useGrouping: true,
-    }).format(amount)
+    }).format(value)
 
-    // Manual adjustments for specific rules
-    if (currency === 'RUB') {
-      // RUB uses space as thousands separator
-      formatted = formatted.replace(/\u00a0/g, ' ')
+    if (currencyConfig.position === 'prefix') {
+      return `${currencyConfig.symbol}${formatted}`
     }
-
-    if (cfg.position === 'prefix') {
-      return `${cfg.symbol}${formatted}`
-    } else {
-      return `${formatted} ${cfg.symbol}`
-    }
+    return `${formatted} ${currencyConfig.symbol}`
   }
 
   const formatSurface = (value_m2: number): string => {
     if (unitSystem === 'metric') {
       return `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(value_m2)} m²`
-    } else {
-      const value_sqft = value_m2 * 10.7639
-      return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value_sqft)} sq ft`
     }
+    const value_sqft = value_m2 * 10.7639
+    return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value_sqft)} sq ft`
   }
 
   const parseAmount = (value: unknown): number | null => {
-    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return convertToEur(value)
+    }
     if (typeof value !== 'string') return null
     const raw = value.trim()
     if (!raw) return null
@@ -117,13 +220,48 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     const normalized = normalizeNumericString(raw)
     const parsed = Number(normalized)
     if (!Number.isFinite(parsed)) return null
-    return parsed * multiplier
+    return convertToEur(parsed * multiplier)
   }
 
-  const contextValue = useMemo<CurrencyContextType>(
-    () => ({ currency, setCurrency, unitSystem, setUnitSystem, formatMoney, formatSurface, parseAmount }),
-    [currency, unitSystem],
-  )
+  const formatBudgetText = (budget: string): string => {
+    if (!budget) return budget
+    const normalized = budget.trim().toUpperCase().replace(/\s+/g, '')
+    const hasPlus = normalized.includes('+')
+    const parts = normalized.replace('EUR', '').replace('€', '').replace(/\+/g, '').split(/-|–/)
+    const a = parseBudgetTokenToEur(parts[0] || '')
+    const b = parseBudgetTokenToEur(parts[1] || '')
+
+    if (a == null && b == null) return budget
+
+    if (a != null && b != null) {
+      return `${formatCompact(convertFromEur(a))}-${formatCompact(convertFromEur(b))} ${currency}`
+    }
+
+    if (a != null && hasPlus) {
+      return `${formatCompact(convertFromEur(a))}+ ${currency}`
+    }
+
+    if (a != null) {
+      return `${formatCompact(convertFromEur(a))} ${currency}`
+    }
+
+    return budget
+  }
+
+  const contextValue: CurrencyContextType = {
+    currency,
+    currencyConfig,
+    setCurrency,
+    unitSystem,
+    setUnitSystem,
+    ratesUpdatedAt: ratesState.updatedAt,
+    formatMoney,
+    formatSurface,
+    parseAmount,
+    convertFromEur,
+    convertToEur,
+    formatBudgetText,
+  }
 
   return <CurrencyContext.Provider value={contextValue}>{children}</CurrencyContext.Provider>
 }
@@ -133,4 +271,3 @@ export function useCurrency() {
   if (!ctx) throw new Error('useCurrency must be used within CurrencyProvider')
   return ctx
 }
-

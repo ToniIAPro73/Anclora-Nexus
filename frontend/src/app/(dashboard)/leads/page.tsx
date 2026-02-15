@@ -3,18 +3,20 @@
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
 import { useStore, Lead } from '@/lib/store'
-import { ArrowLeft, Mail, Phone, Euro, ChevronLeft, ChevronRight, Trash2, Pencil, Plus } from 'lucide-react'
+import { ArrowLeft, Mail, Phone, ChevronLeft, ChevronRight, Trash2, Pencil, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
 import LeadFormModal from '@/components/modals/LeadFormModal'
 import SourceBadge from '@/components/ui/SourceBadge'
 import { Filter } from 'lucide-react'
+import { useCurrency } from '@/lib/currency'
 
 function LeadsContent() {
   const leads = useStore((state) => state.leads)
   const deleteLead = useStore((state) => state.deleteLead)
   const { t } = useI18n()
+  const { formatBudgetText } = useCurrency()
   const searchParams = useSearchParams()
   const [highlightId, setHighlightId] = useState<string | null>(null)
   
@@ -248,8 +250,7 @@ function LeadsContent() {
                         </td>
                         <td className="px-3 py-4">
                           <div className="flex items-center gap-1 text-sm font-medium text-blue-light">
-                            <Euro className="w-4 h-4" />
-                            <span>{lead.budget}</span>
+                            <span>{formatBudgetText(lead.budget)}</span>
                           </div>
                         </td>
                         <td className="px-3 py-4 text-center">

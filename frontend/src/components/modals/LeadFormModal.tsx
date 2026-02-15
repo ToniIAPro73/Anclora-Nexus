@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Save, User, Mail, Phone, Euro, AlertCircle, Sparkles, Home, Loader2 } from 'lucide-react'
+import { X, Save, User, Mail, Phone, Sparkles, Home, Loader2 } from 'lucide-react'
 import { useStore, Lead } from '@/lib/store'
 import { useI18n } from '@/lib/i18n'
 import { createLead } from '@/lib/api'
+import { useCurrency } from '@/lib/currency'
 
 interface LeadFormModalProps {
   isOpen: boolean
@@ -14,6 +15,7 @@ interface LeadFormModalProps {
 
 export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormModalProps) {
   const { t } = useI18n()
+  const { currency, currencyConfig, formatBudgetText } = useCurrency()
   const updateLead = useStore((state) => state.updateLead)
   const [loading, setLoading] = useState(false)
 
@@ -30,7 +32,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
 
   useEffect(() => {
     if (editLead) {
-      setFormData(editLead)
+      setFormData({ ...editLead, budget: formatBudgetText(editLead.budget || '') })
     } else {
       setFormData({
         name: '',
@@ -43,7 +45,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
         property_interest: '',
       })
     }
-  }, [editLead, isOpen])
+  }, [editLead, isOpen, formatBudgetText])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -146,13 +148,13 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('budget')}</label>
                   <div className="relative">
-                    <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soft-subtle" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-soft-subtle">{currencyConfig.symbol}</span>
                     <input
                       type="text"
                       value={formData.budget || ''}
                       onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                       className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
-                      placeholder="ej. 1.5M - 2M"
+                      placeholder={`ej. 1.5M - 2M ${currency}`}
                     />
                   </div>
                 </div>

@@ -11,7 +11,11 @@ const LANGUAGES: { code: Language; label: string; flag: string }[] = [
   { code: 'ru', label: 'Русский', flag: '🇷🇺' },
 ]
 
-export function LanguageSelector() {
+interface LanguageSelectorProps {
+  menuPlacement?: 'bottom' | 'top'
+}
+
+export function LanguageSelector({ menuPlacement = 'bottom' }: LanguageSelectorProps) {
   const { language, setLanguage } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -43,11 +47,13 @@ export function LanguageSelector() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: menuPlacement === 'top' ? 10 : -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: menuPlacement === 'top' ? 10 : -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-48 bg-navy-deep backdrop-blur-xl border-2 border-soft-muted/30 rounded-xl shadow-2xl overflow-hidden z-50"
+            className={`absolute right-0 w-48 bg-navy-deep backdrop-blur-xl border-2 border-soft-muted/30 rounded-xl shadow-2xl overflow-hidden z-50 ${
+              menuPlacement === 'top' ? 'bottom-full mb-2' : 'mt-2'
+            }`}
           >
             {LANGUAGES.map((lang) => (
               <button

@@ -6,12 +6,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { format } from 'date-fns'
 import { useI18n } from '@/lib/i18n'
+import { useCurrency } from '@/lib/currency'
 
 export function LeadsPulse() {
   const leads = useStore((state) => state.leads)
   const { t } = useI18n()
+  const { formatBudgetText } = useCurrency()
   const router = useRouter()
 
   const displayLeads = leads.slice(0, 5)
@@ -73,7 +74,7 @@ export function LeadsPulse() {
                           <span className="text-[10px] text-soft-muted uppercase tracking-tighter">{lead.source}</span>
                         </div>
                       </td>
-                      <td className="py-3 pl-2 text-xs font-medium text-blue-light text-right">{lead.budget}</td>
+                      <td className="py-3 pl-2 text-xs font-medium text-blue-light text-right">{formatBudgetText(lead.budget)}</td>
                       <td className="py-3 pl-2 text-center">
                         <span className={`priority-badge priority-${lead.priority} scale-90 origin-center`}>
                           P{lead.priority}

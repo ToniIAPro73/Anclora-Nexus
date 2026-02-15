@@ -83,7 +83,7 @@ export function Sidebar() {
   ]
 
   return (
-    <aside className={`${isCollapsed ? 'w-24' : 'w-64'} border-r border-soft-subtle bg-navy-darker/50 backdrop-blur-xl flex flex-col pt-5 transition-all duration-300`}>
+    <aside className={`${isCollapsed ? 'w-24' : 'w-64'} border-r border-soft-subtle bg-navy-darker/50 backdrop-blur-xl flex flex-col pt-5 transition-all duration-300 overflow-visible`}>
       <div className={`${isCollapsed ? 'px-3' : 'px-8'} mb-8`}>
         <div className="flex justify-end mb-4">
           <button
@@ -96,8 +96,8 @@ export function Sidebar() {
             {isCollapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
           </button>
         </div>
-        <div className="flex flex-col items-center overflow-visible pt-1">
-          <div className={`${isCollapsed ? 'mb-0' : 'mb-4'} animate-float`}>
+        <div className="flex flex-col items-center overflow-visible pt-2">
+          <div className={`${isCollapsed ? 'mb-0 mt-1' : 'mb-4'} animate-float`}>
             <BrandLogo size={isCollapsed ? 52 : 64} src={logoUrl} />
           </div>
           <h1
@@ -147,9 +147,9 @@ export function Sidebar() {
       <div className={`${isCollapsed ? 'p-2' : 'p-4'} border-t border-soft-subtle mt-auto space-y-2`}>
         {!isCollapsed && (
           <div className="flex items-center justify-between gap-2 mb-2">
-            <LanguageSelector />
-            <CurrencySelector />
-            <UnitSelector />
+            <LanguageSelector menuPlacement="top" />
+            <CurrencySelector menuPlacement="top" />
+            <UnitSelector menuPlacement="top" />
           </div>
         )}
         <button

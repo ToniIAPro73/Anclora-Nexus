@@ -1,6 +1,7 @@
 ﻿'use client'
 import { create } from 'zustand'
 import supabase from './supabase'
+import { listMatches, listProperties } from './prospection-api'
 
 export interface Lead {
   id: string
@@ -760,6 +761,8 @@ export const useStore = create<AppState>((set) => ({
             budget: l.budget_range || '',
             priority: l.ai_priority || 3,
             source: l.source || 'Direct',
+            source_system: l.source_system || undefined,
+            source_channel: l.source_channel || undefined,
             status: l.status || 'New',
             property_interest: l.property_interest || '',
             created_at: l.created_at
@@ -778,24 +781,66 @@ export const useStore = create<AppState>((set) => ({
         })
       }
 
-      if (props && props.length > 0) {
-        set({
-          properties: normalizeMojibakeValue(props.map((p: any) => ({
-            id: p.id,
-            title: p.address.split(',')[0], // Use first part of address as title
-            address: p.address,
+      const manualProperties: Property[] = (props || []).map((p: any) => ({
+        id: p.id,
+        title: p.address?.split(',')?.[0] || p.address || 'Propiedad',
+        address: p.address,
+        price: p.price || 0,
+        type: p.property_type || 'Villa',
+        status: p.status === 'listed' ? 'listed' : p.status === 'sold' ? 'sold' : p.status === 'offer' ? 'offer' : 'prospect',
+        source_system: p.source_system || 'manual',
+        source_portal: p.source_portal || undefined,
+        useful_area_m2: p.useful_area_m2 ?? undefined,
+        built_area_m2: p.built_area_m2 ?? p.surface_m2 ?? undefined,
+        plot_area_m2: p.plot_area_m2 ?? undefined,
+        zone: p.city || 'Mallorca',
+        match_score: p.prospection_score ? Math.round(p.prospection_score * 100) : undefined,
+      }))
+
+      let pbmProperties: Property[] = []
+      try {
+        const [pbmPropsRes, pbmMatchesRes] = await Promise.all([
+          listProperties({ limit: 200, offset: 0 }),
+          listMatches({ limit: 500, offset: 0 }),
+        ])
+
+        const bestByProperty = new Map<string, { bestScore: number; bestCommission: number | null }>()
+        for (const m of pbmMatchesRes.items || []) {
+          const current = bestByProperty.get(m.property_id) || { bestScore: 0, bestCommission: null }
+          bestByProperty.set(m.property_id, {
+            bestScore: Math.max(current.bestScore, m.match_score || 0),
+            bestCommission: m.commission_estimate != null
+              ? Math.max(current.bestCommission ?? 0, m.commission_estimate)
+              : current.bestCommission,
+          })
+        }
+
+        pbmProperties = (pbmPropsRes.items || []).map((p: any) => {
+          const best = bestByProperty.get(p.id)
+          return {
+            id: `pbm-${p.id}`,
+            title: p.title || `${p.property_type || 'Propiedad'} ${p.zone ? `en ${p.zone}` : ''}`.trim(),
+            address: p.zone || p.city || 'Mallorca',
             price: p.price || 0,
-            type: p.property_type || 'Villa',
-            status: p.status === 'listed' ? 'listed' : p.status === 'sold' ? 'sold' : 'prospect',
-            source_system: p.source_system || 'manual',
-            source_portal: p.source_portal || undefined,
-            useful_area_m2: p.useful_area_m2 ?? undefined,
-            built_area_m2: p.built_area_m2 ?? p.surface_m2 ?? undefined,
-            plot_area_m2: p.plot_area_m2 ?? undefined,
-            zone: p.city || 'Mallorca',
-            match_score: p.prospection_score ? Math.round(p.prospection_score * 100) : undefined
-          })))
+            type: p.property_type || 'Property',
+            status: p.status === 'listed' ? 'listed' : p.status === 'discarded' ? 'rejected' : 'prospect',
+            source_system: 'pbm',
+            source_portal: p.source || undefined,
+            built_area_m2: p.area_m2 ?? undefined,
+            useful_area_m2: p.area_m2 ?? undefined,
+            zone: p.zone || p.city || 'Mallorca',
+            match_score: best?.bestScore || (p.high_ticket_score ? Math.round(p.high_ticket_score) : undefined),
+            commission_est: best?.bestCommission != null ? `€${Math.round(best.bestCommission).toLocaleString('es-ES')}` : undefined,
+            last_update: p.updated_at ? new Date(p.updated_at).toLocaleDateString('es-ES') : undefined,
+          } as Property
         })
+      } catch {
+        // Keep manual properties only if PBM API is unavailable.
+      }
+
+      const mergedProperties = normalizeMojibakeValue([...manualProperties, ...pbmProperties])
+      if (mergedProperties.length > 0) {
+        set({ properties: mergedProperties })
       }
       
       if (logs && logs.length > 0) {
