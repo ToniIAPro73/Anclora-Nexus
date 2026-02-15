@@ -93,6 +93,7 @@ export const translations = {
     propertyStatusOffer: 'Oferta',
     propertyStatusSold: 'Vendido',
     propertyStatusRejected: 'Descartado',
+    noMatchDataForManual: 'Los datos de match no aplican en alta manual.',
 
     // Tasks
     pending: 'Pendientes',
@@ -434,6 +435,7 @@ export const translations = {
     propertyStatusOffer: 'Offer',
     propertyStatusSold: 'Sold',
     propertyStatusRejected: 'Rejected',
+    noMatchDataForManual: 'Match data does not apply to manual entries.',
 
     // Tasks
     pending: 'Pending',
@@ -753,6 +755,7 @@ export const translations = {
     propertyStatusOffer: 'Angebot',
     propertyStatusSold: 'Verkauft',
     propertyStatusRejected: 'Abgelehnt',
+    noMatchDataForManual: 'Match-Daten gelten nicht für manuelle Einträge.',
 
     // Tasks
     pending: 'Ausstehend',
@@ -1001,6 +1004,10 @@ export const translations = {
     matchesUpdated: 'Matches aktualisiert',
     commissionEstimate: 'Provisionsschätzung',
     rescore: 'Neu bewerten',
+  },
+  // Russian is progressively localized. Missing keys fallback to Spanish in I18nProvider.
+  ru: {
+    dashboard: 'Панель',
   },
 } as const
 
