@@ -11,7 +11,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from backend.api.deps import get_org_id
+from backend.api.deps import get_org_id, check_budget_hard_stop
 from backend.models.prospection import (
     ActivityCreate,
     ActivityList,
@@ -40,6 +40,7 @@ router = APIRouter()
 async def create_property(
     data: PropertyCreate,
     org_id: str = Depends(get_org_id),
+    _budget = Depends(check_budget_hard_stop),
 ) -> dict:
     """
     Create a new prospected property.
@@ -186,6 +187,7 @@ async def update_buyer(
 async def recompute_matches(
     data: Optional[RecomputeRequest] = None,
     org_id: str = Depends(get_org_id),
+    _budget = Depends(check_budget_hard_stop),
 ) -> RecomputeResponse:
     """
     Recompute match scores for all or filtered property-buyer pairs.

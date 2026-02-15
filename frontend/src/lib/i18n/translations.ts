@@ -675,7 +675,7 @@ export const translations = {
     unitImperial: 'Imperial',
     loading: 'Lädt...',
 
-    // FinOps / Cost Governance (Partial/Fallback to EN for now or simple DE)
+    // FinOps / Cost Governance
     finops: 'FinOps',
     budgetOverview: 'Budgetübersicht',
     monthlyBudget: 'Monatsbudget',
@@ -702,6 +702,8 @@ export const translations = {
     usageByCapability: 'Verbrauch nach Kapazität',
     budgetUpdated: 'Budget erfolgreich aktualisiert',
     budgetUpdateError: 'Fehler beim Aktualisieren des Budgets',
+    budgetControl: 'Budgetkontrolle & Warnungen',
+    saveConfiguration: 'Konfiguration speichern',
 
     error: 'Fehler',
     success: 'Erfolg',
@@ -1336,6 +1338,36 @@ export const translations = {
     matchesUpdated: 'Matches обновлено',
     commissionEstimate: 'Оценка комиссии',
     rescore: 'Пересчитать',
+
+    // Finops
+    finops: 'FinOps',
+    budgetOverview: 'Обзор бюджета',
+    monthlyBudget: 'Месячный бюджет',
+    currentUsage: 'Текущее потребление',
+    remainingBudget: 'Оставшийся бюджет',
+    budgetStatus: 'Статус бюджета',
+    usageHistory: 'История',
+    costAlerts: 'Оповещения о затратах',
+    configureBudget: 'Настроить бюджет',
+    warningThreshold: 'Порог предупреждения (%)',
+    hardStopThreshold: 'Порог остановки (%)',
+    hardStopEnabled: 'Остановка (Hard-Stop) активна',
+    hardStopDescription: 'Остановка некритичных операций при 100%',
+    capability: 'Возможность',
+    units: 'Единицы',
+    cost: 'Стоимость',
+    provider: 'Провайдер',
+    date: 'Дата',
+    alertType: 'Тип оповещения',
+    message: 'Сообщение',
+    resolved: 'Решено',
+    activeAlerts: 'Активные оповещения',
+    noAlerts: 'Нет активных оповещений',
+    usageByCapability: 'Потребление по возможностям',
+    budgetUpdated: 'Бюджет успешно обновлен',
+    budgetUpdateError: 'Ошибка при обновлении бюджета',
+    budgetControl: 'Контроль бюджета и оповещений',
+    saveConfiguration: 'Сохранить конфигурацию',
   },
 } as const
 

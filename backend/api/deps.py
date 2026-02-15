@@ -42,3 +42,17 @@ async def get_org_id(user = Depends(get_current_user)):
     except Exception:
         pass
     return supabase_service.fixed_org_id
+
+async def check_budget_hard_stop(org_id: str = Depends(get_org_id)):
+    """
+    Dependency that blocks the request if the organization has reached hard-stop threshold.
+    """
+    from backend.services.finops import finops_service
+    
+    status = await finops_service.get_budget_status(org_id)
+    if status.status == "hard_stop":
+        raise HTTPException(
+            status_code=402, 
+            detail="Monthly budget exceeded. Critical operations only (402 Payment Required)."
+        )
+    return status

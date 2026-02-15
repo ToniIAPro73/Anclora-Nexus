@@ -3,13 +3,14 @@ Anclora Intelligence API Routes
 Endpoints for Intelligence orchestrator
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 
 # Import Intelligence
 from ...intelligence import create_orchestrator
+from ..deps import check_budget_hard_stop
 
 # Create router
 router = APIRouter()
@@ -61,7 +62,10 @@ def get_orchestrator():
 # ═══════════════════════════════════════════════════════════════
 
 @router.post("/query", response_model=QueryResponse)
-async def process_query(request: QueryRequest):
+async def process_query(
+    request: QueryRequest,
+    _budget = Depends(check_budget_hard_stop)
+):
     """
     Process a query through Intelligence pipeline.
     
