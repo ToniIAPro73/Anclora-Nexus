@@ -14,8 +14,10 @@ import {
   Save, 
   RotateCcw,
   Check,
-  ChevronRight
+  ChevronRight,
+  Wallet
 } from 'lucide-react'
+import { CostGovernanceTab } from '@/components/finops/CostGovernanceTab'
 import { useI18n } from '@/lib/i18n'
 import { LanguageSelector } from '@/components/layout/LanguageSelector'
 import { Button } from '@/components/ui/button'
@@ -41,6 +43,7 @@ export default function SettingsPage() {
     { id: 'general', label: 'General', icon: Globe },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'intelligence', label: t('intelligence'), icon: Cpu },
+    { id: 'finops', label: t('finops'), icon: Wallet },
     { id: 'security', label: 'Security & Privacy', icon: ShieldCheck },
     { id: 'data', label: 'Data & Sync', icon: Database },
   ]
@@ -276,6 +279,12 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   </Card>
+                </div>
+              )}
+
+              {activeTab === 'finops' && (
+                <div className="space-y-8">
+                  <CostGovernanceTab />
                 </div>
               )}
 

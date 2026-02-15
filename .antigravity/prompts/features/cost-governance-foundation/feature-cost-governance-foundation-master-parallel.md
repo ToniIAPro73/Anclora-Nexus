@@ -4,6 +4,7 @@ Feature ID: `ANCLORA-CGF-001`
 
 Usar contexto comun:
 - `.antigravity/prompts/features/cost-governance-foundation/feature-cost-governance-foundation-shared-context.md`
+- Baseline QA/Gate: `.antigravity/prompts/features/_qa-gate-baseline.md`
 
 ## Agent A - DB & Migrations
 - Crear migraciones de presupuesto/consumo/alertas.

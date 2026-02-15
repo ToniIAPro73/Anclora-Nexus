@@ -217,6 +217,26 @@
 
 ---
 
+### 6. Source Connectors Unified Ingestion v1
+
+**ID**: ANCLORA-SCUI-001  
+**Versión**: 1.0  
+**Status**: Specification Phase  
+**Fase**: Ingestion & Normalization  
+**Prioridad**: ALTA
+
+**Descripción**: Crea una capa unificada de conectores para ingestión de leads y propiedades con contrato canónico, idempotencia por `dedupe_key` y trazabilidad operativa por fuente.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-INDEX.md`
+- **Spec Técnica**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1.md`
+- **Spec Migración**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-migration.md`
+- **Test Plan**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1.md`
+- **SKILL**: `.agent/skills/features/source-connectors-unified-ingestion/SKILL.md`
+- **Prompts Antigravity**: `.antigravity/prompts/features/source-connectors-unified-ingestion/`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -250,6 +270,7 @@
 | Lead Source Observability | ANCLORA-LSO-001 | 1.0 | Implemented | Data Quality & Attribution | INDEX.md |
 | Currency & Surface Localization | ANCLORA-CSL-001 | 1.0 | Specification | Commercial UX & Data Quality | INDEX.md |
 | Cost Governance Foundation | ANCLORA-CGF-001 | 1.0 | Specification | FinOps Foundation | INDEX.md |
+| Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.0 | Specification | Ingestion & Normalization | INDEX.md |
 
 ---
 
@@ -312,6 +333,7 @@
 
 | Fecha | Feature | Cambio |
 |-------|---------|--------|
+| 2026-02-15 | Source Connectors Unified Ingestion v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Cost Governance Foundation v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Currency & Surface Localization v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |

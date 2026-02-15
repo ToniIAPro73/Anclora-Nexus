@@ -45,6 +45,44 @@
 
 ---
 
+## [UPCOMING] - Source Connectors Unified Ingestion v1
+
+**Fecha anticipada**: 2026-02-XX  
+**Status**: En especificación  
+**Criticidad**: ALTA  
+**Feature**: ANCLORA-SCUI-001 v1.0
+
+### Database Changes
+
+#### New Tables
+
+- `ingestion_connectors`
+  - Configuración de conectores por org y tipo de entidad.
+- `ingestion_events`
+  - Registro operativo de ingestión con estado, errores y trazabilidad.
+
+### API Changes (Feature Layer)
+
+- `POST /api/ingestion/leads`
+- `POST /api/ingestion/properties`
+- `GET /api/ingestion/events`
+- `GET /api/ingestion/events/{id}`
+
+### Security & Governance
+
+- Aislamiento estricto por `org_id`.
+- Idempotencia por `dedupe_key` para evitar duplicados.
+- Endpoints de ingestión protegidos con credenciales técnicas.
+
+### SDD References
+
+- `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-INDEX.md`
+- `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1.md`
+- `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-migration.md`
+- `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1.md`
+
+---
+
 ## [UPCOMING] - Multi-Tenant Memberships v1 (Phase Prerequisito)
 
 **Fecha anticipada**: 2026-02-XX (Post-Antigravity generation)  

@@ -4,6 +4,7 @@ Feature ID: `ANCLORA-CSL-001`
 
 Common context:
 - `.antigravity/prompts/currency-surface-localization/feature-currency-surface-localization-shared-context.md`
+- Baseline QA/Gate: `.antigravity/prompts/features/_qa-gate-baseline.md`
 
 ## Agent A — DB & Migration
 - Add surface breakdown columns and constraints.
