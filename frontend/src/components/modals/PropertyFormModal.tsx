@@ -140,7 +140,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
             <div className="px-6 py-4 border-b border-soft-subtle flex items-center justify-between bg-navy-surface/50">
               <h2 className="text-xl font-bold text-soft-white flex items-center gap-2">
                 <Home className="w-5 h-5 text-gold" />
-                {editProperty ? 'Editar Propiedad' : 'Nueva Propiedad'}
+                {editProperty ? t('propertyFormEditTitle') : t('propertyFormCreateTitle')}
               </h2>
               <button
                 type="button"
@@ -157,19 +157,19 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                 
                 {/* Title */}
                 <div className="col-span-1 md:col-span-2 space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Título (Opcional)</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('propertyFormTitleOptional')}</label>
                   <input
                     type="text"
                     value={formData.title || ''}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
-                    placeholder="ej. Villa Moderna en Andratx"
+                    placeholder={t('propertyFormTitlePlaceholder')}
                   />
                 </div>
 
                 {/* Address (Location) */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Dirección / Zona</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('propertyFormAddressZone')}</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soft-subtle" />
                     <input
@@ -178,7 +178,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       value={formData.address || ''}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
-                      placeholder="ej. Port d'Andratx"
+                      placeholder={t('propertyFormAddressPlaceholder')}
                     />
                   </div>
                 </div>
@@ -204,7 +204,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
                 {/* Built Area */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Construida ({areaUnit})</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('propertyFormBuiltArea')} ({areaUnit})</label>
                   <input
                     type="text"
                     value={formatNumberDisplay(toDisplayArea(formData.built_area_m2), 0)}
@@ -218,7 +218,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
                 {/* Useful Area */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Útil ({areaUnit})</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('propertyFormUsefulArea')} ({areaUnit})</label>
                   <input
                     type="text"
                     value={formatNumberDisplay(toDisplayArea(formData.useful_area_m2), 0)}
@@ -232,7 +232,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
                 {/* Plot Area */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Parcela ({areaUnit})</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('propertyFormPlotArea')} ({areaUnit})</label>
                   <input
                     type="text"
                     value={formatNumberDisplay(toDisplayArea(formData.plot_area_m2), 0)}
@@ -246,7 +246,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
                 {/* Status */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Estado</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('status')}</label>
                   <select
                     value={formData.status || 'prospect'}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as Property['status'] })}
@@ -262,43 +262,43 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
                 {/* Source System */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Origen</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('propertyFormSource')}</label>
                   <select
                     value={formData.source_system || 'manual'}
                     onChange={(e) => setFormData({ ...formData, source_system: e.target.value as Property['source_system'] })}
                     disabled={isSourceLocked}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <option value="manual">Alta manual</option>
-                    <option value="widget">Prospección automática</option>
-                    <option value="pbm">Prospección + Match</option>
+                    <option value="manual">{t('propertyFormManualEntry')}</option>
+                    <option value="widget">{t('propertyFormAutoProspection')}</option>
+                    <option value="pbm">{t('propertyFormProspectionMatch')}</option>
                   </select>
                 </div>
 
                 {/* Source Portal */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Portal / Fuente</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('propertyFormPortalSource')}</label>
                   <select
                     value={formData.source_portal || ''}
                     onChange={(e) => setFormData({ ...formData, source_portal: e.target.value })}
                     disabled={isSourceLocked}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <option value="">Ninguno</option>
+                    <option value="">{t('none')}</option>
                     <option value="idealista">Idealista</option>
                     <option value="fotocasa">Fotocasa</option>
                     <option value="facebook">Facebook</option>
                     <option value="instagram">Instagram</option>
                     <option value="rightmove">Rightmove</option>
                     <option value="kyero">Kyero</option>
-                    <option value="other">Otro</option>
+                    <option value="other">{t('sourceOther')}</option>
                   </select>
                 </div>
 
                 {/* Match Score (only non-manual origins) */}
                 {(formData.source_system || 'manual') !== 'manual' ? (
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Match Score (0-100)</label>
+                    <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('matchScore')} (0-100)</label>
                     <div className="relative">
                       <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soft-subtle" />
                       <input
@@ -312,7 +312,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       />
                     </div>
                     {(formData.source_system || 'manual') === 'pbm' && (
-                      <p className="text-[11px] text-soft-muted">El score en PBM lo calcula el motor de matching.</p>
+                      <p className="text-[11px] text-soft-muted">{t('propertyFormMatchScoreHint')}</p>
                     )}
                   </div>
                 ) : null}
@@ -326,7 +326,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   onClick={onClose}
                   className="px-4 py-2 rounded-lg text-sm text-soft-muted hover:text-white hover:bg-white/5 transition-colors"
                 >
-                  Cancelar
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
@@ -334,7 +334,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {editProperty ? 'Guardar Cambios' : (loading ? 'Guardando...' : 'Crear Propiedad')}
+                  {editProperty ? t('propertyFormSaveChanges') : (loading ? t('propertyFormSaving') : t('propertyFormCreateAction'))}
                 </button>
               </div>
             </form>
