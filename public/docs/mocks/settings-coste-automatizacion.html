@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock - Settings Coste y Hard-Stops</title>
+  <style>
+    :root{--bg:#0b1434;--panel:#132253;--line:#2c4083;--text:#dce6ff;--muted:#90a2cf;--gold:#d4af37;--ok:#17d1a1;--warn:#f2b240;--danger:#ff6b7a}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif}
+    .wrap{max-width:980px;margin:0 auto;padding:24px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+    .row{display:grid;grid-template-columns:1.2fr .8fr .8fr .8fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #2b3f80}
+    .row:last-child{border-bottom:none}
+    input,select{width:100%;background:#102053;color:var(--text);border:1px solid #2d4186;border-radius:10px;padding:8px 10px}
+    .tag{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:700}
+    .ok{background:#0f3c34;color:var(--ok)} .warn{background:#3d2f10;color:var(--warn)} .danger{background:#472030;color:var(--danger)}
+    .btn{background:var(--gold);color:#0f1f4a;font-weight:800;border:0;border-radius:10px;padding:10px 14px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 style="margin:0 0 6px;">Settings · Coste & Automatización</h1>
+    <div style="color:var(--muted);margin-bottom:14px;">Configurar límites por módulo y acciones automáticas (throttle/stop/fallback).</div>
+
+    <section class="card">
+      <strong>Presupuesto global mensual</strong>
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <div><label style="color:var(--muted);font-size:12px;">Límite global (€)</label><input value="450.00" /></div>
+        <div><label style="color:var(--muted);font-size:12px;">Acción al 100%</label><select><option>Hard-stop</option><option>Warn only</option></select></div>
+      </div>
+      <div style="margin-top:8px;"><span class="tag ok">Hard-stop activo</span></div>
+    </section>
+
+    <section class="card">
+      <strong>Límites por módulo</strong>
+      <div class="row" style="color:var(--muted);font-weight:700;">
+        <div>Módulo</div><div>Límite (€)</div><div>Acción 85%</div><div>Acción 100%</div>
+      </div>
+      <div class="row">
+        <div>Prospección conectores</div><div><input value="150.00" /></div><div><span class="tag warn">Throttle</span></div><div><span class="tag danger">Stop</span></div>
+      </div>
+      <div class="row">
+        <div>LLM procesamiento</div><div><input value="180.00" /></div><div><span class="tag warn">Small model</span></div><div><span class="tag danger">Queue only</span></div>
+      </div>
+      <div class="row">
+        <div>Embeddings/Matching</div><div><input value="70.00" /></div><div><span class="tag ok">Local only</span></div><div><span class="tag danger">Pause refresh</span></div>
+      </div>
+      <div class="row">
+        <div>Export feeds</div><div><input value="50.00" /></div><div><span class="tag ok">Normal</span></div><div><span class="tag warn">Batch nightly</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <strong>Políticas de fallback</strong>
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <div><label style="color:var(--muted);font-size:12px;">Conector externo caído</label><select><option>Usar cache + stale badge</option></select></div>
+        <div><label style="color:var(--muted);font-size:12px;">LLM cuota excedida</label><select><option>Heurística + cola diferida</option></select></div>
+      </div>
+      <div style="margin-top:12px;"><button class="btn">Guardar políticas</button></div>
+    </section>
+  </div>
+</body>
+</html>

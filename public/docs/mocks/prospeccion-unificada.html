@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock - Prospección Unificada</title>
+  <style>
+    :root {
+      --bg:#0b1434; --panel:#132253; --line:#2b3f80; --text:#dbe4ff; --muted:#90a1ce;
+      --gold:#d4af37; --ok:#17d1a1; --warn:#f2b240; --blue:#4ea1ff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif}
+    .wrap{max-width:1200px;margin:0 auto;padding:22px}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .tab{padding:10px 14px;border:1px solid #2d4186;border-radius:10px;background:#11214f;color:var(--muted);font-weight:700}
+    .tab.active{color:var(--gold);border-color:#5e4a17}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+    .k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+    .k .v{font-size:24px;font-weight:800}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+    .row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #2b3f80}
+    .row:last-child{border-bottom:none}
+    .tag{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .ok{background:#0f3c34;color:var(--ok)}
+    .warn{background:#3d2f10;color:var(--warn)}
+    .src{background:#142a63;color:var(--blue)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1 style="margin:0">Prospección</h1>
+        <div style="color:var(--muted)">Carga automática de propiedades, compradores y matches al entrar</div>
+      </div>
+      <div class="tag ok">Prefetch ON</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">Propiedades Prospección (412)</div>
+      <div class="tab">Compradores (89)</div>
+      <div class="tab">Matches (1.238)</div>
+    </div>
+
+    <div class="kpis">
+      <div class="k"><div style="color:var(--muted)">Freshness media</div><div class="v">4m 20s</div></div>
+      <div class="k"><div style="color:var(--muted)">Hit cache</div><div class="v">68%</div></div>
+      <div class="k"><div style="color:var(--muted)">Coste hoy</div><div class="v">12,40 €</div></div>
+      <div class="k"><div style="color:var(--muted)">Errores API</div><div class="v">0,6%</div></div>
+    </div>
+
+    <section class="card">
+      <div class="row" style="color:var(--muted);font-weight:700;">
+        <div>Activo</div><div>Fuente</div><div>Score</div><div>Coste llamada</div><div>Estado</div>
+      </div>
+      <div class="row">
+        <div>Villa Port d'Andratx 4.2M</div><div><span class="tag src">Casafari</span></div><div>92,4</div><div>0,11 €</div><div><span class="tag ok">OK</span></div>
+      </div>
+      <div class="row">
+        <div>Ático Santa Ponsa 1.4M</div><div><span class="tag src">Idealista data</span></div><div>81,0</div><div>0,08 €</div><div><span class="tag ok">OK</span></div>
+      </div>
+      <div class="row">
+        <div>Lead social comprador UK</div><div><span class="tag src">Connector Social</span></div><div>74,2</div><div>0,24 €</div><div><span class="tag warn">Rate limit</span></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

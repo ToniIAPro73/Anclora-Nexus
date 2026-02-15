@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anclora Nexus - Mockups Optimización</title>
+  <style>
+    :root {
+      --bg: #0b1434;
+      --panel: #132253;
+      --panel-2: #1a2b63;
+      --text: #dbe4ff;
+      --muted: #93a3cf;
+      --gold: #d4af37;
+      --ok: #17d1a1;
+      --warn: #f3b33d;
+      --danger: #ff6b7a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: radial-gradient(circle at 20% 0%, #132661 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 50px; }
+    h1 { margin: 0 0 8px; font-size: 34px; }
+    p { margin: 0 0 22px; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: linear-gradient(160deg, var(--panel), var(--panel-2));
+      border: 1px solid #2a3f83;
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      margin-bottom: 10px;
+      color: #0f1e49;
+      background: var(--gold);
+    }
+    .links { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+    a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid #2e438b;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #102053;
+      transition: .2s;
+    }
+    a:hover { border-color: var(--gold); color: #fff; }
+    .legend { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .pill {
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #071430;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Mockups: Optimización Anclora Nexus</h1>
+    <p>Vista previa del nuevo enfoque integrado: no reemplaza pantallas actuales, las mejora.</p>
+
+    <div class="grid">
+      <div class="card">
+        <span class="badge">Dashboard</span>
+        <h3>Coste & Automatización</h3>
+        <p>Widget transversal con presupuesto, alertas y estado de jobs, integrado en dashboard existente.</p>
+        <div class="links">
+          <a href="./dashboard-coste-automatizacion.html">Abrir mock</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge">Prospección</span>
+        <h3>Prospección Unificada</h3>
+        <p>Misma pantalla de prospección actual, pero con prefetch automático y estado de coste por fuente.</p>
+        <div class="links">
+          <a href="./prospeccion-unificada.html">Abrir mock</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge">Propiedades</span>
+        <h3>Ficha comercial enriquecida</h3>
+        <p>Origen, portal, comprador potencial, % match, comisión estimada y reglas de edición por origen.</p>
+        <div class="links">
+          <a href="./propiedades-ficha-origen.html">Abrir mock</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge">Sidebar</span>
+        <h3>Vista contraída</h3>
+        <p>Comportamiento del layout con sidebar colapsado y foco en área operativa.</p>
+        <div class="links">
+          <a href="./dashboard-coste-automatizacion-collapsed.html">Abrir mock</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge">Contactos</span>
+        <h3>Origen y editabilidad</h3>
+        <p>Visualización por origen del lead/contacto y campos bloqueados según política.</p>
+        <div class="links">
+          <a href="./contactos-origen-edicion.html">Abrir mock</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge">Settings</span>
+        <h3>Coste & hard-stops</h3>
+        <p>Configurar presupuestos, límites por módulo y acciones automáticas por umbral.</p>
+        <div class="links">
+          <a href="./settings-coste-automatizacion.html">Abrir mock</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="pill" style="background: var(--ok);">Estado sano</span>
+      <span class="pill" style="background: var(--warn);">Riesgo coste</span>
+      <span class="pill" style="background: var(--danger);">Bloqueo/Stop</span>
+      <span class="pill" style="background: var(--gold);">KPIs negocio</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -3,6 +3,7 @@ import { useStore } from '@/lib/store'
 import { StaggerList, StaggerItem } from '@/components/effects/animations'
 import { Home, ExternalLink } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
+import { useCurrency } from '@/lib/currency'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -12,6 +13,7 @@ export function PropertyPipeline() {
   const properties = useStore((state) => state.properties)
   const router = useRouter()
   const { t } = useI18n()
+  const { formatMoney } = useCurrency()
 
   const columns = [
     { id: 'prospect', label: t('prospect') },
@@ -58,7 +60,7 @@ export function PropertyPipeline() {
                         </div>
                         <p className="text-[10px] text-soft-white font-medium truncate mb-1">{prop.address}</p>
                         <p className={`text-[11px] font-bold tabular-nums ${col.id === 'sold' ? 'text-gold' : 'text-soft-white'}`}>
-                          {typeof prop.price === 'number' ? `${(prop.price / 1000000).toFixed(1)}M€` : prop.price}
+                          {typeof prop.price === 'number' ? formatMoney(prop.price, { minFractionDigits: 0, maxFractionDigits: 0 }) : prop.price}
                         </p>
                       </div>
                     </StaggerItem>

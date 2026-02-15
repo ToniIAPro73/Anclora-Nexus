@@ -136,6 +136,56 @@ interface AppState {
   initialize: () => Promise<void>
 }
 
+// Normalizes common mojibake sequences that can appear after mixed UTF-8/latin1 writes.
+const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
+  ['â‚¬', '€'],
+  ['Ã¡', 'á'],
+  ['Ã ', 'à'],
+  ['Ã©', 'é'],
+  ['Ã¨', 'è'],
+  ['Ã­', 'í'],
+  ['Ã¬', 'ì'],
+  ['Ã³', 'ó'],
+  ['Ã²', 'ò'],
+  ['Ãº', 'ú'],
+  ['Ã¹', 'ù'],
+  ['Ã', 'Á'],
+  ['Ã€', 'À'],
+  ['Ã‰', 'É'],
+  ['Ãˆ', 'È'],
+  ['Ã', 'Í'],
+  ['ÃŒ', 'Ì'],
+  ['Ã“', 'Ó'],
+  ['Ã’', 'Ò'],
+  ['Ãš', 'Ú'],
+  ['Ã™', 'Ù'],
+  ['Ã±', 'ñ'],
+  ['Ã‘', 'Ñ'],
+  ['Ã§', 'ç'],
+  ['Ã‡', 'Ç'],
+  ['Ã¼', 'ü'],
+  ['Ãœ', 'Ü'],
+  ['Â', ''],
+]
+
+function normalizeMojibakeText(text: string): string {
+  let normalized = text
+  for (const [bad, good] of MOJIBAKE_REPLACEMENTS) {
+    normalized = normalized.split(bad).join(good)
+  }
+  return normalized
+}
+
+function normalizeMojibakeValue<T>(value: T): T {
+  if (typeof value === 'string') return normalizeMojibakeText(value) as T
+  if (Array.isArray(value)) return value.map((item) => normalizeMojibakeValue(item)) as T
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, normalizeMojibakeValue(v)])
+    return Object.fromEntries(entries) as T
+  }
+  return value
+}
+
 // Realistic synthetic data for Anclora Private Estates
 const MOCK_LEADS: Lead[] = [
   {
@@ -593,16 +643,21 @@ const MOCK_AGENT_LOGS: AgentLog[] = [
   },
 ]
 
+const CLEAN_MOCK_LEADS: Lead[] = normalizeMojibakeValue(MOCK_LEADS)
+const CLEAN_MOCK_TASKS: Task[] = normalizeMojibakeValue(MOCK_TASKS)
+const CLEAN_MOCK_PROPERTIES: Property[] = normalizeMojibakeValue(MOCK_PROPERTIES)
+const CLEAN_MOCK_AGENT_LOGS: AgentLog[] = normalizeMojibakeValue(MOCK_AGENT_LOGS)
+
 export const useStore = create<AppState>((set) => ({
-  leads: MOCK_LEADS,
-  tasks: MOCK_TASKS,
-  properties: MOCK_PROPERTIES,
-  agentLogs: MOCK_AGENT_LOGS,
+  leads: CLEAN_MOCK_LEADS,
+  tasks: CLEAN_MOCK_TASKS,
+  properties: CLEAN_MOCK_PROPERTIES,
+  agentLogs: CLEAN_MOCK_AGENT_LOGS,
   stats: {
     leadsThisWeek: 15,
     responseRate: 98,
     activeMandates: 12,
-    latestInsight: 'Generando anÃ¡lisis de mercado...'
+    latestInsight: 'Generando análisis de mercado...'
   },
 
   intelligence: {
@@ -697,7 +752,7 @@ export const useStore = create<AppState>((set) => ({
 
       if (leads && leads.length > 0) {
         set({
-          leads: leads.map((l: any) => ({
+          leads: normalizeMojibakeValue(leads.map((l: any) => ({
             id: l.id,
             name: l.name,
             email: l.email || '',
@@ -708,24 +763,24 @@ export const useStore = create<AppState>((set) => ({
             status: l.status || 'New',
             property_interest: l.property_interest || '',
             created_at: l.created_at
-          }))
+          })))
         })
       }
 
       if (tasks && tasks.length > 0) {
         set({
-          tasks: tasks.map((t: any) => ({
+          tasks: normalizeMojibakeValue(tasks.map((t: any) => ({
             id: t.id,
             title: t.title,
             due_time: t.due_date ? new Date(t.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '09:00',
             status: t.status === 'done' ? 'done' : 'pending'
-          }))
+          })))
         })
       }
 
       if (props && props.length > 0) {
         set({
-          properties: props.map((p: any) => ({
+          properties: normalizeMojibakeValue(props.map((p: any) => ({
             id: p.id,
             title: p.address.split(',')[0], // Use first part of address as title
             address: p.address,
@@ -739,7 +794,7 @@ export const useStore = create<AppState>((set) => ({
             plot_area_m2: p.plot_area_m2 ?? undefined,
             zone: p.city || 'Mallorca',
             match_score: p.prospection_score ? Math.round(p.prospection_score * 100) : undefined
-          }))
+          })))
         })
       }
       
@@ -749,13 +804,13 @@ export const useStore = create<AppState>((set) => ({
             const date = new Date(log.timestamp)
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             
-            return {
+            return normalizeMojibakeValue({
               id: log.id,
               agent: log.agent_name || log.skill_name || 'Agente',
               status: log.status === 'success' ? 'success' : log.status === 'running' ? 'active' : 'error',
-              message: log.output?.ai_summary || log.output?.luxury_summary || log.output?.summary || log.output?.message || log.skill_name || 'EjecuciÃ³n finalizada',
+              message: log.output?.ai_summary || log.output?.luxury_summary || log.output?.summary || log.output?.message || log.skill_name || 'Ejecución finalizada',
               timestamp: timeStr
-            }
+            })
           })
         })
       }
@@ -772,7 +827,7 @@ export const useStore = create<AppState>((set) => ({
           leadsThisWeek: leads?.length || 0,
           responseRate: 98,
           activeMandates: props?.filter((p: any) => p.status === 'listed').length || 0,
-          latestInsight: latestInsight
+          latestInsight: normalizeMojibakeText(latestInsight)
         }
       })
     } catch (error) {

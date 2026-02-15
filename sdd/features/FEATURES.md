@@ -176,6 +176,27 @@
 
 ---
 
+### 4. Currency & Surface Localization v1
+
+**ID**: ANCLORA-CSL-001  
+**Versión**: 1.0  
+**Status**: Specification Phase  
+**Fase**: Commercial UX & Data Quality  
+**Prioridad**: CRÍTICA
+
+**Descripción**: Unifica el formateo de importes por moneda (independiente del idioma), introduce desglose de superficies (`útil`, `construida`, `terreno`) y define reglas de editabilidad por origen para propiedades y contactos.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/currency-surface-localization/currency-surface-localization-INDEX.md`
+- **Spec Técnica**: `sdd/features/currency-surface-localization/currency-surface-localization-spec-v1.md`
+- **Spec Migración**: `sdd/features/currency-surface-localization/currency-surface-localization-spec-migration.md`
+- **Test Plan**: `sdd/features/currency-surface-localization/currency-surface-localization-test-plan-v1.md`
+- **Feature Rules**: `.agent/rules/feature-currency-surface-localization.md`
+- **SKILL**: `.agent/skills/features/currency-surface-localization/SKILL.md`
+- **Prompt Antigravity**: `.antigravity/prompts/currency-surface-localization/feature-currency-surface-localization-v1.md`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -206,6 +227,8 @@
 | Intelligence | ANCLORA-INT-001 | 1.0 | Implemented | Phase 0 | INDEX.md |
 | Multi-Tenant | ANCLORA-MTM-001 | 1.0 | Specification | Phase 1 Prerequisito | INDEX.md |
 | Prospection & Matching | ANCLORA-PBM-001 | 1.0 | Specification | Growth Engine | INDEX.md |
+| Lead Source Observability | ANCLORA-LSO-001 | 1.0 | Implemented | Data Quality & Attribution | INDEX.md |
+| Currency & Surface Localization | ANCLORA-CSL-001 | 1.0 | Specification | Commercial UX & Data Quality | INDEX.md |
 
 ---
 
@@ -268,6 +291,7 @@
 
 | Fecha | Feature | Cambio |
 |-------|---------|--------|
+| 2026-02-15 | Currency & Surface Localization v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |

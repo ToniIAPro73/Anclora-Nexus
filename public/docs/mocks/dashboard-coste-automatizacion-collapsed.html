@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock - Dashboard Coste (Sidebar Contraído)</title>
+  <style>
+    :root { --bg:#0b1434; --panel:#132253; --line:#2b3f80; --text:#d9e4ff; --muted:#8ea0d1; --gold:#d4af37; --ok:#19d4a7; --warn:#f2b240; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif}
+    .layout{display:grid;grid-template-columns:88px 1fr;min-height:100vh}
+    .sidebar{border-right:1px solid var(--line);background:#0e1b46;padding:12px;display:flex;flex-direction:column;gap:12px}
+    .toggle{height:40px;border:1px solid #fff;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:700}
+    .logo{height:56px;border-radius:50%;background:radial-gradient(circle,#d4af37 32%,#162c66 33%);border:2px solid #30488f}
+    .ico{height:40px;border-radius:10px;background:#132863;border:1px solid #2d4186}
+    .ico.active{outline:2px solid #4b6dbf;background:#17316f}
+    .main{padding:24px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+    .k{background:#11214f;border:1px solid #2d4186;border-radius:12px;padding:12px}
+    .v{font-size:24px;font-weight:800}
+    .tag{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .ok{background:#0f3c34;color:var(--ok)} .warn{background:#3d2f10;color:var(--warn)}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="toggle">⟫</div>
+      <div class="logo"></div>
+      <div class="ico"></div><div class="ico"></div><div class="ico"></div><div class="ico"></div>
+      <div class="ico"></div><div class="ico"></div><div class="ico active"></div>
+    </aside>
+    <main class="main">
+      <h1 style="margin:0 0 6px;">Coste & Automatización (Sidebar contraído)</h1>
+      <div style="color:var(--muted);margin-bottom:16px;">Layout operativo con más área útil de trabajo.</div>
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong>Presupuesto global</strong><span class="tag warn">73% consumido</span>
+        </div>
+        <div class="kpis">
+          <div class="k"><div style="color:var(--muted)">Mensual</div><div class="v">450,00 €</div></div>
+          <div class="k"><div style="color:var(--muted)">Consumido</div><div class="v">328,40 €</div></div>
+          <div class="k"><div style="color:var(--muted)">Ahorro</div><div class="v">91,20 €</div></div>
+          <div class="k"><div style="color:var(--muted)">Hard-stop</div><div class="v"><span class="tag ok">Activo</span></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

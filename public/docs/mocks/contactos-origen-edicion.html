@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock - Contactos Origen y Editabilidad</title>
+  <style>
+    :root{--bg:#0b1434;--panel:#132253;--line:#2b3f80;--text:#dbe4ff;--muted:#90a1ce;--gold:#d4af37;--ok:#17d1a1;--lock:#ff93a2;--b:#4ea1ff}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif}
+    .wrap{max-width:1180px;margin:0 auto;padding:24px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{padding:10px 8px;border-bottom:1px solid #2c4083;text-align:left}
+    th{color:var(--muted);font-weight:600}
+    .tag{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:700}
+    .manual{background:#2e2b1a;color:#ffdb70}
+    .cta{background:#143357;color:var(--b)}
+    .social{background:#113a34;color:var(--ok)}
+    .ok{color:var(--ok);font-weight:700}
+    .lock{color:var(--lock);font-weight:700}
+    .grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 style="margin:0 0 6px;">Contactos · Origen y reglas de edición</h1>
+    <div style="color:var(--muted);margin-bottom:14px;">Misma pantalla de contactos, con trazabilidad de origen y gobernanza de campos.</div>
+
+    <div class="grid">
+      <section class="card">
+        <strong>Listado de contactos</strong>
+        <table>
+          <thead><tr><th>Contacto</th><th>Origen</th><th>Canal</th><th>Prioridad</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Toni Ballesteros</td><td><span class="tag manual">Manual</span></td><td>App</td><td>P4</td><td>Activo</td></tr>
+            <tr><td>James Richardson</td><td><span class="tag social">Social + CTA</span></td><td>LinkedIn</td><td>P5</td><td>Calificado</td></tr>
+            <tr><td>Sarah Jones</td><td><span class="tag cta">CTA Web</span></td><td>Website</td><td>P4</td><td>Contactado</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <strong>Contrato de editabilidad (ejemplo: Social + CTA)</strong>
+        <table>
+          <tr><th>Campo</th><th>Regla</th></tr>
+          <tr><td>Nombre comercial</td><td class="ok">Editable</td></tr>
+          <tr><td>Teléfono</td><td class="ok">Editable</td></tr>
+          <tr><td>Notas comerciales</td><td class="ok">Editable</td></tr>
+          <tr><td>source_system</td><td class="lock">Bloqueado</td></tr>
+          <tr><td>source_channel</td><td class="lock">Bloqueado</td></tr>
+          <tr><td>source_campaign</td><td class="lock">Bloqueado</td></tr>
+          <tr><td>source_referrer</td><td class="lock">Bloqueado</td></tr>
+        </table>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

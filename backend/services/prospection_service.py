@@ -48,21 +48,29 @@ class ProspectionService:
             record["source_portal"] = str(record["source_portal"].value)
 
         # Convert Decimal to float for JSON serialization
-        if "price" in record and record["price"] is not None:
-            record["price"] = float(record["price"])
+        decimal_fields = [
+            "price",
+            "area_m2",
+            "useful_area_m2",
+            "built_area_m2",
+            "plot_area_m2",
+        ]
+        for field in decimal_fields:
+            if field in record and record[field] is not None:
+                record[field] = float(record[field])
 
         # Compute initial high_ticket_score
         score_result = scoring_service.compute_high_ticket_score(
-            price=float(data.price) if data.price else None,
+            price=record.get("price"),
             zone=data.zone,
             property_type=data.property_type,
-            area_m2=float(data.area_m2) if data.area_m2 else None,
+            area_m2=record.get("area_m2"),
             bedrooms=data.bedrooms,
         )
         record["high_ticket_score"] = score_result.score
         record["score_breakdown"] = score_result.breakdown
 
-        response = supabase_service.client.table("prospected_properties").insert(
+        response = supabase_service.client.table("properties").insert(
             record
         ).execute()
         return response.data[0]
@@ -78,7 +86,7 @@ class ProspectionService:
     ) -> Dict[str, Any]:
         """List prospected properties with filters."""
         query = (
-            supabase_service.client.table("prospected_properties")
+            supabase_service.client.table("properties")
             .select("*", count="exact")
             .eq("org_id", org_id)
             .order("high_ticket_score", desc=True)
@@ -104,7 +112,7 @@ class ProspectionService:
     async def get_property(self, org_id: str, property_id: str) -> Optional[Dict[str, Any]]:
         """Get a single property by ID with org isolation."""
         response = (
-            supabase_service.client.table("prospected_properties")
+            supabase_service.client.table("properties")
             .select("*")
             .eq("id", property_id)
             .eq("org_id", org_id)
@@ -115,20 +123,51 @@ class ProspectionService:
     async def update_property(
         self, org_id: str, property_id: str, data: PropertyUpdate
     ) -> Optional[Dict[str, Any]]:
-        """Update a prospected property."""
+        """Update a prospected property with origin-based editability enforcement."""
+        # 1. Fetch current record to check origin
+        existing = await self.get_property(org_id, property_id)
+        if not existing:
+            return None
+
         update_data: Dict[str, Any] = data.model_dump(exclude_none=True)
 
-        # Normalize Enums to strings for Supabase
+        # 2. Enforce Origin-based Editability Contract (ANCLORA-CSL-001)
+        source_system = existing.get("source_system", "manual")
+
+        # Trace fields protected for non-manual origins
+        if source_system != "manual":
+            protected_trace = {"source", "source_url", "source_system", "source_portal"}
+            for field in protected_trace:
+                if field in update_data:
+                    del update_data[field]
+
+        # Provenance/Scoring protected for PBM origin
+        if source_system == "pbm":
+            protected_scoring = {"high_ticket_score", "score_breakdown"}
+            for field in protected_scoring:
+                if field in update_data:
+                    del update_data[field]
+
+        # 3. Handle Enums and Decimals
         if "source_system" in update_data:
             update_data["source_system"] = str(update_data["source_system"].value)
         if "source_portal" in update_data and update_data["source_portal"] is not None:
             update_data["source_portal"] = str(update_data["source_portal"].value)
 
-        if "price" in update_data and update_data["price"] is not None:
-            update_data["price"] = float(update_data["price"])
+        decimal_fields = [
+            "price",
+            "area_m2",
+            "useful_area_m2",
+            "built_area_m2",
+            "plot_area_m2",
+        ]
+        for field in decimal_fields:
+            if field in update_data and update_data[field] is not None:
+                update_data[field] = float(update_data[field])
 
+        # 4. Perform update
         response = (
-            supabase_service.client.table("prospected_properties")
+            supabase_service.client.table("properties")
             .update(update_data)
             .eq("id", property_id)
             .eq("org_id", org_id)
@@ -153,7 +192,7 @@ class ProspectionService:
         )
 
         response = (
-            supabase_service.client.table("prospected_properties")
+            supabase_service.client.table("properties")
             .update({
                 "high_ticket_score": score_result.score,
                 "score_breakdown": score_result.breakdown,
@@ -328,7 +367,7 @@ class ProspectionService:
         """
         # Fetch properties
         prop_query = (
-            supabase_service.client.table("prospected_properties")
+            supabase_service.client.table("properties")
             .select("*")
             .eq("org_id", org_id)
             .neq("status", "discarded")
@@ -472,7 +511,7 @@ class ProspectionService:
 
         # Fetch property titles
         props = (
-            supabase_service.client.table("prospected_properties")
+            supabase_service.client.table("properties")
             .select("id, title")
             .eq("org_id", org_id)
             .in_("id", property_ids)

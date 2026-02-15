@@ -122,10 +122,25 @@ class PropertyCreate(BaseModel):
     bedrooms: Optional[int] = Field(default=None, ge=0)
     bathrooms: Optional[int] = Field(default=None, ge=0)
     area_m2: Optional[Decimal] = Field(default=None, ge=0)
+    useful_area_m2: Optional[Decimal] = Field(default=None, ge=0)
+    built_area_m2: Optional[Decimal] = Field(default=None, ge=0)
+    plot_area_m2: Optional[Decimal] = Field(default=None, ge=0)
     status: PropertyStatus = PropertyStatus.NEW
     source_system: PropertySourceSystem = PropertySourceSystem.MANUAL
     source_portal: Optional[PropertySourcePortal] = None
     notes: Optional[str] = None
+
+    @model_validator(mode="after")
+    def validate_surface_areas(self) -> "PropertyCreate":
+        """Ensure useful_area_m2 <= built_area_m2 when both are set."""
+        if (
+            self.useful_area_m2 is not None
+            and self.built_area_m2 is not None
+            and self.useful_area_m2 > self.built_area_m2
+        ):
+            msg = f"useful_area_m2 ({self.useful_area_m2}) must be <= built_area_m2 ({self.built_area_m2})"
+            raise ValueError(msg)
+        return self
 
     @field_validator("source")
     @classmethod
@@ -153,6 +168,8 @@ class PropertyCreate(BaseModel):
 class PropertyUpdate(BaseModel):
     """Schema for updating a prospected property."""
 
+    source: Optional[str] = None
+    source_url: Optional[str] = None
     title: Optional[str] = None
     zone: Optional[str] = None
     city: Optional[str] = None
@@ -161,10 +178,25 @@ class PropertyUpdate(BaseModel):
     bedrooms: Optional[int] = Field(default=None, ge=0)
     bathrooms: Optional[int] = Field(default=None, ge=0)
     area_m2: Optional[Decimal] = Field(default=None, ge=0)
+    useful_area_m2: Optional[Decimal] = Field(default=None, ge=0)
+    built_area_m2: Optional[Decimal] = Field(default=None, ge=0)
+    plot_area_m2: Optional[Decimal] = Field(default=None, ge=0)
     status: Optional[PropertyStatus] = None
     source_system: Optional[PropertySourceSystem] = None
     source_portal: Optional[PropertySourcePortal] = None
     notes: Optional[str] = None
+
+    @model_validator(mode="after")
+    def validate_surface_areas(self) -> "PropertyUpdate":
+        """Ensure useful_area_m2 <= built_area_m2 when both are set."""
+        if (
+            self.useful_area_m2 is not None
+            and self.built_area_m2 is not None
+            and self.useful_area_m2 > self.built_area_m2
+        ):
+            msg = f"useful_area_m2 ({self.useful_area_m2}) must be <= built_area_m2 ({self.built_area_m2})"
+            raise ValueError(msg)
+        return self
 
 
 class PropertyResponse(BaseModel):
@@ -182,6 +214,9 @@ class PropertyResponse(BaseModel):
     bedrooms: Optional[int] = None
     bathrooms: Optional[int] = None
     area_m2: Optional[Decimal] = None
+    useful_area_m2: Optional[Decimal] = None
+    built_area_m2: Optional[Decimal] = None
+    plot_area_m2: Optional[Decimal] = None
     high_ticket_score: Optional[Decimal] = None
     score_breakdown: Dict[str, Any] = Field(default_factory=dict)
     status: str

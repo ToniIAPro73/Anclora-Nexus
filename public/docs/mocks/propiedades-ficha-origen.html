@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock - Propiedades con origen y match</title>
+  <style>
+    :root{
+      --bg:#0b1434; --panel:#132253; --line:#2c4083; --text:#dce6ff; --muted:#90a2cf;
+      --gold:#d4af37; --ok:#17d1a1; --blue:#4ea1ff; --soft:#1b2b63;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif}
+    .wrap{max-width:1140px;margin:0 auto;padding:22px}
+    .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .row{display:flex;justify-content:space-between;gap:10px;margin-top:8px}
+    .tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .origin-manual{background:#2e2b1a;color:#ffdb70}
+    .origin-widget{background:#143357;color:var(--blue)}
+    .origin-pbm{background:#113a34;color:var(--ok)}
+    .val{font-weight:800;font-size:24px}
+    .muted{color:var(--muted)}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    td,th{padding:10px 8px;border-bottom:1px solid #2b3f80;text-align:left}
+    th{color:var(--muted);font-weight:600}
+    .lock{color:#ffb6bf;font-weight:700}
+    .ok{color:var(--ok);font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 style="margin:0 0 4px;">Propiedades · Ficha Comercial Integrada</h1>
+    <div class="muted" style="margin-bottom:14px;">Una sola vista para origen, datos comerciales, match y editabilidad.</div>
+
+    <div class="grid">
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <h2 style="margin:0 0 4px;">Camí de S'Arracó, Km 3, Andratx</h2>
+            <div class="muted">Andratx · Villa · Ref ANX-PT-00324</div>
+          </div>
+          <span class="tag origin-pbm">Origen: Prospección & Match</span>
+        </div>
+
+        <div class="row" style="margin-top:14px;">
+          <div>
+            <div class="muted">Precio</div>
+            <div class="val">2.800.000,00 €</div>
+          </div>
+          <div>
+            <div class="muted">Comisión estimada</div>
+            <div class="val">84.000,00 €</div>
+          </div>
+          <div>
+            <div class="muted">Match actual</div>
+            <div class="val">91%</div>
+          </div>
+        </div>
+
+        <table>
+          <tr><th>Superficie útil</th><td>286,00 m2</td></tr>
+          <tr><th>Superficie construida</th><td>342,00 m2</td></tr>
+          <tr><th>Superficie terreno</th><td>1.050,00 m2</td></tr>
+          <tr><th>Portal origen</th><td>Idealista</td></tr>
+        </table>
+      </section>
+
+      <section class="card">
+        <h3 style="margin:0 0 8px;">Reglas de edición por origen</h3>
+        <table>
+          <tr><th>Campo</th><th>Estado</th></tr>
+          <tr><td>Título interno comercial</td><td class="ok">Editable</td></tr>
+          <tr><td>Descripción comercial</td><td class="ok">Editable</td></tr>
+          <tr><td>Precio interno objetivo</td><td class="ok">Editable</td></tr>
+          <tr><td>URL origen portal</td><td class="lock">Bloqueado</td></tr>
+          <tr><td>Score histórico captación</td><td class="lock">Bloqueado</td></tr>
+          <tr><td>Fuente técnica</td><td class="lock">Bloqueado</td></tr>
+        </table>
+
+        <h3 style="margin:14px 0 8px;">Comprador potencial vinculado</h3>
+        <div class="card" style="background:var(--soft);padding:12px;">
+          <div style="font-weight:700;">James Richardson</div>
+          <div class="muted">Budget: 2.5M - 3.2M · Zona: SW Mallorca</div>
+          <div style="margin-top:6px;" class="ok">Compatibilidad 91% · Acción recomendada: visita privada</div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:14px;">
+      <h3 style="margin-top:0">Comparativa de origen (misma pantalla de propiedades)</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="tag origin-manual">Alta manual</span>
+        <span class="tag origin-widget">Widget prospección</span>
+        <span class="tag origin-pbm">Prospección & Match</span>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

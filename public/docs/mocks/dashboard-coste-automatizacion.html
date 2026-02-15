@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock - Dashboard Coste & Automatización</title>
+  <style>
+    :root {
+      --bg: #0b1434; --panel: #132253; --line: #2b3f80; --text: #d9e4ff; --muted: #8ea0d1;
+      --gold: #d4af37; --ok: #19d4a7; --warn: #f2b240; --danger: #ff6b7a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", Arial, sans-serif; }
+    .layout { display: grid; grid-template-columns: 270px 1fr; min-height: 100vh; }
+    .sidebar { border-right: 1px solid var(--line); background: #0e1b46; padding: 16px; }
+    .logo { height: 44px; border-radius: 10px; background: #1a2b63; margin-bottom: 24px; }
+    .menu div { padding: 10px 12px; border-radius: 10px; color: var(--muted); margin-bottom: 8px; }
+    .menu .active { background: #1a2b63; color: var(--gold); font-weight: 700; }
+    .main { padding: 24px; }
+    .title { font-size: 34px; font-weight: 800; margin-bottom: 6px; }
+    .subtitle { color: var(--muted); margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    .kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+    .kpi .item { background: #11214f; border: 1px solid #2d4186; border-radius: 12px; padding: 12px; }
+    .lbl { font-size: 12px; color: var(--muted); }
+    .val { font-size: 26px; font-weight: 800; margin-top: 4px; }
+    .tag { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 9px; display: inline-block; }
+    .ok { background: #0f3c34; color: var(--ok); }
+    .warn { background: #3d2f10; color: var(--warn); }
+    .danger { background: #472030; color: var(--danger); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid #2b3f80; text-align: left; }
+    th { color: var(--muted); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"></div>
+      <div class="menu">
+        <div>Panel de Control</div>
+        <div>Contactos</div>
+        <div>Propiedades</div>
+        <div>Tareas</div>
+        <div>Equipo</div>
+        <div>Prospección</div>
+        <div>Intelligence</div>
+        <div class="active">Coste & Automatización</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="title">Coste & Automatización</div>
+      <div class="subtitle">Control transversal integrado en dashboard actual</div>
+
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong>Budget Mensual IA + APIs</strong>
+          <span class="tag warn">73% consumido</span>
+        </div>
+        <div class="kpi">
+          <div class="item"><div class="lbl">Presupuesto</div><div class="val">450,00 €</div></div>
+          <div class="item"><div class="lbl">Consumido</div><div class="val">328,40 €</div></div>
+          <div class="item"><div class="lbl">Ahorro cache</div><div class="val">91,20 €</div></div>
+          <div class="item"><div class="lbl">Coste/lead útil</div><div class="val">2,61 €</div></div>
+        </div>
+      </section>
+
+      <div class="grid" style="margin-top:14px;">
+        <section class="card">
+          <strong>Jobs automáticos</strong>
+          <table>
+            <thead><tr><th>Job</th><th>Fuente</th><th>Latencia</th><th>Coste</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td>Ingesta Prospección</td><td>Casafari</td><td>1.8s</td><td>0,32 €</td><td><span class="tag ok">OK</span></td></tr>
+              <tr><td>Refresh Matches</td><td>Embeddings local</td><td>0.9s</td><td>0,04 €</td><td><span class="tag ok">OK</span></td></tr>
+              <tr><td>Lead Normalizer</td><td>LLM Router</td><td>2.1s</td><td>0,17 €</td><td><span class="tag warn">WARN</span></td></tr>
+              <tr><td>Feed Export</td><td>XML gateway</td><td>3.2s</td><td>0,01 €</td><td><span class="tag ok">OK</span></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="card">
+          <strong>Alertas activas</strong>
+          <table>
+            <tbody>
+              <tr><td>P95 latencia LLM > objetivo</td><td><span class="tag warn">Media</span></td></tr>
+              <tr><td>Conector social en fallback</td><td><span class="tag warn">Media</span></td></tr>
+              <tr><td>Ningún hard-stop de presupuesto</td><td><span class="tag ok">Sano</span></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

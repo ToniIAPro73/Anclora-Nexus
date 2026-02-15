@@ -5,6 +5,7 @@ import { X, Save, Home, MapPin, Euro, Activity, Loader2 } from 'lucide-react'
 import { useStore, Property } from '@/lib/store'
 import { createProperty } from '@/lib/api'
 import { useI18n } from '@/lib/i18n'
+import { useCurrency } from '@/lib/currency'
 
 interface PropertyFormModalProps {
   isOpen: boolean
@@ -14,8 +15,12 @@ interface PropertyFormModalProps {
 
 export default function PropertyFormModal({ isOpen, onClose, editProperty }: PropertyFormModalProps) {
   const { t } = useI18n()
+  const { currency } = useCurrency()
   const updateProperty = useStore((state) => state.updateProperty)
   const [loading, setLoading] = useState(false)
+
+  const isSourceLocked = editProperty?.source_system !== undefined && editProperty?.source_system !== 'manual'
+  const isScoreLocked = editProperty?.source_system === 'pbm'
 
   // Estado inicial
   const [formData, setFormData] = useState<Partial<Property>>({
@@ -41,6 +46,9 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
         source_system: 'manual',
         source_portal: '',
         match_score: 0,
+        useful_area_m2: 0,
+        built_area_m2: 0,
+        plot_area_m2: 0,
         image: '/images/prop-placeholder.jpg'
       })
     }
@@ -126,17 +134,50 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
                 {/* Price */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Precio</label>
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Precio ({currency})</label>
                   <div className="relative">
                     <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soft-subtle" />
                     <input
                       type="text"
                       value={formData.price || ''}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })} // Handles string or number
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
-                      placeholder="ej. 4.5M"
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50"
+                      placeholder="ej. 4500000"
                     />
                   </div>
+                </div>
+
+                {/* Built Area */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Construida (m²)</label>
+                  <input
+                    type="number"
+                    value={formData.built_area_m2 || 0}
+                    onChange={(e) => setFormData({ ...formData, built_area_m2: Number(e.target.value) })}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Useful Area */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Útil (m²)</label>
+                  <input
+                    type="number"
+                    value={formData.useful_area_m2 || 0}
+                    onChange={(e) => setFormData({ ...formData, useful_area_m2: Number(e.target.value) })}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Plot Area */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Sup. Parcela (m²)</label>
+                  <input
+                    type="number"
+                    value={formData.plot_area_m2 || 0}
+                    onChange={(e) => setFormData({ ...formData, plot_area_m2: Number(e.target.value) })}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
+                  />
                 </div>
 
                 {/* Status */}
@@ -161,7 +202,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   <select
                     value={formData.source_system || 'manual'}
                     onChange={(e) => setFormData({ ...formData, source_system: e.target.value as Property['source_system'] })}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
+                    disabled={isSourceLocked}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="manual">Alta manual</option>
                     <option value="widget">Prospección automática</option>
@@ -175,7 +217,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   <select
                     value={formData.source_portal || ''}
                     onChange={(e) => setFormData({ ...formData, source_portal: e.target.value })}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
+                    disabled={isSourceLocked}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">Ninguno</option>
                     <option value="idealista">Idealista</option>
@@ -199,7 +242,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       max="100"
                       value={formData.match_score || 0}
                       onChange={(e) => setFormData({ ...formData, match_score: Number(e.target.value) })}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                      disabled={isScoreLocked}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50"
                     />
                   </div>
                 </div>
