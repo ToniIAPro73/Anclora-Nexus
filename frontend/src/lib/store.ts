@@ -800,8 +800,8 @@ export const useStore = create<AppState>((set) => ({
       let pbmProperties: Property[] = []
       try {
         const [pbmPropsRes, pbmMatchesRes] = await Promise.all([
-          listProperties({ limit: 200, offset: 0 }),
-          listMatches({ limit: 500, offset: 0 }),
+          listProperties({ limit: 100, offset: 0 }),
+          listMatches({ limit: 100, offset: 0 }),
         ])
 
         const bestByProperty = new Map<string, { bestScore: number; bestCommission: number | null }>()

@@ -88,11 +88,11 @@ export default function PublicProfilePage() {
             <h1 className="text-5xl md:text-7xl font-black text-soft-white tracking-tighter leading-none">
               {userName}
             </h1>
-            <p className="text-xl md:text-2xl text-gold font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-3">
-              <div className="h-px w-8 bg-gold/40" />
+            <div className="text-xl md:text-2xl text-gold font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-3">
+              <span className="h-px w-8 bg-gold/40" aria-hidden="true" />
               {profile?.job_title || 'Luxury Estate Consultant'}
-              <div className="h-px w-8 bg-gold/40" />
-            </p>
+              <span className="h-px w-8 bg-gold/40" aria-hidden="true" />
+            </div>
             <div className="flex items-center justify-center gap-6 text-soft-muted">
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-blue-light" />
@@ -154,7 +154,12 @@ export default function PublicProfilePage() {
         <div className="pt-20 text-center space-y-6 opacity-60 hover:opacity-100 transition-opacity">
           <div className="flex items-center justify-center gap-4">
             <div className="h-px w-20 bg-soft-subtle/30" />
-            <img src="/logo-anclora-nexus.png" err-src="" alt="Anclora" className="h-8 grayscale brightness-200" />
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center">
+                <div className="w-3 h-3 rounded-full bg-gold" />
+              </div>
+              <span className="text-soft-white font-semibold tracking-wide">Anclora Nexus</span>
+            </div>
             <div className="h-px w-20 bg-soft-subtle/30" />
           </div>
           <p className="text-xs text-soft-muted tracking-widest uppercase font-bold">

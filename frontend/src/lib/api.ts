@@ -1,6 +1,6 @@
 import supabase from './supabase'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
 async function resolveCurrentOrgId(userId?: string): Promise<string> {
   if (!userId) throw new Error('No authenticated user to resolve org_id')

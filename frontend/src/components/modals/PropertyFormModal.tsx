@@ -295,7 +295,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   </select>
                 </div>
 
-                {/* Match Score */}
+                {/* Match Score (only non-manual origins) */}
                 {(formData.source_system || 'manual') !== 'manual' ? (
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Match Score (0-100)</label>
@@ -314,11 +314,6 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                     {(formData.source_system || 'manual') === 'pbm' && (
                       <p className="text-[11px] text-soft-muted">El score en PBM lo calcula el motor de matching.</p>
                     )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Match Score</label>
-                    <p className="text-[11px] text-soft-muted">En alta manual no aplica score de match hasta asociar comprador.</p>
                   </div>
                 )}
 

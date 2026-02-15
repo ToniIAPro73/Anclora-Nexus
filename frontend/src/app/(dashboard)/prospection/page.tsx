@@ -90,8 +90,8 @@ export default function ProspectionPage() {
       const [propsRes, buyersRes, matchesRes] = await Promise.allSettled([
         listProperties({ limit: ITEMS, offset: propPage * ITEMS }),
         listBuyers({ limit: ITEMS, offset: buyerPage * ITEMS }),
-        // Load a wider window for property-match synchronization cards
-        listMatches({ limit: 100, offset: 0 }),
+        // Keep under backend validation limits (<= 100)
+        listMatches({ limit: 50, offset: 0 }),
       ])
 
       if (propsRes.status === 'fulfilled') {
@@ -139,7 +139,7 @@ export default function ProspectionPage() {
     // (matches must be preloaded even if tab is not active)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAllTabs()
-  }, [loadAllTabs, loadMatches])
+  }, [loadAllTabs])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -213,6 +213,7 @@ export default function ProspectionPage() {
 
   const currentPage = activeTab === 'properties' ? propPage : activeTab === 'buyers' ? buyerPage : matchPage
   const currentTotal = activeTab === 'properties' ? propTotal : activeTab === 'buyers' ? buyerTotal : matchTotal
+  const overallTotal = propTotal + buyerTotal + matchTotal
   const totalPages = Math.ceil(currentTotal / ITEMS)
   const setPage = activeTab === 'properties' ? setPropPage : activeTab === 'buyers' ? setBuyerPage : setMatchPage
 
@@ -250,7 +251,7 @@ export default function ProspectionPage() {
             )}
             <div className="px-4 py-2 bg-navy-surface/40 border border-soft-subtle rounded-lg">
               <span className="text-sm text-soft-muted">{t('total')}: </span>
-              <span className="text-lg font-bold text-gold">{currentTotal}</span>
+              <span className="text-lg font-bold text-gold">{overallTotal}</span>
             </div>
           </div>
         </div>
