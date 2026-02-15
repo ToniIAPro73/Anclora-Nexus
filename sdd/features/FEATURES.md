@@ -197,6 +197,26 @@
 
 ---
 
+### 5. Cost Governance Foundation v1
+
+**ID**: ANCLORA-CGF-001  
+**Versión**: 1.0  
+**Status**: Specification Phase  
+**Fase**: FinOps Foundation  
+**Prioridad**: CRÍTICA
+
+**Descripción**: Introduce presupuesto mensual por organización, registro de consumo por capability y alertas de umbral/hard-stop para evitar sobrecoste operativo.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/cost-governance-foundation/cost-governance-foundation-INDEX.md`
+- **Spec Técnica**: `sdd/features/cost-governance-foundation/cost-governance-foundation-spec-v1.md`
+- **Spec Migración**: `sdd/features/cost-governance-foundation/cost-governance-foundation-spec-migration.md`
+- **Test Plan**: `sdd/features/cost-governance-foundation/cost-governance-foundation-test-plan-v1.md`
+- **SKILL**: `.agent/skills/features/cost-governance-foundation/SKILL.md`
+- **Prompts Antigravity**: `.antigravity/prompts/features/cost-governance-foundation/`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -229,6 +249,7 @@
 | Prospection & Matching | ANCLORA-PBM-001 | 1.0 | Specification | Growth Engine | INDEX.md |
 | Lead Source Observability | ANCLORA-LSO-001 | 1.0 | Implemented | Data Quality & Attribution | INDEX.md |
 | Currency & Surface Localization | ANCLORA-CSL-001 | 1.0 | Specification | Commercial UX & Data Quality | INDEX.md |
+| Cost Governance Foundation | ANCLORA-CGF-001 | 1.0 | Specification | FinOps Foundation | INDEX.md |
 
 ---
 
@@ -291,6 +312,7 @@
 
 | Fecha | Feature | Cambio |
 |-------|---------|--------|
+| 2026-02-15 | Cost Governance Foundation v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Currency & Surface Localization v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |

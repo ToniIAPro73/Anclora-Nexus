@@ -4,6 +4,47 @@
 
 ---
 
+## [UPCOMING] - Cost Governance Foundation v1
+
+**Fecha anticipada**: 2026-02-XX  
+**Status**: En especificación  
+**Criticidad**: CRÍTICA  
+**Feature**: ANCLORA-CGF-001 v1.0
+
+### Database Changes
+
+#### New Tables
+
+- `org_cost_policies`
+  - Presupuesto y umbrales por organización
+- `org_cost_usage_events`
+  - Eventos de consumo por capability/proveedor
+- `org_cost_alerts`
+  - Alertas warning/hard-stop por mes
+
+### API Changes (Feature Layer)
+
+- `GET /api/finops/budget`
+- `PATCH /api/finops/budget`
+- `GET /api/finops/usage`
+- `GET /api/finops/alerts`
+- `POST /api/finops/usage/log` (internal)
+
+### Security & Governance
+
+- Aislamiento estricto por `org_id`.
+- Guardrails de coste (warning + hard-stop configurable).
+- Endpoints de logging protegidos para uso interno.
+
+### SDD References
+
+- `sdd/features/cost-governance-foundation/cost-governance-foundation-INDEX.md`
+- `sdd/features/cost-governance-foundation/cost-governance-foundation-spec-v1.md`
+- `sdd/features/cost-governance-foundation/cost-governance-foundation-spec-migration.md`
+- `sdd/features/cost-governance-foundation/cost-governance-foundation-test-plan-v1.md`
+
+---
+
 ## [UPCOMING] - Multi-Tenant Memberships v1 (Phase Prerequisito)
 
 **Fecha anticipada**: 2026-02-XX (Post-Antigravity generation)  

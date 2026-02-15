@@ -21,7 +21,7 @@ import { useCurrency } from '@/lib/currency'
 export default function PropertiesPage() {
   const properties = useStore((state) => state.properties)
   const deleteProperty = useStore((state) => state.deleteProperty)
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const { formatMoney, formatSurface } = useCurrency()
   const [pbmMetaByPropertyId, setPbmMetaByPropertyId] = useState<Record<string, PropertyPbmMeta>>({})
 
@@ -46,9 +46,44 @@ export default function PropertiesPage() {
   }
 
   const getOriginLabel = (property: Property) => {
-    if (property.source_system === 'pbm') return 'Prospero + Match'
-    if (property.source_system === 'widget') return 'Auto-Prospero'
-    return 'Manual'
+    if (property.source_system === 'pbm') return t('originPbm')
+    if (property.source_system === 'widget') return t('originWidget')
+    return t('sourceManual')
+  }
+
+  const formatRelativeLastUpdate = (raw?: string) => {
+    if (!raw) return t('recently')
+    const text = String(raw).trim()
+    if (!text) return t('recently')
+
+    // Already relative in other languages, keep as-is.
+    if (!/^hace\s+/i.test(text)) return text
+
+    // Parse legacy Spanish strings: "Hace 5 horas", "Hace 2 días", etc.
+    const lower = text.toLowerCase()
+    const m = lower.match(/hace\s+(\d+)\s+([a-záéíóúñ]+)/i)
+    if (!m) return text
+
+    const value = Number(m[1])
+    const unitRaw = m[2]
+    if (!Number.isFinite(value)) return text
+
+    let unit: Intl.RelativeTimeFormatUnit = 'hour'
+    if (unitRaw.startsWith('min')) unit = 'minute'
+    else if (unitRaw.startsWith('hora')) unit = 'hour'
+    else if (unitRaw.startsWith('d')) unit = 'day'
+    else if (unitRaw.startsWith('sem')) unit = 'week'
+    else if (unitRaw.startsWith('mes')) unit = 'month'
+
+    const localeMap = {
+      es: 'es-ES',
+      en: 'en-GB',
+      de: 'de-DE',
+      ru: 'ru-RU',
+    } as const
+
+    const rtf = new Intl.RelativeTimeFormat(localeMap[language] || 'es-ES', { numeric: 'always' })
+    return rtf.format(-value, unit)
   }
 
   const normalizePortal = (portal?: string | null) => {
@@ -103,7 +138,7 @@ export default function PropertiesPage() {
                 className="px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold border border-gold/20 rounded-lg text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Nueva Propiedad
+                {t('newProperty')}
               </button>
              <div className="px-4 py-2 bg-navy-surface/40 border border-soft-subtle rounded-lg">
                 <span className="text-sm text-soft-muted">{t('total')}: </span>
@@ -208,7 +243,7 @@ export default function PropertiesPage() {
 
                         {pbmMetaByPropertyId[property.id]?.topBuyerName ? (
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-soft-muted uppercase tracking-wider">Comprador potencial</span>
+                            <span className="text-xs text-soft-muted uppercase tracking-wider">{t('potentialBuyer')}</span>
                             <span className="text-xs font-medium text-soft-white text-right line-clamp-1">
                               {pbmMetaByPropertyId[property.id].topBuyerName}
                             </span>
@@ -217,7 +252,7 @@ export default function PropertiesPage() {
 
                         {(pbmMetaByPropertyId[property.id]?.bestMatchScore || property.match_score) ? (
                            <div className="flex items-center justify-between pt-2">
-                              <span className="text-xs text-soft-muted uppercase tracking-wider">Match</span>
+                              <span className="text-xs text-soft-muted uppercase tracking-wider">{t('matchLabel')}</span>
                               <div className="flex items-center gap-2">
                                  <div className="h-1.5 w-16 bg-navy-deep rounded-full overflow-hidden">
                                     <div 
@@ -239,7 +274,7 @@ export default function PropertiesPage() {
 
                   {/* Footer Actions */}
                   <div className="p-4 bg-navy-deep/30 border-t border-soft-subtle/30 flex justify-between items-center">
-                      <span className="text-xs text-soft-muted italic">{property.last_update || 'Recently'}</span>
+                      <span className="text-xs text-soft-muted italic">{formatRelativeLastUpdate(property.last_update)}</span>
                       <div className="flex items-center gap-2">
                          <button
                            onClick={(e) => {
@@ -247,17 +282,17 @@ export default function PropertiesPage() {
                              handleEdit(property)
                            }}
                            className="p-1.5 text-soft-muted hover:text-blue-400 hover:bg-blue-500/10 rounded-md transition-all"
-                           title="Editar"
+                           title={t('edit')}
                          >
                            <Edit2 className="w-4 h-4" />
                          </button>
                          <button
                            onClick={(e) => {
                              e.stopPropagation()
-                             if (window.confirm('¿Eliminar esta propiedad?')) deleteProperty(property.id)
+                             if (window.confirm(t('deletePropertyConfirm'))) deleteProperty(property.id)
                            }}
                            className="p-1.5 text-soft-muted hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all"
-                           title="Eliminar propiedad"
+                           title={t('deletePropertyTitle')}
                          >
                            <Trash2 className="w-4 h-4" />
                          </button>
@@ -281,7 +316,7 @@ export default function PropertiesPage() {
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <span className="text-xs text-soft-muted font-medium">
-                Page <span className="text-gold font-bold">{safeCurrentPage}</span> of {totalPages}
+                {t('pageLabel')} <span className="text-gold font-bold">{safeCurrentPage}</span> {t('ofLabel')} {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
