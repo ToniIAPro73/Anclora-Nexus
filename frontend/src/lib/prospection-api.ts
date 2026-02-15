@@ -9,6 +9,12 @@ import supabase from './supabase'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
+function buildApiUrl(path: string): string {
+  const base = API_URL.replace(/\/+$/, '')
+  const normalizedPath = path.startsWith('/api/') ? path.slice(4) : path
+  return `${base}${normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`}`
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface ProspectedProperty {
@@ -104,7 +110,7 @@ async function apiRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const headers = await getAuthHeaders()
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(buildApiUrl(path), {
     ...options,
     headers: { ...headers, ...(options.headers as Record<string, string> || {}) },
   })

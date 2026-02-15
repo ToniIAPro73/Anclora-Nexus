@@ -122,6 +122,9 @@ export default function PropertiesPage() {
               </div>
             ) : (
               paginatedProperties.map((property, index) => (
+                (() => {
+                  const isProspected = property.source_system === 'widget' || property.source_system === 'pbm'
+                  return (
                 <motion.div
                   key={property.id}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -189,41 +192,49 @@ export default function PropertiesPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-soft-muted uppercase tracking-wider">{t('estimatedCommission')}</span>
-                      <div className="flex items-center gap-1 text-sm font-semibold text-gold">
-                        <TrendingUp className="w-4 h-4" />
-                        <span>
-                          {pbmMetaByPropertyId[property.id]?.bestCommission != null
-                            ? formatMoney(pbmMetaByPropertyId[property.id].bestCommission!, { minFractionDigits: 0 })
-                            : (property.commission_est || '-')}
-                        </span>
-                      </div>
-                    </div>
-
-                    {pbmMetaByPropertyId[property.id]?.topBuyerName ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-soft-muted uppercase tracking-wider">Comprador potencial</span>
-                        <span className="text-xs font-medium text-soft-white text-right line-clamp-1">
-                          {pbmMetaByPropertyId[property.id].topBuyerName}
-                        </span>
-                      </div>
-                    ) : null}
-
-                    {(pbmMetaByPropertyId[property.id]?.bestMatchScore || property.match_score) ? (
-                       <div className="flex items-center justify-between pt-2">
-                          <span className="text-xs text-soft-muted uppercase tracking-wider">Match</span>
-                          <div className="flex items-center gap-2">
-                             <div className="h-1.5 w-16 bg-navy-deep rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-gradient-to-r from-gold to-amber-500" 
-                                  style={{ width: `${pbmMetaByPropertyId[property.id]?.bestMatchScore || property.match_score}%` }}
-                                />
-                             </div>
-                             <span className="text-xs font-bold text-gold">{pbmMetaByPropertyId[property.id]?.bestMatchScore || property.match_score}%</span>
+                    {isProspected ? (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-soft-muted uppercase tracking-wider">{t('estimatedCommission')}</span>
+                          <div className="flex items-center gap-1 text-sm font-semibold text-gold">
+                            <TrendingUp className="w-4 h-4" />
+                            <span>
+                              {pbmMetaByPropertyId[property.id]?.bestCommission != null
+                                ? formatMoney(pbmMetaByPropertyId[property.id].bestCommission!, { minFractionDigits: 0 })
+                                : (property.commission_est || '-')}
+                            </span>
                           </div>
-                       </div>
-                    ) : null}
+                        </div>
+
+                        {pbmMetaByPropertyId[property.id]?.topBuyerName ? (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-soft-muted uppercase tracking-wider">Comprador potencial</span>
+                            <span className="text-xs font-medium text-soft-white text-right line-clamp-1">
+                              {pbmMetaByPropertyId[property.id].topBuyerName}
+                            </span>
+                          </div>
+                        ) : null}
+
+                        {(pbmMetaByPropertyId[property.id]?.bestMatchScore || property.match_score) ? (
+                           <div className="flex items-center justify-between pt-2">
+                              <span className="text-xs text-soft-muted uppercase tracking-wider">Match</span>
+                              <div className="flex items-center gap-2">
+                                 <div className="h-1.5 w-16 bg-navy-deep rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-gradient-to-r from-gold to-amber-500" 
+                                      style={{ width: `${pbmMetaByPropertyId[property.id]?.bestMatchScore || property.match_score}%` }}
+                                    />
+                                 </div>
+                                 <span className="text-xs font-bold text-gold">{pbmMetaByPropertyId[property.id]?.bestMatchScore || property.match_score}%</span>
+                              </div>
+                           </div>
+                        ) : null}
+                      </>
+                    ) : (
+                      <div className="text-[11px] text-soft-muted">
+                        Datos de match no aplican en alta manual.
+                      </div>
+                    )}
                   </div>
 
                   {/* Footer Actions */}
@@ -253,6 +264,8 @@ export default function PropertiesPage() {
                       </div>
                   </div>
                 </motion.div>
+                  )
+                })()
               ))
             )}
           </div>

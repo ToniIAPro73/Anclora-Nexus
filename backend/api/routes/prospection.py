@@ -57,7 +57,7 @@ async def create_property(
         )
 
 
-@router.get("/properties", response_model=PropertyList)
+@router.get("/properties")
 async def list_properties(
     org_id: str = Depends(get_org_id),
     zone: Optional[str] = Query(None, description="Filter by zone"),
@@ -67,14 +67,20 @@ async def list_properties(
     offset: int = Query(0, ge=0),
 ) -> dict:
     """List prospected properties ordered by high_ticket_score descending."""
-    return await prospection_service.list_properties(
-        org_id=org_id,
-        zone=zone,
-        status=property_status,
-        min_score=min_score,
-        limit=limit,
-        offset=offset,
-    )
+    try:
+        return await prospection_service.list_properties(
+            org_id=org_id,
+            zone=zone,
+            status=property_status,
+            min_score=min_score,
+            limit=limit,
+            offset=offset,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error listing properties: {str(e)}",
+        )
 
 
 @router.patch("/properties/{property_id}")

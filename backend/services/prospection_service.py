@@ -28,6 +28,78 @@ class ProspectionService:
     All queries are filtered by org_id for isolation.
     """
 
+    def _property_table(self, org_id: Optional[str] = None) -> str:
+        """
+        Resolve property table for prospection flows.
+        Prefer unified properties table, but if org_id is provided choose the
+        table that actually has rows for that org.
+        """
+        existing_tables: List[str] = []
+
+        # Prefer current unified model first.
+        for table in ("properties", "prospected_properties"):
+            try:
+                supabase_service.client.table(table).select("id").limit(1).execute()
+                existing_tables.append(table)
+            except Exception:
+                continue
+
+        if not existing_tables:
+            return "properties"
+
+        if org_id is not None:
+            for table in existing_tables:
+                try:
+                    probe = (
+                        supabase_service.client.table(table)
+                        .select("id")
+                        .eq("org_id", org_id)
+                        .limit(1)
+                        .execute()
+                    )
+                    if probe.data:
+                        return table
+                except Exception:
+                    continue
+
+        return existing_tables[0]
+
+    def _property_tables(self) -> List[str]:
+        """Return available property tables in preferred order."""
+        tables: List[str] = []
+        for table in ("properties", "prospected_properties"):
+            try:
+                supabase_service.client.table(table).select("id").limit(1).execute()
+                tables.append(table)
+            except Exception:
+                continue
+        return tables or ["properties"]
+
+    def _table_has_column(self, table: str, column: str) -> bool:
+        """Best-effort check to avoid querying non-existent columns."""
+        try:
+            supabase_service.client.table(table).select(column).limit(1).execute()
+            return True
+        except Exception:
+            return False
+
+    def _normalize_property_record(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Normalize heterogeneous property rows so they always satisfy
+        PropertyResponse response model requirements.
+        """
+        now_iso = datetime.utcnow().isoformat()
+        normalized = dict(row)
+        normalized["source"] = normalized.get("source") or "direct"
+        normalized["status"] = normalized.get("status") or "new"
+        normalized["source_system"] = normalized.get("source_system") or "pbm"
+        normalized["created_at"] = normalized.get("created_at") or now_iso
+        normalized["updated_at"] = normalized.get("updated_at") or now_iso
+        return normalized
+
+    def _normalize_property_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        return [self._normalize_property_record(i) for i in items]
+
     # ─────────────────────────────────────────────────────────────────────
     # PROPERTIES
     # ─────────────────────────────────────────────────────────────────────
@@ -70,7 +142,7 @@ class ProspectionService:
         record["high_ticket_score"] = score_result.score
         record["score_breakdown"] = score_result.breakdown
 
-        response = supabase_service.client.table("properties").insert(
+        response = supabase_service.client.table(self._property_table(org_id)).insert(
             record
         ).execute()
         return response.data[0]
@@ -85,34 +157,171 @@ class ProspectionService:
         offset: int = 0,
     ) -> Dict[str, Any]:
         """List prospected properties with filters."""
-        query = (
-            supabase_service.client.table("properties")
-            .select("*", count="exact")
-            .eq("org_id", org_id)
-            .order("high_ticket_score", desc=True)
-        )
+        # First strategy: use the property IDs that are actually referenced by matches
+        # for this org. This keeps prospection cards aligned with the match board.
+        try:
+            matches_base = (
+                supabase_service.client.table("property_buyer_matches")
+                .select("property_id, match_score")
+                .eq("org_id", org_id)
+                .limit(5000)
+                .execute()
+            )
+            match_rows = matches_base.data or []
+            matched_property_ids = list(
+                {m.get("property_id") for m in match_rows if m.get("property_id")}
+            )
+            best_match_score: Dict[str, float] = {}
+            for m in match_rows:
+                pid = m.get("property_id")
+                score = m.get("match_score")
+                if pid is None or score is None:
+                    continue
+                best_match_score[pid] = max(best_match_score.get(pid, 0.0), float(score))
 
-        if zone:
-            query = query.eq("zone", zone)
-        if status:
-            query = query.eq("status", status)
-        if min_score is not None:
-            query = query.gte("high_ticket_score", min_score)
+            if matched_property_ids:
+                merged: Dict[str, Dict[str, Any]] = {}
+                for property_table in self._property_tables():
+                    try:
+                        rows = (
+                            supabase_service.client.table(property_table)
+                            .select("*")
+                            .in_("id", matched_property_ids)
+                            .limit(5000)
+                            .execute()
+                        ).data or []
+                        for row in rows:
+                            merged[row["id"]] = row
+                    except Exception:
+                        continue
 
-        query = query.range(offset, offset + limit - 1)
-        response = query.execute()
+                if merged:
+                    items = list(merged.values())
+                    for item in items:
+                        if item.get("high_ticket_score") is None:
+                            item["high_ticket_score"] = best_match_score.get(item.get("id"), 0)
 
-        return {
-            "items": response.data,
-            "total": response.count or len(response.data),
-            "limit": limit,
-            "offset": offset,
-        }
+                    if zone:
+                        items = [i for i in items if (i.get("zone") or "") == zone]
+                    if status:
+                        items = [i for i in items if (i.get("status") or "") == status]
+                    if min_score is not None:
+                        items = [i for i in items if float(i.get("high_ticket_score") or 0) >= min_score]
+
+                    items.sort(key=lambda x: float(x.get("high_ticket_score") or 0), reverse=True)
+                    total = len(items)
+                    page_items = items[offset : offset + limit]
+                    return {
+                        "items": self._normalize_property_items(page_items),
+                        "total": total,
+                        "limit": limit,
+                        "offset": offset,
+                    }
+        except Exception:
+            pass
+
+        # Robust strategy: try all available property tables and use
+        # the first one that returns rows for this org+filters.
+        tables = self._property_tables()
+        last_response = None
+
+        for property_table in tables:
+            supports_score = self._table_has_column(property_table, "high_ticket_score")
+            supports_status = self._table_has_column(property_table, "status")
+            supports_zone = self._table_has_column(property_table, "zone")
+            supports_source_system = self._table_has_column(property_table, "source_system")
+
+            query = (
+                supabase_service.client.table(property_table)
+                .select("*", count="exact")
+                .eq("org_id", org_id)
+            )
+
+            # Prospection screen should show only prospecting-origin properties.
+            if supports_source_system:
+                query = query.in_("source_system", ["widget", "pbm"])
+
+            if zone and supports_zone:
+                query = query.eq("zone", zone)
+            if status and supports_status:
+                query = query.eq("status", status)
+            if min_score is not None and supports_score:
+                query = query.gte("high_ticket_score", min_score)
+
+            query = query.range(offset, offset + limit - 1)
+
+            try:
+                if supports_score:
+                    response = query.order("high_ticket_score", desc=True).execute()
+                else:
+                    response = query.order("created_at", desc=True).execute()
+            except Exception:
+                response = query.execute()
+
+            last_response = response
+            if response.data:
+                return {
+                    "items": self._normalize_property_items(response.data),
+                    "total": response.count or len(response.data),
+                    "limit": limit,
+                    "offset": offset,
+                }
+
+        # Fallback: if properties are not found by org_id but matches exist,
+        # recover property cards by property_id linked to org matches.
+        try:
+            matches_resp = (
+                supabase_service.client.table("property_buyer_matches")
+                .select("property_id")
+                .eq("org_id", org_id)
+                .limit(5000)
+                .execute()
+            )
+            property_ids = list({m.get("property_id") for m in (matches_resp.data or []) if m.get("property_id")})
+
+            if property_ids:
+                recovered: List[Dict[str, Any]] = []
+                for property_table in tables:
+                    try:
+                        resp = (
+                            supabase_service.client.table(property_table)
+                            .select("*")
+                            .in_("id", property_ids)
+                            .range(offset, offset + limit - 1)
+                            .execute()
+                        )
+                        if resp.data:
+                            recovered = resp.data
+                            break
+                    except Exception:
+                        continue
+
+                if recovered:
+                    return {
+                        "items": self._normalize_property_items(recovered),
+                        "total": len(property_ids),
+                        "limit": limit,
+                        "offset": offset,
+                    }
+        except Exception:
+            # Keep standard empty response if fallback path fails.
+            pass
+
+        # If no table has rows, return last response shape or empty.
+        if last_response is not None:
+            return {
+                "items": self._normalize_property_items(last_response.data or []),
+                "total": last_response.count or len(last_response.data or []),
+                "limit": limit,
+                "offset": offset,
+            }
+        return {"items": [], "total": 0, "limit": limit, "offset": offset}
 
     async def get_property(self, org_id: str, property_id: str) -> Optional[Dict[str, Any]]:
         """Get a single property by ID with org isolation."""
+        property_table = self._property_table(org_id)
         response = (
-            supabase_service.client.table("properties")
+            supabase_service.client.table(property_table)
             .select("*")
             .eq("id", property_id)
             .eq("org_id", org_id)
@@ -124,6 +333,7 @@ class ProspectionService:
         self, org_id: str, property_id: str, data: PropertyUpdate
     ) -> Optional[Dict[str, Any]]:
         """Update a prospected property with origin-based editability enforcement."""
+        property_table = self._property_table(org_id)
         # 1. Fetch current record to check origin
         existing = await self.get_property(org_id, property_id)
         if not existing:
@@ -167,7 +377,7 @@ class ProspectionService:
 
         # 4. Perform update
         response = (
-            supabase_service.client.table("properties")
+            supabase_service.client.table(property_table)
             .update(update_data)
             .eq("id", property_id)
             .eq("org_id", org_id)
@@ -179,6 +389,7 @@ class ProspectionService:
         self, org_id: str, property_id: str
     ) -> Optional[Dict[str, Any]]:
         """Recalculate high_ticket_score for a property."""
+        property_table = self._property_table(org_id)
         prop = await self.get_property(org_id, property_id)
         if not prop:
             return None
@@ -192,7 +403,7 @@ class ProspectionService:
         )
 
         response = (
-            supabase_service.client.table("properties")
+            supabase_service.client.table(property_table)
             .update({
                 "high_ticket_score": score_result.score,
                 "score_breakdown": score_result.breakdown,
@@ -365,13 +576,15 @@ class ProspectionService:
         Recompute match scores for all (or filtered) property-buyer pairs.
         Creates new matches and updates existing ones.
         """
+        property_table = self._property_table(org_id)
         # Fetch properties
         prop_query = (
-            supabase_service.client.table("properties")
+            supabase_service.client.table(property_table)
             .select("*")
             .eq("org_id", org_id)
-            .neq("status", "discarded")
         )
+        if self._table_has_column(property_table, "status"):
+            prop_query = prop_query.neq("status", "discarded")
         if property_ids:
             prop_query = prop_query.in_("id", property_ids)
         properties = prop_query.execute().data
@@ -509,17 +722,50 @@ class ProspectionService:
         property_ids = list({m["property_id"] for m in matches})
         buyer_ids = list({m["buyer_id"] for m in matches})
 
-        # Fetch property titles
-        props = (
-            supabase_service.client.table("properties")
-            .select("id, title")
-            .eq("org_id", org_id)
-            .in_("id", property_ids)
-            .execute()
-        )
-        prop_map: Dict[str, str] = {
-            p["id"]: p.get("title", "Sin título") for p in props.data
-        }
+        # Fetch property display names from all known property tables.
+        prop_rows: List[Dict[str, Any]] = []
+        seen_ids: set[str] = set()
+        for property_table in self._property_tables():
+            try:
+                props = (
+                    supabase_service.client.table(property_table)
+                    .select("*")
+                    .eq("org_id", org_id)
+                    .in_("id", property_ids)
+                    .execute()
+                )
+                for row in (props.data or []):
+                    if row["id"] not in seen_ids:
+                        prop_rows.append(row)
+                        seen_ids.add(row["id"])
+            except Exception:
+                continue
+
+        # Fallback without org filter for legacy data inconsistencies.
+        if len(prop_rows) < len(property_ids):
+            for property_table in self._property_tables():
+                try:
+                    props_any_org = (
+                        supabase_service.client.table(property_table)
+                        .select("*")
+                        .in_("id", property_ids)
+                        .execute()
+                    )
+                    for row in (props_any_org.data or []):
+                        if row["id"] not in seen_ids:
+                            prop_rows.append(row)
+                            seen_ids.add(row["id"])
+                except Exception:
+                    continue
+
+        prop_map: Dict[str, str] = {}
+        for p in prop_rows:
+            prop_map[p["id"]] = (
+                p.get("title")
+                or p.get("address")
+                or p.get("zone")
+                or "Sin título"
+            )
 
         # Fetch buyer names
         buyers = (

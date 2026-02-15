@@ -315,7 +315,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       <p className="text-[11px] text-soft-muted">El score en PBM lo calcula el motor de matching.</p>
                     )}
                   </div>
-                )}
+                ) : null}
 
               </div>
 

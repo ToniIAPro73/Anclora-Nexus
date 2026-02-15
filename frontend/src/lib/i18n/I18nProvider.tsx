@@ -15,21 +15,20 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   // Load language from localStorage on mount
   useEffect(() => {
-    const savedLang = localStorage.getItem('anclora-language') as Language
-    if (savedLang && (savedLang === 'es' || savedLang === 'en' || savedLang === 'de')) {
+    const savedLang = localStorage.getItem('anclora-language') as Language | null
+    if (savedLang && savedLang in translations) {
       setLanguageState(savedLang)
     }
   }, [])
 
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang)
-    localStorage.setItem('anclora-language', lang)
+    const safeLang: Language = (lang in translations ? lang : 'es') as Language
+    setLanguageState(safeLang)
+    localStorage.setItem('anclora-language', safeLang)
   }
 
   const t = (key: TranslationKey): string => {
-    // @ts-ignore - indexing const with dynamic key
-    const langGroup = translations[language] as Record<string, string>
-    // @ts-ignore
+    const langGroup = ((translations as Record<string, unknown>)[language] || translations.es) as Record<string, string>
     const fallbackGroup = translations.es as Record<string, string>
     return langGroup[key] || fallbackGroup[key] || key
   }

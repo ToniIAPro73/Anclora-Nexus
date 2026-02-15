@@ -2,6 +2,12 @@ import supabase from './supabase'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
+function buildApiUrl(path: string): string {
+  const base = API_URL.replace(/\/+$/, '')
+  const normalizedPath = path.startsWith('/api/') ? path.slice(4) : path
+  return `${base}${normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`}`
+}
+
 async function resolveCurrentOrgId(userId?: string): Promise<string> {
   if (!userId) throw new Error('No authenticated user to resolve org_id')
 
@@ -36,7 +42,7 @@ export async function createLead(leadData: any) {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token
   
-  const res = await fetch(`${API_URL}/api/leads/intake`, {
+  const res = await fetch(buildApiUrl('/api/leads/intake'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -56,7 +62,7 @@ export async function runSkill(skill: string, data: any = {}) {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token
   
-  const res = await fetch(`${API_URL}/api/skills/run`, {
+  const res = await fetch(buildApiUrl('/api/skills/run'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -106,7 +112,7 @@ export async function getWeeklyStats() {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token
 
-  const res = await fetch(`${API_URL}/api/stats/weekly`, {
+  const res = await fetch(buildApiUrl('/api/stats/weekly'), {
      headers: {
         'Authorization': `Bearer ${token || ''}`
      }
@@ -123,7 +129,7 @@ export async function fetchIntelligenceQuery(message: string, mode: 'fast' | 'de
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token
 
-  const res = await fetch(`${API_URL}/api/intelligence/query`, {
+  const res = await fetch(buildApiUrl('/api/intelligence/query'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
