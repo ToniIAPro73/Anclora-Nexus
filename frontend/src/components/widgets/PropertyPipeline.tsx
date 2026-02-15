@@ -1,6 +1,5 @@
 'use client'
 import { useStore } from '@/lib/store'
-import { StaggerList, StaggerItem } from '@/components/effects/animations'
 import { Home, ExternalLink } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import { useCurrency } from '@/lib/currency'
@@ -45,25 +44,26 @@ export function PropertyPipeline() {
                 <span className="text-[9px] font-bold text-soft-muted uppercase tracking-wider mb-2 block sticky top-0 bg-navy-deep/80 backdrop-blur-sm py-1">
                   {col.label} <span className="text-[8px] opacity-60">({colProps.length})</span>
                 </span>
-                <StaggerList className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2">
                   {displayProps.map((prop) => (
-                    <StaggerItem key={prop.id}>
-                      <div 
-                        onClick={() => router.push('/properties')}
-                        className={`p-2 rounded-lg border border-soft-subtle/20 group hover:border-gold/30 transition-all cursor-pointer ${
-                          col.id === 'sold' ? 'bg-gold/5 border-gold/20' : 'bg-white/[0.02]'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <Home className={`w-3 h-3 ${col.id === 'sold' ? 'text-gold' : 'text-blue-light'}`} />
-                          <ExternalLink className="w-2 h-2 text-soft-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <p className="text-[10px] text-soft-white font-medium truncate mb-1">{prop.address}</p>
-                        <p className={`text-[11px] font-bold tabular-nums ${col.id === 'sold' ? 'text-gold' : 'text-soft-white'}`}>
-                          {typeof prop.price === 'number' ? formatMoney(prop.price, { minFractionDigits: 0, maxFractionDigits: 0 }) : prop.price}
-                        </p>
+                    <div 
+                      key={prop.id}
+                      onClick={() => router.push('/properties')}
+                      className={`p-2 rounded-lg border border-soft-subtle/20 group hover:border-gold/30 transition-all cursor-pointer ${
+                        col.id === 'sold' ? 'bg-gold/5 border-gold/20' : 'bg-white/[0.02]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <Home className={`w-3 h-3 ${col.id === 'sold' ? 'text-gold' : 'text-blue-light'}`} />
+                        <ExternalLink className="w-2 h-2 text-soft-muted opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                    </StaggerItem>
+                      <p className="text-[10px] text-soft-white font-medium truncate mb-1">{prop.address || prop.title || prop.zone || 'Propiedad sin dirección'}</p>
+                      <p className={`text-[11px] font-bold tabular-nums ${col.id === 'sold' ? 'text-gold' : 'text-soft-white'}`}>
+                        {typeof prop.price === 'number'
+                          ? formatMoney(prop.price, { minFractionDigits: 0, maxFractionDigits: 0 })
+                          : (prop.price || '-')}
+                      </p>
+                    </div>
                   ))}
                   {remaining > 0 && (
                     <button 
@@ -75,7 +75,7 @@ export function PropertyPipeline() {
                       </span>
                     </button>
                   )}
-                </StaggerList>
+                </div>
               </div>
             )
           })}

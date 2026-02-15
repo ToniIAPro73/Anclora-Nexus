@@ -7,9 +7,10 @@ import { CURRENCY_OPTIONS, useCurrency, type CurrencyCode } from '@/lib/currency
 
 interface CurrencySelectorProps {
   menuPlacement?: 'bottom' | 'top'
+  menuAlign?: 'left' | 'center' | 'right'
 }
 
-export function CurrencySelector({ menuPlacement = 'bottom' }: CurrencySelectorProps) {
+export function CurrencySelector({ menuPlacement = 'bottom', menuAlign = 'right' }: CurrencySelectorProps) {
   const { currency, setCurrency } = useCurrency()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -44,7 +45,9 @@ export function CurrencySelector({ menuPlacement = 'bottom' }: CurrencySelectorP
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: menuPlacement === 'top' ? 10 : -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className={`absolute right-0 w-56 bg-navy-deep backdrop-blur-xl border-2 border-soft-muted/30 rounded-xl shadow-2xl overflow-hidden z-50 ${
+            className={`absolute w-56 bg-navy-deep backdrop-blur-xl border-2 border-soft-muted/30 rounded-xl shadow-2xl overflow-hidden z-50 ${
+              menuAlign === 'left' ? 'left-0' : menuAlign === 'center' ? 'left-1/2 -translate-x-1/2' : 'right-0'
+            } ${
               menuPlacement === 'top' ? 'bottom-full mb-2' : 'mt-2'
             }`}
           >

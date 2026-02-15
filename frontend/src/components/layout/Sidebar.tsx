@@ -14,10 +14,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const { t } = useI18n()
   const [logoUrl, setLogoUrl] = useState<string | undefined>()
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    return localStorage.getItem('anclora-sidebar-collapsed') === 'true'
-  })
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
 
   const toggleSidebar = () => {
     setIsCollapsed((prev) => {
@@ -28,6 +25,11 @@ export function Sidebar() {
   }
 
   useEffect(() => {
+    const saved = localStorage.getItem('anclora-sidebar-collapsed')
+    if (saved === 'true') {
+      requestAnimationFrame(() => setIsCollapsed(true))
+    }
+
     const fetchOrgLogo = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
@@ -132,13 +134,11 @@ export function Sidebar() {
               }`}
             >
               <link.icon className={`w-5 h-5 ${Active ? 'text-gold' : 'text-soft-muted group-hover:text-soft-white'}`} />
-              <span
-                className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                  isCollapsed ? 'max-w-0 opacity-0 -translate-x-1' : 'max-w-[140px] opacity-100 translate-x-0'
-                }`}
-              >
-                {link.name}
-              </span>
+              {!isCollapsed && (
+                <span className="whitespace-nowrap overflow-hidden transition-all duration-300 max-w-[140px] opacity-100 translate-x-0">
+                  {link.name}
+                </span>
+              )}
             </Link>
           )
         })}
@@ -147,9 +147,9 @@ export function Sidebar() {
       <div className={`${isCollapsed ? 'p-2' : 'p-4'} border-t border-soft-subtle mt-auto space-y-2`}>
         {!isCollapsed && (
           <div className="flex items-center justify-between gap-2 mb-2">
-            <LanguageSelector menuPlacement="top" />
-            <CurrencySelector menuPlacement="top" />
-            <UnitSelector menuPlacement="top" />
+            <LanguageSelector menuPlacement="top" menuAlign="left" />
+            <CurrencySelector menuPlacement="top" menuAlign="center" />
+            <UnitSelector menuPlacement="top" menuAlign="right" />
           </div>
         )}
         <button
@@ -157,13 +157,11 @@ export function Sidebar() {
           className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-xl text-sm font-medium text-soft-muted hover:text-red-400 hover:bg-red-400/5 transition-all w-full`}
         >
           <LogOut className="w-5 h-5" />
-          <span
-            className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
-              isCollapsed ? 'max-w-0 opacity-0 -translate-x-1' : 'max-w-[120px] opacity-100 translate-x-0'
-            }`}
-          >
-            {t('logout')}
-          </span>
+          {!isCollapsed && (
+            <span className="whitespace-nowrap overflow-hidden transition-all duration-300 max-w-[120px] opacity-100 translate-x-0">
+              {t('logout')}
+            </span>
+          )}
         </button>
       </div>
     </aside>

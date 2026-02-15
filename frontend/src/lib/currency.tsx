@@ -87,37 +87,13 @@ function parseBudgetTokenToEur(token: string): number | null {
   return value * mult
 }
 
-function getInitialCurrency(): CurrencyCode {
-  if (typeof window === 'undefined') return 'EUR'
-  const saved = localStorage.getItem('anclora-currency') as CurrencyCode | null
-  return saved && CURRENCY_BY_CODE[saved] ? saved : 'EUR'
-}
-
-function getInitialUnit(): UnitSystem {
-  if (typeof window === 'undefined') return 'metric'
-  const saved = localStorage.getItem('anclora-unit-system') as UnitSystem | null
-  return saved === 'imperial' || saved === 'metric' ? saved : 'metric'
-}
-
-function getInitialRates(): { rates: FxRates; updatedAt: string | null } {
-  if (typeof window === 'undefined') return { rates: DEFAULT_RATES, updatedAt: null }
-  const raw = localStorage.getItem('anclora-fx-rates')
-  if (!raw) return { rates: DEFAULT_RATES, updatedAt: null }
-  try {
-    const parsed = JSON.parse(raw) as { rates?: Partial<FxRates>; updatedAt?: string }
-    return {
-      rates: { ...DEFAULT_RATES, ...(parsed.rates || {}) },
-      updatedAt: parsed.updatedAt || null,
-    }
-  } catch {
-    return { rates: DEFAULT_RATES, updatedAt: null }
-  }
-}
-
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrencyState] = useState<CurrencyCode>(getInitialCurrency)
-  const [unitSystem, setUnitSystemState] = useState<UnitSystem>(getInitialUnit)
-  const [ratesState, setRatesState] = useState(getInitialRates)
+  const [currency, setCurrencyState] = useState<CurrencyCode>('EUR')
+  const [unitSystem, setUnitSystemState] = useState<UnitSystem>('metric')
+  const [ratesState, setRatesState] = useState<{ rates: FxRates; updatedAt: string | null }>({
+    rates: DEFAULT_RATES,
+    updatedAt: null,
+  })
 
   const currencyConfig = CURRENCY_BY_CODE[currency]
 
@@ -128,6 +104,33 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('anclora-unit-system', unitSystem)
   }, [unitSystem])
+
+  useEffect(() => {
+    const savedCurrency = localStorage.getItem('anclora-currency') as CurrencyCode | null
+    if (savedCurrency && CURRENCY_BY_CODE[savedCurrency]) {
+      queueMicrotask(() => setCurrencyState(savedCurrency))
+    }
+
+    const savedUnit = localStorage.getItem('anclora-unit-system') as UnitSystem | null
+    if (savedUnit === 'metric' || savedUnit === 'imperial') {
+      queueMicrotask(() => setUnitSystemState(savedUnit))
+    }
+
+    const rawRates = localStorage.getItem('anclora-fx-rates')
+    if (rawRates) {
+      try {
+        const parsed = JSON.parse(rawRates) as { rates?: Partial<FxRates>; updatedAt?: string }
+        queueMicrotask(() => {
+          setRatesState({
+            rates: { ...DEFAULT_RATES, ...(parsed.rates || {}) },
+            updatedAt: parsed.updatedAt || null,
+          })
+        })
+      } catch {
+        // Ignore invalid cache and keep defaults.
+      }
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false

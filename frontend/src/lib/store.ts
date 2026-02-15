@@ -774,7 +774,7 @@ export const useStore = create<AppState>((set) => ({
         set({
           tasks: normalizeMojibakeValue(tasks.map((t: any) => ({
             id: t.id,
-            title: t.title,
+            title: t.title || t.name || t.summary || 'Tarea sin título',
             due_time: t.due_date ? new Date(t.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '09:00',
             status: t.status === 'done' ? 'done' : 'pending'
           })))
@@ -783,8 +783,8 @@ export const useStore = create<AppState>((set) => ({
 
       const manualProperties: Property[] = (props || []).map((p: any) => ({
         id: p.id,
-        title: p.address?.split(',')?.[0] || p.address || 'Propiedad',
-        address: p.address,
+        title: p.address?.split(',')?.[0] || p.title || p.city || 'Propiedad',
+        address: p.address || p.title || p.city || 'Mallorca',
         price: p.price || 0,
         type: p.property_type || 'Villa',
         status: p.status === 'listed' ? 'listed' : p.status === 'sold' ? 'sold' : p.status === 'offer' ? 'offer' : 'prospect',

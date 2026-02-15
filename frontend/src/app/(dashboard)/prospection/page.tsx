@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Home, Euro, Target, RefreshCw, ChevronLeft, ChevronRight, Users, Zap } from 'lucide-react'
+import { ArrowLeft, MapPin, Home, Target, RefreshCw, ChevronLeft, ChevronRight, Users, Zap } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
+import { useCurrency } from '@/lib/currency'
 import {
   listProperties,
   listBuyers,
@@ -18,6 +19,7 @@ type Tab = 'properties' | 'buyers' | 'matches'
 
 export default function ProspectionPage() {
   const { t } = useI18n()
+  const { currencyConfig, convertFromEur, formatMoney } = useCurrency()
   const [activeTab, setActiveTab] = useState<Tab>('properties')
   const [loading, setLoading] = useState(true)
   const [recomputing, setRecomputing] = useState(false)
@@ -38,6 +40,19 @@ export default function ProspectionPage() {
   const [matchPage, setMatchPage] = useState(0)
 
   const ITEMS = 12
+
+  const compactAmount = (eurValue: number | null | undefined) => {
+    if (eurValue == null) return '-'
+    const v = convertFromEur(eurValue)
+    const abs = Math.abs(v)
+    const compact =
+      abs >= 1_000_000
+        ? `${(v / 1_000_000).toFixed(1)}M`
+        : abs >= 1_000
+          ? `${(v / 1_000).toFixed(1)}K`
+          : `${Math.round(v)}`
+    return currencyConfig.position === 'prefix' ? `${currencyConfig.symbol}${compact}` : `${compact} ${currencyConfig.symbol}`
+  }
 
   const loadProperties = useCallback(async (page: number) => {
     setLoading(true)
@@ -76,7 +91,7 @@ export default function ProspectionPage() {
         listProperties({ limit: ITEMS, offset: propPage * ITEMS }),
         listBuyers({ limit: ITEMS, offset: buyerPage * ITEMS }),
         // Load a wider window for property-match synchronization cards
-        listMatches({ limit: 200, offset: 0 }),
+        listMatches({ limit: 100, offset: 0 }),
       ])
 
       if (propsRes.status === 'fulfilled') {
@@ -124,8 +139,6 @@ export default function ProspectionPage() {
     // (matches must be preloaded even if tab is not active)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAllTabs()
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadMatches(0)
   }, [loadAllTabs, loadMatches])
 
   useEffect(() => {
@@ -327,10 +340,7 @@ export default function ProspectionPage() {
                       <div className="p-5 space-y-3 flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-soft-muted uppercase tracking-wider">{t('price')}</span>
-                          <div className="flex items-center gap-1 text-lg font-bold text-blue-light">
-                            <Euro className="w-4 h-4" />
-                            <span>{prop.price ? `${(prop.price / 1_000_000).toFixed(1)}M` : '-'}</span>
-                          </div>
+                          <div className="text-lg font-bold text-blue-light">{compactAmount(prop.price)}</div>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-soft-muted uppercase tracking-wider">{t('highTicketScore')}</span>
@@ -355,7 +365,9 @@ export default function ProspectionPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-soft-muted uppercase tracking-wider">{t('estimatedCommission')}</span>
                           <span className="text-sm font-semibold text-gold">
-                            {matchInfo?.bestCommission != null ? `€${matchInfo.bestCommission.toLocaleString()}` : '-'}
+                            {matchInfo?.bestCommission != null
+                              ? formatMoney(matchInfo.bestCommission, { minFractionDigits: 0, maxFractionDigits: 0 })
+                              : '-'}
                           </span>
                         </div>
                       </div>
@@ -405,12 +417,10 @@ export default function ProspectionPage() {
                       <div className="p-5 space-y-3 flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-soft-muted uppercase tracking-wider">{t('budgetRange')}</span>
-                          <div className="flex items-center gap-1 text-sm font-bold text-blue-light">
-                            <Euro className="w-3 h-3" />
-                            {buyer.budget_min && buyer.budget_max
-                              ? `${(buyer.budget_min / 1_000_000).toFixed(1)}M – ${(buyer.budget_max / 1_000_000).toFixed(1)}M`
-                              : '-'
-                            }
+                          <div className="text-sm font-bold text-blue-light">
+                            {buyer.budget_min != null && buyer.budget_max != null
+                              ? `${compactAmount(buyer.budget_min)} – ${compactAmount(buyer.budget_max)}`
+                              : '-'}
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
@@ -525,7 +535,7 @@ export default function ProspectionPage() {
                             <td className="px-5 py-4 text-right">
                               <span className="text-sm font-semibold text-gold">
                                 {match.commission_estimate
-                                  ? `€${match.commission_estimate.toLocaleString()}`
+                                  ? formatMoney(match.commission_estimate, { minFractionDigits: 0, maxFractionDigits: 0 })
                                   : '—'
                                 }
                               </span>

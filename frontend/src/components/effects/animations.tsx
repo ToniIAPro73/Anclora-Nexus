@@ -63,8 +63,15 @@ export function StaggerList({ children, delay = 0.08, className = '' }: {
   children: React.ReactNode; delay?: number; className?: string
 }) {
   return (
-    <motion.div className={className} initial="hidden" animate="visible"
-      variants={{ visible: { transition: { staggerChildren: delay } } }}>
+    <motion.div
+      className={className}
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: delay } },
+      }}
+    >
       {children}
     </motion.div>
   )
