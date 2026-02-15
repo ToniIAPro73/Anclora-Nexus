@@ -2,7 +2,7 @@
 
 **Feature ID**: ANCLORA-LSO-001  
 **Versión**: 1.0  
-**Status**: Specification Phase  
+**Status**: Implemented  
 **Prioridad**: ALTA
 
 ## Documento Map

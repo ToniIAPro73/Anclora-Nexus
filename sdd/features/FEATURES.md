@@ -159,7 +159,7 @@
 
 **ID**: ANCLORA-LSO-001  
 **Versión**: 1.0  
-**Status**: Specification Phase  
+**Status**: Implemented  
 **Fase**: Data Quality & Attribution  
 **Prioridad**: ALTA
 
@@ -268,6 +268,7 @@
 
 | Fecha | Feature | Cambio |
 |-------|---------|--------|
+| 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
 | 2026-01-XX | Intelligence v1 | Implemented y deploy a producción |

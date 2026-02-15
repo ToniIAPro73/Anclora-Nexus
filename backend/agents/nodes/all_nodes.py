@@ -118,14 +118,45 @@ async def result_handler_node(state: AgentState) -> AgentState:
             await supabase_service.update_lead(lead_id, lead_data)
         else:
             # Insert new lead with input data + AI output
+            input_data = state["input_data"]
+            
+            # Origin Mapping & Legacy Compatibility (ANCLORA-LSO-001)
+            source_legacy = input_data.get("source", "manual")
+            source_system = input_data.get("source_system")
+            source_channel = input_data.get("source_channel")
+            
+            # Minimal legacy fallback if new fields are missing
+            if not source_system:
+                if "web" in source_legacy.lower():
+                    source_system = "cta_web"
+                else:
+                    source_system = "manual"
+            
+            if not source_channel:
+                if "linkedin" in source_legacy.lower():
+                    source_channel = "linkedin"
+                elif "web" in source_legacy.lower():
+                    source_channel = "website"
+                else:
+                    source_channel = "other"
+
             full_lead_data = {
                 "org_id": org_id,
-                "name": state["input_data"].get("name", "Unknown"),
-                "email": state["input_data"].get("email"),
-                "phone": state["input_data"].get("phone"),
-                "source": state["input_data"].get("source", "manual"),
-                "property_interest": state["input_data"].get("property_interest"),
-                "budget_range": state["input_data"].get("budget"), # Map budget -> budget_range
+                "name": input_data.get("name", "Unknown"),
+                "email": input_data.get("email"),
+                "phone": input_data.get("phone"),
+                "source": source_legacy,
+                "source_system": source_system,
+                "source_channel": source_channel,
+                "source_campaign": input_data.get("source_campaign"),
+                "source_detail": input_data.get("source_detail"),
+                "source_url": input_data.get("source_url"),
+                "source_referrer": input_data.get("source_referrer"),
+                "source_event_id": input_data.get("source_event_id"),
+                "ingestion_mode": input_data.get("ingestion_mode", "manual"),
+                "captured_at": datetime.utcnow().isoformat(),
+                "property_interest": input_data.get("property_interest"),
+                "budget_range": input_data.get("budget"), # Map budget -> budget_range
                 **lead_data
             }
             new_lead = await supabase_service.insert_lead(full_lead_data)

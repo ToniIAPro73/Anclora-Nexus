@@ -7,14 +7,14 @@ import json
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List
-from pydantic import BaseModel, Field, EmailStr, ValidationError
+from typing import Dict, Any, Optional, List, Literal
 
 from backend.services.llm_service import LLMService
 from backend.services.supabase_service import SupabaseService
+from pydantic import BaseModel, Field, EmailStr, ValidationError
 
 # --- Versioning ---
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 # --- Structured Logging ---
 def log_event(level: str, event_type: str, details: Dict[str, Any]) -> None:
@@ -37,7 +37,18 @@ class LeadInput(BaseModel):
     phone: Optional[str] = Field(None, description="Contact phone")
     property_interest: Optional[str] = Field(None, description="Specific property or area of interest")
     budget: Optional[str] = Field(None, description="Budget range (e.g., '1M-2M')")
-    source: str = Field("manual", description="Where the lead came from")
+    
+    # Origin Tracking (ANCLORA-LSO-001)
+    source: str = Field("manual", description="Legacy source field")
+    source_system: Literal['manual', 'cta_web', 'import', 'referral', 'partner', 'social'] = Field("manual")
+    source_channel: Literal['website', 'linkedin', 'instagram', 'facebook', 'email', 'phone', 'other'] = Field("other")
+    source_campaign: Optional[str] = None
+    source_detail: Optional[str] = None
+    source_url: Optional[str] = None
+    source_referrer: Optional[str] = None
+    source_event_id: Optional[str] = None
+    ingestion_mode: Literal['realtime', 'batch', 'manual'] = Field("manual")
+    
     org_id: Optional[str] = Field(None, description="Organization ID for multi-tenancy")
 
 class AnalysisResult(BaseModel):

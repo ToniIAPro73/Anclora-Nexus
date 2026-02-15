@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
 import LeadFormModal from '@/components/modals/LeadFormModal'
+import SourceBadge from '@/components/ui/SourceBadge'
+import { Filter } from 'lucide-react'
 
 function LeadsContent() {
   const leads = useStore((state) => state.leads)
@@ -20,11 +22,20 @@ function LeadsContent() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null)
 
   const [currentPage, setCurrentPage] = useState(1)
+  const [filterOrigin, setFilterOrigin] = useState<string>('all')
+  const [filterChannel, setFilterChannel] = useState<string>('all')
+
+  const filteredLeads = leads.filter(lead => {
+    const matchOrigin = filterOrigin === 'all' || lead.source_system === filterOrigin
+    const matchChannel = filterChannel === 'all' || lead.source_channel === filterChannel
+    return matchOrigin && matchChannel
+  })
+
   const ITEMS_PER_PAGE = 10
-  const totalPages = Math.ceil(leads.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE)
   
   const safeCurrentPage = Math.min(Math.max(1, currentPage), Math.max(1, totalPages))
-  const paginatedLeads = leads.slice((safeCurrentPage - 1) * ITEMS_PER_PAGE, safeCurrentPage * ITEMS_PER_PAGE)
+  const paginatedLeads = filteredLeads.slice((safeCurrentPage - 1) * ITEMS_PER_PAGE, safeCurrentPage * ITEMS_PER_PAGE)
 
   const getLeadStatusLabel = (status: string) => {
     const normalized = String(status || '').toLowerCase()
@@ -107,6 +118,64 @@ function LeadsContent() {
           </div>
         </div>
 
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-navy-surface/20 border border-soft-subtle/30 rounded-xl">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gold" />
+            <span className="text-sm font-medium text-soft-muted">{t('filterByOrigin')}:</span>
+          </div>
+          <select 
+            value={filterOrigin}
+            onChange={(e) => {
+              setFilterOrigin(e.target.value)
+              setCurrentPage(1)
+            }}
+            className="bg-navy-deep/50 border border-soft-subtle/50 rounded-lg px-3 py-1.5 text-sm text-soft-white focus:border-gold/50 outline-none transition-all"
+          >
+            <option value="all">{t('allOrigins')}</option>
+            <option value="manual">{t('sourceManual')}</option>
+            <option value="cta_web">{t('sourceCtaWeb')}</option>
+            <option value="social">{t('sourceSocial')}</option>
+            <option value="referral">{t('sourceReferral')}</option>
+            <option value="partner">{t('sourcePartner')}</option>
+          </select>
+
+          <div className="h-6 w-px bg-soft-subtle/30" />
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-soft-muted">{t('filterByChannel')}:</span>
+          </div>
+          <select 
+            value={filterChannel}
+            onChange={(e) => {
+              setFilterChannel(e.target.value)
+              setCurrentPage(1)
+            }}
+            className="bg-navy-deep/50 border border-soft-subtle/50 rounded-lg px-3 py-1.5 text-sm text-soft-white focus:border-gold/50 outline-none transition-all"
+          >
+            <option value="all">{t('allChannels')}</option>
+            <option value="website">{t('sourceWebsite')}</option>
+            <option value="linkedin">{t('sourceLinkedin')}</option>
+            <option value="instagram">{t('sourceInstagram')}</option>
+            <option value="facebook">{t('sourceFacebook')}</option>
+            <option value="email">{t('sourceEmail')}</option>
+            <option value="phone">{t('sourcePhone')}</option>
+          </select>
+
+          {(filterOrigin !== 'all' || filterChannel !== 'all') && (
+            <button
+              onClick={() => {
+                setFilterOrigin('all')
+                setFilterChannel('all')
+                setCurrentPage(1)
+              }}
+              className="text-xs text-blue-light hover:text-white transition-colors underline underline-offset-4"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+
         {/* Table */}
         <div className="bg-navy-surface/40 border border-soft-subtle rounded-2xl overflow-hidden shadow-lg shadow-navy-deep/50">
           <div className="overflow-x-auto">
@@ -137,7 +206,7 @@ function LeadsContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-soft-subtle/50">
-                {leads.length === 0 ? (
+                {filteredLeads.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-3 py-12 text-center">
                       <p className="text-soft-muted italic">{t('noLeadsRegistered')}</p>
@@ -189,9 +258,7 @@ function LeadsContent() {
                           </span>
                         </td>
                         <td className="px-3 py-4">
-                          <span className="text-xs uppercase tracking-wider text-soft-muted font-medium">
-                            {lead.source}
-                          </span>
+                          <SourceBadge lead={lead} />
                         </td>
                         <td className="px-3 py-4 text-right">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getLeadStatusClasses(lead.status)}`}>
