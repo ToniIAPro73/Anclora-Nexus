@@ -232,7 +232,7 @@ export default function PropertiesPage() {
                       </>
                     ) : (
                       <div className="text-[11px] text-soft-muted">
-                        Datos de match no aplican en alta manual.
+                        {t('noMatchDataForManual')}
                       </div>
                     )}
                   </div>

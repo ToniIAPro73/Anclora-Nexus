@@ -1,5 +1,5 @@
 'use client'
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, ReactNode } from 'react'
 import { translations, Language, TranslationKey } from './translations'
 
 interface I18nContextType {
@@ -11,15 +11,11 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('es')
-
-  // Load language from localStorage on mount
-  useEffect(() => {
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'es'
     const savedLang = localStorage.getItem('anclora-language') as Language | null
-    if (savedLang && savedLang in translations) {
-      setLanguageState(savedLang)
-    }
-  }, [])
+    return savedLang && savedLang in translations ? savedLang : 'es'
+  })
 
   const setLanguage = (lang: Language) => {
     const safeLang: Language = (lang in translations ? lang : 'es') as Language
@@ -28,8 +24,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }
 
   const t = (key: TranslationKey): string => {
-    const langGroup = ((translations as Record<string, unknown>)[language] || translations.es) as Record<string, string>
     const fallbackGroup = translations.es as Record<string, string>
+    const rawLangGroup = ((translations as Record<string, unknown>)[language] || {}) as Record<string, string>
+    const langGroup =
+      language === 'ru'
+        ? ({ ...fallbackGroup, ...rawLangGroup } as Record<string, string>)
+        : rawLangGroup
     return langGroup[key] || fallbackGroup[key] || key
   }
 
