@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useStore, Property } from '@/lib/store'
-import { ArrowLeft, MapPin, Home, Euro, TrendingUp, ChevronLeft, ChevronRight, Trash2, Plus, Edit2 } from 'lucide-react'
+import { ArrowLeft, MapPin, Home, TrendingUp, ChevronLeft, ChevronRight, Trash2, Plus, Edit2 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
@@ -123,7 +123,7 @@ export default function PropertiesPage() {
             ? legacy.price
             : Number(String(legacy.price).replace(/[^\d.]/g, ''))
 
-          const linkedPbm = pbmProps.find((p: any) => {
+          const linkedPbm = pbmProps.find((p: ProspectedProperty) => {
             const pbmName = normalizeText(p.title || p.city || '')
             const pbmZone = normalizeText(p.zone || p.city || '')
             const pbmType = normalizeText(p.property_type || '')
@@ -266,7 +266,6 @@ export default function PropertiesPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-soft-muted uppercase tracking-wider">{t('price')}</span>
                       <div className="flex items-center gap-1 text-lg font-bold text-blue-light">
-                        <Euro className="w-4 h-4" />
                         <span>{property.price}</span>
                       </div>
                     </div>

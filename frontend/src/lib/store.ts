@@ -31,6 +31,9 @@ export interface Property {
   status: 'prospect' | 'listed' | 'offer' | 'sold' | 'rejected'
   source_system?: 'manual' | 'widget' | 'pbm'
   source_portal?: 'idealista' | 'fotocasa' | 'facebook' | 'instagram' | 'rightmove' | 'kyero' | 'other' | string
+  useful_area_m2?: number
+  built_area_m2?: number
+  plot_area_m2?: number
   stage?: string
   zone?: string
   commission_est?: string
@@ -714,6 +717,9 @@ export const useStore = create<AppState>((set) => ({
             status: p.status === 'listed' ? 'listed' : p.status === 'sold' ? 'sold' : 'prospect',
             source_system: p.source_system || 'manual',
             source_portal: p.source_portal || undefined,
+            useful_area_m2: p.useful_area_m2 ?? undefined,
+            built_area_m2: p.built_area_m2 ?? p.surface_m2 ?? undefined,
+            plot_area_m2: p.plot_area_m2 ?? undefined,
             zone: p.city || 'Mallorca',
             match_score: p.prospection_score ? Math.round(p.prospection_score * 100) : undefined
           }))

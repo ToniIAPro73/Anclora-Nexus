@@ -1,6 +1,7 @@
 'use client'
 import { Search } from 'lucide-react'
 import { LanguageSelector } from './LanguageSelector'
+import { CurrencySelector } from './CurrencySelector'
 import { NotificationPanel } from './NotificationPanel'
 import { UserMenu } from './UserMenu'
 import { useI18n } from '@/lib/i18n'
@@ -28,6 +29,8 @@ export function Header() {
         </div>
         
         <NotificationPanel />
+
+        <CurrencySelector />
 
         <LanguageSelector />
 

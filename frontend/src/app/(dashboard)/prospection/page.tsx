@@ -121,9 +121,12 @@ export default function ProspectionPage() {
 
   useEffect(() => {
     // Auto-refresh all three datasets on page entry
+    // (matches must be preloaded even if tab is not active)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAllTabs()
-  }, [loadAllTabs])
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadMatches(0)
+  }, [loadAllTabs, loadMatches])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

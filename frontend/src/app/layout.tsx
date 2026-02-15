@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n";
 import { OrgProvider } from "@/lib/contexts/OrgContext";
+import { CurrencyProvider } from "@/lib/currency";
 
 
 const inter = Inter({
@@ -29,14 +30,15 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-navy-darker text-soft-white`}>
         <I18nProvider>
-          <OrgProvider>
-            {children}
-          </OrgProvider>
+          <CurrencyProvider>
+            <OrgProvider>
+              {children}
+            </OrgProvider>
+          </CurrencyProvider>
         </I18nProvider>
 
       </body>
     </html>
   );
 }
-
 

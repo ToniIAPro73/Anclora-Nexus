@@ -8,6 +8,7 @@ const LANGUAGES: { code: Language; label: string; flag: string }[] = [
   { code: 'es', label: 'Español', flag: '🇪🇸' },
   { code: 'en', label: 'English', flag: '🇬🇧' },
   { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'ru', label: 'Русский', flag: '🇷🇺' },
 ]
 
 export function LanguageSelector() {
