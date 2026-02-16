@@ -144,3 +144,45 @@ export async function fetchIntelligenceQuery(message: string, mode: 'fast' | 'de
   }
   return res.json()
 }
+
+/**
+ * Generic API utility for authenticated requests to the backend
+ */
+export const api = {
+  get: async <T>(path: string): Promise<T> => {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    
+    const res = await fetch(buildApiUrl(path), {
+      headers: {
+        'Authorization': `Bearer ${token || ''}`
+      }
+    })
+    
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || 'Error in GET request')
+    }
+    return res.json()
+  },
+  
+  post: async <T>(path: string, body: any): Promise<T> => {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    
+    const res = await fetch(buildApiUrl(path), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token || ''}`
+      },
+      body: JSON.stringify(body)
+    })
+    
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || 'Error in POST request')
+    }
+    return res.json()
+  }
+}

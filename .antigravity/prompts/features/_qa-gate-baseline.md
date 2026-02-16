@@ -1,5 +1,9 @@
 # BASELINE OBLIGATORIO QA/GATE (todas las features nuevas)
 
+Uso obligatorio:
+- Copiar o referenciar este baseline en cada prompt `agent-d-qa` y `gate-final` de cualquier feature nueva.
+- Este baseline prevalece sobre plantillas antiguas sin validación de entorno/i18n.
+
 ## 1) Validación de entorno (obligatoria)
 - Leer `.env` y `frontend/.env.local`.
 - Confirmar que backend y frontend apuntan al mismo Supabase (`SUPABASE_URL` vs `NEXT_PUBLIC_SUPABASE_URL`).

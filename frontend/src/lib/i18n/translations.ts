@@ -10,6 +10,7 @@ export const translations = {
     settings: 'Configuración',
     team: 'Equipo',
     intelligence: 'Intelligence',
+    ingestion: 'Ingestión',
 
     // Dashboard widgets
     leadsPulse: 'Contactos Activos',
@@ -142,6 +143,10 @@ export const translations = {
     none: 'Ninguno',
     deletePropertyConfirm: '¿Eliminar esta propiedad?',
     deletePropertyTitle: 'Eliminar propiedad',
+    refresh: 'Actualizar',
+    details: 'Detalles',
+    closeLabel: 'Cerrar',
+    filters: 'Filtros',
 
     // Header
     projectDashboard: 'Panel de Control',
@@ -409,6 +414,30 @@ export const translations = {
     budgetUpdateError: 'Error al actualizar presupuesto',
     budgetControl: 'Control de presupuesto y alertas',
     saveConfiguration: 'Guardar Configuración',
+
+    // Ingestion
+    ingestionTitle: 'Gestión de Ingestión',
+    ingestionSubtitle: 'Monitorización de entrada de datos y salud de conectores',
+    ingestionEvents: 'Eventos de Ingestión',
+    eventLog: 'Registro de Eventos',
+    connector: 'Conector',
+    externalId: 'ID Externo',
+    processedAt: 'Procesado el',
+    ingested: 'Ingresado',
+    rejected: 'Rechazado',
+    failed: 'Fallido',
+    duplicate: 'Duplicado',
+    allConnectors: 'Todos los conectores',
+    allStatuses: 'Todos los estados',
+    entityType: 'Tipo de Entidad',
+    viewPayload: 'Ver Payload',
+    payloadDetails: 'Detalles del Payload',
+    errorDetails: 'Detalles del Error',
+    noEventsFound: 'No se encontraron eventos de ingestión.',
+    statsProcessed: 'Procesados',
+    statsRejected: 'Rechazados',
+    statsFailed: 'Fallidos',
+    statsTotal: 'Total Ingestión',
   },
   en: {
     // Navigation
@@ -552,6 +581,10 @@ export const translations = {
     none: 'None',
     deletePropertyConfirm: 'Delete this property?',
     deletePropertyTitle: 'Delete property',
+    refresh: 'Refresh',
+    details: 'Details',
+    closeLabel: 'Close',
+    filters: 'Filters',
 
     // FinOps
     finops: 'FinOps',
@@ -582,6 +615,30 @@ export const translations = {
     message: 'Message',
     resolved: 'Resolved',
     usageByCapability: 'Usage by Capability',
+
+    // Ingestion
+    ingestionTitle: 'Ingestion Management',
+    ingestionSubtitle: 'Data entry monitoring and connector health',
+    ingestionEvents: 'Ingestion Events',
+    eventLog: 'Event Log',
+    connector: 'Connector',
+    externalId: 'External ID',
+    processedAt: 'Processed At',
+    ingested: 'Ingested',
+    rejected: 'Rejected',
+    failed: 'Failed',
+    duplicate: 'Duplicate',
+    allConnectors: 'All connectors',
+    allStatuses: 'All statuses',
+    entityType: 'Entity Type',
+    viewPayload: 'View Payload',
+    payloadDetails: 'Payload Details',
+    errorDetails: 'Error Details',
+    noEventsFound: 'No ingestion events found.',
+    statsProcessed: 'Processed',
+    statsRejected: 'Rejected',
+    statsFailed: 'Failed',
+    statsTotal: 'Total Ingestion',
   },
   de: {
     properties: 'Immobilien',
@@ -730,6 +787,10 @@ export const translations = {
     none: 'Keine',
     deletePropertyConfirm: 'Diese Immobilie löschen?',
     deletePropertyTitle: 'Immobilie löschen',
+    refresh: 'Aktualisieren',
+    details: 'Details',
+    closeLabel: 'Schließen',
+    filters: 'Filter',
 
     // Header
     projectDashboard: 'Projekt-Übersicht',
@@ -1109,6 +1170,10 @@ export const translations = {
     none: 'Нет',
     deletePropertyConfirm: 'Удалить этот объект?',
     deletePropertyTitle: 'Удалить объект',
+    refresh: 'Обновить',
+    details: 'Подробности',
+    closeLabel: 'Закрыть',
+    filters: 'Фильтры',
 
     // Header
     projectDashboard: 'Панель управления',
