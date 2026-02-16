@@ -237,6 +237,26 @@
 
 ---
 
+### 7. Data Quality and Entity Resolution v1
+
+**ID**: ANCLORA-DQER-001  
+**Versión**: 1.0  
+**Status**: Specification Phase  
+**Fase**: Data Quality & Identity  
+**Prioridad**: ALTA
+
+**Descripción**: Implementa reglas de calidad y resolución de entidades para detectar/gestionar duplicados de leads y propiedades entre fuentes, con score explicable y trazabilidad auditable.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/data-quality-and-entity-resolution/data-quality-and-entity-resolution-INDEX.md`
+- **Spec Técnica**: `sdd/features/data-quality-and-entity-resolution/data-quality-and-entity-resolution-spec-v1.md`
+- **Spec Migración**: `sdd/features/data-quality-and-entity-resolution/data-quality-and-entity-resolution-spec-migration.md`
+- **Test Plan**: `sdd/features/data-quality-and-entity-resolution/data-quality-and-entity-resolution-test-plan-v1.md`
+- **SKILL**: `.agent/skills/features/data-quality-and-entity-resolution/SKILL.md`
+- **Prompts Antigravity**: `.antigravity/prompts/features/data-quality-and-entity-resolution/`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -271,6 +291,7 @@
 | Currency & Surface Localization | ANCLORA-CSL-001 | 1.0 | Specification | Commercial UX & Data Quality | INDEX.md |
 | Cost Governance Foundation | ANCLORA-CGF-001 | 1.0 | Specification | FinOps Foundation | INDEX.md |
 | Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.0 | Specification | Ingestion & Normalization | INDEX.md |
+| Data Quality & Entity Resolution | ANCLORA-DQER-001 | 1.0 | Specification | Data Quality & Identity | INDEX.md |
 
 ---
 
@@ -333,6 +354,7 @@
 
 | Fecha | Feature | Cambio |
 |-------|---------|--------|
+| 2026-02-16 | Data Quality and Entity Resolution v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Source Connectors Unified Ingestion v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Cost Governance Foundation v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Currency & Surface Localization v1 | Entrada inicial en Specification Phase |
