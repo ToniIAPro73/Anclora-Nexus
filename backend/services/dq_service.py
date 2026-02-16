@@ -199,13 +199,22 @@ class DQService:
              supabase_service.client.table("dq_quality_issues").insert(new_issues).execute()
         
         # 3. Find duplicate candidates
-        # Clear suggested candidates
-        supabase_service.client.table("dq_entity_candidates").delete().eq("org_id", org_id).eq("status", "suggested_merge").execute()
-        
+        # Fetch EXISTING candidates to avoid unique constraint violations
+        existing_candidates_resp = supabase_service.client.table("dq_entity_candidates").select("left_entity_id, right_entity_id").eq("org_id", org_id).execute()
+        existing_pairs = set()
+        if existing_candidates_resp.data:
+            for c in existing_candidates_resp.data:
+                existing_pairs.add((c["left_entity_id"], c["right_entity_id"]))
+
         new_candidates = []
+        
         # Match leads
         for i in range(len(leads)):
             for j in range(i + 1, len(leads)):
+                # Check if pair already exists
+                if (leads[i]["id"], leads[j]["id"]) in existing_pairs or (leads[j]["id"], leads[i]["id"]) in existing_pairs:
+                    continue
+
                 score, signals = self.calculate_similarity_score(EntityType.LEAD, leads[i], leads[j])
                 if score >= 40: # Threshold for candidate
                     new_candidates.append({
@@ -221,6 +230,10 @@ class DQService:
         # Match properties
         for i in range(len(props)):
             for j in range(i + 1, len(props)):
+                # Check if pair already exists
+                if (props[i]["id"], props[j]["id"]) in existing_pairs or (props[j]["id"], props[i]["id"]) in existing_pairs:
+                    continue
+
                 score, signals = self.calculate_similarity_score(EntityType.PROPERTY, props[i], props[j])
                 if score >= 40:
                     new_candidates.append({

@@ -59,11 +59,11 @@ export function DQIssueList({ issues }: DQIssueListProps) {
                     </span>
                     <span className="text-white-soft/30">•</span>
                     <span className="text-white-soft/60 text-sm">
-                      {issue.issue_type.replace(/_/g, ' ')}
+                      {t(`dqIssue_${issue.issue_type}` as any) || issue.issue_type.replace(/_/g, ' ')}
                     </span>
                   </div>
                   <p className="text-white-soft/80 text-sm mt-1">
-                    {issue.issue_payload?.message || issue.issue_payload?.field || 'Technical issue detected'}
+                    {issue.issue_payload?.message || issue.issue_payload?.field || t('dqIssue_technical_error')}
                   </p>
                 </div>
               </div>
