@@ -33,6 +33,12 @@ Uso obligatorio:
 - Si crece la cantidad de modulos, aplicar agrupacion logica o patron escalable de navegacion, no hacks puntuales.
 - Prohibido introducir cambios que hagan invisibles dropdowns, toggles o acciones primarias.
 
+## 3.2) Contrato global de botones (obligatorio)
+- Acciones de creacion (ej. "Nuevo contacto", "Nueva propiedad", "Invitar") deben usar patron `btn-create`.
+- Acciones no-creacion (ej. "Recalcular", "Recomputar", "Refresh/Actualizar", "Re-score") deben usar patron `btn-action`.
+- `btn-action` debe incluir un micro-indicador visual (emoji/icono pequeno) + texto.
+- Prohibido mezclar estilos arbitrarios por pantalla para acciones equivalentes.
+
 ## 4) Reglas i18n obligatorias (Agent C + D)
 - Todo texto nuevo/modificado visible en UI debe ir por i18n.
 - Cobertura minima obligatoria: `es`, `en`, `de`, `ru`.

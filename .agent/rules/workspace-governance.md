@@ -52,6 +52,7 @@ Si hay conflicto: gana el nivel superior.
   5.1) QA debe confirmar explicitamente las migraciones SQL verificadas como aplicadas.
   5.2) Sin evidencia de migraciones aplicadas no se puede emitir GO.
   6) Validar calidad visual en vistas principales (sin solapes, overflow ni scroll innecesario en desktop).
+  6.1) Validar contrato global de botones (`btn-create` vs `btn-action`) en toda UI nueva/modificada.
   7) Validar escalabilidad de navegacion (sidebar usable con crecimiento de modulos y controles globales siempre accesibles).
   8) Validar limpieza de artefactos temporales de pruebas/diagnostico (no dejar scripts temporales al cerrar la iteracion).
 - Si falla cualquiera:

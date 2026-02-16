@@ -11,8 +11,8 @@ export interface IngestionEvent {
   connector_name: string
   status: IngestionStatus
   message?: string
-  payload: Record<string, any>
-  error_detail?: Record<string, any>
+  payload: Record<string, unknown>
+  error_detail?: Record<string, unknown>
   processed_at: string
   dedupe_key: string
 }
@@ -43,8 +43,13 @@ export const ingestionApi = {
     if (filters.status) params.append('status', filters.status)
     if (filters.entity_type) params.append('entity_type', filters.entity_type)
     if (filters.connector_name) params.append('connector_name', filters.connector_name)
-    
-    return api.get(`/api/ingestion/events?${params.toString()}`)
+
+    try {
+      return await api.get(`/api/ingestion/events?${params.toString()}`)
+    } catch {
+      console.warn('Ingestion events endpoint unavailable, using empty fallback')
+      return []
+    }
   },
 
   getEventById: async (id: string): Promise<IngestionEvent> => {
@@ -56,7 +61,7 @@ export const ingestionApi = {
     // For now, let's assume /api/ingestion/stats exists or we'll mock it if backend isn't ready
     try {
       return await api.get('/api/ingestion/stats')
-    } catch (e) {
+    } catch {
       console.warn('Ingestion stats endpoint not found, using mock data')
       return {
         processed: 124,

@@ -243,8 +243,9 @@ export default function ProspectionPage() {
               <button
                 onClick={handleRecompute}
                 disabled={recomputing}
-                className="px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold border border-gold/20 rounded-lg text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-2 disabled:opacity-50"
+                className="btn-action text-sm min-w-[190px]"
               >
+                <span className="btn-action-emoji" aria-hidden="true">⚡</span>
                 <RefreshCw className={`w-4 h-4 ${recomputing ? 'animate-spin' : ''}`} />
                 {t('recomputeMatches')}
               </button>

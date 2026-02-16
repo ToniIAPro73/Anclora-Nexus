@@ -36,6 +36,7 @@ Uso obligatorio:
   - Dropdowns fuera de contenedor visible.
   - Scroll vertical innecesario en desktop para vistas principales.
 - Validar consistencia de tipografía y spacing con el dashboard existente.
+- Validar contrato global de botones (`btn-create` para crear, `btn-action` para no-creacion).
 - Si hay regresión visual crítica: reportar `VISUAL_REGRESSION_P0`.
 
 ## 5) Validación de migración aplicada (obligatoria)

@@ -156,4 +156,34 @@
     background-color: rgb(74, 222, 128);
     box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
   }
+
+  /* Button contracts */
+  .btn-create {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold;
+    background: var(--color-gold);
+    color: var(--color-navy-deep);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.28);
+    transition: all 0.2s ease;
+  }
+  .btn-create:hover { filter: brightness(1.04); }
+  .btn-create:disabled { opacity: 0.5; box-shadow: none; }
+
+  .btn-action {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border font-semibold;
+    border-color: rgba(212, 175, 55, 0.28);
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--color-gold);
+    transition: all 0.2s ease;
+  }
+  .btn-action:hover {
+    background: rgba(212, 175, 55, 0.16);
+    border-color: rgba(212, 175, 55, 0.45);
+    box-shadow: 0 0 14px rgba(212, 175, 55, 0.14);
+  }
+  .btn-action:disabled { opacity: 0.5; box-shadow: none; }
+  .btn-action-emoji {
+    font-size: 0.95rem;
+    line-height: 1;
+    opacity: 0.95;
+  }
 }

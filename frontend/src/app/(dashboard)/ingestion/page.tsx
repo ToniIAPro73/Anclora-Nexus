@@ -61,8 +61,9 @@ export default function IngestionPage() {
           <button 
             onClick={fetchData}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-soft-subtle bg-navy-surface/50 text-soft-white font-medium hover:border-blue-light/50 transition-all active:scale-95 disabled:opacity-50"
+            className="btn-action min-w-[140px]"
           >
+            <span className="btn-action-emoji" aria-hidden="true">✨</span>
             <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span>{t('refresh') || 'Actualizar'}</span>
           </button>

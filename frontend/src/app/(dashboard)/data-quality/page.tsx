@@ -66,9 +66,9 @@ export default function DataQualityPage() {
   }
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-[1400px] mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 pb-5 border-b border-soft-subtle/50">
+    <div className="h-full p-6 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto h-full flex flex-col gap-5 overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-soft-subtle/50 shrink-0">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <Link 
@@ -89,24 +89,23 @@ export default function DataQualityPage() {
         <button
           onClick={handleRecompute}
           disabled={isRecomputing}
-          className="flex items-center gap-2 px-6 py-3 bg-gold text-navy-deep font-bold rounded-xl hover:bg-gold/90 transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] disabled:opacity-50 disabled:shadow-none min-w-[160px] justify-center"
+          className="btn-action min-w-[170px]"
         >
-          {isRecomputing ? (
-            <RefreshCw className="w-5 h-5 animate-spin" />
-          ) : (
-            <Play className="w-5 h-5 fill-current" />
-          )}
+          <span className="btn-action-emoji" aria-hidden="true">🔄</span>
+          {isRecomputing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
           {t('dqRecompute')}
         </button>
       </div>
 
-      <DQMetricsCards metrics={dqMetrics} />
+      <div className="shrink-0">
+        <DQMetricsCards metrics={dqMetrics} />
+      </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 min-h-0 overflow-hidden">
+        <div className="space-y-4 min-h-0 overflow-auto pr-1 custom-scrollbar">
           <DQIssueList issues={dqIssues} />
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 min-h-0 overflow-auto pr-1 custom-scrollbar">
           <DQCandidateList candidates={dqCandidates} />
         </div>
       </div>
