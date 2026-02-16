@@ -13,3 +13,6 @@ Implementar issues de calidad, candidatos de deduplicación y resolución de ent
 - Aislamiento estricto por `org_id`.
 - No realizar merges irreversibles por defecto.
 - Cada agente se detiene en su bloque.
+- Baselines obligatorios:
+  - `.antigravity/prompts/features/_feature-delivery-baseline.md`
+  - `.antigravity/prompts/features/_qa-gate-baseline.md`

@@ -5,6 +5,7 @@ Feature ID: `ANCLORA-DQER-001`
 Usar contexto común:
 - `.antigravity/prompts/features/data-quality-and-entity-resolution/feature-data-quality-and-entity-resolution-shared-context.md`
 - Baseline QA/Gate: `.antigravity/prompts/features/_qa-gate-baseline.md`
+- Baseline de entrega completa: `.antigravity/prompts/features/_feature-delivery-baseline.md`
 
 ## Agent A - DB & Migrations
 - Crear migraciones para issues/candidatos/log de resolución.
@@ -30,7 +31,8 @@ Usar contexto común:
 
 ## Orden de ejecución
 1) Agent A.
-2) Agent B + Agent C (paralelo, tras A).
+2) Aplicar migración y ejecutar verify SQL en entorno objetivo.
+3) Agent B + Agent C (paralelo, tras migración aplicada).
 3) Agent D.
 4) Gate final.
 
