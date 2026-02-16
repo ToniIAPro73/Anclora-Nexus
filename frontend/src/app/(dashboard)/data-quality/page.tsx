@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { RefreshCw, Play, Loader2 } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Play, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 import { useI18n } from '@/lib/i18n'
 import { useStore } from '@/lib/store'
 import { DQMetricsCards } from '@/components/dq/DQMetricsCards'
@@ -65,12 +66,21 @@ export default function DataQualityPage() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div className="min-h-screen p-8">
+      <div className="max-w-[1400px] mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 pb-5 border-b border-soft-subtle/50">
         <div>
-          <h1 className="text-4xl font-bold text-white-soft mb-2 tracking-tight">
-            {t('dataQuality')}
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <Link 
+              href="/dashboard"
+              className="p-2 rounded-xl border border-soft-subtle bg-navy-surface/40 text-soft-muted hover:text-soft-white hover:border-blue-light/50 transition-all group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            </Link>
+            <h1 className="text-4xl font-bold text-soft-white tracking-tight">
+              {t('dataQuality')}
+            </h1>
+          </div>
           <p className="text-white-soft/60">
             {t('dataQualitySubtitle')}
           </p>
@@ -92,13 +102,14 @@ export default function DataQualityPage() {
 
       <DQMetricsCards metrics={dqMetrics} />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="space-y-4">
           <DQIssueList issues={dqIssues} />
         </div>
         <div className="space-y-4">
           <DQCandidateList candidates={dqCandidates} />
         </div>
+      </div>
       </div>
     </div>
   )

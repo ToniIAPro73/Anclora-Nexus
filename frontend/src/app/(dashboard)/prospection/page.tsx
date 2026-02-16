@@ -310,7 +310,7 @@ export default function ProspectionPage() {
                           <div className="flex items-center gap-2 min-w-0">
                             <Home className="w-4 h-4 text-gold shrink-0" />
                             <h3 className="text-base font-bold text-soft-white group-hover:text-gold transition-colors line-clamp-1">
-                              {prop.title || prop.city || 'Sin título'}
+                              {prop.title || prop.zone || prop.city || t('none')}
                             </h3>
                           </div>
                           <div className={`shrink-0 px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getScoreBg(prop.high_ticket_score ?? 0)}`}>
@@ -329,11 +329,11 @@ export default function ProspectionPage() {
                           </span>
                           {matchInfo ? (
                             <span className="px-2 py-0.5 text-[10px] rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
-                              {matchInfo.count} match{matchInfo.count > 1 ? 'es' : ''}
+                              {matchInfo.count} {t('matchLabel')}
                             </span>
                           ) : (
                             <span className="px-2 py-0.5 text-[10px] rounded-full border border-soft-subtle bg-white/5 text-soft-muted">
-                              Sin matches
+                              {t('noMatches')}
                             </span>
                           )}
                         </div>
@@ -506,7 +506,9 @@ export default function ProspectionPage() {
                               <div className="flex items-center gap-2">
                                 <Home className="w-4 h-4 text-gold shrink-0" />
                                 <span className="text-sm text-soft-white font-medium truncate max-w-[200px]">
-                                  {match.property_title || match.property_id.slice(0, 8)}
+                                  {match.property_title && match.property_title !== 'Sin título'
+                                    ? match.property_title
+                                    : match.property_id.slice(0, 8)}
                                 </span>
                               </div>
                             </td>
@@ -561,7 +563,7 @@ export default function ProspectionPage() {
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <span className="text-xs text-soft-muted font-medium">
-                  Page <span className="text-gold font-bold">{currentPage + 1}</span> of {totalPages}
+                  {t('pageLabel')} <span className="text-gold font-bold">{currentPage + 1}</span> {t('ofLabel')} {totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p: number) => Math.min(totalPages - 1, p + 1))}

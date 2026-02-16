@@ -53,7 +53,7 @@ export function IngestionSummary({ stats, loading }: Props) {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs font-medium text-soft-muted uppercase tracking-wider mb-1">{card.title}</p>
-              <h3 className={`text-2xl font-display font-semibold ${card.color} transition-all group-hover:scale-105 origin-left`}>
+              <h3 className={`text-2xl font-bold ${card.color} transition-all group-hover:scale-105 origin-left`}>
                 {loading ? '...' : card.value}
               </h3>
               {card.trend !== 0 && (

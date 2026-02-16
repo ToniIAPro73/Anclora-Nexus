@@ -12,7 +12,7 @@ export function DQIssueList({ issues }: DQIssueListProps) {
 
   if (issues.length === 0) {
     return (
-      <div className="glass-panel p-8 text-center border border-white/5">
+      <div className="glass-panel p-6 text-center border border-white/5">
         <Shield className="w-12 h-12 text-white-soft/20 mx-auto mb-4" />
         <p className="text-white-soft/60">{t('dqNoIssuesFound')}</p>
       </div>

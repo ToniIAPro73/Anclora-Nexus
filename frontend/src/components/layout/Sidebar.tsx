@@ -1,14 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Home, CheckSquare, LogOut, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
 import supabase from '@/lib/supabase'
-import { CurrencySelector } from './CurrencySelector'
-import { UnitSelector } from './UnitSelector'
-import { LanguageSelector } from './LanguageSelector'
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -74,21 +71,36 @@ export function Sidebar() {
     }
   }, [])
 
-  const links = [
-    { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
-    { name: t('leads'), href: '/leads', icon: Users },
-    { name: t('properties'), href: '/properties', icon: Home },
-    { name: t('tasks'), href: '/tasks', icon: CheckSquare },
-    { name: t('team'), href: '/team', icon: UserCog },
-    { name: t('prospection'), href: '/prospection', icon: Target },
-    { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
-    { name: t('ingestion'), href: '/ingestion', icon: Database },
-    { name: t('dataQuality'), href: '/data-quality', icon: ShieldCheck },
+  const sections = [
+    {
+      title: t('sidebarSectionCore'),
+      links: [
+        { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
+        { name: t('leads'), href: '/leads', icon: Users },
+        { name: t('properties'), href: '/properties', icon: Home },
+        { name: t('tasks'), href: '/tasks', icon: CheckSquare },
+        { name: t('team'), href: '/team', icon: UserCog },
+      ],
+    },
+    {
+      title: t('sidebarSectionIntelligence'),
+      links: [
+        { name: t('prospection'), href: '/prospection', icon: Target },
+        { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
+      ],
+    },
+    {
+      title: t('sidebarSectionOperations'),
+      links: [
+        { name: t('ingestion'), href: '/ingestion', icon: Database },
+        { name: t('dataQuality'), href: '/data-quality', icon: ShieldCheck },
+      ],
+    },
   ]
 
   return (
-    <aside className={`${isCollapsed ? 'w-24' : 'w-64'} border-r border-soft-subtle bg-navy-darker/50 backdrop-blur-xl flex flex-col pt-5 transition-all duration-300 overflow-visible`}>
-      <div className={`${isCollapsed ? 'px-3' : 'px-8'} mb-8`}>
+    <aside className={`${isCollapsed ? 'w-24' : 'w-64'} border-r border-soft-subtle bg-navy-darker/50 backdrop-blur-xl flex flex-col pt-4 transition-all duration-300 overflow-hidden`}>
+      <div className={`${isCollapsed ? 'px-3' : 'px-6'} mb-5 shrink-0`}>
         <div className="flex justify-end mb-4">
           <button
             type="button"
@@ -100,9 +112,9 @@ export function Sidebar() {
             {isCollapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
           </button>
         </div>
-        <div className="flex flex-col items-center overflow-visible pt-2">
-          <div className={`${isCollapsed ? 'mb-0 mt-1' : 'mb-4'} animate-float`}>
-            <BrandLogo size={isCollapsed ? 52 : 64} src={logoUrl} />
+        <div className="flex flex-col items-center overflow-visible pt-1">
+          <div className={`${isCollapsed ? 'mb-0 mt-1' : 'mb-3'} animate-float`}>
+            <BrandLogo size={isCollapsed ? 50 : 60} src={logoUrl} />
           </div>
           <h1
             className={`font-display text-xl text-soft-white whitespace-nowrap transition-all duration-300 ${
@@ -121,51 +133,43 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className={`flex-1 ${isCollapsed ? 'px-2' : 'px-4'} space-y-1`}>
-        {links.map((link) => {
-          const Active = pathname === link.href
-          return (
-            <Link
-              key={link.name}
-              href={link.href}
-              title={isCollapsed ? link.name : undefined}
-              className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-xl text-sm font-medium transition-all group ${
-                Active 
-                  ? 'bg-gold/10 text-gold shadow-sm' 
-                  : 'text-soft-muted hover:text-soft-white hover:bg-white/[0.03]'
-              }`}
-            >
-              <link.icon className={`w-5 h-5 ${Active ? 'text-gold' : 'text-soft-muted group-hover:text-soft-white'}`} />
+      <nav className={`flex-1 ${isCollapsed ? 'px-2' : 'px-3'} pb-3 overflow-y-auto custom-scrollbar`}>
+        <div className="space-y-3">
+          {sections.map((section) => (
+            <div key={section.title} className="space-y-1">
               {!isCollapsed && (
-                <span className="whitespace-nowrap overflow-hidden transition-all duration-300 max-w-[140px] opacity-100 translate-x-0">
-                  {link.name}
-                </span>
+                <p className="px-3 text-[10px] uppercase tracking-[0.16em] text-soft-muted/70 font-semibold">
+                  {section.title}
+                </p>
               )}
-            </Link>
-          )
-        })}
+              {section.links.map((link) => {
+                const Active = pathname === link.href
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    title={isCollapsed ? link.name : undefined}
+                    className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+                      Active
+                        ? 'bg-gold/10 text-gold shadow-sm'
+                        : 'text-soft-muted hover:text-soft-white hover:bg-white/[0.03]'
+                    }`}
+                  >
+                    <link.icon className={`w-5 h-5 ${Active ? 'text-gold' : 'text-soft-muted group-hover:text-soft-white'}`} />
+                    {!isCollapsed && (
+                      <span className="whitespace-nowrap overflow-hidden transition-all duration-300 max-w-[150px] opacity-100 translate-x-0">
+                        {link.name}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
+        </div>
       </nav>
 
-      <div className={`${isCollapsed ? 'p-2' : 'p-4'} border-t border-soft-subtle mt-auto space-y-2`}>
-        {!isCollapsed && (
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <LanguageSelector menuPlacement="top" menuAlign="left" />
-            <CurrencySelector menuPlacement="top" menuAlign="center" />
-            <UnitSelector menuPlacement="top" menuAlign="right" />
-          </div>
-        )}
-        <button
-          title={isCollapsed ? t('logout') : undefined}
-          className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-xl text-sm font-medium text-soft-muted hover:text-red-400 hover:bg-red-400/5 transition-all w-full`}
-        >
-          <LogOut className="w-5 h-5" />
-          {!isCollapsed && (
-            <span className="whitespace-nowrap overflow-hidden transition-all duration-300 max-w-[120px] opacity-100 translate-x-0">
-              {t('logout')}
-            </span>
-          )}
-        </button>
-      </div>
+      <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-t border-soft-subtle mt-auto shrink-0`} />
     </aside>
   )
 }

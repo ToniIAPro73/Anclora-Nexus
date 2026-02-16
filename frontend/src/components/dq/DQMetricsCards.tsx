@@ -42,9 +42,9 @@ export function DQMetricsCards({ metrics }: DQMetricsCardsProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {stats.map((stat, i) => (
-        <div key={i} className="glass-panel p-6 border border-white/5 hover:border-blue-light/20 transition-all duration-300">
+        <div key={i} className="glass-panel p-5 border border-white/5 hover:border-blue-light/20 transition-all duration-300">
           <div className="flex items-center gap-4">
             <div className={`p-3 rounded-xl ${stat.bg}`}>
               <stat.icon className={`w-6 h-6 ${stat.color}`} />

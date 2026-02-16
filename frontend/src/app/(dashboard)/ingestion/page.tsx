@@ -36,9 +36,10 @@ export default function IngestionPage() {
   }, [])
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="min-h-screen p-8">
+      <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-soft-subtle/50">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 pb-5 border-b border-soft-subtle/50">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <Link 
@@ -47,7 +48,7 @@ export default function IngestionPage() {
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             </Link>
-            <h1 className="text-3xl font-display font-bold text-soft-white tracking-tight">
+            <h1 className="text-4xl font-bold text-soft-white tracking-tight">
               {t('ingestionTitle')}
             </h1>
           </div>
@@ -73,7 +74,7 @@ export default function IngestionPage() {
 
       {/* Event List */}
       <div className="space-y-4">
-        <h2 className="text-xl font-display font-semibold text-soft-white flex items-center gap-2">
+        <h2 className="text-3xl font-bold text-soft-white flex items-center gap-2">
           {t('eventLog')}
           <span className="px-2 py-0.5 rounded-full bg-blue-light/10 text-blue-light text-[10px] font-bold">
             {events.length}
@@ -93,6 +94,7 @@ export default function IngestionPage() {
           onClose={() => setSelectedEvent(null)} 
         />
       )}
+      </div>
     </div>
   )
 }

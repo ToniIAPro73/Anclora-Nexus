@@ -16,7 +16,7 @@ export function DQCandidateList({ candidates }: DQCandidateListProps) {
 
   if (candidates.length === 0) {
     return (
-      <div className="glass-panel p-8 text-center border border-white/5">
+      <div className="glass-panel p-6 text-center border border-white/5">
         <Copy className="w-12 h-12 text-white-soft/20 mx-auto mb-4" />
         <p className="text-white-soft/60">{t('dqNoCandidatesFound')}</p>
       </div>
@@ -41,7 +41,7 @@ export function DQCandidateList({ candidates }: DQCandidateListProps) {
 
       <div className="grid gap-4">
         {candidates.map((candidate) => (
-          <div key={candidate.id} className="glass-panel p-6 border border-white/5 bg-navy-surface/40">
+          <div key={candidate.id} className="glass-panel p-5 border border-white/5 bg-navy-surface/40">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] uppercase tracking-wider bg-blue-light/10 text-blue-light px-2 py-0.5 rounded border border-blue-light/20">
