@@ -83,11 +83,11 @@
 
 ---
 
-## [UPCOMING] - Data Quality and Entity Resolution v1
+## [1.0] - 2026-02-16 - Data Quality and Entity Resolution v1
 
-**Fecha anticipada**: 2026-02-XX  
-**Status**: En especificación  
-**Criticidad**: ALTA  
+**Fecha**: 2026-02-16
+**Status**: ✅ RELEASED
+**Criticidad**: ALTA
 **Feature**: ANCLORA-DQER-001 v1.0
 
 ### Database Changes

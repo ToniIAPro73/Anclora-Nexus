@@ -45,14 +45,20 @@ Si hay conflicto: gana el nivel superior.
   1) Validar entorno leyendo `.env` y `frontend/.env.local`.
   2) Verificar que `SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_URL` apuntan al mismo proyecto.
   3) Prohibido asumir o hardcodear `project_ref` fuera de `.env*`.
+  3.1) Reportar siempre el `project_ref` efectivo derivado de `.env*` y su evidencia.
+  3.2) Si aparece otro `project_ref` en QA/Gate: `QA_INVALID_ENV_SOURCE` y QA invalido.
   4) Validar i18n completa en `es`, `en`, `de`, `ru` para texto nuevo/modificado.
   5) Validar que la migracion de la feature esta aplicada antes de B/C/D.
+  5.1) QA debe confirmar explicitamente las migraciones SQL verificadas como aplicadas.
+  5.2) Sin evidencia de migraciones aplicadas no se puede emitir GO.
   6) Validar calidad visual en vistas principales (sin solapes, overflow ni scroll innecesario en desktop).
+  7) Validar escalabilidad de navegacion (sidebar usable con crecimiento de modulos y controles globales siempre accesibles).
 - Si falla cualquiera:
   - `ENV_MISMATCH` -> NO-GO.
   - `I18N_MISSING_KEYS` -> NO-GO.
   - `MIGRATION_NOT_APPLIED` -> NO-GO.
   - `VISUAL_REGRESSION_P0` -> NO-GO.
+  - `NAVIGATION_SCALABILITY_BROKEN` -> NO-GO.
 
 ## Nota operativa
 Mantener compatibilidad con archivos legacy del root (v0):
