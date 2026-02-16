@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { Eye, Filter, Database, Tag, Calendar, ChevronRight } from 'lucide-react'
+import { Eye, Filter, Database, Tag, Calendar } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import { IngestionEvent, IngestionStatus, EntityType } from '@/lib/ingestion-api'
 
@@ -51,8 +51,8 @@ export function IngestionEventList({ events, loading, onViewDetails }: Props) {
         <div className="flex flex-wrap items-center gap-3">
           <select 
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="bg-navy-darker border border-soft-subtle text-soft-white text-xs rounded-lg px-3 py-1.5 focus:border-blue-light/50 outline-none transition-all cursor-pointer"
+            onChange={(e) => setStatusFilter(e.target.value as IngestionStatus | 'all')}
+            className="bg-navy-surface/70 border border-soft-subtle text-soft-white text-xs rounded-lg px-3 py-1.5 focus:border-blue-light/50 outline-none transition-all cursor-pointer"
           >
             <option value="all">{t('allStatuses')}</option>
             <option value="success">{t('ingested')}</option>
@@ -62,8 +62,8 @@ export function IngestionEventList({ events, loading, onViewDetails }: Props) {
 
           <select 
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as any)}
-            className="bg-navy-darker border border-soft-subtle text-soft-white text-xs rounded-lg px-3 py-1.5 focus:border-blue-light/50 outline-none transition-all cursor-pointer"
+            onChange={(e) => setTypeFilter(e.target.value as EntityType | 'all')}
+            className="bg-navy-surface/70 border border-soft-subtle text-soft-white text-xs rounded-lg px-3 py-1.5 focus:border-blue-light/50 outline-none transition-all cursor-pointer"
           >
             <option value="all">{t('viewAll')}</option>
             <option value="lead">{t('lead')}</option>

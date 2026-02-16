@@ -1,17 +1,34 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck, ChevronDown, ChevronRight } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
 import supabase from '@/lib/supabase'
+
+function getSectionFromPath(pathname: string): 'core' | 'intelligence' | 'operations' {
+  if (
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/leads') ||
+    pathname.startsWith('/properties') ||
+    pathname.startsWith('/tasks') ||
+    pathname.startsWith('/team')
+  ) {
+    return 'core'
+  }
+  if (pathname.startsWith('/prospection') || pathname.startsWith('/intelligence')) {
+    return 'intelligence'
+  }
+  return 'operations'
+}
 
 export function Sidebar() {
   const pathname = usePathname()
   const { t } = useI18n()
   const [logoUrl, setLogoUrl] = useState<string | undefined>()
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
+  const [openSection, setOpenSection] = useState<'core' | 'intelligence' | 'operations' | null>(null)
 
   const toggleSidebar = () => {
     setIsCollapsed((prev) => {
@@ -71,9 +88,19 @@ export function Sidebar() {
     }
   }, [])
 
-  const sections = [
+  const autoSection = getSectionFromPath(pathname)
+  const visibleSection = openSection ?? autoSection
+
+  const sections: Array<{
+    id: 'core' | 'intelligence' | 'operations'
+    title: string
+    icon: typeof LayoutDashboard
+    links: Array<{ name: string; href: string; icon: typeof LayoutDashboard }>
+  }> = [
     {
+      id: 'core',
       title: t('sidebarSectionCore'),
+      icon: LayoutDashboard,
       links: [
         { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
         { name: t('leads'), href: '/leads', icon: Users },
@@ -83,14 +110,18 @@ export function Sidebar() {
       ],
     },
     {
+      id: 'intelligence',
       title: t('sidebarSectionIntelligence'),
+      icon: Target,
       links: [
         { name: t('prospection'), href: '/prospection', icon: Target },
         { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
       ],
     },
     {
+      id: 'operations',
       title: t('sidebarSectionOperations'),
+      icon: Database,
       links: [
         { name: t('ingestion'), href: '/ingestion', icon: Database },
         { name: t('dataQuality'), href: '/data-quality', icon: ShieldCheck },
@@ -134,36 +165,63 @@ export function Sidebar() {
       </div>
 
       <nav className={`flex-1 ${isCollapsed ? 'px-2' : 'px-3'} pb-3 overflow-y-auto custom-scrollbar`}>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {sections.map((section) => (
-            <div key={section.title} className="space-y-1">
-              {!isCollapsed && (
-                <p className="px-3 text-[10px] uppercase tracking-[0.16em] text-soft-muted/70 font-semibold">
-                  {section.title}
-                </p>
-              )}
-              {section.links.map((link) => {
-                const Active = pathname === link.href
-                return (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    title={isCollapsed ? link.name : undefined}
-                    className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-2.5 rounded-xl text-sm font-medium transition-all group ${
-                      Active
-                        ? 'bg-gold/10 text-gold shadow-sm'
-                        : 'text-soft-muted hover:text-soft-white hover:bg-white/[0.03]'
-                    }`}
-                  >
-                    <link.icon className={`w-5 h-5 ${Active ? 'text-gold' : 'text-soft-muted group-hover:text-soft-white'}`} />
-                    {!isCollapsed && (
-                      <span className="whitespace-nowrap overflow-hidden transition-all duration-300 max-w-[150px] opacity-100 translate-x-0">
-                        {link.name}
-                      </span>
+            <div key={section.id} className="space-y-1">
+              <button
+                type="button"
+                onClick={() => {
+                  // Accordion estricto: una sola sección activa.
+                  setOpenSection(section.id)
+                  // En modo colapsado, abrir sección implica expandir sidebar.
+                  if (isCollapsed) {
+                    setIsCollapsed(false)
+                    localStorage.setItem('anclora-sidebar-collapsed', 'false')
+                  }
+                }}
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-3 py-2.5 rounded-xl border transition-all ${
+                  visibleSection === section.id
+                    ? 'bg-navy-surface/60 border-gold/20 text-gold'
+                    : 'bg-navy-surface/30 border-soft-subtle text-soft-muted hover:text-soft-white hover:border-blue-light/30'
+                }`}
+                title={isCollapsed ? section.title : undefined}
+              >
+                <section.icon className={`w-4 h-4 ${visibleSection === section.id ? 'text-gold' : 'text-soft-muted'}`} />
+                {!isCollapsed && (
+                  <>
+                    <span className="text-[11px] uppercase tracking-[0.14em] font-semibold truncate">{section.title}</span>
+                    {visibleSection === section.id ? (
+                      <ChevronDown className="w-4 h-4 ml-auto" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 ml-auto" />
                     )}
-                  </Link>
-                )
-              })}
+                  </>
+                )}
+              </button>
+
+              {!isCollapsed && visibleSection === section.id && (
+                <div className="pl-2 space-y-1">
+                  {section.links.map((link) => {
+                    const Active = pathname === link.href
+                    return (
+                      <Link
+                        key={link.name}
+                        href={link.href}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+                          Active
+                            ? 'bg-gold/10 text-gold shadow-sm'
+                            : 'text-soft-muted hover:text-soft-white hover:bg-white/[0.03]'
+                        }`}
+                      >
+                        <link.icon className={`w-5 h-5 ${Active ? 'text-gold' : 'text-soft-muted group-hover:text-soft-white'}`} />
+                        <span className="whitespace-nowrap overflow-hidden max-w-[150px]">
+                          {link.name}
+                        </span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           ))}
         </div>

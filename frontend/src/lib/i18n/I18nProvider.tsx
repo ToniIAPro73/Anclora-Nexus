@@ -1,5 +1,6 @@
 'use client'
 import { createContext, useContext, useState, ReactNode } from 'react'
+import { useEffect } from 'react'
 import { translations, Language, TranslationKey } from './translations'
 
 interface I18nContextType {
@@ -11,11 +12,16 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window === 'undefined') return 'es'
+  // Keep SSR and first client render equal to avoid hydration mismatch.
+  const [language, setLanguageState] = useState<Language>('es')
+
+  useEffect(() => {
     const savedLang = localStorage.getItem('anclora-language') as Language | null
-    return savedLang && savedLang in translations ? savedLang : 'es'
-  })
+    if (savedLang && savedLang in translations) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLanguageState(savedLang)
+    }
+  }, [])
 
   const setLanguage = (lang: Language) => {
     const safeLang: Language = (lang in translations ? lang : 'es') as Language
