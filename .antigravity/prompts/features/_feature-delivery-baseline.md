@@ -53,3 +53,8 @@ Uso obligatorio:
 - `I18N_MISSING_KEYS`
 - `VISUAL_REGRESSION_P0` (solape, overflow o layout roto en vista principal)
 - `NAVIGATION_SCALABILITY_BROKEN` (sidebar/toggles no accesibles o modulos ocultos por crecimiento)
+
+## 6) Higiene de pruebas (obligatoria)
+- Cualquier script temporal de prueba/diagnostico creado durante la iteracion debe eliminarse antes de cerrar la feature.
+- No dejar artefactos temporales en raiz ni en carpetas funcionales (ej.: `debug_*.py`, `verify_*.py`, `tmp_*.ts`, `test_output.log`).
+- Si se necesita conservar evidencia, guardarla en SDD/QA como reporte, no como script ejecutable temporal.

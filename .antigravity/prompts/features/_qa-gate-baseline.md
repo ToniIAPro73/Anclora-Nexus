@@ -43,3 +43,8 @@ Uso obligatorio:
 - Si Agent B/C/D se ejecuta sin migración aplicada, bloquear con `MIGRATION_NOT_APPLIED`.
 - QA debe listar exactamente que migraciones SQL de la feature se verificaron como aplicadas.
 - Gate no puede emitir GO si falta evidencia de aplicacion de migraciones SQL en el proyecto validado.
+
+## 6) Limpieza de scripts temporales (obligatoria)
+- Antes de emitir GO, QA/Gate debe verificar que no quedan scripts temporales de pruebas/diagnostico creados durante la iteracion.
+- Si existen artefactos temporales sin justificar, reportar `TEST_ARTIFACTS_NOT_CLEANED`.
+- `TEST_ARTIFACTS_NOT_CLEANED` implica NO-GO hasta limpieza.

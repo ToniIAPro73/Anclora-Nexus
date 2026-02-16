@@ -53,12 +53,18 @@ Si hay conflicto: gana el nivel superior.
   5.2) Sin evidencia de migraciones aplicadas no se puede emitir GO.
   6) Validar calidad visual en vistas principales (sin solapes, overflow ni scroll innecesario en desktop).
   7) Validar escalabilidad de navegacion (sidebar usable con crecimiento de modulos y controles globales siempre accesibles).
+  8) Validar limpieza de artefactos temporales de pruebas/diagnostico (no dejar scripts temporales al cerrar la iteracion).
 - Si falla cualquiera:
   - `ENV_MISMATCH` -> NO-GO.
   - `I18N_MISSING_KEYS` -> NO-GO.
   - `MIGRATION_NOT_APPLIED` -> NO-GO.
   - `VISUAL_REGRESSION_P0` -> NO-GO.
   - `NAVIGATION_SCALABILITY_BROKEN` -> NO-GO.
+  - `TEST_ARTIFACTS_NOT_CLEANED` -> NO-GO.
+
+## Regla global de higiene de pruebas
+- Todo script temporal de prueba/debug creado ad-hoc durante una iteracion debe eliminarse antes del cierre.
+- Si se conserva evidencia, debe quedar en reportes SDD/QA, no en scripts temporales ejecutables.
 
 ## Nota operativa
 Mantener compatibilidad con archivos legacy del root (v0):
