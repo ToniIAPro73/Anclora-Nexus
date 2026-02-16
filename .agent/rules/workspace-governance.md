@@ -40,14 +40,19 @@ Si hay conflicto: gana el nivel superior.
 
 ## Baseline obligatorio para QA/Gate (todas las features)
 - Referencia normativa: `.antigravity/prompts/features/_qa-gate-baseline.md`.
+- Referencia de entrega completa: `.antigravity/prompts/features/_feature-delivery-baseline.md`.
 - Es obligatorio para cualquier nuevo `agent-d-qa` y `gate-final`:
   1) Validar entorno leyendo `.env` y `frontend/.env.local`.
   2) Verificar que `SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_URL` apuntan al mismo proyecto.
   3) Prohibido asumir o hardcodear `project_ref` fuera de `.env*`.
   4) Validar i18n completa en `es`, `en`, `de`, `ru` para texto nuevo/modificado.
+  5) Validar que la migracion de la feature esta aplicada antes de B/C/D.
+  6) Validar calidad visual en vistas principales (sin solapes, overflow ni scroll innecesario en desktop).
 - Si falla cualquiera:
   - `ENV_MISMATCH` -> NO-GO.
   - `I18N_MISSING_KEYS` -> NO-GO.
+  - `MIGRATION_NOT_APPLIED` -> NO-GO.
+  - `VISUAL_REGRESSION_P0` -> NO-GO.
 
 ## Nota operativa
 Mantener compatibilidad con archivos legacy del root (v0):
