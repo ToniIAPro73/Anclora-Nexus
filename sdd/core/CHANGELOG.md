@@ -4,10 +4,10 @@
 
 ---
 
-## [UPCOMING] - Cost Governance Foundation v1
+## [1.0] - 2026-02-16 - Cost Governance Foundation v1
 
-**Fecha anticipada**: 2026-02-XX  
-**Status**: En especificación  
+**Fecha**: 2026-02-16  
+**Status**: ✅ RELEASED  
 **Criticidad**: CRÍTICA  
 **Feature**: ANCLORA-CGF-001 v1.0
 
