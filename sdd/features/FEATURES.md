@@ -221,7 +221,7 @@
 
 **ID**: ANCLORA-SCUI-001  
 **Versión**: 1.0  
-**Status**: Specification Phase  
+**Status**: Implemented  
 **Fase**: Ingestion & Normalization  
 **Prioridad**: ALTA
 
@@ -290,7 +290,7 @@
 | Lead Source Observability | ANCLORA-LSO-001 | 1.0 | Implemented | Data Quality & Attribution | INDEX.md |
 | Currency & Surface Localization | ANCLORA-CSL-001 | 1.0 | Specification | Commercial UX & Data Quality | INDEX.md |
 | Cost Governance Foundation | ANCLORA-CGF-001 | 1.0 | Specification | FinOps Foundation | INDEX.md |
-| Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.0 | Specification | Ingestion & Normalization | INDEX.md |
+| Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.0 | Implemented | Ingestion & Normalization | INDEX.md |
 | Data Quality & Entity Resolution | ANCLORA-DQER-001 | 1.0 | Specification | Data Quality & Identity | INDEX.md |
 
 ---
@@ -354,8 +354,8 @@
 
 | Fecha | Feature | Cambio |
 |-------|---------|--------|
+| 2026-02-16 | Source Connectors Unified Ingestion v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-16 | Data Quality and Entity Resolution v1 | Entrada inicial en Specification Phase |
-| 2026-02-15 | Source Connectors Unified Ingestion v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Cost Governance Foundation v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Currency & Surface Localization v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |

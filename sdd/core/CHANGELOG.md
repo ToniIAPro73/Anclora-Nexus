@@ -45,10 +45,10 @@
 
 ---
 
-## [UPCOMING] - Source Connectors Unified Ingestion v1
+## [1.0] - 2026-02-16 - Source Connectors Unified Ingestion v1
 
-**Fecha anticipada**: 2026-02-XX  
-**Status**: En especificación  
+**Fecha**: 2026-02-16  
+**Status**: ✅ RELEASED  
 **Criticidad**: ALTA  
 **Feature**: ANCLORA-SCUI-001 v1.0
 
