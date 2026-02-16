@@ -2,6 +2,7 @@
 import { create } from 'zustand'
 import supabase from './supabase'
 import { listMatches, listProperties } from './prospection-api'
+import { dqApi, DQQualityIssue, DQMetrics, DQEntityCandidate, ResolutionAction } from './dq-api'
 
 export interface Lead {
   id: string
@@ -134,6 +135,17 @@ interface AppState {
   deleteProperty: (id: string) => void
   sendIntelligenceQuery: (message: string, mode: 'fast' | 'deep', domainHint?: string) => Promise<void>
   clearIntelligenceHistory: () => void
+  
+  // Data Quality
+  dqIssues: DQQualityIssue[]
+  dqMetrics: DQMetrics | null
+  dqCandidates: DQEntityCandidate[]
+  fetchDqIssues: (params?: any) => Promise<void>
+  fetchDqMetrics: () => Promise<void>
+  fetchDqCandidates: (entityType?: any) => Promise<void>
+  resolveDqCandidate: (candidateId: string, action: ResolutionAction, details?: any) => Promise<void>
+  recomputeDq: () => Promise<void>
+
   initialize: () => Promise<void>
 }
 
@@ -742,6 +754,59 @@ export const useStore = create<AppState>((set) => ({
   clearIntelligenceHistory: () => set((state) => ({
     intelligence: { ...state.intelligence, queryHistory: [], lastResponse: null }
   })),
+
+  // Data Quality Actions
+  dqIssues: [],
+  dqMetrics: null,
+  dqCandidates: [],
+
+  fetchDqIssues: async (params) => {
+    try {
+      const response = await dqApi.getIssues(params)
+      set({ dqIssues: response.issues })
+    } catch (error) {
+      console.error('Error fetching DQ issues:', error)
+    }
+  },
+
+  fetchDqMetrics: async () => {
+    try {
+      const metrics = await dqApi.getMetrics()
+      set({ dqMetrics: metrics })
+    } catch (error) {
+      console.error('Error fetching DQ metrics:', error)
+    }
+  },
+
+  fetchDqCandidates: async (entityType) => {
+    try {
+      const candidates = await dqApi.getCandidates(entityType)
+      set({ dqCandidates: candidates })
+    } catch (error) {
+      console.error('Error fetching DQ candidates:', error)
+    }
+  },
+
+  resolveDqCandidate: async (candidateId, action, details) => {
+    try {
+      await dqApi.resolveCandidate(candidateId, action, details)
+      // Refetch both candidates and metrics
+      const { fetchDqCandidates, fetchDqMetrics } = useStore.getState()
+      await Promise.all([fetchDqCandidates(), fetchDqMetrics()])
+    } catch (error) {
+      console.error('Error resolving DQ candidate:', error)
+      throw error
+    }
+  },
+
+  recomputeDq: async () => {
+    try {
+      await dqApi.recompute()
+    } catch (error) {
+      console.error('Error recomputing DQ:', error)
+      throw error
+    }
+  },
 
   initialize: async () => {
     try {

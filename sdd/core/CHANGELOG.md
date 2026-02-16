@@ -83,6 +83,46 @@
 
 ---
 
+## [UPCOMING] - Data Quality and Entity Resolution v1
+
+**Fecha anticipada**: 2026-02-XX  
+**Status**: En especificación  
+**Criticidad**: ALTA  
+**Feature**: ANCLORA-DQER-001 v1.0
+
+### Database Changes
+
+#### New Tables
+
+- `dq_quality_issues`
+  - Registro de incidencias de calidad por entidad.
+- `dq_entity_candidates`
+  - Candidatos de duplicado con `similarity_score` y señales explicables.
+- `dq_resolution_log`
+  - Bitácora auditable de decisiones de resolución.
+
+### API Changes (Feature Layer)
+
+- `GET /api/dq/issues`
+- `GET /api/dq/metrics`
+- `POST /api/dq/resolve`
+- `POST /api/dq/recompute`
+
+### Security & Governance
+
+- Aislamiento estricto por `org_id`.
+- Resoluciones con trazabilidad y reversibilidad.
+- Sin auto-merge irreversible fuera de reglas explícitas.
+
+### SDD References
+
+- `sdd/features/data-quality-and-entity-resolution/data-quality-and-entity-resolution-INDEX.md`
+- `sdd/features/data-quality-and-entity-resolution/data-quality-and-entity-resolution-spec-v1.md`
+- `sdd/features/data-quality-and-entity-resolution/data-quality-and-entity-resolution-spec-migration.md`
+- `sdd/features/data-quality-and-entity-resolution/data-quality-and-entity-resolution-test-plan-v1.md`
+
+---
+
 ## [UPCOMING] - Multi-Tenant Memberships v1 (Phase Prerequisito)
 
 **Fecha anticipada**: 2026-02-XX (Post-Antigravity generation)  
