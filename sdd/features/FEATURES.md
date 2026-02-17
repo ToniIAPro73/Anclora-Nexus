@@ -257,6 +257,28 @@
 
 ---
 
+### 8. Content Design and Localization Governance v1
+
+**ID**: ANCLORA-CDLG-001  
+**Versión**: 1.0  
+**Status**: Implemented  
+**Fase**: Content Governance & Localization  
+**Prioridad**: ALTA
+
+**Descripción**: Establece gobernanza de Content Design, UX Writing, terminología e i18n/l10n para el producto, con contratos obligatorios de entorno, cobertura multilingüe (`es/en/de/ru`), consistencia visual y limpieza de artefactos de test.
+
+**Documentación**:
+- **Doc Base**: `public/docs/CONTENT_DESIGN_AND_LOCALIZATION_GOVERNANCE.md`
+- **SDD Index**: `sdd/features/content-design-and-localization-governance/content-design-and-localization-governance-INDEX.md`
+- **Spec Técnica**: `sdd/features/content-design-and-localization-governance/content-design-and-localization-governance-spec-v1.md`
+- **Spec Migración**: `sdd/features/content-design-and-localization-governance/content-design-and-localization-governance-spec-migration.md`
+- **Test Plan**: `sdd/features/content-design-and-localization-governance/content-design-and-localization-governance-test-plan-v1.md`
+- **SKILL (Anclora)**: `.agent/skills/features/content-design-and-localization-governance/SKILL.md`
+- **SKILL (Portable)**: `.agent/skills/features/content-design-and-localization-governance/portable-base/SKILL.md`
+- **Prompts Antigravity**: `.antigravity/prompts/features/content-design-and-localization-governance/`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -292,6 +314,7 @@
 | Cost Governance Foundation | ANCLORA-CGF-001 | 1.0 | Implemented | FinOps Foundation | INDEX.md |
 | Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.0 | Implemented | Ingestion & Normalization | INDEX.md |
 | Data Quality & Entity Resolution | ANCLORA-DQER-001 | 1.0 | Specification | Data Quality & Identity | INDEX.md |
+| Content Design & Localization Governance | ANCLORA-CDLG-001 | 1.0 | Implemented | Content Governance & Localization | INDEX.md |
 
 ---
 
@@ -354,6 +377,7 @@
 
 | Fecha | Feature | Cambio |
 |-------|---------|--------|
+| 2026-02-17 | Content Design and Localization Governance v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-16 | Cost Governance Foundation v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-15 | Currency & Surface Localization v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-16 | Source Connectors Unified Ingestion v1 | Feature RELEASED - Gate Final OK |

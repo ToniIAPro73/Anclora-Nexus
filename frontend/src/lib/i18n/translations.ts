@@ -119,6 +119,10 @@ export const translations = {
     // Common
     backToDashboard: 'Volver al Dashboard',
     viewAll: 'Ver todos',
+    expandSidebar: 'Expandir barra lateral',
+    collapseSidebar: 'Contraer barra lateral',
+    expand: 'Expandir',
+    collapse: 'Contraer',
     pageLabel: 'Página',
     ofLabel: 'de',
     more: 'más',
@@ -613,6 +617,10 @@ export const translations = {
     // Common
     backToDashboard: 'Back to Dashboard',
     viewAll: 'View all',
+    expandSidebar: 'Expand sidebar',
+    collapseSidebar: 'Collapse sidebar',
+    expand: 'Expand',
+    collapse: 'Collapse',
     pageLabel: 'Page',
     ofLabel: 'of',
     more: 'more',
@@ -930,6 +938,10 @@ export const translations = {
     // Common
     backToDashboard: 'Zurück zum Dashboard',
     viewAll: 'Alle anzeigen',
+    expandSidebar: 'Seitenleiste erweitern',
+    collapseSidebar: 'Seitenleiste einklappen',
+    expand: 'Erweitern',
+    collapse: 'Einklappen',
     pageLabel: 'Seite',
     ofLabel: 'von',
     more: 'mehr',
@@ -1214,6 +1226,10 @@ export const translations = {
     // Common
     backToDashboard: 'Назад к панели',
     viewAll: 'Смотреть все',
+    expandSidebar: 'Развернуть боковую панель',
+    collapseSidebar: 'Свернуть боковую панель',
+    expand: 'Развернуть',
+    collapse: 'Свернуть',
     pageLabel: 'Страница',
     ofLabel: 'из',
     more: 'еще',

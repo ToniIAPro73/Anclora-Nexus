@@ -59,17 +59,19 @@ export function DQIssueList({ issues }: DQIssueListProps) {
                     </span>
                     <span className="text-white-soft/30">•</span>
                     <span className="text-white-soft/60 text-sm">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {t(`dqIssue_${issue.issue_type}` as any) || issue.issue_type.replace(/_/g, ' ')}
                     </span>
                   </div>
                   <p className="text-white-soft/80 text-sm mt-1">
-                    {issue.issue_payload?.message || issue.issue_payload?.field || t('dqIssue_technical_error')}
+                    {String(issue.issue_payload?.message || issue.issue_payload?.field || t('dqIssue_technical_error'))}
                   </p>
                 </div>
               </div>
               
               <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border font-semibold ${getSeverityColor(issue.severity)}`}>
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {t(`dq${issue.severity.charAt(0).toUpperCase() + issue.severity.slice(1)}` as any) || issue.severity}
                 </span>
               </div>

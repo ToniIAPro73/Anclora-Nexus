@@ -5,9 +5,7 @@ import { useI18n } from '@/lib/i18n'
 import { Send, Sparkles, Brain, Clock, Zap, History } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-interface ChatConsoleProps {}
-
-export function ChatConsole({}: ChatConsoleProps) {
+export function ChatConsole() {
   const { t } = useI18n()
   const { intelligence, sendIntelligenceQuery, clearIntelligenceHistory } = useStore()
   const [input, setInput] = useState('')

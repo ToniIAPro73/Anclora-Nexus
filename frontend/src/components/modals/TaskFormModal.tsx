@@ -22,13 +22,13 @@ export default function TaskFormModal({ isOpen, onClose, editTask }: TaskFormMod
 
   useEffect(() => {
     if (editTask) {
-      setFormData(editTask)
+      setTimeout(() => setFormData(editTask), 0)
     } else {
-      setFormData({
+      setTimeout(() => setFormData({
         title: '',
         due_time: '',
         status: 'pending',
-      })
+      }), 0)
     }
   }, [editTask, isOpen])
 

@@ -44,7 +44,7 @@ export function QuickStats() {
         <div className="flex-1 min-w-0">
           <div className="text-[8px] font-bold text-gold uppercase tracking-widest mb-0.5 opacity-80">{t('weeklyInsight')}</div>
           <p className="text-[11px] text-soft-white/70 line-clamp-2 leading-tight italic font-light italic">
-            "{stats.latestInsight}"
+            &quot;{stats.latestInsight}&quot;
           </p>
         </div>
       </div>

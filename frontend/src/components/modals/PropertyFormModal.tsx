@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save, Home, MapPin, Activity, Loader2 } from 'lucide-react'
 import { useStore, Property } from '@/lib/store'
-import { createProperty } from '@/lib/api'
+import { createProperty, PropertyData } from '@/lib/api'
 import { useI18n } from '@/lib/i18n'
 import { useCurrency } from '@/lib/currency'
 
@@ -105,14 +105,22 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
     setLoading(true)
     try {
       const normalizedPrice = parseAmount(String(formData.price ?? '')) ?? 0
-      const payload: Partial<Property> = {
-        ...formData,
-        price: normalizedPrice,
+      const payload: PropertyData = {
+        address: formData.address || '',
+        price: String(normalizedPrice),
+        type: formData.type,
+        status: formData.status,
+        zone: formData.zone,
+        useful_area_m2: formData.useful_area_m2,
+        built_area_m2: formData.built_area_m2,
+        plot_area_m2: formData.plot_area_m2,
         match_score: (formData.source_system || 'manual') === 'manual' ? 0 : (formData.match_score || 0),
+        source_system: formData.source_system,
+        source_portal: formData.source_portal
       }
 
       if (editProperty) {
-        updateProperty(editProperty.id, payload)
+        updateProperty(editProperty.id, payload as unknown as Partial<Property>)
       } else {
         await createProperty(payload)
         // Refresh to get real ID and correct mapping

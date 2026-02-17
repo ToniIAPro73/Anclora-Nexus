@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import supabase from '@/lib/supabase'
 import { useOrgMembership } from './useOrgMembership'
 import { OrgRole, MembershipStatus } from '../contexts/OrgContext'
@@ -26,14 +26,11 @@ export function useTeamManagement() {
     }
   }
 
-  const inviteMember = async (email: string, role: OrgRole) => {
+  const inviteMember = useCallback(async (email: string, role: OrgRole) => {
     if (!canManageTeam) throw new Error('Unauthorized')
     setLoading(true)
     setError(null)
     try {
-      // In v1, we use direct API or Supabase insert
-      // For this implementation, we assume we have an endpoint or we insert into organization_members
-      // The spec mentions endpoints, so we'll use a fetch call to the backend
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
 
@@ -53,15 +50,16 @@ export function useTeamManagement() {
       }
 
       return await response.json()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
       throw err
     } finally {
       setLoading(false)
     }
-  }
+  }, [org_id, canManageTeam])
 
-  const changeMemberRole = async (memberId: string, role: OrgRole) => {
+  const changeMemberRole = useCallback(async (memberId: string, role: OrgRole) => {
     if (!canManageTeam) throw new Error('Unauthorized')
     setLoading(true)
     setError(null)
@@ -85,15 +83,16 @@ export function useTeamManagement() {
       }
 
       return await response.json()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
       throw err
     } finally {
       setLoading(false)
     }
-  }
+  }, [org_id, canManageTeam])
 
-  const removeMember = async (memberId: string) => {
+  const removeMember = useCallback(async (memberId: string) => {
     if (!canManageTeam) throw new Error('Unauthorized')
     setLoading(true)
     setError(null)
@@ -115,15 +114,16 @@ export function useTeamManagement() {
       }
 
       return true
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
       throw err
     } finally {
       setLoading(false)
     }
-  }
+  }, [org_id, canManageTeam])
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     if (!org_id) return []
     setLoading(true)
     setError(null)
@@ -143,13 +143,14 @@ export function useTeamManagement() {
       }
       const data = await response.json()
       return data.members
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
       return []
     } finally {
       setLoading(false)
     }
-  }
+  }, [org_id])
 
   return {
     loading,

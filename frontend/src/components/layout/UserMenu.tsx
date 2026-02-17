@@ -1,14 +1,15 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, LogOut, Settings, UserCircle, ChevronDown } from 'lucide-react'
+import { User as UserIcon, LogOut, Settings, UserCircle, ChevronDown } from 'lucide-react'
 import supabase from '@/lib/supabase'
+import { User } from '@supabase/supabase-js'
 import { useI18n } from '@/lib/i18n'
 import { useRouter } from 'next/navigation'
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const { t } = useI18n()
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)

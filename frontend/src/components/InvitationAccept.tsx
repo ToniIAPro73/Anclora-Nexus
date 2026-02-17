@@ -43,8 +43,8 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
         }
         const data = await response.json()
         setInvitation(data)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
         setLoading(false)
       }
@@ -87,8 +87,8 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
       setTimeout(() => {
         router.push('/dashboard')
       }, 2000)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setAccepting(false)
     }
@@ -164,7 +164,7 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
           <div>
             <h2 className="text-3xl font-extrabold text-soft-white leading-tight mb-2">Join the Team</h2>
             <p className="text-soft-muted text-sm leading-relaxed">
-              You've been invited to join <span className="text-gold font-bold">{invitation?.org_name}</span> as an <span className="text-blue-light font-bold uppercase tracking-wider">{invitation?.role}</span>.
+              You&apos;ve been invited to join <span className="text-gold font-bold">{invitation?.org_name}</span> as an <span className="text-blue-light font-bold uppercase tracking-wider">{invitation?.role}</span>.
             </p>
           </div>
 

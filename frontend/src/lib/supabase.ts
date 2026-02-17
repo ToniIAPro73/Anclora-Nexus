@@ -5,7 +5,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
-export function subscribeToLeads(cb: (payload: any) => void) {
+export function subscribeToLeads(cb: (payload: Record<string, unknown>) => void) {
   return supabase
     .channel('leads-realtime')
     .on(
@@ -16,7 +16,7 @@ export function subscribeToLeads(cb: (payload: any) => void) {
     .subscribe()
 }
 
-export function subscribeToAgentLogs(cb: (payload: any) => void) {
+export function subscribeToAgentLogs(cb: (payload: Record<string, unknown>) => void) {
   return supabase
     .channel('agent-logs-realtime')
     .on(
@@ -27,7 +27,7 @@ export function subscribeToAgentLogs(cb: (payload: any) => void) {
     .subscribe()
 }
 
-export function subscribeToTasks(cb: (payload: any) => void) {
+export function subscribeToTasks(cb: (payload: Record<string, unknown>) => void) {
   return supabase
     .channel('tasks-realtime')
     .on(

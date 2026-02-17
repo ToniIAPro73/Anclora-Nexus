@@ -3,15 +3,17 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { 
-  User, Mail, Shield, Calendar, MapPin, Building, 
-  Briefcase, Trophy, Globe, UserCircle, Check
+  Shield, MapPin, 
+  Globe, UserCircle, Check
 } from 'lucide-react'
 import supabase from '@/lib/supabase'
 import { Card } from '@/components/ui/card'
 
 export default function PublicProfilePage() {
   const params = useParams()
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const [profile, setProfile] = useState<any>(null)
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -30,7 +32,7 @@ export default function PublicProfilePage() {
         } else {
           setProfile(data)
         }
-      } catch (err) {
+      } catch {
         setNotFound(true)
       } finally {
         setLoading(false)
@@ -73,6 +75,7 @@ export default function PublicProfilePage() {
             <div className="relative w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-gold/30 p-2 bg-navy-surface shadow-2xl">
               <div className="w-full h-full rounded-full bg-gold/10 flex items-center justify-center overflow-hidden">
                 {profile?.avatar_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={profile.avatar_url} alt={userName} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-6xl md:text-8xl font-black text-gold opacity-80">{userInitial}</span>

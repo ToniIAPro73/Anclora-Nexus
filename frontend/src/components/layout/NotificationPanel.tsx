@@ -31,12 +31,13 @@ export function NotificationPanel() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Reset to page 1 when opening panel
-  useEffect(() => {
-    if (isOpen) {
+  const handleToggle = () => {
+    const newState = !isOpen
+    setIsOpen(newState)
+    if (newState) {
       setCurrentPage(1)
     }
-  }, [isOpen])
+  }
 
   const markAsRead = (id: string) => {
     setNotifications(prev =>
@@ -77,7 +78,7 @@ export function NotificationPanel() {
     <div className="relative" ref={panelRef}>
       {/* Bell Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="relative p-2.5 rounded-full bg-white/[0.03] border border-soft-subtle text-soft-muted hover:text-soft-white hover:border-soft-muted transition-all"
         aria-label="Notifications"
       >

@@ -2,7 +2,7 @@
 import { create } from 'zustand'
 import supabase from './supabase'
 import { listMatches, listProperties } from './prospection-api'
-import { dqApi, DQQualityIssue, DQMetrics, DQEntityCandidate, ResolutionAction } from './dq-api'
+import { dqApi, DQQualityIssue, DQMetrics, DQEntityCandidate, ResolutionAction, EntityType } from './dq-api'
 
 export interface Lead {
   id: string
@@ -51,12 +51,6 @@ export interface Property {
   match_score?: number
   image?: string
 }
-
-// ...
-
-// ...
-
-
 
 export interface AgentLog {
   id: string
@@ -140,10 +134,10 @@ interface AppState {
   dqIssues: DQQualityIssue[]
   dqMetrics: DQMetrics | null
   dqCandidates: DQEntityCandidate[]
-  fetchDqIssues: (params?: any) => Promise<void>
+  fetchDqIssues: (params?: Record<string, unknown>) => Promise<void>
   fetchDqMetrics: () => Promise<void>
-  fetchDqCandidates: (entityType?: any) => Promise<void>
-  resolveDqCandidate: (candidateId: string, action: ResolutionAction, details?: any) => Promise<void>
+  fetchDqCandidates: (entityType?: EntityType) => Promise<void>
+  resolveDqCandidate: (candidateId: string, action: ResolutionAction, details?: Record<string, unknown>) => Promise<void>
   recomputeDq: () => Promise<void>
 
   initialize: () => Promise<void>
@@ -162,11 +156,11 @@ const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
   ['Ã²', 'ò'],
   ['Ãº', 'ú'],
   ['Ã¹', 'ù'],
-  ['Ã', 'Á'],
+  ['Ã ', 'Á'],
   ['Ã€', 'À'],
   ['Ã‰', 'É'],
   ['Ãˆ', 'È'],
-  ['Ã', 'Í'],
+  ['Ã ', 'Í'],
   ['ÃŒ', 'Ì'],
   ['Ã“', 'Ó'],
   ['Ã’', 'Ò'],
@@ -291,7 +285,7 @@ const MOCK_LEADS: Lead[] = [
     source_channel: 'website',
     source_detail: 'Formulario Villa',
     status: 'Qualified',
-    property_interest: 'Ãtico con terraza en Palma centro',
+    property_interest: 'Ã tico con terraza en Palma centro',
     created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
@@ -389,7 +383,7 @@ const MOCK_LEADS: Lead[] = [
     status: 'New',
     property_interest: 'Apartamento cerca de la playa',
     created_at: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString(),
-  }
+  },
 ]
 
 const MOCK_TASKS: Task[] = [
@@ -760,7 +754,7 @@ export const useStore = create<AppState>((set) => ({
   dqMetrics: null,
   dqCandidates: [],
 
-  fetchDqIssues: async (params) => {
+  fetchDqIssues: async (params?: Record<string, unknown>) => {
     try {
       const response = await dqApi.getIssues(params)
       set({ dqIssues: response.issues })
@@ -778,7 +772,7 @@ export const useStore = create<AppState>((set) => ({
     }
   },
 
-  fetchDqCandidates: async (entityType) => {
+  fetchDqCandidates: async (entityType?: EntityType) => {
     try {
       const candidates = await dqApi.getCandidates(entityType)
       set({ dqCandidates: candidates })
@@ -787,7 +781,7 @@ export const useStore = create<AppState>((set) => ({
     }
   },
 
-  resolveDqCandidate: async (candidateId, action, details) => {
+  resolveDqCandidate: async (candidateId, action, details?: Record<string, unknown>) => {
     try {
       await dqApi.resolveCandidate(candidateId, action, details)
       // Refetch both candidates and metrics
@@ -818,48 +812,48 @@ export const useStore = create<AppState>((set) => ({
 
       if (leads && leads.length > 0) {
         set({
-          leads: normalizeMojibakeValue(leads.map((l: any) => ({
-            id: l.id,
-            name: l.name,
-            email: l.email || '',
-            phone: l.phone || '',
-            budget: l.budget_range || '',
-            priority: l.ai_priority || 3,
-            source: l.source || 'Direct',
-            source_system: l.source_system || undefined,
-            source_channel: l.source_channel || undefined,
-            status: l.status || 'New',
-            property_interest: l.property_interest || '',
-            created_at: l.created_at
+          leads: normalizeMojibakeValue(leads.map((l: Record<string, unknown>) => ({
+            id: String(l.id),
+            name: String(l.name),
+            email: String(l.email || ''),
+            phone: String(l.phone || ''),
+            budget: String(l.budget_range || ''),
+            priority: Number(l.ai_priority || 3),
+            source: String(l.source || 'Direct'),
+            source_system: (l.source_system as 'manual' | 'cta_web' | 'import' | 'referral' | 'partner' | 'social') || undefined,
+            source_channel: (l.source_channel as 'website' | 'linkedin' | 'instagram' | 'facebook' | 'email' | 'phone' | 'other') || undefined,
+            status: String(l.status || 'New'),
+            property_interest: String(l.property_interest || ''),
+            created_at: String(l.created_at)
           })))
         })
       }
 
       if (tasks && tasks.length > 0) {
         set({
-          tasks: normalizeMojibakeValue(tasks.map((t: any) => ({
-            id: t.id,
-            title: t.title || t.name || t.summary || 'Tarea sin título',
-            due_time: t.due_date ? new Date(t.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '09:00',
+          tasks: normalizeMojibakeValue(tasks.map((t: Record<string, unknown>) => ({
+            id: String(t.id),
+            title: String(t.title || t.name || t.summary || 'Tarea sin título'),
+            due_time: t.due_date ? new Date(String(t.due_date)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '09:00',
             status: t.status === 'done' ? 'done' : 'pending'
           })))
         })
       }
 
-      const manualProperties: Property[] = (props || []).map((p: any) => ({
-        id: p.id,
-        title: p.address?.split(',')?.[0] || p.title || p.city || 'Propiedad',
-        address: p.address || p.title || p.city || 'Mallorca',
-        price: p.price || 0,
-        type: p.property_type || 'Villa',
+      const manualProperties: Property[] = (props || []).map((p: Record<string, unknown>) => ({
+        id: String(p.id),
+        title: String(p.address as string)?.split(',')?.[0] || String(p.title || p.city || 'Propiedad'),
+        address: String(p.address || p.title || p.city || 'Mallorca'),
+        price: String(p.price || 0),
+        type: String(p.property_type || 'Villa'),
         status: p.status === 'listed' ? 'listed' : p.status === 'sold' ? 'sold' : p.status === 'offer' ? 'offer' : 'prospect',
-        source_system: p.source_system || 'manual',
-        source_portal: p.source_portal || undefined,
-        useful_area_m2: p.useful_area_m2 ?? undefined,
-        built_area_m2: p.built_area_m2 ?? p.surface_m2 ?? undefined,
-        plot_area_m2: p.plot_area_m2 ?? undefined,
-        zone: p.city || 'Mallorca',
-        match_score: p.prospection_score ? Math.round(p.prospection_score * 100) : undefined,
+        source_system: (p.source_system as 'manual' | 'widget' | 'pbm') || 'manual',
+        source_portal: (p.source_portal as string) || undefined,
+        useful_area_m2: p.useful_area_m2 ? Number(p.useful_area_m2) : undefined,
+        built_area_m2: p.built_area_m2 ? Number(p.built_area_m2) : (p.surface_m2 ? Number(p.surface_m2) : undefined),
+        plot_area_m2: p.plot_area_m2 ? Number(p.plot_area_m2) : undefined,
+        zone: String(p.city || 'Mallorca'),
+        match_score: p.prospection_score ? Math.round(Number(p.prospection_score) * 100) : undefined,
       }))
 
       let pbmProperties: Property[] = []
@@ -880,23 +874,23 @@ export const useStore = create<AppState>((set) => ({
           })
         }
 
-        pbmProperties = (pbmPropsRes.items || []).map((p: any) => {
-          const best = bestByProperty.get(p.id)
+        pbmProperties = (pbmPropsRes.items || []).map((p) => {
+          const best = bestByProperty.get(String(p.id))
           return {
             id: `pbm-${p.id}`,
-            title: p.title || `${p.property_type || 'Propiedad'} ${p.zone ? `en ${p.zone}` : ''}`.trim(),
-            address: p.zone || p.city || 'Mallorca',
-            price: p.price || 0,
-            type: p.property_type || 'Property',
+            title: String(p.title || `${p.property_type || 'Propiedad'} ${p.zone ? `en ${p.zone}` : ''}`.trim()),
+            address: String(p.zone || p.city || 'Mallorca'),
+            price: String(p.price || 0),
+            type: String(p.property_type || 'Property'),
             status: p.status === 'listed' ? 'listed' : p.status === 'discarded' ? 'rejected' : 'prospect',
             source_system: 'pbm',
-            source_portal: p.source || undefined,
-            built_area_m2: p.area_m2 ?? undefined,
-            useful_area_m2: p.area_m2 ?? undefined,
-            zone: p.zone || p.city || 'Mallorca',
-            match_score: best?.bestScore || (p.high_ticket_score ? Math.round(p.high_ticket_score) : undefined),
+            source_portal: (p.source as string) || undefined,
+            built_area_m2: p.area_m2 ? Number(p.area_m2) : undefined,
+            useful_area_m2: p.area_m2 ? Number(p.area_m2) : undefined,
+            zone: String(p.zone || p.city || 'Mallorca'),
+            match_score: best?.bestScore || (p.high_ticket_score ? Math.round(Number(p.high_ticket_score)) : undefined),
             commission_est: best?.bestCommission != null ? `€${Math.round(best.bestCommission).toLocaleString('es-ES')}` : undefined,
-            last_update: p.updated_at ? new Date(p.updated_at).toLocaleDateString('es-ES') : undefined,
+            last_update: p.updated_at ? new Date(String(p.updated_at)).toLocaleDateString('es-ES') : undefined,
           } as Property
         })
       } catch {
@@ -910,15 +904,16 @@ export const useStore = create<AppState>((set) => ({
       
       if (logs && logs.length > 0) {
         set({ 
-          agentLogs: logs.map((log: any) => {
-            const date = new Date(log.timestamp)
+          agentLogs: logs.map((log: Record<string, unknown>) => {
+            const date = new Date(String(log.timestamp))
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            const output = log.output as Record<string, unknown> || {}
             
             return normalizeMojibakeValue({
-              id: log.id,
-              agent: log.agent_name || log.skill_name || 'Agente',
+              id: String(log.id),
+              agent: String(log.agent_name || log.skill_name || 'Agente'),
               status: log.status === 'success' ? 'success' : log.status === 'running' ? 'active' : 'error',
-              message: log.output?.ai_summary || log.output?.luxury_summary || log.output?.summary || log.output?.message || log.skill_name || 'Ejecución finalizada',
+              message: String(output.ai_summary || output.luxury_summary || output.summary || output.message || log.skill_name || 'Ejecución finalizada'),
               timestamp: timeStr
             })
           })
@@ -926,7 +921,7 @@ export const useStore = create<AppState>((set) => ({
       }
 
       // Update stats
-      const latestRecap = logs && logs.length > 0 ? logs[0] : null // Placeholder or fetch actual recap
+      // const latestRecap = logs && logs.length > 0 ? logs[0] : null // Placeholder or fetch actual recap
       
       // Fetch actual latest recap for insight
       const { data: recaps } = await supabase.from('weekly_recaps').select('insights').order('created_at', { ascending: false }).limit(1)
@@ -936,7 +931,7 @@ export const useStore = create<AppState>((set) => ({
         stats: {
           leadsThisWeek: leads?.length || 0,
           responseRate: 98,
-          activeMandates: props?.filter((p: any) => p.status === 'listed').length || 0,
+          activeMandates: props?.filter((p: Record<string, unknown>) => p.status === 'listed').length || 0,
           latestInsight: normalizeMojibakeText(latestInsight)
         }
       })

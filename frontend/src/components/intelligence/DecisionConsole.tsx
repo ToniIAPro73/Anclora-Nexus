@@ -36,6 +36,7 @@ export function DecisionConsole({ decision }: DecisionConsoleProps) {
               {t('recommendation')}
             </span>
             <h2 className={`text-2xl font-display font-bold uppercase transition-all ${style.color}`}>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {t(decision.recommendation as any)}
             </h2>
           </div>

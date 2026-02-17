@@ -136,8 +136,8 @@ export function Sidebar() {
           <button
             type="button"
             onClick={toggleSidebar}
-            aria-label={isCollapsed ? 'Expandir sidebar' : 'Contraer sidebar'}
-            title={isCollapsed ? 'Expandir' : 'Contraer'}
+            aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
+            title={isCollapsed ? t('expand') : t('collapse')}
             className="h-9 w-9 rounded-lg border border-soft-subtle/70 bg-navy-surface/40 hover:border-gold/50 hover:text-gold text-soft-muted transition-all flex items-center justify-center"
           >
             {isCollapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}

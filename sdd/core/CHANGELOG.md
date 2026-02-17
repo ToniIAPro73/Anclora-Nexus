@@ -4,6 +4,45 @@
 
 ---
 
+## [1.0] - 2026-02-17 - Content Design and Localization Governance v1
+
+**Fecha**: 2026-02-17  
+**Status**: ✅ RELEASED  
+**Criticidad**: ALTA  
+**Feature**: ANCLORA-CDLG-001 v1.0
+
+### Scope
+
+- Gobernanza de Content Design, UX Writing, terminología e i18n/l10n.
+- Contratos de calidad globales para entorno, idiomas y visual consistency.
+- Integración de skill específica Anclora + skill portable reutilizable.
+
+### Product/Frontend Changes
+
+- Refuerzo de i18n en `es/en/de/ru` para textos nuevos/modificados.
+- Eliminación de hardcoded UI text en rutas impactadas por la feature.
+- Normalización de formato numérico y de superficie con criterios locale-safe.
+- Contrato de botones formalizado:
+  - `btn-create` (acciones de alta)
+  - `btn-action` (acciones no-creación: recalcular/refrescar/recomputar)
+
+### Governance Contracts Added
+
+- `ENV_MISMATCH` bloqueante.
+- `I18N_MISSING_KEYS` bloqueante.
+- `HARDCODED_UI_TEXT` bloqueante.
+- `TEST_ARTIFACTS_NOT_CLEANED` bloqueante.
+
+### Artifacts / Docs
+
+- `public/docs/CONTENT_DESIGN_AND_LOCALIZATION_GOVERNANCE.md`
+- `.agent/skills/features/content-design-and-localization-governance/SKILL.md`
+- `.agent/skills/features/content-design-and-localization-governance/portable-base/SKILL.md`
+- `.antigravity/prompts/features/content-design-and-localization-governance/`
+- `sdd/features/content-design-and-localization-governance/`
+
+---
+
 ## [1.0] - 2026-02-16 - Cost Governance Foundation v1
 
 **Fecha**: 2026-02-16  

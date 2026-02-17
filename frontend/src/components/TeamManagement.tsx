@@ -11,10 +11,8 @@ import {
   Trash2, 
   UserCog, 
   Mail, 
-  Shield, 
   CheckCircle2, 
   AlertCircle,
-  MoreVertical,
   ChevronRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -78,18 +76,19 @@ export default function TeamManagement() {
     return status
   }
 
-  const loadMembers = async () => {
+  const loadMembers = React.useCallback(async () => {
     setLoading(true)
     const data = await fetchMembers()
     setMembers(data)
     setLoading(false)
-  }
+  }, [fetchMembers])
 
   useEffect(() => {
     if (org_id) {
-      loadMembers()
+      const timer = setTimeout(() => { loadMembers() }, 0)
+      return () => clearTimeout(timer)
     }
-  }, [org_id])
+  }, [org_id, loadMembers])
 
   useEffect(() => {
     const loadSelfProfile = async () => {
@@ -121,8 +120,9 @@ export default function TeamManagement() {
       setSuccessMessage(`${t('invitationSent')} ${inviteEmail}`)
       setInviteEmail('')
       loadMembers()
-    } catch (err: any) {
-      setErrorMessage(mapTeamError(err?.message))
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'An error occurred'
+        setErrorMessage(mapTeamError(message))
     }
   }
 
@@ -133,8 +133,9 @@ export default function TeamManagement() {
       await changeMemberRole(memberId, newRole)
       setSuccessMessage(t('roleUpdated'))
       loadMembers()
-    } catch (err: any) {
-      setErrorMessage(mapTeamError(err?.message))
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'An error occurred'
+        setErrorMessage(mapTeamError(message))
     }
   }
 
@@ -144,8 +145,9 @@ export default function TeamManagement() {
       await removeMember(memberId)
       setSuccessMessage(t('memberRemoved'))
       loadMembers()
-    } catch (err: any) {
-      setErrorMessage(mapTeamError(err?.message))
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'An error occurred'
+        setErrorMessage(mapTeamError(message))
     }
   }
 

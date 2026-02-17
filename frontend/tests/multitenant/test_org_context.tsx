@@ -1,5 +1,7 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/rules-of-hooks */
 import { render, screen, waitFor } from '@testing-library/react'
 import { OrgProvider, useOrg } from '@/lib/contexts/OrgContext'
 import { useOrgMembership } from '@/lib/hooks/useOrgMembership'

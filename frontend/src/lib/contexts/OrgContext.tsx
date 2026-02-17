@@ -57,6 +57,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
       } else {
         setMembership(data as OrgMembership)
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message)
     } finally {

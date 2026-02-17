@@ -13,7 +13,7 @@ export interface DQQualityIssue {
   entity_id: string
   issue_type: string
   severity: 'low' | 'medium' | 'high' | 'critical'
-  issue_payload: any
+  issue_payload: Record<string, unknown>
   status: IssueStatus
   created_at: string
   updated_at: string
@@ -26,7 +26,7 @@ export interface DQEntityCandidate {
   left_entity_id: string
   right_entity_id: string
   similarity_score: number
-  signals: any
+  signals: Record<string, unknown>
   status: CandidateStatus
   created_at: string
   updated_at: string
@@ -72,7 +72,7 @@ export const dqApi = {
     return data as DQEntityCandidate[]
   },
 
-  resolveCandidate: (candidateId: string, action: ResolutionAction, details?: any) => 
+  resolveCandidate: (candidateId: string, action: ResolutionAction, details?: Record<string, unknown>) => 
     api.post('/api/dq/resolve', {
       candidate_id: candidateId,
       action,

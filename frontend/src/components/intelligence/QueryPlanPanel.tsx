@@ -56,7 +56,7 @@ export function QueryPlanPanel({ plan }: QueryPlanPanelProps) {
             {t('selectionRationale')}
           </div>
           <p className="text-soft-muted text-xs leading-relaxed italic">
-            "{plan.rationale}"
+            &quot;{plan.rationale}&quot;
           </p>
         </div>
       </div>

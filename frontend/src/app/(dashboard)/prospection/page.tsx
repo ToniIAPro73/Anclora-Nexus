@@ -19,7 +19,7 @@ type Tab = 'properties' | 'buyers' | 'matches'
 
 export default function ProspectionPage() {
   const { t } = useI18n()
-  const { formatMoney, formatCompact } = useCurrency()
+  const { formatMoney, formatCompact, formatSurface } = useCurrency()
   const [activeTab, setActiveTab] = useState<Tab>('properties')
   const [loading, setLoading] = useState(true)
   const [recomputing, setRecomputing] = useState(false)
@@ -349,7 +349,7 @@ export default function ProspectionPage() {
                         {prop.area_m2 && (
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-soft-muted uppercase tracking-wider">{t('areaM2')}</span>
-                            <span className="text-sm text-soft-white font-medium">{prop.area_m2} m²</span>
+                            <span className="text-sm text-soft-white font-medium">{formatSurface(prop.area_m2)}</span>
                           </div>
                         )}
                         <div className="flex items-center justify-between">

@@ -39,7 +39,9 @@ export function RiskChips({ risks }: RiskChipsProps) {
           title={risk.rationale}
         >
           {getRiskIcon(risk.level)}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <span>{t(`${risk.category}Risk` as any)}</span>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <span className="opacity-60 text-[10px] uppercase ml-1">{t(risk.level as any)}</span>
         </div>
       ))}

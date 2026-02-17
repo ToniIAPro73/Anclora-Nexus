@@ -15,9 +15,11 @@ import { Card } from '@/components/ui/card'
 
 export default function ProfilePage() {
   const { t } = useI18n()
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [org, setOrg] = useState<any>(null)
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   const [loading, setLoading] = useState(true)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -96,6 +98,7 @@ export default function ProfilePage() {
           })
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Fetch error:', error)
       setErrorStatus(`Error loading profile: ${error.message}`)
@@ -125,6 +128,7 @@ export default function ProfilePage() {
       if (error) throw error
       await fetchProfile()
       setIsEditModalOpen(false)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       alert(`Update failed: ${error.message}`)
     } finally {
@@ -173,6 +177,7 @@ export default function ProfilePage() {
       await supabase.auth.updateUser({ data: { avatar_url: publicUrl } })
 
       await fetchProfile()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Upload process error:', error)
       setErrorStatus(`Upload failed: ${error.message}`)

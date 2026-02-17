@@ -38,7 +38,11 @@ async function resolveCurrentOrgId(userId?: string): Promise<string> {
   throw new Error('No active organization found for current user')
 }
 
-export async function createLead(leadData: any) {
+interface LeadData {
+  [key: string]: unknown
+}
+
+export async function createLead(leadData: LeadData) {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token
   
@@ -58,7 +62,11 @@ export async function createLead(leadData: any) {
   return res.json()
 }
 
-export async function runSkill(skill: string, data: any = {}) {
+interface SkillData {
+  [key: string]: unknown
+}
+
+export async function runSkill(skill: string, data: SkillData = {}) {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token
   
@@ -78,7 +86,21 @@ export async function runSkill(skill: string, data: any = {}) {
   return res.json()
 }
 
-export async function createProperty(propertyData: any) {
+export interface PropertyData {
+  address: string
+  price: string
+  type?: string
+  status?: string
+  zone?: string
+  useful_area_m2?: number
+  built_area_m2?: number
+  plot_area_m2?: number
+  match_score?: number
+  source_system?: string
+  source_portal?: string
+}
+
+export async function createProperty(propertyData: PropertyData) {
   const { data: { session } } = await supabase.auth.getSession()
   const org_id = await resolveCurrentOrgId(session?.user?.id)
   
@@ -166,7 +188,7 @@ export const api = {
     return res.json()
   },
   
-  post: async <T>(path: string, body: any): Promise<T> => {
+  post: async <T>(path: string, body: unknown): Promise<T> => {
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
     

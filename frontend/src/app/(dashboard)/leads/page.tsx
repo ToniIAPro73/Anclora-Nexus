@@ -61,7 +61,9 @@ function LeadsContent() {
 
   useEffect(() => {
     const hl = searchParams.get('highlight')
-    if (hl) setHighlightId(hl)
+    if (hl) {
+      setTimeout(() => setHighlightId(hl), 0)
+    }
   }, [searchParams])
 
   useEffect(() => {
@@ -69,7 +71,7 @@ function LeadsContent() {
       const index = leads.findIndex(l => l.id === highlightId)
       if (index !== -1) {
         const targetPage = Math.ceil((index + 1) / ITEMS_PER_PAGE)
-        setCurrentPage(targetPage)
+        setTimeout(() => setCurrentPage(targetPage), 0)
         
         setTimeout(() => {
           const el = document.getElementById(`lead-row-${highlightId}`)

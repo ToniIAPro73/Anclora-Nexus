@@ -78,6 +78,7 @@ export function DQCandidateList({ candidates }: DQCandidateListProps) {
                 {Object.entries(candidate.signals).map(([key, val]) => (
                   <div key={key} className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/5 text-[10px] text-white-soft/70">
                     <Info className="w-3 h-3 text-blue-light/60" />
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     <span>{t(`dqSignal_${key}` as any) || key.replace(/_/g, ' ')}</span>
                   </div>
                 ))}

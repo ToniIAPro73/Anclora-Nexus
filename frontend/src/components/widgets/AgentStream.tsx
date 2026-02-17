@@ -39,6 +39,7 @@ export function AgentStream() {
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-[10px] font-bold text-gold uppercase tracking-tighter truncate">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {t(`TYPE_${log.agent.replace(/\s+/g, '_').toUpperCase()}` as any) || log.agent}
                     </span>
                     <span className="text-[9px] text-white/30 whitespace-nowrap">{log.timestamp}</span>
