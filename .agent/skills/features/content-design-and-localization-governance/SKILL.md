@@ -34,7 +34,7 @@ This skill extends:
 ## Button Contract (mandatory)
 - Create actions use `btn-create` pattern.
   - Examples: new contact, new property, invite.
-- Non-create actions use `btn-action` pattern (+ optional subtle emoji/icon).
+- Non-create actions use `btn-action` pattern aligned to `Invitar`: `bg-gold`, `hover:bg-gold-muted`, `text-navy-deep`, `font-bold`, `h-12`, `px-6`, `rounded-xl`, and one elegant left emoji/icon.
   - Examples: recompute, recalculate, refresh.
 
 ## QA/Gate Blocking Conditions

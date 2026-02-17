@@ -47,7 +47,7 @@ export function IngestionSummary({ stats, loading }: Props) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, i) => (
         <div key={i} className="relative group overflow-hidden rounded-2xl border border-soft-subtle bg-navy-surface/40 backdrop-blur-md p-5 transition-all hover:border-blue-light/30">
           <div className="flex items-start justify-between">

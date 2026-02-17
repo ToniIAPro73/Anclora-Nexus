@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Home, Target, RefreshCw, ChevronLeft, ChevronRight, Users, Zap } from 'lucide-react'
+import { ArrowLeft, MapPin, Home, Target, ChevronLeft, ChevronRight, Users, Zap } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
 import { useCurrency } from '@/lib/currency'
@@ -231,11 +231,10 @@ export default function ProspectionPage() {
               <button
                 onClick={handleRecompute}
                 disabled={recomputing}
-                className="btn-action text-sm min-w-[190px]"
+                className="btn-action"
               >
                 <span className="btn-action-emoji" aria-hidden="true">⚡</span>
-                <RefreshCw className={`w-4 h-4 ${recomputing ? 'animate-spin' : ''}`} />
-                {t('recomputeMatches')}
+                {recomputing ? (t('loading') || 'Cargando') : t('recomputeMatches')}
               </button>
             )}
             <div className="px-4 py-2 bg-navy-surface/40 border border-soft-subtle rounded-lg">

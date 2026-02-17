@@ -169,21 +169,18 @@
   .btn-create:disabled { opacity: 0.5; box-shadow: none; }
 
   .btn-action {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border font-semibold;
-    border-color: rgba(212, 175, 55, 0.28);
-    background: rgba(212, 175, 55, 0.1);
-    color: var(--color-gold);
+    @apply inline-flex items-center justify-center gap-2 px-6 h-12 rounded-xl text-sm font-bold;
+    background: var(--color-gold);
+    color: var(--color-navy-deep);
+    column-gap: 0.5rem; /* exact match with invite button gap-2 */
     transition: all 0.2s ease;
   }
-  .btn-action:hover {
-    background: rgba(212, 175, 55, 0.16);
-    border-color: rgba(212, 175, 55, 0.45);
-    box-shadow: 0 0 14px rgba(212, 175, 55, 0.14);
-  }
+  .btn-action:hover { background: var(--color-gold-muted); }
   .btn-action:disabled { opacity: 0.5; box-shadow: none; }
   .btn-action-emoji {
     font-size: 0.95rem;
     line-height: 1;
-    opacity: 0.95;
+    opacity: 1;
+    color: currentColor;
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { ArrowLeft, RefreshCcw } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n'
 import { ingestionApi, IngestionEvent, IngestionStats } from '@/lib/ingestion-api'
@@ -36,8 +36,8 @@ export default function IngestionPage() {
   }, [])
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="h-full p-6 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto h-full flex flex-col gap-5 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 pb-5 border-b border-soft-subtle/50">
         <div>
@@ -58,14 +58,13 @@ export default function IngestionPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={fetchData}
             disabled={loading}
-            className="btn-action min-w-[140px]"
+            className="btn-action"
           >
-            <span className="btn-action-emoji" aria-hidden="true">✨</span>
-            <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>{t('refresh') || 'Actualizar'}</span>
+            <span className="btn-action-emoji" aria-hidden="true">✦</span>
+            <span>{loading ? (t('loading') || 'Cargando') : (t('refresh') || 'Actualizar')}</span>
           </button>
         </div>
       </div>
@@ -74,7 +73,7 @@ export default function IngestionPage() {
       <IngestionSummary stats={stats} loading={loading} />
 
       {/* Event List */}
-      <div className="space-y-4">
+      <div className="space-y-4 min-h-0 overflow-auto pr-1 custom-scrollbar">
         <h2 className="text-3xl font-bold text-soft-white flex items-center gap-2">
           {t('eventLog')}
           <span className="px-2 py-0.5 rounded-full bg-blue-light/10 text-blue-light text-[10px] font-bold">

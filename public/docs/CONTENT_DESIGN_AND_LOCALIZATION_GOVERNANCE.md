@@ -76,6 +76,12 @@ Patrón único `btn-action` + `btn-action-emoji`:
 - Refrescar/Actualizar
 - Re-score
 
+Contrato visual obligatorio:
+- Misma apariencia base que el botón de creación premium de referencia (`Invitar`):
+  `bg-gold`, `hover:bg-gold-muted`, `text-navy-deep`, `font-bold`, `h-12`, `px-6`, `rounded-xl`.
+- Un único emoji/icono elegante a la izquierda del texto.
+- Aplicable a todas las pantallas presentes y futuras para acciones no-creación.
+
 ---
 
 ## 6) System prompts validados para NotebookLM

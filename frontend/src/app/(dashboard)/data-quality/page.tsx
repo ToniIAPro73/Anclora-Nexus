@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, RefreshCw, Play, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n'
 import { useStore } from '@/lib/store'
@@ -89,11 +89,10 @@ export default function DataQualityPage() {
         <button
           onClick={handleRecompute}
           disabled={isRecomputing}
-          className="btn-action min-w-[170px]"
+          className="btn-action"
         >
-          <span className="btn-action-emoji" aria-hidden="true">🔄</span>
-          {isRecomputing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
-          {t('dqRecompute')}
+          <span className="btn-action-emoji" aria-hidden="true">✦</span>
+          {isRecomputing ? (t('loading') || 'Cargando') : t('dqRecompute')}
         </button>
       </div>
 
