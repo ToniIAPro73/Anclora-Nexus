@@ -1,3 +1,8 @@
+---
+name: content-design-and-localization-governance
+description: Portable multi-agent workflow to audit and improve content design, UX writing, terminology, and localization readiness for repo or web targets, with safe apply mode and severity-based output.
+---
+
 # SKILL: Content Design and Localization Governance (Portable Base)
 
 ## Purpose

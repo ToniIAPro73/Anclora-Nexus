@@ -1,3 +1,8 @@
+---
+name: content-design-and-localization-governance-anclora
+description: Governance workflow for Anclora Nexus and Anclora Private Estates to audit and improve UX writing, terminology, and localization quality in es/en/de/ru with strict env, i18n, visual consistency, and QA gate contracts.
+---
+
 # SKILL: Content Design and Localization Governance (Anclora Specific)
 
 ## Purpose
@@ -49,3 +54,23 @@ This skill extends:
 - `audit_only`: report only.
 - `plan_changes`: include file-level change plan.
 - `apply_changes`: only with explicit user approval.
+
+## Domain Routing (Anclora)
+Before auditing, classify the request and load only the matching profile from `references/domain-profiles/`.
+
+1. Lead capture / prospecting:
+- `references/domain-profiles/captacion-y-prospeccion-inmobiliaria.md`
+2. Buyer matching / closing:
+- `references/domain-profiles/buyer-matching-y-cierre-comercial.md`
+3. Listings / premium asset presentation:
+- `references/domain-profiles/listings-y-presentacion-de-activos-premium.md`
+4. CRM and lead lifecycle:
+- `references/domain-profiles/crm-operativo-y-lead-lifecycle.md`
+5. Internal runbooks:
+- `references/domain-profiles/runbooks-operativos-equipo-interno.md`
+6. Legal/compliance:
+- `references/domain-profiles/legal-y-compliance-inmobiliario.md`
+7. Brand messaging / GTM:
+- `references/domain-profiles/brand-messaging-y-gtm.md`
+
+If scope crosses domains, start with the primary domain and add one secondary profile only.
