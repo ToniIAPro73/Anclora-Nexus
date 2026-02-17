@@ -19,7 +19,7 @@ type Tab = 'properties' | 'buyers' | 'matches'
 
 export default function ProspectionPage() {
   const { t } = useI18n()
-  const { currencyConfig, convertFromEur, formatMoney } = useCurrency()
+  const { formatMoney, formatCompact } = useCurrency()
   const [activeTab, setActiveTab] = useState<Tab>('properties')
   const [loading, setLoading] = useState(true)
   const [recomputing, setRecomputing] = useState(false)
@@ -40,19 +40,6 @@ export default function ProspectionPage() {
   const [matchPage, setMatchPage] = useState(0)
 
   const ITEMS = 12
-
-  const compactAmount = (eurValue: number | null | undefined) => {
-    if (eurValue == null) return '-'
-    const v = convertFromEur(eurValue)
-    const abs = Math.abs(v)
-    const compact =
-      abs >= 1_000_000
-        ? `${(v / 1_000_000).toFixed(1)}M`
-        : abs >= 1_000
-          ? `${(v / 1_000).toFixed(1)}K`
-          : `${Math.round(v)}`
-    return currencyConfig.position === 'prefix' ? `${currencyConfig.symbol}${compact}` : `${compact} ${currencyConfig.symbol}`
-  }
 
   const loadProperties = useCallback(async (page: number) => {
     setLoading(true)
@@ -184,6 +171,7 @@ export default function ProspectionPage() {
       offer: t('offerMade'),
       closed: t('closedWon'),
       discarded: t('propertyStatusRejected'),
+      negotiating: t('leadStatusNegotiating'),
     }
     return map[status] || status
   }
@@ -311,7 +299,7 @@ export default function ProspectionPage() {
                           <div className="flex items-center gap-2 min-w-0">
                             <Home className="w-4 h-4 text-gold shrink-0" />
                             <h3 className="text-base font-bold text-soft-white group-hover:text-gold transition-colors line-clamp-1">
-                              {prop.title || prop.zone || prop.city || t('none')}
+                              {prop.title || prop.zone || prop.city || t('noTitle')}
                             </h3>
                           </div>
                           <div className={`shrink-0 px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getScoreBg(prop.high_ticket_score ?? 0)}`}>
@@ -342,7 +330,7 @@ export default function ProspectionPage() {
                       <div className="p-5 space-y-3 flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-soft-muted uppercase tracking-wider">{t('price')}</span>
-                          <div className="text-lg font-bold text-blue-light">{compactAmount(prop.price)}</div>
+                          <div className="text-lg font-bold text-blue-light">{prop.price ? formatCompact(prop.price) : '-'}</div>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-soft-muted uppercase tracking-wider">{t('highTicketScore')}</span>
@@ -410,9 +398,9 @@ export default function ProspectionPage() {
                           </div>
                           <div>
                             <h3 className="text-base font-bold text-soft-white group-hover:text-gold transition-colors">
-                              {buyer.full_name || 'Sin nombre'}
+                              {buyer.full_name || t('noName')}
                             </h3>
-                            <span className="text-xs text-soft-muted">{buyer.email || '—'}</span>
+                            <span className="text-xs text-soft-muted">{buyer.email || t('noEmail')}</span>
                           </div>
                         </div>
                       </div>
@@ -421,7 +409,7 @@ export default function ProspectionPage() {
                           <span className="text-xs text-soft-muted uppercase tracking-wider">{t('budgetRange')}</span>
                           <div className="text-sm font-bold text-blue-light">
                             {buyer.budget_min != null && buyer.budget_max != null
-                              ? `${compactAmount(buyer.budget_min)} – ${compactAmount(buyer.budget_max)}`
+                              ? `${formatCompact(buyer.budget_min)} – ${formatCompact(buyer.budget_max)}`
                               : '-'}
                           </div>
                         </div>
@@ -507,7 +495,7 @@ export default function ProspectionPage() {
                               <div className="flex items-center gap-2">
                                 <Home className="w-4 h-4 text-gold shrink-0" />
                                 <span className="text-sm text-soft-white font-medium truncate max-w-[200px]">
-                                  {match.property_title && match.property_title !== 'Sin título'
+                                {match.property_title && match.property_title !== t('noTitle')
                                     ? match.property_title
                                     : match.property_id.slice(0, 8)}
                                 </span>

@@ -44,6 +44,7 @@ type CurrencyContextType = {
   convertFromEur: (amountEur: number) => number
   convertToEur: (amountInCurrentCurrency: number) => number
   formatBudgetText: (budget: string) => string
+  formatCompact: (amountEur: number) => string
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
@@ -264,6 +265,15 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     convertFromEur,
     convertToEur,
     formatBudgetText,
+    formatCompact: (amountEur: number) => {
+      const value = convertFromEur(amountEur)
+      return new Intl.NumberFormat(currencyConfig.locale, {
+        style: 'currency',
+        currency: currencyConfig.code,
+        notation: 'compact',
+        maximumFractionDigits: 1,
+      }).format(value)
+    },
   }
 
   return <CurrencyContext.Provider value={contextValue}>{children}</CurrencyContext.Provider>

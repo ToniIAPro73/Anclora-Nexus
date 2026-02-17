@@ -14,6 +14,11 @@ export const translations = {
     sidebarSectionCore: 'Core',
     sidebarSectionIntelligence: 'Intelligence',
     sidebarSectionOperations: 'Operaciones',
+    appName: 'Anclora Nexus',
+    intelligenceLayer: 'Intelligence Layer',
+    noTitle: 'Sin título',
+    noName: 'Sin nombre',
+    noEmail: 'Sin email',
 
     // Dashboard widgets
     leadsPulse: 'Contactos Activos',
@@ -504,6 +509,11 @@ export const translations = {
     sidebarSectionCore: 'Core',
     sidebarSectionIntelligence: 'Intelligence',
     sidebarSectionOperations: 'Operations',
+    appName: 'Anclora Nexus',
+    intelligenceLayer: 'Intelligence Layer',
+    noTitle: 'No title',
+    noName: 'No name',
+    noEmail: 'No email',
 
     // Dashboard widgets
     leadsPulse: 'Active Contacts',
@@ -783,7 +793,6 @@ export const translations = {
     dqHigh: 'High',
     dqMedium: 'Medium',
     dqLow: 'Low',
-    dataQuality: 'Data Quality',
     dataQualitySubtitle: 'Data health monitoring and entity resolution',
     dqQualityIssues: 'Quality Issues',
     dqDeduplication: 'Deduplication',
@@ -839,6 +848,11 @@ export const translations = {
     sidebarSectionCore: 'Kern',
     sidebarSectionIntelligence: 'Intelligence',
     sidebarSectionOperations: 'Betrieb',
+    appName: 'Anclora Nexus',
+    intelligenceLayer: 'Intelligence Layer',
+    noTitle: 'Kein Titel',
+    noName: 'Kein Name',
+    noEmail: 'Keine E-Mail',
 
     // Dashboard widgets
     leadsPulse: 'Aktive Kontakte',
@@ -1095,6 +1109,11 @@ export const translations = {
     sidebarSectionCore: 'Ядро',
     sidebarSectionIntelligence: 'Интеллект',
     sidebarSectionOperations: 'Операции',
+    appName: 'Anclora Nexus',
+    intelligenceLayer: 'Intelligence Layer',
+    noTitle: 'Без названия',
+    noName: 'Без имени',
+    noEmail: 'Нет email',
 
     // Dashboard widgets
     leadsPulse: 'Активные контакты',

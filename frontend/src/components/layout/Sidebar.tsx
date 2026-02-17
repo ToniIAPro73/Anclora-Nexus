@@ -152,14 +152,14 @@ export function Sidebar() {
               isCollapsed ? 'opacity-0 -translate-y-1 max-h-0 pointer-events-none' : 'opacity-100 translate-y-0 max-h-10'
             }`}
           >
-            Anclora Nexus
+            {t('appName')}
           </h1>
           <p
             className={`text-[10px] uppercase tracking-[0.2em] text-gold/60 mt-1 whitespace-nowrap transition-all duration-300 ${
               isCollapsed ? 'opacity-0 -translate-y-1 max-h-0 pointer-events-none' : 'opacity-100 translate-y-0 max-h-6'
             }`}
           >
-            Intelligence Layer
+            {t('intelligenceLayer')}
           </p>
         </div>
       </div>
