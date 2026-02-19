@@ -100,6 +100,9 @@ async def result_handler_node(state: AgentState) -> AgentState:
     if state.get("skill_output") and state["selected_skill"] == "lead_intake":
         output = state["skill_output"]
         org_id = state.get("org_id", state["input_data"].get("org_id", supabase_service.fixed_org_id))
+        assignee_user_id = None
+        assignee_role = None
+        assignee_reason = None
         
         # 1. Update or Insert Lead
         lead_id = state["input_data"].get("lead_id")
@@ -140,6 +143,11 @@ async def result_handler_node(state: AgentState) -> AgentState:
                 else:
                     source_channel = "other"
 
+            incoming_notes = input_data.get("notes")
+            normalized_notes = incoming_notes if isinstance(incoming_notes, dict) else {}
+            if input_data.get("message"):
+                normalized_notes["message"] = input_data.get("message")
+
             full_lead_data = {
                 "org_id": org_id,
                 "name": input_data.get("name", "Unknown"),
@@ -157,23 +165,66 @@ async def result_handler_node(state: AgentState) -> AgentState:
                 "captured_at": datetime.utcnow().isoformat(),
                 "property_interest": input_data.get("property_interest"),
                 "budget_range": input_data.get("budget"), # Map budget -> budget_range
+                "notes": normalized_notes,
                 **lead_data
             }
             new_lead = await supabase_service.insert_lead(full_lead_data)
             lead_id = new_lead["id"]
+
+            assignee = await supabase_service.pick_lead_assignee(org_id)
+            assignee_user_id = assignee.get("user_id")
+            assignee_role = assignee.get("role")
+            assignee_reason = assignee.get("reason")
+
+            if assignee_user_id:
+                lead_notes = new_lead.get("notes") if isinstance(new_lead.get("notes"), dict) else {}
+                lead_notes["routing"] = {
+                    "assigned_user_id": assignee_user_id,
+                    "assigned_role": assignee_role,
+                    "reason": assignee_reason,
+                    "assigned_at": datetime.utcnow().isoformat(),
+                }
+                await supabase_service.update_lead(lead_id, {"notes": lead_notes})
             
         # 2. Create Task
+        assignment_hint = (
+            f" Asignado a {assignee_role or 'n/a'} ({assignee_user_id})."
+            if assignee_user_id
+            else ""
+        )
         await supabase_service.insert_task({
             "org_id": org_id,
             "title": f"Follow-up: {state['input_data'].get('name')}",
-            "description": f"Prioridad {output['ai_priority']}/5. Acción: {output['next_action']}. Resumen: {output['ai_summary']}",
+            "description": f"Prioridad {output['ai_priority']}/5. Acción: {output['next_action']}. Resumen: {output['ai_summary']}.{assignment_hint}",
             "type": "follow_up",
             "related_lead_id": lead_id,
             "due_date": output["task_due_date"],
             "ai_generated": True
         })
+
+        source_system = (state["input_data"].get("source_system") or "").lower()
+        if source_system == "cta_web":
+            await supabase_service.insert_task({
+                "org_id": org_id,
+                "title": f"Aviso contacto web: {state['input_data'].get('name')}",
+                "description": (
+                    f"Nuevo lead de origen web-cta. "
+                    f"Routing: {assignee_reason or 'unassigned'}."
+                    f"{assignment_hint}"
+                ),
+                "type": "admin",
+                "related_lead_id": lead_id,
+                "due_date": datetime.utcnow().isoformat(),
+                "ai_generated": True
+            })
         
-        state["final_result"] = {**output, "lead_id": lead_id}
+        state["final_result"] = {
+            **output,
+            "lead_id": lead_id,
+            "assigned_user_id": assignee_user_id,
+            "assigned_role": assignee_role,
+            "assignment_reason": assignee_reason,
+        }
     elif state.get("skill_output") and state["selected_skill"] == "prospection_weekly":
         output = state["skill_output"]
         org_id = state.get("org_id", state["input_data"].get("org_id"))

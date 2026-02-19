@@ -313,6 +313,7 @@
 | Currency & Surface Localization | ANCLORA-CSL-001 | 1.0 | Implemented | Commercial UX & Data Quality | INDEX.md |
 | Cost Governance Foundation | ANCLORA-CGF-001 | 1.0 | Implemented | FinOps Foundation | INDEX.md |
 | Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.0 | Implemented | Ingestion & Normalization | INDEX.md |
+| Lead Ingestion and Routing | ANCLORA-LIR-001 | 1.0 | In Progress | Ingestion & Routing | spec-lead-ingestion-and-routing-v1.md |
 | Data Quality & Entity Resolution | ANCLORA-DQER-001 | 1.0 | Specification | Data Quality & Identity | INDEX.md |
 | Content Design & Localization Governance | ANCLORA-CDLG-001 | 1.0 | Implemented | Content Governance & Localization | INDEX.md |
 

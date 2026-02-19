@@ -16,9 +16,17 @@ async def public_cta_lead_capture(data: Dict[str, Any]):
              raise HTTPException(status_code=400, detail="Missing 'name' field")
              
         # Prepare state for LangGraph
+        source_value = str(data.get("source", "")).strip() or "web-cta"
+        source_system = str(data.get("source_system", "")).strip() or "cta_web"
+        source_channel = str(data.get("source_channel", "")).strip() or "website"
+
         initial_state = {
             "input_data": {
                 **data,
+                "source": source_value,
+                "source_system": source_system,
+                "source_channel": source_channel,
+                "source_detail": data.get("source_detail") or "public_cta_form",
                 "ingestion_mode": "realtime" # Force realtime for public CTAs
             },
             "skill_name": "lead_intake",
