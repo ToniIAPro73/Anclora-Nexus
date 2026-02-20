@@ -83,8 +83,10 @@ export default function LoginPage() {
     setLoading(true)
     setMessage('')
     setIsError(false)
+    const configuredAppUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/\/$/, '')
+    const appUrl = configuredAppUrl || window.location.origin
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/login`,
+      redirectTo: `${appUrl}/auth/callback?next=/login`,
     })
     if (error) {
       setMessage(error.message)
@@ -100,10 +102,12 @@ export default function LoginPage() {
     setLoading(true)
     setMessage('')
     setIsError(false)
+    const configuredAppUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/\/$/, '')
+    const appUrl = configuredAppUrl || window.location.origin
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${appUrl}/auth/callback`,
       },
     })
     if (error) {
