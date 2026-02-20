@@ -2,14 +2,16 @@
 import { useState, useRef, useEffect } from 'react'
 import { Bell, Check, Info, AlertTriangle, XCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Notification, MOCK_NOTIFICATIONS } from '@/lib/notifications'
+import { Notification } from '@/lib/notifications'
 import { useI18n } from '@/lib/i18n'
+import supabase, { subscribeToLeads, subscribeToTasks } from '@/lib/supabase'
 
 const ITEMS_PER_PAGE = 3
+type NotificationWithCreatedAt = Notification & { createdAt: number }
 
 export function NotificationPanel() {
   const [isOpen, setIsOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const panelRef = useRef<HTMLDivElement>(null)
   const { t } = useI18n()
@@ -30,6 +32,125 @@ export function NotificationPanel() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  useEffect(() => {
+    const formatRelative = (isoDate?: string): string => {
+      if (!isoDate) return 'ahora'
+      const date = new Date(isoDate)
+      if (Number.isNaN(date.getTime())) return 'ahora'
+
+      const diffMs = date.getTime() - Date.now()
+      const diffMin = Math.round(diffMs / 60000)
+      const absMin = Math.abs(diffMin)
+      const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' })
+
+      if (absMin < 60) return rtf.format(diffMin, 'minute')
+      const diffHours = Math.round(diffMin / 60)
+      const absHours = Math.abs(diffHours)
+      if (absHours < 24) return rtf.format(diffHours, 'hour')
+      const diffDays = Math.round(diffHours / 24)
+      return rtf.format(diffDays, 'day')
+    }
+
+    const toLeadNotification = (lead: Record<string, unknown>): NotificationWithCreatedAt => {
+      const priority = Number(lead.ai_priority || 3)
+      const leadId = String(lead.id || '')
+      const createdAtIso = String(lead.created_at || '')
+      const createdAt = Date.parse(createdAtIso)
+      return {
+        id: `lead-${leadId}`,
+        type: priority >= 4 ? 'success' : 'info',
+        title: t('newLead'),
+        message: `${String(lead.name || t('noName'))} · P${priority}`,
+        timestamp: formatRelative(createdAtIso),
+        read: false,
+        actionUrl: leadId ? `/leads?highlight=${leadId}` : '/leads',
+        createdAt: Number.isNaN(createdAt) ? Date.now() : createdAt,
+      }
+    }
+
+    const toTaskNotification = (task: Record<string, unknown>): NotificationWithCreatedAt => {
+      const taskId = String(task.id || '')
+      const createdAtIso = String(task.created_at || task.due_date || '')
+      const createdAt = Date.parse(createdAtIso)
+      return {
+        id: `task-${taskId}`,
+        type: 'warning',
+        title: t('tasks'),
+        message: String(task.title || t('noTitle')),
+        timestamp: formatRelative(createdAtIso),
+        read: false,
+        actionUrl: '/tasks',
+        createdAt: Number.isNaN(createdAt) ? Date.now() : createdAt,
+      }
+    }
+
+    const loadInitialNotifications = async () => {
+      const [{ data: leads }, { data: tasks }] = await Promise.all([
+        supabase
+          .from('leads')
+          .select('id,name,ai_priority,created_at')
+          .order('created_at', { ascending: false })
+          .limit(10),
+        supabase
+          .from('tasks')
+          .select('id,title,created_at,due_date,status')
+          .order('created_at', { ascending: false })
+          .limit(10),
+      ])
+
+      const leadNotifications = (leads || []).map((lead) => toLeadNotification(lead as Record<string, unknown>))
+      const taskNotifications = (tasks || []).map((task) => toTaskNotification(task as Record<string, unknown>))
+
+      const combined = [...leadNotifications, ...taskNotifications]
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .map(({ createdAt: _, ...notification }) => notification)
+        .slice(0, 30)
+
+      setNotifications(combined)
+    }
+
+    const pushNotification = (next: NotificationWithCreatedAt) => {
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === next.id)) return prev
+        const merged = [next, ...prev].sort((a, b) => {
+          const aTime = 'createdAt' in a ? Number(a.createdAt) : 0
+          const bTime = 'createdAt' in b ? Number(b.createdAt) : 0
+          return bTime - aTime
+        })
+        return merged
+          .map((notification) => {
+            if ('createdAt' in notification) {
+              const { createdAt: _, ...rest } = notification
+              return rest
+            }
+            return notification
+          })
+          .slice(0, 30)
+      })
+    }
+
+    void loadInitialNotifications()
+
+    const leadChannel = subscribeToLeads((payload) => {
+      const eventType = String(payload.eventType || '')
+      if (eventType !== 'INSERT') return
+      const row = (payload.new || {}) as Record<string, unknown>
+      pushNotification(toLeadNotification(row))
+    })
+
+    const taskChannel = subscribeToTasks((payload) => {
+      const eventType = String(payload.eventType || '')
+      if (eventType !== 'INSERT') return
+      const row = (payload.new || {}) as Record<string, unknown>
+      pushNotification(toTaskNotification(row))
+    })
+
+    return () => {
+      void leadChannel.unsubscribe()
+      void taskChannel.unsubscribe()
+    }
+  }, [t])
 
   const handleToggle = () => {
     const newState = !isOpen
