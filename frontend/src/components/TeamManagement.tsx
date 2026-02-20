@@ -60,6 +60,7 @@ export default function TeamManagement() {
     if (msg.includes('Member not found')) return t('teamErrMemberNotFound')
     if (msg.includes('Cannot change role of the last owner')) return t('teamErrLastOwnerLocked')
     if (msg.includes('Cannot remove the last owner')) return t('teamErrLastOwnerLocked')
+    if (msg.includes('Cannot remove owner member')) return t('teamErrLastOwnerLocked')
     if (msg.includes('Failed to invite member')) return t('teamErrGeneric')
     if (msg.includes('Failed to update role')) return t('teamErrGeneric')
     if (msg.includes('Failed to remove member')) return t('teamErrGeneric')
@@ -254,6 +255,7 @@ export default function TeamManagement() {
                 </tr>
               ))
             ) : members.map((member) => {
+              const isOwnerMember = member.role === 'owner'
               const isLastOwner =
                 member.role === 'owner' &&
                 member.status === 'active' &&
@@ -329,6 +331,8 @@ export default function TeamManagement() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
+                      disabled={isOwnerMember}
+                      title={isOwnerMember ? t('teamLastOwnerLockedHint') : ''}
                       className="h-8 w-8 text-soft-muted hover:text-red-400 hover:bg-red-500/10"
                       onClick={() => handleRemove(member.id)}
                     >

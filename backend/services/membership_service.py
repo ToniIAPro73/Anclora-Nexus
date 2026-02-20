@@ -271,13 +271,16 @@ class MembershipService:
         Removes a member from an organization.
         """
         existing = supabase_service.client.table("organization_members")\
-            .select("id")\
+            .select("id,role,status")\
             .eq("id", str(member_id))\
             .eq("org_id", str(org_id))\
             .limit(1)\
             .execute()
         if not existing.data:
             raise HTTPException(status_code=404, detail="Member not found")
+        member = existing.data[0]
+        if str(member.get("role") or "").strip().lower() == UserRole.OWNER.value:
+            raise HTTPException(status_code=400, detail="Cannot remove owner member")
 
         supabase_service.client.table("organization_members")\
             .delete()\
