@@ -20,6 +20,11 @@ async def public_cta_lead_capture(data: Dict[str, Any]):
         source_value = str(data.get("source", "")).strip() or "web-cta"
         source_system = str(data.get("source_system", "")).strip() or "cta_web"
         source_channel = str(data.get("source_channel", "")).strip() or "website"
+        source_detail = data.get("source_detail") or "public_cta_form"
+
+        # Hard rule: leads coming from Anclora Private Estates are always tagged as WEB.
+        if source_detail == "private-estates-contact-form":
+            source_value = "web"
 
         initial_state = {
             "input_data": {
@@ -27,7 +32,7 @@ async def public_cta_lead_capture(data: Dict[str, Any]):
                 "source": source_value,
                 "source_system": source_system,
                 "source_channel": source_channel,
-                "source_detail": data.get("source_detail") or "public_cta_form",
+                "source_detail": source_detail,
                 "ingestion_mode": "realtime" # Force realtime for public CTAs
             },
             "skill_name": "lead_intake",
