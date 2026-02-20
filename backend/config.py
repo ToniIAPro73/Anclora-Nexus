@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_ANON_KEY: str
     SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
+    PUBLIC_CTA_ORG_ID: str = "00000000-0000-0000-0000-000000000000"
     
     # LLM Provider Settings
     OPENAI_API_KEY: str

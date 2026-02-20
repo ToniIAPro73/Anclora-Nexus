@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import Any, Dict
 from backend.agents.graph import agent_executor
+from backend.config import settings
 
 router = APIRouter()
 
@@ -30,7 +31,7 @@ async def public_cta_lead_capture(data: Dict[str, Any]):
                 "ingestion_mode": "realtime" # Force realtime for public CTAs
             },
             "skill_name": "lead_intake",
-            "org_id": "00000000-0000-0000-0000-000000000000", # Fixed Org ID for v0 public leads
+            "org_id": settings.PUBLIC_CTA_ORG_ID,
             "status": "pending"
         }
         
