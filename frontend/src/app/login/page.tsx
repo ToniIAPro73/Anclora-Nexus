@@ -41,30 +41,16 @@ export default function LoginPage() {
     const code = params.get('code')
     const modeParam = params.get('mode')
 
-    const bootstrapRecovery = async () => {
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (error) {
-          setMessage(error.message)
-          setIsError(true)
-          return
-        }
-        setMode('reset')
-        const nextParams = new URLSearchParams(window.location.search)
-        nextParams.delete('code')
-        nextParams.set('mode', 'reset')
-        const nextQuery = nextParams.toString()
-        window.history.replaceState({}, '', `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`)
-        return
-      }
-
-      if (modeParam === 'reset') {
-        setMode('reset')
-      }
+    if (code) {
+      const next = encodeURIComponent('/login?mode=reset')
+      router.replace(`/auth/callback?code=${encodeURIComponent(code)}&next=${next}`)
+      return
     }
 
-    void bootstrapRecovery()
-  }, [])
+    if (modeParam === 'reset') {
+      setMode('reset')
+    }
+  }, [router])
 
   useEffect(() => {
     const rawHash = typeof window !== 'undefined' ? window.location.hash.replace(/^#/, '') : ''
