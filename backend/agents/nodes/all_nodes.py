@@ -120,6 +120,11 @@ async def result_handler_node(state: AgentState) -> AgentState:
         if lead_id:
             await supabase_service.update_lead(lead_id, lead_data)
         else:
+            assignee = await supabase_service.pick_lead_assignee(org_id)
+            assignee_user_id = assignee.get("user_id")
+            assignee_role = assignee.get("role")
+            assignee_reason = assignee.get("reason")
+
             # Insert new lead with input data + AI output
             input_data = state["input_data"]
             
@@ -153,6 +158,7 @@ async def result_handler_node(state: AgentState) -> AgentState:
                 "name": input_data.get("name", "Unknown"),
                 "email": input_data.get("email"),
                 "phone": input_data.get("phone"),
+                "assigned_user_id": assignee_user_id,
                 "source": source_legacy,
                 "source_system": source_system,
                 "source_channel": source_channel,
@@ -170,11 +176,6 @@ async def result_handler_node(state: AgentState) -> AgentState:
             }
             new_lead = await supabase_service.insert_lead(full_lead_data)
             lead_id = new_lead["id"]
-
-            assignee = await supabase_service.pick_lead_assignee(org_id)
-            assignee_user_id = assignee.get("user_id")
-            assignee_role = assignee.get("role")
-            assignee_reason = assignee.get("reason")
 
             if assignee_user_id:
                 lead_notes = new_lead.get("notes") if isinstance(new_lead.get("notes"), dict) else {}
@@ -198,6 +199,7 @@ async def result_handler_node(state: AgentState) -> AgentState:
             "description": f"Prioridad {output['ai_priority']}/5. Acción: {output['next_action']}. Resumen: {output['ai_summary']}.{assignment_hint}",
             "type": "follow_up",
             "related_lead_id": lead_id,
+            "assigned_user_id": assignee_user_id,
             "due_date": output["task_due_date"],
             "ai_generated": True
         })
@@ -214,6 +216,7 @@ async def result_handler_node(state: AgentState) -> AgentState:
                 ),
                 "type": "admin",
                 "related_lead_id": lead_id,
+                "assigned_user_id": assignee_user_id,
                 "due_date": datetime.utcnow().isoformat(),
                 "ai_generated": True
             })

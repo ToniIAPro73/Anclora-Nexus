@@ -4,6 +4,46 @@
 
 ---
 
+## [1.0] - 2026-02-20 - Role Scoped Workspace Visibility v1
+
+**Fecha**: 2026-02-20  
+**Status**: ✅ RELEASED  
+**Criticidad**: CRÍTICA  
+**Feature**: ANCLORA-RSWV-001 v1.0
+
+### Scope
+
+- Visibilidad por rol en `leads`, `tasks`, `properties`.
+- Contrato explícito de asignación por usuario (`assigned_user_id`).
+- Endurecimiento de seguridad con RLS para impedir exposición cruzada entre agentes.
+
+### Database Changes
+
+- Nueva columna `assigned_user_id` en:
+  - `public.leads`
+  - `public.tasks`
+  - `public.properties`
+- Índices `(org_id, assigned_user_id)` en las tres tablas.
+- Backfill inicial desde routing legacy (`notes.routing.assigned_user_id`) cuando aplique.
+- Activación de RLS y policies por rol.
+
+### Backend/Frontend Changes
+
+- Backend intake:
+  - Persistir asignación explícita en lead y tareas de follow-up.
+  - Cálculo de workload basado en asignaciones explícitas.
+- Frontend:
+  - Scope por rol en listados y notificaciones.
+
+### SDD References
+
+- `sdd/features/role-scoped-workspace-visibility/role-scoped-workspace-visibility-INDEX.md`
+- `sdd/features/role-scoped-workspace-visibility/role-scoped-workspace-visibility-spec-v1.md`
+- `sdd/features/role-scoped-workspace-visibility/role-scoped-workspace-visibility-spec-migration.md`
+- `sdd/features/role-scoped-workspace-visibility/role-scoped-workspace-visibility-test-plan-v1.md`
+
+---
+
 ## [1.0] - 2026-02-17 - Content Design and Localization Governance v1
 
 **Fecha**: 2026-02-17  

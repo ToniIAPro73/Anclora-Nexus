@@ -136,7 +136,7 @@ class SupabaseService:
 
         response = (
             self.client.table("leads")
-            .select("status,notes")
+            .select("status,assigned_user_id,notes")
             .eq("org_id", org_id)
             .in_("status", ["new", "contacted", "qualified", "negotiating"])
             .execute()
@@ -145,15 +145,21 @@ class SupabaseService:
         counters = {uid: 0 for uid in user_ids}
 
         for lead in leads:
+            assigned_user_id = lead.get("assigned_user_id")
+            if assigned_user_id in counters:
+                counters[str(assigned_user_id)] += 1
+                continue
+
+            # Legacy fallback while old rows are being migrated.
             notes = lead.get("notes")
             if not isinstance(notes, dict):
                 continue
             routing = notes.get("routing")
             if not isinstance(routing, dict):
                 continue
-            assigned_user_id = routing.get("assigned_user_id")
-            if assigned_user_id in counters:
-                counters[assigned_user_id] += 1
+            legacy_assigned_user_id = routing.get("assigned_user_id")
+            if legacy_assigned_user_id in counters:
+                counters[str(legacy_assigned_user_id)] += 1
 
         return counters
 

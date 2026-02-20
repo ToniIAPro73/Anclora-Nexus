@@ -85,19 +85,62 @@ export function NotificationPanel() {
       }
     }
 
+    const resolveScope = async (): Promise<{ orgId?: string; role?: string; userId?: string }> => {
+      const { data: { user } } = await supabase.auth.getUser()
+      const userId = user?.id
+      if (!userId) return {}
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('org_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+      const preferredOrgId = profile?.org_id || null
+      const { data: memberships } = await supabase
+        .from('organization_members')
+        .select('org_id,role')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .order('updated_at', { ascending: false })
+
+      const rows = (memberships || []) as Array<{ org_id: string; role: string }>
+      const selected = preferredOrgId
+        ? (rows.find((row) => row.org_id === preferredOrgId) || rows[0])
+        : rows[0]
+
+      return {
+        orgId: selected?.org_id || preferredOrgId || undefined,
+        role: selected?.role || undefined,
+        userId,
+      }
+    }
+
     const loadInitialNotifications = async () => {
-      const [{ data: leads }, { data: tasks }] = await Promise.all([
-        supabase
-          .from('leads')
-          .select('id,name,ai_priority,created_at')
-          .order('created_at', { ascending: false })
-          .limit(10),
-        supabase
-          .from('tasks')
-          .select('id,title,created_at,due_date,status')
-          .order('created_at', { ascending: false })
-          .limit(10),
-      ])
+      const scope = await resolveScope()
+
+      let leadsQuery = supabase
+        .from('leads')
+        .select('id,name,ai_priority,created_at,assigned_user_id,org_id')
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+      let tasksQuery = supabase
+        .from('tasks')
+        .select('id,title,created_at,due_date,status,assigned_user_id,org_id')
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+      if (scope.orgId) {
+        leadsQuery = leadsQuery.eq('org_id', scope.orgId)
+        tasksQuery = tasksQuery.eq('org_id', scope.orgId)
+      }
+      if (scope.role === 'agent' && scope.userId) {
+        leadsQuery = leadsQuery.eq('assigned_user_id', scope.userId)
+        tasksQuery = tasksQuery.eq('assigned_user_id', scope.userId)
+      }
+
+      const [{ data: leads }, { data: tasks }] = await Promise.all([leadsQuery, tasksQuery])
 
       const leadNotifications = (leads || []).map((lead) => toLeadNotification(lead as Record<string, unknown>))
       const taskNotifications = (tasks || []).map((task) => toTaskNotification(task as Record<string, unknown>))
@@ -132,17 +175,23 @@ export function NotificationPanel() {
 
     void loadInitialNotifications()
 
-    const leadChannel = subscribeToLeads((payload) => {
+    const leadChannel = subscribeToLeads(async (payload) => {
+      const scope = await resolveScope()
       const eventType = String(payload.eventType || '')
       if (eventType !== 'INSERT') return
       const row = (payload.new || {}) as Record<string, unknown>
+      if (scope.orgId && String(row.org_id || '') !== scope.orgId) return
+      if (scope.role === 'agent' && scope.userId && String(row.assigned_user_id || '') !== scope.userId) return
       pushNotification(toLeadNotification(row))
     })
 
-    const taskChannel = subscribeToTasks((payload) => {
+    const taskChannel = subscribeToTasks(async (payload) => {
+      const scope = await resolveScope()
       const eventType = String(payload.eventType || '')
       if (eventType !== 'INSERT') return
       const row = (payload.new || {}) as Record<string, unknown>
+      if (scope.orgId && String(row.org_id || '') !== scope.orgId) return
+      if (scope.role === 'agent' && scope.userId && String(row.assigned_user_id || '') !== scope.userId) return
       pushNotification(toTaskNotification(row))
     })
 

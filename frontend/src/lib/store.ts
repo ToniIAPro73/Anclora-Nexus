@@ -804,10 +804,53 @@ export const useStore = create<AppState>((set) => ({
 
   initialize: async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const userId = user?.id || ''
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('org_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+      const preferredOrgId = profile?.org_id || null
+
+      const { data: activeMemberships } = await supabase
+        .from('organization_members')
+        .select('org_id,role')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .order('updated_at', { ascending: false })
+
+      const memberships = (activeMemberships || []) as Array<{ org_id: string; role: 'owner' | 'manager' | 'agent' }>
+      const currentMembership = preferredOrgId
+        ? (memberships.find((m) => m.org_id === preferredOrgId) || memberships[0])
+        : memberships[0]
+      const currentOrgId = currentMembership?.org_id || preferredOrgId
+      const currentRole = currentMembership?.role
+
       // Try to fetch from Supabase, but fallback to mock data if it fails
-      const { data: leads } = await supabase.from('leads').select('*').order('created_at', { ascending: false })
-      const { data: tasks } = await supabase.from('tasks').select('*').order('due_date', { ascending: true })
-      const { data: props } = await supabase.from('properties').select('*')
+      let leadsQuery = supabase.from('leads').select('*').order('created_at', { ascending: false })
+      let tasksQuery = supabase.from('tasks').select('*').order('due_date', { ascending: true })
+      let propsQuery = supabase.from('properties').select('*')
+
+      if (currentOrgId) {
+        leadsQuery = leadsQuery.eq('org_id', currentOrgId)
+        tasksQuery = tasksQuery.eq('org_id', currentOrgId)
+        propsQuery = propsQuery.eq('org_id', currentOrgId)
+      }
+
+      if (currentRole === 'agent' && userId) {
+        leadsQuery = leadsQuery.eq('assigned_user_id', userId)
+        tasksQuery = tasksQuery.eq('assigned_user_id', userId)
+        propsQuery = propsQuery.eq('assigned_user_id', userId)
+      }
+
+      const [{ data: leads }, { data: tasks }, { data: props }] = await Promise.all([
+        leadsQuery,
+        tasksQuery,
+        propsQuery,
+      ])
       const { data: logs } = await supabase.from('agent_logs').select('*').order('timestamp', { ascending: false }).limit(20)
 
       if (leads && leads.length > 0) {
@@ -858,41 +901,43 @@ export const useStore = create<AppState>((set) => ({
 
       let pbmProperties: Property[] = []
       try {
-        const [pbmPropsRes, pbmMatchesRes] = await Promise.all([
-          listProperties({ limit: 100, offset: 0 }),
-          listMatches({ limit: 100, offset: 0 }),
-        ])
+        if (currentRole !== 'agent') {
+          const [pbmPropsRes, pbmMatchesRes] = await Promise.all([
+            listProperties({ limit: 100, offset: 0 }),
+            listMatches({ limit: 100, offset: 0 }),
+          ])
 
-        const bestByProperty = new Map<string, { bestScore: number; bestCommission: number | null }>()
-        for (const m of pbmMatchesRes.items || []) {
-          const current = bestByProperty.get(m.property_id) || { bestScore: 0, bestCommission: null }
-          bestByProperty.set(m.property_id, {
-            bestScore: Math.max(current.bestScore, m.match_score || 0),
-            bestCommission: m.commission_estimate != null
-              ? Math.max(current.bestCommission ?? 0, m.commission_estimate)
-              : current.bestCommission,
+          const bestByProperty = new Map<string, { bestScore: number; bestCommission: number | null }>()
+          for (const m of pbmMatchesRes.items || []) {
+            const current = bestByProperty.get(m.property_id) || { bestScore: 0, bestCommission: null }
+            bestByProperty.set(m.property_id, {
+              bestScore: Math.max(current.bestScore, m.match_score || 0),
+              bestCommission: m.commission_estimate != null
+                ? Math.max(current.bestCommission ?? 0, m.commission_estimate)
+                : current.bestCommission,
+            })
+          }
+
+          pbmProperties = (pbmPropsRes.items || []).map((p) => {
+            const best = bestByProperty.get(String(p.id))
+            return {
+              id: `pbm-${p.id}`,
+              title: String(p.title || `${p.property_type || 'Propiedad'} ${p.zone ? `en ${p.zone}` : ''}`.trim()),
+              address: String(p.zone || p.city || 'Mallorca'),
+              price: String(p.price || 0),
+              type: String(p.property_type || 'Property'),
+              status: p.status === 'listed' ? 'listed' : p.status === 'discarded' ? 'rejected' : 'prospect',
+              source_system: 'pbm',
+              source_portal: (p.source as string) || undefined,
+              built_area_m2: p.area_m2 ? Number(p.area_m2) : undefined,
+              useful_area_m2: p.area_m2 ? Number(p.area_m2) : undefined,
+              zone: String(p.zone || p.city || 'Mallorca'),
+              match_score: best?.bestScore || (p.high_ticket_score ? Math.round(Number(p.high_ticket_score)) : undefined),
+              commission_est: best?.bestCommission != null ? `€${Math.round(best.bestCommission).toLocaleString('es-ES')}` : undefined,
+              last_update: p.updated_at ? new Date(String(p.updated_at)).toLocaleDateString('es-ES') : undefined,
+            } as Property
           })
         }
-
-        pbmProperties = (pbmPropsRes.items || []).map((p) => {
-          const best = bestByProperty.get(String(p.id))
-          return {
-            id: `pbm-${p.id}`,
-            title: String(p.title || `${p.property_type || 'Propiedad'} ${p.zone ? `en ${p.zone}` : ''}`.trim()),
-            address: String(p.zone || p.city || 'Mallorca'),
-            price: String(p.price || 0),
-            type: String(p.property_type || 'Property'),
-            status: p.status === 'listed' ? 'listed' : p.status === 'discarded' ? 'rejected' : 'prospect',
-            source_system: 'pbm',
-            source_portal: (p.source as string) || undefined,
-            built_area_m2: p.area_m2 ? Number(p.area_m2) : undefined,
-            useful_area_m2: p.area_m2 ? Number(p.area_m2) : undefined,
-            zone: String(p.zone || p.city || 'Mallorca'),
-            match_score: best?.bestScore || (p.high_ticket_score ? Math.round(Number(p.high_ticket_score)) : undefined),
-            commission_est: best?.bestCommission != null ? `€${Math.round(best.bestCommission).toLocaleString('es-ES')}` : undefined,
-            last_update: p.updated_at ? new Date(String(p.updated_at)).toLocaleDateString('es-ES') : undefined,
-          } as Property
-        })
       } catch {
         // Keep manual properties only if PBM API is unavailable.
       }

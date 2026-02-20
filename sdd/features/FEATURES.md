@@ -279,6 +279,27 @@
 
 ---
 
+### 9. Role Scoped Workspace Visibility v1
+
+**ID**: ANCLORA-RSWV-001  
+**Versión**: 1.0  
+**Status**: Implemented  
+**Fase**: Access Control & Operación Comercial  
+**Prioridad**: CRÍTICA
+
+**Descripción**: Fuerza visibilidad por rol en Nexus para que `agent` solo vea su cartera asignada (leads/tareas/propiedades), manteniendo visión global para `owner/manager`, con hardening en DB mediante RLS.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/role-scoped-workspace-visibility/role-scoped-workspace-visibility-INDEX.md`
+- **Spec Técnica**: `sdd/features/role-scoped-workspace-visibility/role-scoped-workspace-visibility-spec-v1.md`
+- **Spec Migración**: `sdd/features/role-scoped-workspace-visibility/role-scoped-workspace-visibility-spec-migration.md`
+- **Test Plan**: `sdd/features/role-scoped-workspace-visibility/role-scoped-workspace-visibility-test-plan-v1.md`
+- **Feature Rules**: `.agent/rules/feature-role-scoped-workspace-visibility.md`
+- **SKILL**: `.agent/skills/features/role-scoped-workspace-visibility/SKILL.md`
+- **Prompts Antigravity**: `.antigravity/prompts/features/role-scoped-workspace-visibility/`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -314,6 +335,7 @@
 | Cost Governance Foundation | ANCLORA-CGF-001 | 1.0 | Implemented | FinOps Foundation | INDEX.md |
 | Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.0 | Implemented | Ingestion & Normalization | INDEX.md |
 | Lead Ingestion and Routing | ANCLORA-LIR-001 | 1.0 | In Progress | Ingestion & Routing | spec-lead-ingestion-and-routing-v1.md |
+| Role Scoped Workspace Visibility | ANCLORA-RSWV-001 | 1.0 | Implemented | Access Control & Operación Comercial | role-scoped-workspace-visibility-INDEX.md |
 | Data Quality & Entity Resolution | ANCLORA-DQER-001 | 1.0 | Specification | Data Quality & Identity | INDEX.md |
 | Content Design & Localization Governance | ANCLORA-CDLG-001 | 1.0 | Implemented | Content Governance & Localization | INDEX.md |
 
@@ -383,6 +405,7 @@
 | 2026-02-15 | Currency & Surface Localization v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-16 | Source Connectors Unified Ingestion v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-16 | Data Quality and Entity Resolution v1 | Entrada inicial en Specification Phase |
+| 2026-02-20 | Role Scoped Workspace Visibility v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
