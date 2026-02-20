@@ -33,7 +33,8 @@ export default function TeamManagement() {
     changeMemberRole, 
     removeMember, 
     fetchMembers, 
-    loading: actionLoading 
+    loading: actionLoading,
+    error: teamApiError
   } = useTeamManagement()
 
   const [members, setMembers] = useState<TeamMember[]>([])
@@ -89,6 +90,12 @@ export default function TeamManagement() {
       return () => clearTimeout(timer)
     }
   }, [org_id, loadMembers])
+
+  useEffect(() => {
+    if (teamApiError) {
+      setErrorMessage(mapTeamError(teamApiError))
+    }
+  }, [teamApiError])
 
   useEffect(() => {
     const loadSelfProfile = async () => {

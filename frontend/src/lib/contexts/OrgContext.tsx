@@ -40,22 +40,34 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
+      const { data: profileData } = await supabase
+        .from('user_profiles')
+        .select('org_id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const preferredOrgId = profileData?.org_id || null
+
       const { data, error: fetchError } = await supabase
         .from('organization_members')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single()
+        .order('updated_at', { ascending: false })
 
       if (fetchError) {
-        if (fetchError.code === 'PGRST116') {
-          // No active membership found
-          setMembership(null)
-        } else {
-          setError(fetchError.message)
-        }
+        setError(fetchError.message)
+        setMembership(null)
       } else {
-        setMembership(data as OrgMembership)
+        const rows = Array.isArray(data) ? (data as OrgMembership[]) : []
+        if (!rows.length) {
+          setMembership(null)
+        } else if (preferredOrgId) {
+          const preferred = rows.find((row) => row.org_id === preferredOrgId)
+          setMembership(preferred || rows[0])
+        } else {
+          setMembership(rows[0])
+        }
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
