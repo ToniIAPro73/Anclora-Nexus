@@ -943,9 +943,9 @@ export const useStore = create<AppState>((set) => ({
       }
 
       const mergedProperties = normalizeMojibakeValue([...manualProperties, ...pbmProperties])
-      if (mergedProperties.length > 0) {
-        set({ properties: mergedProperties })
-      }
+      // Always override store properties to avoid leaking initial mock portfolio
+      // to role-scoped users (e.g. agents with zero assigned properties).
+      set({ properties: mergedProperties })
       
       if (logs && logs.length > 0) {
         set({ 
