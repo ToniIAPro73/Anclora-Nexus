@@ -38,9 +38,32 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
-    if (params.get('mode') === 'reset') {
-      setMode('reset')
+    const code = params.get('code')
+    const modeParam = params.get('mode')
+
+    const bootstrapRecovery = async () => {
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) {
+          setMessage(error.message)
+          setIsError(true)
+          return
+        }
+        setMode('reset')
+        const nextParams = new URLSearchParams(window.location.search)
+        nextParams.delete('code')
+        nextParams.set('mode', 'reset')
+        const nextQuery = nextParams.toString()
+        window.history.replaceState({}, '', `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`)
+        return
+      }
+
+      if (modeParam === 'reset') {
+        setMode('reset')
+      }
     }
+
+    void bootstrapRecovery()
   }, [])
 
   useEffect(() => {
