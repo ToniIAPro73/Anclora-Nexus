@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+email-validator
+supabase
+python-dotenv
+sqlalchemy
+langchain-openai
+langchain-anthropic
+langgraph
