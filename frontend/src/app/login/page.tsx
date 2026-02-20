@@ -1,8 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import supabase from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import { BrandLogo } from '@/components/brand/BrandLogo'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   type Particle = {
     id: number
     x: number
@@ -25,7 +26,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [isError, setIsError] = useState(false)
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const particles: Particle[] = [...Array(12)].map((_, i) => ({
     id: i,
     x: (i * 97) % 1000,
@@ -34,8 +36,67 @@ export default function LoginPage() {
     duration: 5 + (i % 5),
   }))
 
+  useEffect(() => {
+    if (searchParams.get('mode') === 'reset') {
+      setMode('reset')
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    const rawHash = typeof window !== 'undefined' ? window.location.hash.replace(/^#/, '') : ''
+    if (!rawHash) return
+    const hashParams = new URLSearchParams(rawHash)
+    const accessToken = hashParams.get('access_token')
+    const refreshToken = hashParams.get('refresh_token')
+    const type = hashParams.get('type')
+
+    if (type === 'recovery') {
+      setMode('reset')
+      if (accessToken && refreshToken) {
+        void supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      }
+      const base = `${window.location.pathname}?mode=reset`
+      window.history.replaceState({}, '', base)
+    }
+  }, [])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (mode === 'reset') {
+      if (!password || !confirmPassword) {
+        setMessage('Introduce y confirma la nueva contraseña.')
+        setIsError(true)
+        return
+      }
+      if (password.length < 8) {
+        setMessage('La contraseña debe tener al menos 8 caracteres.')
+        setIsError(true)
+        return
+      }
+      if (password !== confirmPassword) {
+        setMessage('Las contraseñas no coinciden.')
+        setIsError(true)
+        return
+      }
+      setLoading(true)
+      setMessage('')
+      setIsError(false)
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) {
+        setMessage(error.message)
+        setIsError(true)
+      } else {
+        setMessage('Contraseña actualizada correctamente. Ya puedes iniciar sesión.')
+        setIsError(false)
+        setMode('login')
+        setPassword('')
+        setConfirmPassword('')
+        router.replace('/login')
+      }
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setMessage('')
     setIsError(false)
@@ -86,7 +147,7 @@ export default function LoginPage() {
     const configuredAppUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/\/$/, '')
     const appUrl = configuredAppUrl || window.location.origin
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${appUrl}/auth/callback?next=/login`,
+      redirectTo: `${appUrl}/login?mode=reset`,
     })
     if (error) {
       setMessage(error.message)
@@ -189,6 +250,12 @@ export default function LoginPage() {
               </button>
             </div>
 
+            {mode === 'reset' && (
+              <p className="text-xs text-soft-muted text-center">
+                Introduce tu nueva contraseña para completar la recuperación.
+              </p>
+            )}
+
             <div className="space-y-1">
               <label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
                 Email Profesional
@@ -206,7 +273,7 @@ export default function LoginPage() {
 
             <div className="space-y-1">
               <label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
-                Contraseña
+                {mode === 'reset' ? 'Nueva contraseña' : 'Contraseña'}
               </label>
               <div className="relative">
                 <Input
@@ -229,23 +296,42 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {mode === 'reset' && (
+              <div className="space-y-1">
+                <label htmlFor="confirm-password" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
+                  Confirmar contraseña
+                </label>
+                <Input
+                  id="confirm-password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-11"
+                />
+              </div>
+            )}
+
             <Button
               type="submit"
               disabled={loading}
               className="w-full h-11 bg-gold hover:bg-gold-muted text-navy-deep font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
             >
-              {loading ? 'Procesando...' : mode === 'login' ? 'Acceder' : 'Crear cuenta'}
+              {loading ? 'Procesando...' : mode === 'login' ? 'Acceder' : mode === 'signup' ? 'Crear cuenta' : 'Actualizar contraseña'}
             </Button>
 
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={loading}
-              onClick={handleForgotPassword}
-              className="w-full h-9 text-soft-muted hover:text-soft-white"
-            >
-              Olvidé mi contraseña
-            </Button>
+            {mode !== 'reset' && (
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={loading}
+                onClick={handleForgotPassword}
+                className="w-full h-9 text-soft-muted hover:text-soft-white"
+              >
+                Olvidé mi contraseña
+              </Button>
+            )}
 
             <div className="relative py-1">
               <div className="absolute inset-0 flex items-center">
