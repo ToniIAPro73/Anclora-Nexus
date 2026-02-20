@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import supabase from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,6 @@ import { BrandLogo } from '@/components/brand/BrandLogo'
 
 export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   type Particle = {
     id: number
     x: number
@@ -37,10 +36,12 @@ export default function LoginPage() {
   }))
 
   useEffect(() => {
-    if (searchParams.get('mode') === 'reset') {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('mode') === 'reset') {
       setMode('reset')
     }
-  }, [searchParams])
+  }, [])
 
   useEffect(() => {
     const rawHash = typeof window !== 'undefined' ? window.location.hash.replace(/^#/, '') : ''
