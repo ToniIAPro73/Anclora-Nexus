@@ -91,9 +91,14 @@ export default function LoginPage() {
       setLoading(true)
       setMessage('')
       setIsError(false)
-      const { error } = await supabase.auth.updateUser({ password })
-      if (error) {
-        setMessage(error.message)
+      const response = await fetch('/auth/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        setMessage(payload?.message || 'No se pudo actualizar la contraseña.')
         setIsError(true)
       } else {
         setMessage('Contraseña actualizada correctamente. Ya puedes iniciar sesión.')
