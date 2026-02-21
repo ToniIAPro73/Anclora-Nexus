@@ -63,6 +63,10 @@ export async function middleware(req: NextRequest) {
   const isLoginPage = req.nextUrl.pathname.startsWith('/login')
   const isAuthCallback = req.nextUrl.pathname.startsWith('/auth/callback')
   const isInvitePage = req.nextUrl.pathname.startsWith('/invite/')
+  const isRecoveryFlow =
+    req.nextUrl.searchParams.has('code') ||
+    req.nextUrl.searchParams.get('mode') === 'reset' ||
+    req.nextUrl.searchParams.get('type') === 'recovery'
 
   if (isAuthCallback || isInvitePage) {
     return res
@@ -72,7 +76,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  if (session && isLoginPage) {
+  if (session && isLoginPage && !isRecoveryFlow) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 

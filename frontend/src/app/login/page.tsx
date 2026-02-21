@@ -161,8 +161,9 @@ export default function LoginPage() {
     setIsError(false)
     const configuredAppUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/\/$/, '')
     const appUrl = configuredAppUrl || window.location.origin
+    const resetNext = encodeURIComponent('/login?mode=reset')
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${appUrl}/login?mode=reset`,
+      redirectTo: `${appUrl}/auth/callback?next=${resetNext}`,
     })
     if (error) {
       setMessage(error.message)
