@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type')
   const next = searchParams.get('next') ?? (type === 'recovery' ? '/login?mode=reset' : '/dashboard')
 
@@ -33,6 +34,37 @@ export async function GET(request: Request) {
     )
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
+      return response
+    }
+  }
+
+  if (tokenHash && type) {
+    const cookieStore = await cookies()
+    const response = NextResponse.redirect(`${origin}${next}`)
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: Record<string, unknown>) {
+            response.cookies.set({ name, value, ...options })
+          },
+          remove(name: string, options: Record<string, unknown>) {
+            response.cookies.set({ name, value: '', ...options })
+          },
+        },
+      }
+    )
+
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: type as 'recovery' | 'email' | 'signup' | 'invite' | 'magiclink' | 'email_change',
+    })
     if (!error) {
       return response
     }

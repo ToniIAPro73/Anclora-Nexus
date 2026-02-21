@@ -39,11 +39,19 @@ export default function LoginPage() {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
+    const tokenHash = params.get('token_hash')
+    const type = params.get('type')
     const modeParam = params.get('mode')
 
     if (code) {
       const next = encodeURIComponent('/login?mode=reset')
       router.replace(`/auth/callback?code=${encodeURIComponent(code)}&next=${next}`)
+      return
+    }
+
+    if (tokenHash && type) {
+      const next = encodeURIComponent('/login?mode=reset')
+      router.replace(`/auth/callback?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(type)}&next=${next}`)
       return
     }
 
