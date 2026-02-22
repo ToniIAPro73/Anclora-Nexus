@@ -4,6 +4,32 @@
 
 ---
 
+## [UPCOMING] - 2026-02-22 - Prospection Unified Workspace v1
+
+**Fecha**: 2026-02-22  
+**Status**: 📝 Specification Phase  
+**Criticidad**: ALTA  
+**Feature**: ANCLORA-PUW-001 v1.0
+
+### Scope objetivo
+
+- Unificar operativa de prospección en una sola vista.
+- Filtros compartidos para propiedades, buyers y matches.
+- Acciones rápidas (follow-up y revisión) sin salir del workspace.
+- Respeto estricto de scope por rol y organización.
+
+### Artefactos SDD iniciales
+
+- `sdd/features/prospection-unified-workspace/prospection-unified-workspace-INDEX.md`
+- `sdd/features/prospection-unified-workspace/prospection-unified-workspace-spec-v1.md`
+- `sdd/features/prospection-unified-workspace/prospection-unified-workspace-spec-migration.md`
+- `sdd/features/prospection-unified-workspace/prospection-unified-workspace-test-plan-v1.md`
+- `.agent/rules/feature-prospection-unified-workspace.md`
+- `.agent/skills/features/prospection-unified-workspace/SKILL.md`
+- `.antigravity/prompts/features/prospection-unified-workspace/`
+
+---
+
 ## [1.0] - 2026-02-20 - Role Scoped Workspace Visibility v1
 
 **Fecha**: 2026-02-20  

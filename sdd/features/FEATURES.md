@@ -300,6 +300,27 @@
 
 ---
 
+### 10. Prospection Unified Workspace v1
+
+**ID**: ANCLORA-PUW-001  
+**Versión**: 1.0  
+**Status**: Specification Phase  
+**Fase**: Prospection Operations  
+**Prioridad**: ALTA
+
+**Descripción**: Unifica en una sola experiencia operativa la prospección de propiedades, buyers y matches (manual/widget/PBM), con filtros compartidos y acciones rápidas para acelerar ejecución comercial.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/prospection-unified-workspace/prospection-unified-workspace-INDEX.md`
+- **Spec Técnica**: `sdd/features/prospection-unified-workspace/prospection-unified-workspace-spec-v1.md`
+- **Spec Migración**: `sdd/features/prospection-unified-workspace/prospection-unified-workspace-spec-migration.md`
+- **Test Plan**: `sdd/features/prospection-unified-workspace/prospection-unified-workspace-test-plan-v1.md`
+- **Feature Rules**: `.agent/rules/feature-prospection-unified-workspace.md`
+- **SKILL**: `.agent/skills/features/prospection-unified-workspace/SKILL.md`
+- **Prompts Antigravity**: `.antigravity/prompts/features/prospection-unified-workspace/`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -338,6 +359,7 @@
 | Role Scoped Workspace Visibility | ANCLORA-RSWV-001 | 1.0 | Implemented | Access Control & Operación Comercial | role-scoped-workspace-visibility-INDEX.md |
 | Data Quality & Entity Resolution | ANCLORA-DQER-001 | 1.0 | Specification | Data Quality & Identity | INDEX.md |
 | Content Design & Localization Governance | ANCLORA-CDLG-001 | 1.0 | Implemented | Content Governance & Localization | INDEX.md |
+| Prospection Unified Workspace | ANCLORA-PUW-001 | 1.0 | Specification | Prospection Operations | prospection-unified-workspace-INDEX.md |
 
 ---
 
@@ -406,6 +428,7 @@
 | 2026-02-16 | Source Connectors Unified Ingestion v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-16 | Data Quality and Entity Resolution v1 | Entrada inicial en Specification Phase |
 | 2026-02-20 | Role Scoped Workspace Visibility v1 | Feature RELEASED - Gate Final OK |
+| 2026-02-22 | Prospection Unified Workspace v1 | Entrada inicial en Specification Phase |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
