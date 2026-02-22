@@ -6,6 +6,7 @@ import { useStore, Property } from '@/lib/store'
 import { createProperty, PropertyData } from '@/lib/api'
 import { useI18n } from '@/lib/i18n'
 import { useCurrency } from '@/lib/currency'
+import { buildPropertyEditabilityPolicy, sanitizePropertyUpdates } from '@/lib/origin-editability'
 
 interface PropertyFormModalProps {
   isOpen: boolean
@@ -19,8 +20,6 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
   const updateProperty = useStore((state) => state.updateProperty)
   const [loading, setLoading] = useState(false)
 
-  const isSourceLocked = editProperty?.source_system !== undefined && editProperty?.source_system !== 'manual'
-
   // Estado inicial
   const [formData, setFormData] = useState<Partial<Property>>({
     title: '',
@@ -32,7 +31,10 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
     match_score: 0,
     image: '/images/prop-placeholder.jpg'
   })
-  const isScoreLocked = editProperty?.source_system === 'pbm' || (formData.source_system || 'manual') === 'pbm'
+  const propertyPolicy = buildPropertyEditabilityPolicy(editProperty?.source_system || formData.source_system)
+  const isLocked = (field: 'title' | 'address' | 'price' | 'status' | 'source_system' | 'source_portal' | 'match_score' | 'useful_area_m2' | 'built_area_m2' | 'plot_area_m2' | 'zone' | 'type') =>
+    propertyPolicy.lockedFields.includes(field)
+  const isScoreLocked = isLocked('match_score')
   const areaUnit = unitSystem === 'metric' ? 'm²' : 'sq ft'
 
   const formatNumberDisplay = (value: number, maximumFractionDigits = 0) => {
@@ -120,7 +122,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
       }
 
       if (editProperty) {
-        updateProperty(editProperty.id, payload as unknown as Partial<Property>)
+        const sanitized = sanitizePropertyUpdates(payload as unknown as Partial<Property>, propertyPolicy)
+        updateProperty(editProperty.id, sanitized)
       } else {
         await createProperty(payload)
         // Refresh to get real ID and correct mapping
@@ -161,6 +164,16 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {editProperty && propertyPolicy.lockedFields.length > 0 ? (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">
+                  <p className="font-semibold">{t('editabilityPolicyTitle')}</p>
+                  <p className="mt-1">
+                    {propertyPolicy.reasons.includes('property_pbm_scoring')
+                      ? t('editabilityReasonPropertyPbm')
+                      : t('editabilityReasonPropertyAuto')}
+                  </p>
+                </div>
+              ) : null}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Title */}
@@ -170,7 +183,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                     type="text"
                     value={formData.title || ''}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                    disabled={isLocked('title')}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder={t('propertyFormTitlePlaceholder')}
                   />
                 </div>
@@ -185,7 +199,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       required
                       value={formData.address || ''}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                      disabled={isLocked('address')}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder={t('propertyFormAddressPlaceholder')}
                     />
                   </div>
@@ -204,7 +219,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                         const formatted = e.target.value.trim() === '' ? '' : formatNumberDisplay(n, 0)
                         setFormData({ ...formData, price: formatted })
                       }}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50"
+                      disabled={isLocked('price')}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="ej. 4500000"
                     />
                   </div>
@@ -220,7 +236,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       const parsed = parseLooseNumber(e.target.value)
                       setFormData({ ...formData, built_area_m2: toStoredArea(parsed) })
                     }}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
+                    disabled={isLocked('built_area_m2')}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -234,7 +251,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       const parsed = parseLooseNumber(e.target.value)
                       setFormData({ ...formData, useful_area_m2: toStoredArea(parsed) })
                     }}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
+                    disabled={isLocked('useful_area_m2')}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -248,7 +266,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       const parsed = parseLooseNumber(e.target.value)
                       setFormData({ ...formData, plot_area_m2: toStoredArea(parsed) })
                     }}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50"
+                    disabled={isLocked('plot_area_m2')}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -258,7 +277,8 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   <select
                     value={formData.status || 'prospect'}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as Property['status'] })}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
+                    disabled={isLocked('status')}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="prospect">{t('propertyStatusProspect')}</option>
                     <option value="listed">{t('propertyStatusListed')}</option>
@@ -274,7 +294,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   <select
                     value={formData.source_system || 'manual'}
                     onChange={(e) => setFormData({ ...formData, source_system: e.target.value as Property['source_system'] })}
-                    disabled={isSourceLocked}
+                    disabled={isLocked('source_system')}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="manual">{t('propertyFormManualEntry')}</option>
@@ -289,7 +309,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                   <select
                     value={formData.source_portal || ''}
                     onChange={(e) => setFormData({ ...formData, source_portal: e.target.value })}
-                    disabled={isSourceLocked}
+                    disabled={isLocked('source_portal')}
                     className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">{t('none')}</option>

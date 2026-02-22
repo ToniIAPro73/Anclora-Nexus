@@ -6,6 +6,7 @@ import { useStore, Lead } from '@/lib/store'
 import { useI18n } from '@/lib/i18n'
 import { createLead } from '@/lib/api'
 import { useCurrency } from '@/lib/currency'
+import { buildLeadEditabilityPolicy, sanitizeLeadUpdates } from '@/lib/origin-editability'
 
 interface LeadFormModalProps {
   isOpen: boolean
@@ -18,6 +19,10 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
   const { currency, currencyConfig, formatBudgetText } = useCurrency()
   const updateLead = useStore((state) => state.updateLead)
   const [loading, setLoading] = useState(false)
+  const leadPolicy = buildLeadEditabilityPolicy(editLead?.source_system)
+  const isLocked = (field: 'name' | 'email' | 'phone' | 'budget' | 'property_interest' | 'priority' | 'status') =>
+    leadPolicy.lockedFields.includes(field)
+  const lockReasonKey = leadPolicy.reasons[0]
 
   const [formData, setFormData] = useState<Partial<Lead>>({
     name: '',
@@ -54,7 +59,8 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
     setLoading(true)
     try {
       if (editLead) {
-        updateLead(editLead.id, formData)
+        const sanitized = sanitizeLeadUpdates(formData as Partial<Lead>, leadPolicy)
+        updateLead(editLead.id, sanitized)
       } else {
         await createLead(formData)
         await useStore.getState().initialize()
@@ -96,6 +102,16 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {editLead && leadPolicy.lockedFields.length > 0 ? (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">
+                  <p className="font-semibold">{t('editabilityPolicyTitle')}</p>
+                  <p className="mt-1">
+                    {lockReasonKey === 'lead_auto_ingested'
+                      ? t('editabilityReasonLeadAuto')
+                      : t('editabilityPolicyDescription')}
+                  </p>
+                </div>
+              ) : null}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Name */}
                 <div className="space-y-2">
@@ -107,7 +123,8 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       required
                       value={formData.name || ''}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                      disabled={isLocked('name')}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="Nombre completo"
                     />
                   </div>
@@ -123,7 +140,8 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       required
                       value={formData.email || ''}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                      disabled={isLocked('email')}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="correo@ejemplo.com"
                     />
                   </div>
@@ -138,7 +156,8 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       type="tel"
                       value={formData.phone || ''}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                      disabled={isLocked('phone')}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="+34 600..."
                     />
                   </div>
@@ -153,7 +172,8 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       type="text"
                       value={formData.budget || ''}
                       onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                      disabled={isLocked('budget')}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder={`ej. 1.5M - 2M ${currency}`}
                     />
                   </div>
@@ -168,7 +188,8 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       type="text"
                       value={formData.property_interest || ''}
                       onChange={(e) => setFormData({ ...formData, property_interest: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                      disabled={isLocked('property_interest')}
+                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="¿Qué busca? (ej. Villa en Andratx)"
                     />
                   </div>
@@ -183,11 +204,12 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                         key={p}
                         type="button"
                         onClick={() => setFormData({ ...formData, priority: p })}
+                        disabled={isLocked('priority')}
                         className={`flex-1 h-9 rounded-lg text-xs font-bold transition-all border ${
                           formData.priority === p
                             ? 'bg-gold text-navy-deep border-gold shadow-lg shadow-gold/20 scale-105'
                             : 'bg-navy-surface/50 text-soft-muted border-soft-subtle hover:border-gold/50 hover:text-soft-white'
-                        }`}
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         P{p}
                       </button>
@@ -201,7 +223,8 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                   <select
                     value={formData.status || 'New'}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
+                    disabled={isLocked('status')}
+                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                       <option value="New">{t('leadStatusNew')}</option>
                       <option value="Contacted">{t('leadStatusContacted')}</option>

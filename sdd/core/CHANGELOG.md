@@ -4,6 +4,58 @@
 
 ---
 
+## [UPCOMING] - 2026-02-22 - Origin Aware Editability Policy v1
+
+**Fecha**: 2026-02-22  
+**Status**: 🛠️ In Progress  
+**Criticidad**: ALTA  
+**Feature**: ANCLORA-OAEP-001 v1.0
+
+### Scope objetivo
+
+- Política unificada de editabilidad por origen en leads y propiedades.
+- Bloqueo de campos sensibles en entidades no manuales.
+- Saneo de payload para evitar sobrescrituras indebidas.
+- Mensajería UX explicativa y i18n en `es/en/de/ru`.
+
+### Frontend Changes
+
+- Nuevo helper de política:
+  - `frontend/src/lib/origin-editability.ts`
+- Integración de policy en:
+  - `frontend/src/components/modals/LeadFormModal.tsx`
+  - `frontend/src/components/modals/PropertyFormModal.tsx`
+- Traducciones añadidas:
+  - `frontend/src/lib/i18n/translations.ts`
+
+### Backend Changes
+
+- Nuevo módulo de policy server-side:
+  - `backend/services/origin_editability_policy.py`
+- Enforcement server-side en:
+  - `backend/services/supabase_service.py` (`update_lead`, `update_lead_scoped`)
+  - `backend/services/prospection_service.py` (`update_property`)
+- Nuevos endpoints:
+  - `PATCH /api/leads/{lead_id}`
+  - `GET /api/policy`
+  - `GET /api/policy/leads/{lead_id}`
+  - `GET /api/policy/properties/{property_id}`
+- Router nuevo:
+  - `backend/api/routes/editability.py`
+  - `backend/main.py` (registro `/api`)
+
+### Artefactos SDD / Governanza
+
+- `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-INDEX.md`
+- `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-spec-v1.md`
+- `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-spec-migration.md`
+- `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-test-plan-v1.md`
+- `.agent/rules/feature-origin-aware-editability-policy.md`
+- `.agent/skills/features/origin-aware-editability-policy/SKILL.md`
+- `.antigravity/prompts/features/origin-aware-editability-policy/`
+
+---
+
 ## [UPCOMING] - 2026-02-22 - Multichannel Feed Orchestrator v1
 
 **Fecha**: 2026-02-22  

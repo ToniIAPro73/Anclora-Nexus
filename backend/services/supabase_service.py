@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from supabase import create_client, Client
 from backend.config import settings
+from backend.services.origin_editability_policy import sanitize_payload
 
 class SupabaseService:
     def __init__(self):
@@ -29,8 +30,59 @@ class SupabaseService:
         return response.data[0]
 
     async def update_lead(self, lead_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
-        response = self.client.table("leads").update(data).eq("id", lead_id).execute()
+        existing = self.client.table("leads").select("id,source_system").eq("id", lead_id).limit(1).execute()
+        existing_row = existing.data[0] if existing.data else {}
+        source_system = str(existing_row.get("source_system") or "manual")
+        sanitized = sanitize_payload(data, "lead", source_system)
+        if not sanitized:
+            fallback = self.client.table("leads").select("*").eq("id", lead_id).limit(1).execute()
+            return fallback.data[0] if fallback.data else {}
+        response = self.client.table("leads").update(sanitized).eq("id", lead_id).execute()
         return response.data[0]
+
+    async def update_lead_scoped(self, org_id: str, lead_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        existing = (
+            self.client.table("leads")
+            .select("id,org_id,source_system")
+            .eq("id", lead_id)
+            .eq("org_id", org_id)
+            .limit(1)
+            .execute()
+        )
+        row = existing.data[0] if existing.data else None
+        if not row:
+            return None
+        source_system = str(row.get("source_system") or "manual")
+        sanitized = sanitize_payload(data, "lead", source_system)
+        if not sanitized:
+            fallback = (
+                self.client.table("leads")
+                .select("*")
+                .eq("id", lead_id)
+                .eq("org_id", org_id)
+                .limit(1)
+                .execute()
+            )
+            return fallback.data[0] if fallback.data else None
+        response = (
+            self.client.table("leads")
+            .update(sanitized)
+            .eq("id", lead_id)
+            .eq("org_id", org_id)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+
+    async def get_lead_scoped(self, org_id: str, lead_id: str) -> Optional[Dict[str, Any]]:
+        response = (
+            self.client.table("leads")
+            .select("*")
+            .eq("id", lead_id)
+            .eq("org_id", org_id)
+            .limit(1)
+            .execute()
+        )
+        return response.data[0] if response.data else None
 
     async def insert_task(self, data: Dict[str, Any]) -> Dict[str, Any]:
         response = self.client.table("tasks").insert(data).execute()

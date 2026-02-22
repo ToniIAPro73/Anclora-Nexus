@@ -321,6 +321,27 @@
 
 ---
 
+### 11. Origin Aware Editability Policy v1
+
+**ID**: ANCLORA-OAEP-001  
+**Versión**: 1.0  
+**Status**: In Progress  
+**Fase**: Governance & Data Integrity  
+**Prioridad**: ALTA
+
+**Descripción**: Define una política unificada de editabilidad por origen para leads y propiedades, bloqueando campos sensibles de trazabilidad en entidades no manuales y saneando payload antes de persistir.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-INDEX.md`
+- **Spec Técnica**: `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-spec-v1.md`
+- **Spec Migración**: `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-spec-migration.md`
+- **Test Plan**: `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-test-plan-v1.md`
+- **Feature Rules**: `.agent/rules/feature-origin-aware-editability-policy.md`
+- **SKILL**: `.agent/skills/features/origin-aware-editability-policy/SKILL.md`
+- **Prompts Antigravity**: `.antigravity/prompts/features/origin-aware-editability-policy/`
+
+---
+
 ## PLANIFICACIÓN FUTURA
 
 ### Phase 1 Roadmap
@@ -361,6 +382,7 @@
 | Content Design & Localization Governance | ANCLORA-CDLG-001 | 1.0 | Implemented | Content Governance & Localization | INDEX.md |
 | Prospection Unified Workspace | ANCLORA-PUW-001 | 1.0 | Specification | Prospection Operations | prospection-unified-workspace-INDEX.md |
 | Multichannel Feed Orchestrator | ANCLORA-MFO-001 | 1.0 | In Progress | Distribution & Publication | multichannel-feed-orchestrator-INDEX.md |
+| Origin Aware Editability Policy | ANCLORA-OAEP-001 | 1.0 | In Progress | Governance & Data Integrity | origin-aware-editability-policy-INDEX.md |
 
 ---
 

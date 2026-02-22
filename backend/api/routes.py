@@ -88,3 +88,19 @@ async def get_weekly_stats(org_id: str = Depends(get_org_id)):
         return stats
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/leads/{lead_id}")
+async def update_lead(lead_id: str, data: Dict[str, Any], org_id: str = Depends(get_org_id)):
+    """
+    Update lead with org scope and server-side origin editability enforcement.
+    """
+    try:
+        result = await supabase_service.update_lead_scoped(org_id, lead_id, data)
+        if not result:
+            raise HTTPException(status_code=404, detail="Lead not found")
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

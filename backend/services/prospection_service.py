@@ -19,6 +19,7 @@ from backend.models.prospection import (
     RecomputeResponse,
 )
 from backend.services.scoring_service import scoring_service
+from backend.services.origin_editability_policy import sanitize_payload
 from backend.services.supabase_service import supabase_service
 
 
@@ -349,22 +350,9 @@ class ProspectionService:
 
         update_data: Dict[str, Any] = data.model_dump(exclude_none=True)
 
-        # 2. Enforce Origin-based Editability Contract (ANCLORA-CSL-001)
-        source_system = existing.get("source_system", "manual")
-
-        # Trace fields protected for non-manual origins
-        if source_system != "manual":
-            protected_trace = {"source", "source_url", "source_system", "source_portal"}
-            for field in protected_trace:
-                if field in update_data:
-                    del update_data[field]
-
-        # Provenance/Scoring protected for PBM origin
-        if source_system == "pbm":
-            protected_scoring = {"high_ticket_score", "score_breakdown"}
-            for field in protected_scoring:
-                if field in update_data:
-                    del update_data[field]
+        # 2. Enforce Origin-based Editability Contract server-side.
+        source_system = str(existing.get("source_system", "manual"))
+        update_data = sanitize_payload(update_data, "property", source_system)
 
         # 3. Handle Enums and Decimals
         if "source_system" in update_data:

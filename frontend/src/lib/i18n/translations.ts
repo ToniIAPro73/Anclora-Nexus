@@ -161,6 +161,11 @@ export const translations = {
     details: 'Detalles',
     closeLabel: 'Cerrar',
     filters: 'Filtros',
+    editabilityPolicyTitle: 'Política de editabilidad por origen',
+    editabilityPolicyDescription: 'Algunos campos están bloqueados para preservar trazabilidad y consistencia operativa.',
+    editabilityReasonLeadAuto: 'Este contacto proviene de un canal automatizado; los datos de captura quedan protegidos.',
+    editabilityReasonPropertyAuto: 'Esta propiedad proviene de una fuente automatizada; origen y portal quedan bloqueados.',
+    editabilityReasonPropertyPbm: 'Esta propiedad proviene de PBM; el score de matching y trazabilidad quedan protegidos.',
 
     // Header
     projectDashboard: 'Panel de Control',
@@ -704,6 +709,11 @@ export const translations = {
     details: 'Details',
     closeLabel: 'Close',
     filters: 'Filters',
+    editabilityPolicyTitle: 'Origin-based editability policy',
+    editabilityPolicyDescription: 'Some fields are locked to preserve traceability and operational consistency.',
+    editabilityReasonLeadAuto: 'This contact comes from an automated channel; capture fields are protected.',
+    editabilityReasonPropertyAuto: 'This property comes from an automated source; origin and portal are locked.',
+    editabilityReasonPropertyPbm: 'This property comes from PBM; matching score and traceability are protected.',
 
     // Intelligence
     intelligenceControlCenter: 'Intelligence Control Center',
@@ -1122,6 +1132,11 @@ export const translations = {
     matchesUpdated: 'Matches aktualisiert',
     commissionEstimate: 'Geschätzte Provision',
     rescore: 'Score neu berechnen',
+    editabilityPolicyTitle: 'Editierbarkeitsrichtlinie nach Herkunft',
+    editabilityPolicyDescription: 'Einige Felder sind gesperrt, um Nachvollziehbarkeit und operative Konsistenz zu sichern.',
+    editabilityReasonLeadAuto: 'Dieser Kontakt stammt aus einem automatisierten Kanal; Erfassungsfelder sind geschützt.',
+    editabilityReasonPropertyAuto: 'Diese Immobilie stammt aus einer automatisierten Quelle; Herkunft und Portal sind gesperrt.',
+    editabilityReasonPropertyPbm: 'Diese Immobilie stammt aus PBM; Matching-Score und Nachvollziehbarkeit sind geschützt.',
 
     // Ingestion
     ingestionTitle: 'Ingestion-Verwaltung',
@@ -1467,6 +1482,11 @@ export const translations = {
     details: 'Подробности',
     closeLabel: 'Закрыть',
     filters: 'Фильтры',
+    editabilityPolicyTitle: 'Политика редактирования по источнику',
+    editabilityPolicyDescription: 'Некоторые поля заблокированы для сохранения трассируемости и операционной целостности.',
+    editabilityReasonLeadAuto: 'Этот контакт пришел из автоматизированного канала; поля захвата защищены.',
+    editabilityReasonPropertyAuto: 'Этот объект пришел из автоматизированного источника; источник и портал заблокированы.',
+    editabilityReasonPropertyPbm: 'Этот объект пришел из PBM; score матчинга и трассируемость защищены.',
 
     // Header
     projectDashboard: 'Панель управления',
