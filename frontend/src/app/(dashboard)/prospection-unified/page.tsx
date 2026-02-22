@@ -1,17 +1,43 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Home, Users, Zap, Filter } from 'lucide-react'
+import { ArrowLeft, Filter, Home, RefreshCw, Shield, Target, Users, Zap } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
 import { useCurrency } from '@/lib/currency'
 import {
   getProspectionWorkspace,
+  type BuyerProfile,
+  type PropertyBuyerMatch,
+  type ProspectedProperty,
   type ProspectionWorkspaceResponse,
 } from '@/lib/prospection-api'
 
 type SourceFilter = '' | 'manual' | 'widget' | 'pbm'
+
+const SOURCE_LABELS: Record<Exclude<SourceFilter, ''>, string> = {
+  manual: 'Manual',
+  widget: 'Widget',
+  pbm: 'PBM',
+}
+
+function formatSourceTag(source?: string | null): string {
+  if (!source) return 'Origen no definido'
+  const normalized = source.toLowerCase().trim()
+  if (normalized === 'pbm') return 'PBM'
+  if (normalized === 'widget') return 'Widget'
+  if (normalized === 'manual') return 'Manual'
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+}
+
+function getRoleLabel(role?: string): string {
+  const normalized = (role || '').toLowerCase()
+  if (normalized === 'owner') return 'Owner'
+  if (normalized === 'manager') return 'Manager'
+  if (normalized === 'agent') return 'Agente'
+  return 'Usuario'
+}
 
 export default function ProspectionUnifiedPage() {
   const { t } = useI18n()
@@ -20,6 +46,7 @@ export default function ProspectionUnifiedPage() {
   const [error, setError] = useState<string | null>(null)
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('')
   const [workspace, setWorkspace] = useState<ProspectionWorkspaceResponse | null>(null)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
 
   const loadWorkspace = useCallback(async () => {
     setLoading(true)
@@ -31,142 +58,235 @@ export default function ProspectionUnifiedPage() {
         offset: 0,
       })
       setWorkspace(res)
+      setLastUpdatedAt(new Date())
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Error loading workspace'
+      const message = e instanceof Error ? e.message : 'Error al cargar el workspace'
       setError(message)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [sourceFilter])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      void loadWorkspace()
-    }, 0)
-    return () => clearTimeout(timer)
+    void loadWorkspace()
   }, [loadWorkspace])
 
+  const roleLabel = useMemo(() => getRoleLabel(workspace?.scope.role), [workspace?.scope.role])
+  const totalRecords = (workspace?.totals.properties || 0) + (workspace?.totals.buyers || 0) + (workspace?.totals.matches || 0)
+  const updatedLabel = lastUpdatedAt
+    ? lastUpdatedAt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+    : '--:--'
+
+  const renderPropertyRow = (item: ProspectedProperty) => (
+    <div key={item.id} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 hover:border-gold/40 transition-colors">
+      <p className="text-sm font-semibold text-soft-white line-clamp-1">
+        {item.title || item.zone || item.city || 'Propiedad sin titulo'}
+      </p>
+      <p className="mt-1 text-xs text-soft-muted line-clamp-1">
+        {(item.zone || item.city || 'Zona no definida')} · {item.property_type || 'Tipo no definido'}
+      </p>
+      <div className="mt-2 flex items-center justify-between">
+        <span className="text-sm font-semibold text-gold">
+          {item.price != null
+            ? formatCompact(item.price)
+            : '-'}
+        </span>
+        <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-300">
+          {formatSourceTag(item.source)}
+        </span>
+      </div>
+    </div>
+  )
+
+  const renderBuyerRow = (item: BuyerProfile) => (
+    <div key={item.id} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 hover:border-gold/40 transition-colors">
+      <p className="text-sm font-semibold text-soft-white line-clamp-1">
+        {item.full_name || item.email || 'Buyer sin nombre'}
+      </p>
+      <p className="mt-1 text-xs text-soft-muted line-clamp-1">
+        {item.email || item.phone || 'Sin contacto'}
+      </p>
+      <p className="mt-2 text-xs text-gold">
+        {item.budget_min != null && item.budget_max != null
+          ? `${formatMoney(item.budget_min, { minFractionDigits: 0, maxFractionDigits: 0 })} - ${formatMoney(item.budget_max, { minFractionDigits: 0, maxFractionDigits: 0 })}`
+          : 'Presupuesto pendiente'}
+      </p>
+    </div>
+  )
+
+  const renderMatchRow = (item: PropertyBuyerMatch) => (
+    <div key={item.id} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 hover:border-gold/40 transition-colors">
+      <p className="text-sm font-semibold text-soft-white line-clamp-1">
+        {item.property_title || 'Propiedad sin titulo'}
+      </p>
+      <p className="mt-1 text-xs text-soft-muted line-clamp-1">
+        {item.buyer_name || 'Buyer sin nombre'}
+      </p>
+      <div className="mt-2 flex items-center justify-between">
+        <span className="text-xs text-soft-muted">{item.match_status}</span>
+        <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-semibold text-gold">
+          Score {Math.round(item.match_score || 0)}
+        </span>
+      </div>
+    </div>
+  )
+
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-6">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="space-y-6"
+        transition={{ duration: 0.35 }}
+        className="space-y-5"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/prospection"
-              className="p-2 rounded-lg bg-navy-surface/40 border border-soft-subtle hover:border-gold/50 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-soft-white" />
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-soft-white">
-                {t('prospection')} unificada
-              </h1>
-              <p className="text-sm text-soft-muted mt-1">
-                Workspace único de propiedades, buyers y matches.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-navy-surface/40 border border-soft-subtle">
-              <Filter className="w-4 h-4 text-soft-muted" />
-              <select
-                value={sourceFilter}
-                onChange={(e) => setSourceFilter(e.target.value as SourceFilter)}
-                className="bg-transparent text-sm text-soft-white outline-none"
+        <section className="rounded-2xl border border-soft-subtle bg-gradient-to-br from-navy-deep/80 via-navy-surface/50 to-navy-deep/70 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <Link
+                href="/prospection"
+                className="mt-0.5 rounded-lg border border-soft-subtle/70 bg-navy-surface/40 p-2 text-soft-white hover:border-gold/50 transition-colors"
               >
-                <option value="">{t('allOrigins') || 'Todos los orígenes'}</option>
-                <option value="manual">manual</option>
-                <option value="widget">widget</option>
-                <option value="pbm">pbm</option>
-              </select>
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight text-soft-white">Prospeccion unificada</h1>
+                <p className="mt-1 text-sm text-soft-muted">
+                  Vista ejecutiva de propiedades, compradores y matching en tiempo real.
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {workspace && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-navy-surface/40 border border-soft-subtle rounded-xl p-4">
-              <p className="text-xs text-soft-muted uppercase tracking-wider">{t('prospectedProperties')}</p>
-              <p className="text-2xl font-bold text-gold mt-2">{workspace.totals.properties}</p>
-            </div>
-            <div className="bg-navy-surface/40 border border-soft-subtle rounded-xl p-4">
-              <p className="text-xs text-soft-muted uppercase tracking-wider">{t('buyerProfiles')}</p>
-              <p className="text-2xl font-bold text-gold mt-2">{workspace.totals.buyers}</p>
-            </div>
-            <div className="bg-navy-surface/40 border border-soft-subtle rounded-xl p-4">
-              <p className="text-xs text-soft-muted uppercase tracking-wider">{t('matchBoard')}</p>
-              <p className="text-2xl font-bold text-gold mt-2">{workspace.totals.matches}</p>
-            </div>
-          </div>
-        )}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2">
+                <Filter className="h-4 w-4 text-soft-muted" />
+                <select
+                  value={sourceFilter}
+                  onChange={(e) => setSourceFilter(e.target.value as SourceFilter)}
+                  className="bg-transparent text-sm text-soft-white outline-none"
+                >
+                  <option value="">{t('allOrigins') || 'Todos los origenes'}</option>
+                  <option value="manual">{SOURCE_LABELS.manual}</option>
+                  <option value="widget">{SOURCE_LABELS.widget}</option>
+                  <option value="pbm">{SOURCE_LABELS.pbm}</option>
+                </select>
+              </div>
 
-        {workspace && (
-          <div className="text-xs text-soft-muted">
-            Scope: <span className="text-soft-white">{workspace.scope.role}</span>
+              <button
+                type="button"
+                onClick={() => void loadWorkspace()}
+                className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-sm text-soft-white hover:border-gold/50 transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Actualizar
+              </button>
+            </div>
           </div>
-        )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-semibold text-gold">
+              {roleLabel}
+            </span>
+            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+              {totalRecords} registros visibles
+            </span>
+            <span className="rounded-full border border-soft-subtle bg-navy-surface/40 px-3 py-1 text-xs text-soft-muted">
+              Ultima actualizacion {updatedLabel}
+            </span>
+          </div>
+        </section>
+
+        {error ? (
+          <section className="rounded-2xl border border-red-500/40 bg-red-500/10 p-5">
+            <p className="text-sm text-red-300">{error}</p>
+          </section>
+        ) : null}
+
+        <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">Propiedades</p>
+              <Home className="h-4 w-4 text-gold" />
+            </div>
+            <p className="mt-2 text-3xl font-bold text-gold">{workspace?.totals.properties ?? 0}</p>
+            <p className="mt-1 text-xs text-soft-muted">Prospectadas y priorizadas</p>
+          </article>
+
+          <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">Buyers</p>
+              <Users className="h-4 w-4 text-gold" />
+            </div>
+            <p className="mt-2 text-3xl font-bold text-gold">{workspace?.totals.buyers ?? 0}</p>
+            <p className="mt-1 text-xs text-soft-muted">Perfiles activos de demanda</p>
+          </article>
+
+          <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">Matches</p>
+              <Zap className="h-4 w-4 text-gold" />
+            </div>
+            <p className="mt-2 text-3xl font-bold text-gold">{workspace?.totals.matches ?? 0}</p>
+            <p className="mt-1 text-xs text-soft-muted">Oportunidades de cierre detectadas</p>
+          </article>
+        </section>
 
         {loading ? (
-          <div className="text-soft-muted py-12">{t('loading')}</div>
-        ) : error ? (
-          <div className="text-red-400 py-12">{error}</div>
+          <section className="grid grid-cols-1 gap-3 xl:grid-cols-3">
+            {[1, 2, 3].map((id) => (
+              <div key={id} className="rounded-2xl border border-soft-subtle bg-navy-surface/30 p-4 animate-pulse">
+                <div className="h-4 w-40 rounded bg-white/10" />
+                <div className="mt-4 h-20 rounded bg-white/5" />
+                <div className="mt-2 h-20 rounded bg-white/5" />
+              </div>
+            ))}
+          </section>
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <section className="bg-navy-surface/40 border border-soft-subtle rounded-xl overflow-hidden">
-              <header className="px-4 py-3 border-b border-soft-subtle/30 flex items-center gap-2 text-soft-white font-semibold">
-                <Home className="w-4 h-4 text-gold" /> {t('prospectedProperties')}
+          <section className="grid grid-cols-1 gap-3 xl:grid-cols-3">
+            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+              <header className="mb-3 flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-soft-white">
+                  <Target className="h-4 w-4 text-gold" />
+                  Propiedades prospectadas
+                </h2>
+                <span className="text-xs text-soft-muted">{workspace?.properties.total ?? 0}</span>
               </header>
-              <div className="max-h-[520px] overflow-auto">
-                {(workspace?.properties.items || []).map((item) => (
-                  <div key={item.id} className="px-4 py-3 border-b border-soft-subtle/20">
-                    <p className="text-sm text-soft-white font-medium">{item.title || item.zone || t('noTitle')}</p>
-                    <p className="text-xs text-soft-muted mt-1">
-                      {item.price != null ? formatCompact(item.price) : '-'} · {item.source}
-                    </p>
-                  </div>
-                ))}
+              <div className="max-h-[520px] space-y-2 overflow-auto pr-1">
+                {(workspace?.properties.items || []).length > 0
+                  ? (workspace?.properties.items || []).map(renderPropertyRow)
+                  : <p className="text-sm text-soft-muted">Sin propiedades para este filtro.</p>}
               </div>
-            </section>
+            </article>
 
-            <section className="bg-navy-surface/40 border border-soft-subtle rounded-xl overflow-hidden">
-              <header className="px-4 py-3 border-b border-soft-subtle/30 flex items-center gap-2 text-soft-white font-semibold">
-                <Users className="w-4 h-4 text-gold" /> {t('buyerProfiles')}
+            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+              <header className="mb-3 flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-soft-white">
+                  <Users className="h-4 w-4 text-gold" />
+                  Buyers
+                </h2>
+                <span className="text-xs text-soft-muted">{workspace?.buyers.total ?? 0}</span>
               </header>
-              <div className="max-h-[520px] overflow-auto">
-                {(workspace?.buyers.items || []).map((item) => (
-                  <div key={item.id} className="px-4 py-3 border-b border-soft-subtle/20">
-                    <p className="text-sm text-soft-white font-medium">{item.full_name || t('noName')}</p>
-                    <p className="text-xs text-soft-muted mt-1">
-                      {item.budget_min != null && item.budget_max != null
-                        ? `${formatMoney(item.budget_min, { minFractionDigits: 0, maxFractionDigits: 0 })} - ${formatMoney(item.budget_max, { minFractionDigits: 0, maxFractionDigits: 0 })}`
-                        : '-'}
-                    </p>
-                  </div>
-                ))}
+              <div className="max-h-[520px] space-y-2 overflow-auto pr-1">
+                {(workspace?.buyers.items || []).length > 0
+                  ? (workspace?.buyers.items || []).map(renderBuyerRow)
+                  : <p className="text-sm text-soft-muted">Sin buyers para este filtro.</p>}
               </div>
-            </section>
+            </article>
 
-            <section className="bg-navy-surface/40 border border-soft-subtle rounded-xl overflow-hidden">
-              <header className="px-4 py-3 border-b border-soft-subtle/30 flex items-center gap-2 text-soft-white font-semibold">
-                <Zap className="w-4 h-4 text-gold" /> {t('matchBoard')}
+            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+              <header className="mb-3 flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-soft-white">
+                  <Shield className="h-4 w-4 text-gold" />
+                  Tablero de matches
+                </h2>
+                <span className="text-xs text-soft-muted">{workspace?.matches.total ?? 0}</span>
               </header>
-              <div className="max-h-[520px] overflow-auto">
-                {(workspace?.matches.items || []).map((item) => (
-                  <div key={item.id} className="px-4 py-3 border-b border-soft-subtle/20">
-                    <p className="text-sm text-soft-white font-medium">{item.property_title || item.property_id}</p>
-                    <p className="text-xs text-soft-muted mt-1">
-                      {item.buyer_name || item.buyer_id} · score {item.match_score}
-                    </p>
-                  </div>
-                ))}
+              <div className="max-h-[520px] space-y-2 overflow-auto pr-1">
+                {(workspace?.matches.items || []).length > 0
+                  ? (workspace?.matches.items || []).map(renderMatchRow)
+                  : <p className="text-sm text-soft-muted">Sin matches para este filtro.</p>}
               </div>
-            </section>
-          </div>
+            </article>
+          </section>
         )}
       </motion.div>
     </div>
