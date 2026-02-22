@@ -63,7 +63,7 @@ export default function ProspectionUnifiedPage() {
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-soft-white">
-                {t('prospection')} Unified
+                {t('prospection')} unificada
               </h1>
               <p className="text-sm text-soft-muted mt-1">
                 Workspace único de propiedades, buyers y matches.

@@ -83,6 +83,14 @@ class ProspectionService:
         except Exception:
             return False
 
+    def _table_exists(self, table: str) -> bool:
+        """Best-effort table existence check."""
+        try:
+            supabase_service.client.table(table).select("id").limit(1).execute()
+            return True
+        except Exception:
+            return False
+
     def _normalize_property_record(self, row: Dict[str, Any]) -> Dict[str, Any]:
         """
         Normalize heterogeneous property rows so they always satisfy
@@ -733,8 +741,13 @@ class ProspectionService:
 
         property_table = self._property_table(org_id)
         prop_has_assignee = self._table_has_column(property_table, "assigned_user_id")
-        match_has_assignee = self._table_has_column("property_buyer_matches", "assigned_user_id")
-        buyer_has_assignee = self._table_has_column("buyer_profiles", "assigned_user_id")
+        matches_table_exists = self._table_exists("property_buyer_matches")
+        buyers_table_exists = self._table_exists("buyer_profiles")
+        match_has_assignee = matches_table_exists and self._table_has_column("property_buyer_matches", "assigned_user_id")
+        match_has_status = matches_table_exists and self._table_has_column("property_buyer_matches", "match_status")
+        match_has_score = matches_table_exists and self._table_has_column("property_buyer_matches", "match_score")
+        buyer_has_assignee = buyers_table_exists and self._table_has_column("buyer_profiles", "assigned_user_id")
+        buyer_has_motivation = buyers_table_exists and self._table_has_column("buyer_profiles", "motivation_score")
 
         assigned_property_ids: List[str] = []
         if is_agent and user_id and not match_has_assignee:
@@ -765,7 +778,7 @@ class ProspectionService:
         # Matches block
         match_items: List[Dict[str, Any]] = []
         match_total = 0
-        if is_agent and user_id and (not match_has_assignee) and (not assigned_property_ids):
+        if (not matches_table_exists) or (is_agent and user_id and (not match_has_assignee) and (not assigned_property_ids)):
             match_items = []
             match_total = 0
         else:
@@ -775,15 +788,22 @@ class ProspectionService:
                 .eq("org_id", org_id)
             )
             if match_status:
-                match_query = match_query.eq("match_status", match_status)
-            if min_match_score is not None:
+                if match_has_status:
+                    match_query = match_query.eq("match_status", match_status)
+                elif self._table_has_column("property_buyer_matches", "status"):
+                    match_query = match_query.eq("status", match_status)
+            if min_match_score is not None and match_has_score:
                 match_query = match_query.gte("match_score", min_match_score)
             if is_agent and user_id:
                 if match_has_assignee:
                     match_query = match_query.eq("assigned_user_id", user_id)
                 elif assigned_property_ids:
                     match_query = match_query.in_("property_id", assigned_property_ids)
-            match_query = match_query.range(offset, offset + limit - 1).order("match_score", desc=True)
+            match_query = match_query.range(offset, offset + limit - 1)
+            if match_has_score:
+                match_query = match_query.order("match_score", desc=True)
+            else:
+                match_query = match_query.order("created_at", desc=True)
             match_resp = match_query.execute()
             match_items = match_resp.data or []
             match_total = match_resp.count or len(match_items)
@@ -792,51 +812,56 @@ class ProspectionService:
         # Buyers block
         buyer_items: List[Dict[str, Any]] = []
         buyer_total = 0
-        buyer_query = (
-            supabase_service.client.table("buyer_profiles")
-            .select("*", count="exact")
-            .eq("org_id", org_id)
-        )
-        if buyer_status:
-            buyer_query = buyer_query.eq("status", buyer_status)
-        if is_agent and user_id:
-            if buyer_has_assignee:
-                buyer_query = buyer_query.eq("assigned_user_id", user_id)
-            else:
-                scoped_matches_query = (
-                    supabase_service.client.table("property_buyer_matches")
-                    .select("buyer_id")
-                    .eq("org_id", org_id)
-                    .limit(5000)
-                )
-                if match_has_assignee:
-                    scoped_matches_query = scoped_matches_query.eq("assigned_user_id", user_id)
-                elif assigned_property_ids:
-                    scoped_matches_query = scoped_matches_query.in_("property_id", assigned_property_ids)
+        if buyers_table_exists:
+            buyer_query = (
+                supabase_service.client.table("buyer_profiles")
+                .select("*", count="exact")
+                .eq("org_id", org_id)
+            )
+            if buyer_status:
+                buyer_query = buyer_query.eq("status", buyer_status)
+            if is_agent and user_id:
+                if buyer_has_assignee:
+                    buyer_query = buyer_query.eq("assigned_user_id", user_id)
+                elif matches_table_exists:
+                    scoped_matches_query = (
+                        supabase_service.client.table("property_buyer_matches")
+                        .select("buyer_id")
+                        .eq("org_id", org_id)
+                        .limit(5000)
+                    )
+                    if match_has_assignee:
+                        scoped_matches_query = scoped_matches_query.eq("assigned_user_id", user_id)
+                    elif assigned_property_ids:
+                        scoped_matches_query = scoped_matches_query.in_("property_id", assigned_property_ids)
 
-                scoped_matches_resp = scoped_matches_query.execute()
-                scoped_buyer_ids = list({
-                    m.get("buyer_id")
-                    for m in (scoped_matches_resp.data or [])
-                    if m.get("buyer_id")
-                })
-                if not scoped_buyer_ids:
-                    return {
-                        "scope": {
-                            "org_id": org_id,
-                            "role": role_norm,
-                            "user_id": user_id,
-                        },
-                        "properties": {"items": prop_items, "total": prop_total, "limit": limit, "offset": offset},
-                        "buyers": {"items": [], "total": 0, "limit": limit, "offset": offset},
-                        "matches": {"items": match_items, "total": match_total, "limit": limit, "offset": offset},
-                        "totals": {"properties": prop_total, "buyers": 0, "matches": match_total},
-                    }
-                buyer_query = buyer_query.in_("id", scoped_buyer_ids)
-        buyer_query = buyer_query.range(offset, offset + limit - 1).order("motivation_score", desc=True)
-        buyer_resp = buyer_query.execute()
-        buyer_items = buyer_resp.data or []
-        buyer_total = buyer_resp.count or len(buyer_items)
+                    scoped_matches_resp = scoped_matches_query.execute()
+                    scoped_buyer_ids = list({
+                        m.get("buyer_id")
+                        for m in (scoped_matches_resp.data or [])
+                        if m.get("buyer_id")
+                    })
+                    if not scoped_buyer_ids:
+                        return {
+                            "scope": {
+                                "org_id": org_id,
+                                "role": role_norm,
+                                "user_id": user_id,
+                            },
+                            "properties": {"items": prop_items, "total": prop_total, "limit": limit, "offset": offset},
+                            "buyers": {"items": [], "total": 0, "limit": limit, "offset": offset},
+                            "matches": {"items": match_items, "total": match_total, "limit": limit, "offset": offset},
+                            "totals": {"properties": prop_total, "buyers": 0, "matches": match_total},
+                        }
+                    buyer_query = buyer_query.in_("id", scoped_buyer_ids)
+            buyer_query = buyer_query.range(offset, offset + limit - 1)
+            if buyer_has_motivation:
+                buyer_query = buyer_query.order("motivation_score", desc=True)
+            else:
+                buyer_query = buyer_query.order("created_at", desc=True)
+            buyer_resp = buyer_query.execute()
+            buyer_items = buyer_resp.data or []
+            buyer_total = buyer_resp.count or len(buyer_items)
 
         return {
             "scope": {

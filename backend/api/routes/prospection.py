@@ -51,7 +51,15 @@ async def get_workspace(
     agent -> assigned-only visibility
     """
     try:
-        member = await verify_org_membership(user.id, UUID(org_id))
+        parsed_org_id = UUID(org_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid org_id format: {org_id}",
+        )
+
+    try:
+        member = await verify_org_membership(user.id, parsed_org_id)
         role = str(member.get("role") or "agent")
         return await prospection_service.get_workspace(
             org_id=org_id,
