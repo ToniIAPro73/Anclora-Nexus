@@ -114,8 +114,8 @@ export function Sidebar() {
       title: t('sidebarSectionIntelligence'),
       icon: Target,
       links: [
-        { name: t('prospection'), href: '/prospection', icon: Target },
-        { name: `${t('prospection')} unificada`, href: '/prospection-unified', icon: Target },
+        { name: `${t('prospection')} studio`, href: '/prospection', icon: Target },
+        { name: `${t('prospection')} operativa`, href: '/prospection-unified', icon: Target },
         { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
       ],
     },
