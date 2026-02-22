@@ -126,7 +126,7 @@ export default function ProspectionUnifiedPage() {
                   <div key={item.id} className="px-4 py-3 border-b border-soft-subtle/20">
                     <p className="text-sm text-soft-white font-medium">{item.title || item.zone || t('noTitle')}</p>
                     <p className="text-xs text-soft-muted mt-1">
-                      {item.price != null ? formatCompact(item.price) : '-'} · {item.source_system || item.source}
+                      {item.price != null ? formatCompact(item.price) : '-'} · {item.source}
                     </p>
                   </div>
                 ))}
