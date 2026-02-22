@@ -89,7 +89,7 @@ function nextInFlow<T extends string>(current: T, flow: readonly T[]): T {
 
 export default function ProspectionUnifiedPage() {
   const { t } = useI18n()
-  const { formatMoney, formatCompact } = useCurrency()
+  const { formatCompact } = useCurrency()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('')
@@ -379,7 +379,7 @@ export default function ProspectionUnifiedPage() {
                         <div className="mt-2 flex items-center justify-between text-xs">
                           <span className="text-gold">
                             {b.budget_min != null && b.budget_max != null
-                              ? `${formatMoney(b.budget_min, { minFractionDigits: 0, maxFractionDigits: 0 })} - ${formatMoney(b.budget_max, { minFractionDigits: 0, maxFractionDigits: 0 })}`
+                              ? `${formatCompact(b.budget_min)} - ${formatCompact(b.budget_max)}`
                               : 'Presupuesto pendiente'}
                           </span>
                           <span className="text-emerald-300 inline-flex items-center gap-1">
