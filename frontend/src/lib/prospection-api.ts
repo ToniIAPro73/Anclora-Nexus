@@ -113,6 +113,44 @@ export interface ProspectionWorkspaceResponse {
   }
 }
 
+export interface OpportunityRankingItem {
+  match_id: string
+  property_id: string
+  buyer_id: string
+  property_title: string
+  buyer_name: string
+  match_status: string
+  match_score: number
+  commission_estimate: number | null
+  opportunity_score: number
+  priority_band: 'hot' | 'warm' | 'cold'
+  next_action: string
+  explanation: {
+    drivers: {
+      match_score: number
+      commission_potential: number
+      buyer_motivation: number
+    }
+    top_factors: Array<{ factor: string; value: number }>
+    confidence: number
+  }
+  updated_at: string
+}
+
+export interface OpportunityRankingResponse {
+  items: OpportunityRankingItem[]
+  total: number
+  limit: number
+  scope: {
+    org_id: string
+  }
+  totals: {
+    hot: number
+    warm: number
+    cold: number
+  }
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -324,4 +362,17 @@ export async function getProspectionWorkspace(params?: {
   if (params?.offset) query.set('offset', String(params.offset))
   const qs = query.toString()
   return apiRequest(`/api/prospection/workspace${qs ? `?${qs}` : ''}`)
+}
+
+export async function getOpportunityRanking(params?: {
+  limit?: number
+  min_opportunity_score?: number
+  match_status?: string
+}): Promise<OpportunityRankingResponse> {
+  const query = new URLSearchParams()
+  if (params?.limit) query.set('limit', String(params.limit))
+  if (params?.min_opportunity_score !== undefined) query.set('min_opportunity_score', String(params.min_opportunity_score))
+  if (params?.match_status) query.set('match_status', params.match_status)
+  const qs = query.toString()
+  return apiRequest(`/api/prospection/opportunities/ranking${qs ? `?${qs}` : ''}`)
 }

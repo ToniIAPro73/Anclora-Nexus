@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  User, Mail, Shield, Calendar, MapPin, Building, 
+  Mail, Shield, Calendar, MapPin, 
   Briefcase, Trophy, Edit2, Camera, X, Check, Loader2,
-  Globe, UserCircle, ExternalLink, AlertCircle, ChevronLeft, Save
+  UserCircle, ExternalLink, AlertCircle, ChevronLeft, Save
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import supabase from '@/lib/supabase'
@@ -62,7 +62,7 @@ export default function ProfilePage() {
           const { data: orgs } = await supabase.from('organizations').select('id').limit(1)
           const orgId = orgs?.[0]?.id || '00000000-0000-0000-0000-000000000000'
           
-          const { data: newProfile, error: createError } = await supabase
+          const { data: newProfile } = await supabase
             .from('user_profiles')
             .upsert({
               id: authUser.id,
@@ -224,6 +224,7 @@ export default function ProfilePage() {
                   {isUploading ? (
                     <Loader2 className="w-8 h-8 text-gold animate-spin" />
                   ) : avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-5xl md:text-6xl font-black text-gold opacity-80">{userNameString.charAt(0).toUpperCase()}</span>

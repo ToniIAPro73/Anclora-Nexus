@@ -93,12 +93,6 @@ export default function TeamManagement() {
   }, [org_id, loadMembers])
 
   useEffect(() => {
-    if (teamApiError) {
-      setErrorMessage(mapTeamError(teamApiError))
-    }
-  }, [teamApiError])
-
-  useEffect(() => {
     const loadSelfProfile = async () => {
       if (!currentUserId) return
 
@@ -129,8 +123,8 @@ export default function TeamManagement() {
       setInviteEmail('')
       loadMembers()
     } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'An error occurred'
-        setErrorMessage(mapTeamError(message))
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setErrorMessage(mapTeamError(message))
     }
   }
 
@@ -142,8 +136,8 @@ export default function TeamManagement() {
       setSuccessMessage(t('roleUpdated'))
       loadMembers()
     } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'An error occurred'
-        setErrorMessage(mapTeamError(message))
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setErrorMessage(mapTeamError(message))
     }
   }
 
@@ -154,8 +148,8 @@ export default function TeamManagement() {
       setSuccessMessage(t('memberRemoved'))
       loadMembers()
     } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'An error occurred'
-        setErrorMessage(mapTeamError(message))
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setErrorMessage(mapTeamError(message))
     }
   }
 
@@ -232,6 +226,17 @@ export default function TeamManagement() {
             <button onClick={() => setErrorMessage(null)} className="ml-auto opacity-50 hover:opacity-100">✕</button>
           </motion.div>
         )}
+        {!errorMessage && teamApiError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm"
+          >
+            <AlertCircle className="w-5 h-5" />
+            {mapTeamError(teamApiError)}
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <div className="bg-navy-surface/30 border border-soft-subtle/20 rounded-3xl overflow-hidden backdrop-blur-xl">
@@ -284,6 +289,7 @@ export default function TeamManagement() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold font-bold overflow-hidden">
                       {displayAvatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
                       ) : (
                         avatarInitial

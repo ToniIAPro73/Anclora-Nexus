@@ -5,7 +5,6 @@ import {
   Settings, 
   Bell, 
   Lock, 
-  Palette, 
   Database, 
   Globe, 
   Cpu, 
@@ -14,7 +13,6 @@ import {
   Save, 
   RotateCcw,
   Check,
-  ChevronRight,
   Wallet
 } from 'lucide-react'
 import { CostGovernanceTab } from '@/components/finops/CostGovernanceTab'

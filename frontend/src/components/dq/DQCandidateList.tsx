@@ -75,7 +75,7 @@ export function DQCandidateList({ candidates }: DQCandidateListProps) {
 
             {candidate.signals && Object.keys(candidate.signals).length > 0 && (
               <div className="mb-6 flex flex-wrap gap-2">
-                {Object.entries(candidate.signals).map(([key, val]) => (
+                {Object.entries(candidate.signals).map(([key]) => (
                   <div key={key} className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/5 text-[10px] text-white-soft/70">
                     <Info className="w-3 h-3 text-blue-light/60" />
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

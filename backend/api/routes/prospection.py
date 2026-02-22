@@ -278,6 +278,28 @@ async def list_matches(
     )
 
 
+@router.get("/opportunities/ranking")
+async def get_opportunity_ranking(
+    org_id: str = Depends(get_org_id),
+    limit: int = Query(25, ge=1, le=100),
+    min_opportunity_score: Optional[float] = Query(None, ge=0, le=100),
+    match_status: Optional[str] = Query(None, description="Filter by match status"),
+) -> dict:
+    """Explainable ranking of commercial opportunities based on matches."""
+    try:
+        return await prospection_service.get_opportunity_ranking(
+            org_id=org_id,
+            limit=limit,
+            min_opportunity_score=min_opportunity_score,
+            match_status=match_status,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error loading opportunity ranking: {str(e)}",
+        )
+
+
 @router.patch("/matches/{match_id}")
 async def update_match(
     match_id: UUID,

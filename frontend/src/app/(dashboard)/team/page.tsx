@@ -5,7 +5,7 @@ import Link from 'next/link'
 import TeamManagement from '@/components/TeamManagement'
 import { RoleBasedUIShell } from '@/components/RoleBasedUIShell'
 import { motion } from 'framer-motion'
-import { Users, ShieldCheck, ArrowLeft } from 'lucide-react'
+import { ShieldCheck, ArrowLeft } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 
 export default function TeamPage() {

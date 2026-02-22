@@ -1,12 +1,11 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useStore, Property } from '@/lib/store'
 import { ArrowLeft, MapPin, Home, TrendingUp, ChevronLeft, ChevronRight, Trash2, Plus, Edit2 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
-import { listMatches, listProperties, type ProspectedProperty } from '@/lib/prospection-api'
 
 type PropertyPbmMeta = {
   matchCount: number
@@ -23,7 +22,7 @@ export default function PropertiesPage() {
   const deleteProperty = useStore((state) => state.deleteProperty)
   const { t, language } = useI18n()
   const { formatMoney, formatSurface } = useCurrency()
-  const [pbmMetaByPropertyId, setPbmMetaByPropertyId] = useState<Record<string, PropertyPbmMeta>>({})
+  const [pbmMetaByPropertyId] = useState<Record<string, PropertyPbmMeta>>({})
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useI18n } from '@/lib/i18n'
 import { getBudget, updateBudget, getAlerts, BudgetPolicy, CostAlert } from '@/lib/finops-api'
-import { AlertTriangle, CheckCircle, TrendingUp, DollarSign, Save } from 'lucide-react'
+import { AlertTriangle, CheckCircle, DollarSign, Save } from 'lucide-react'
 
 // Simple Progress Component
 const ProgressBar = ({ value, max = 100, className = "" }: { value: number, max?: number, className?: string }) => {

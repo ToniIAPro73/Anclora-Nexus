@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { useStore, IntelligenceResponse } from '@/lib/store'
+import { useStore } from '@/lib/store'
 import { useI18n } from '@/lib/i18n'
 import { Send, Sparkles, Brain, Clock, Zap, History } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'

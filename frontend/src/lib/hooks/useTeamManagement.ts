@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import supabase from '@/lib/supabase'
 import { useOrgMembership } from './useOrgMembership'
-import { OrgRole, MembershipStatus } from '../contexts/OrgContext'
+import { OrgRole } from '../contexts/OrgContext'
 
 export function useTeamManagement() {
   const { org_id, canManageTeam } = useOrgMembership()

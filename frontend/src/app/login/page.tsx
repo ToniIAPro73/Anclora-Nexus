@@ -25,7 +25,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [isError, setIsError] = useState(false)
-  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login')
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>(() => {
+    if (typeof window === 'undefined') return 'login'
+    const params = new URLSearchParams(window.location.search)
+    return params.get('mode') === 'reset' ? 'reset' : 'login'
+  })
   const [confirmPassword, setConfirmPassword] = useState('')
   const particles: Particle[] = [...Array(12)].map((_, i) => ({
     id: i,
@@ -41,7 +45,6 @@ export default function LoginPage() {
     const code = params.get('code')
     const tokenHash = params.get('token_hash')
     const type = params.get('type')
-    const modeParam = params.get('mode')
 
     if (code) {
       const next = encodeURIComponent('/login?mode=reset')
@@ -55,9 +58,6 @@ export default function LoginPage() {
       return
     }
 
-    if (modeParam === 'reset') {
-      setMode('reset')
-    }
   }, [router])
 
   useEffect(() => {
@@ -68,13 +68,13 @@ export default function LoginPage() {
     const refreshToken = hashParams.get('refresh_token')
     const type = hashParams.get('type')
 
-    if (type === 'recovery') {
-      setMode('reset')
-      if (accessToken && refreshToken) {
-        void supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-      }
-      const base = `${window.location.pathname}?mode=reset`
-      window.history.replaceState({}, '', base)
+    if (type === 'recovery' && accessToken && refreshToken) {
+      void supabase.auth
+        .setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .finally(() => {
+          const base = `${window.location.pathname}?mode=reset`
+          window.location.replace(base)
+        })
     }
   }, [])
 

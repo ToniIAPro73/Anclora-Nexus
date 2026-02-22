@@ -4,17 +4,17 @@ import { motion } from 'framer-motion'
 interface BrandLogoProps {
   className?: string
   size?: number
-  imageOnly?: boolean
   src?: string
 }
 
-export function BrandLogo({ className = "", size = 64, imageOnly = false, src }: BrandLogoProps) {
+export function BrandLogo({ className = "", size = 64, src }: BrandLogoProps) {
   if (src) {
     return (
       <div 
         className={`relative rounded-full bg-navy-deep flex items-center justify-center overflow-hidden border border-gold/30 shadow-[0_0_20px_rgba(212,175,55,0.2)] ${className}`}
         style={{ width: size, height: size }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt="Brand Logo" className="w-full h-full object-cover" />
       </div>
     )

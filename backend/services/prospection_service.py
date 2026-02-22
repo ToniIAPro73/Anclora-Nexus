@@ -542,6 +542,107 @@ class ProspectionService:
             "offset": offset,
         }
 
+    async def get_opportunity_ranking(
+        self,
+        org_id: str,
+        limit: int = 25,
+        min_opportunity_score: Optional[float] = None,
+        match_status: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Return explainable commercial ranking built from existing matches.
+        Score components:
+        - 65% match_score
+        - 20% normalized commission estimate
+        - 15% buyer motivation
+        """
+        matches_query = (
+            supabase_service.client.table("property_buyer_matches")
+            .select("*")
+            .eq("org_id", org_id)
+            .order("match_score", desc=True)
+            .limit(max(limit * 5, 100))
+        )
+        if match_status:
+            matches_query = matches_query.eq("match_status", match_status)
+        match_rows = matches_query.execute().data or []
+        await self._enrich_matches(org_id, match_rows)
+
+        if not match_rows:
+            return {
+                "items": [],
+                "total": 0,
+                "limit": limit,
+                "scope": {"org_id": org_id},
+                "totals": {"hot": 0, "warm": 0, "cold": 0},
+            }
+
+        buyer_ids = list({str(m.get("buyer_id")) for m in match_rows if m.get("buyer_id")})
+        buyers = (
+            supabase_service.client.table("buyer_profiles")
+            .select("id,motivation_score,status")
+            .eq("org_id", org_id)
+            .in_("id", buyer_ids)
+            .execute()
+        ).data or []
+        buyer_map = {str(b["id"]): b for b in buyers}
+
+        commissions = [
+            float(m.get("commission_estimate"))
+            for m in match_rows
+            if m.get("commission_estimate") is not None
+        ]
+        max_commission = max(commissions) if commissions else 0.0
+
+        ranked: List[Dict[str, Any]] = []
+        for m in match_rows:
+            match_score = float(m.get("match_score") or 0)
+            commission = float(m.get("commission_estimate") or 0)
+            commission_norm = (commission / max_commission * 100) if max_commission > 0 else 0.0
+
+            buyer = buyer_map.get(str(m.get("buyer_id")), {})
+            motivation = float(buyer.get("motivation_score") or 0)
+            if motivation > 0 and motivation <= 10:
+                motivation = motivation * 10.0
+
+            opportunity_score = (match_score * 0.65) + (commission_norm * 0.20) + (motivation * 0.15)
+
+            explanation = self._build_opportunity_explanation(m, match_score, commission_norm, motivation)
+            action = self._recommend_next_action(opportunity_score, str(m.get("match_status") or "candidate"))
+
+            record = {
+                "match_id": m.get("id"),
+                "property_id": m.get("property_id"),
+                "buyer_id": m.get("buyer_id"),
+                "property_title": m.get("property_title"),
+                "buyer_name": m.get("buyer_name"),
+                "match_status": m.get("match_status"),
+                "match_score": round(match_score, 2),
+                "commission_estimate": round(commission, 2) if commission else None,
+                "opportunity_score": round(opportunity_score, 2),
+                "priority_band": "hot" if opportunity_score >= 75 else "warm" if opportunity_score >= 50 else "cold",
+                "next_action": action,
+                "explanation": explanation,
+                "updated_at": m.get("updated_at"),
+            }
+            if min_opportunity_score is None or record["opportunity_score"] >= min_opportunity_score:
+                ranked.append(record)
+
+        ranked.sort(key=lambda r: r["opportunity_score"], reverse=True)
+        sliced = ranked[:limit]
+        totals = {
+            "hot": len([r for r in sliced if r["priority_band"] == "hot"]),
+            "warm": len([r for r in sliced if r["priority_band"] == "warm"]),
+            "cold": len([r for r in sliced if r["priority_band"] == "cold"]),
+        }
+        return {
+            "items": sliced,
+            "total": len(ranked),
+            "limit": limit,
+            "scope": {"org_id": org_id},
+            "totals": totals,
+        }
+
     async def update_match(
         self, org_id: str, match_id: str, data: MatchUpdate
     ) -> Optional[Dict[str, Any]]:
@@ -960,6 +1061,41 @@ class ProspectionService:
         for match in matches:
             match["property_title"] = prop_map.get(match["property_id"], "Sin título")
             match["buyer_name"] = buyer_map.get(match["buyer_id"], "Sin nombre")
+
+    def _build_opportunity_explanation(
+        self,
+        match_row: Dict[str, Any],
+        match_score: float,
+        commission_norm: float,
+        motivation: float,
+    ) -> Dict[str, Any]:
+        breakdown = match_row.get("score_breakdown") or {}
+        top_factors: List[Dict[str, Any]] = []
+        if isinstance(breakdown, dict):
+            for key, value in sorted(breakdown.items(), key=lambda kv: float(kv[1] or 0), reverse=True)[:3]:
+                top_factors.append({"factor": str(key), "value": round(float(value or 0), 2)})
+
+        return {
+            "drivers": {
+                "match_score": round(match_score, 2),
+                "commission_potential": round(commission_norm, 2),
+                "buyer_motivation": round(motivation, 2),
+            },
+            "top_factors": top_factors,
+            "confidence": round(min(100.0, (len(top_factors) * 25) + 25), 2),
+        }
+
+    def _recommend_next_action(self, opportunity_score: float, match_status: str) -> str:
+        status = (match_status or "").lower()
+        if status in {"offer", "negotiating"} and opportunity_score >= 70:
+            return "prepare_offer_closure"
+        if status in {"viewing", "contacted"} and opportunity_score >= 60:
+            return "schedule_decision_followup"
+        if opportunity_score >= 75:
+            return "priority_call_24h"
+        if opportunity_score >= 50:
+            return "qualify_and_nurture"
+        return "deprioritize_or_recycle"
 
 
 # Module-level singleton

@@ -1,7 +1,6 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/rules-of-hooks */
 import { render, screen, waitFor } from '@testing-library/react'
 import { OrgProvider, useOrg } from '@/lib/contexts/OrgContext'
 import { useOrgMembership } from '@/lib/hooks/useOrgMembership'
@@ -25,6 +24,21 @@ const TestComponent = () => {
   const { membership, loading } = useOrg()
   if (loading) return <div>Loading...</div>
   return <div>{membership ? `Role: ${membership.role}` : 'No membership'}</div>
+}
+
+const PermissionTester = () => {
+  const permissions = useOrgMembership()
+  return (
+    <div data-testid="permissions">
+      {JSON.stringify({
+        isOwner: permissions.isOwner,
+        isAgent: permissions.isAgent,
+        canManageTeam: permissions.canManageTeam,
+        canAssignAgent: permissions.canAssignAgent,
+        roleLabel: permissions.roleLabel
+      })}
+    </div>
+  )
 }
 
 describe('OrgContext & useOrgMembership', () => {
@@ -70,19 +84,11 @@ describe('OrgContext & useOrgMembership', () => {
   })
 
   it('useOrgMembership returns correct permission flags', async () => {
-    // We mock useOrg to test useOrgMembership in isolation more easily
-    // but here we can just wrap it in the provider
     ;(supabase.auth.getUser as any).mockResolvedValue({ data: { user: { id: 'user-123' } } })
     ;(supabase.from as any)().single.mockResolvedValue({
       data: { id: 'm1', role: 'owner', status: 'active' },
       error: null
     })
-
-    let permissions: any
-    const PermissionTester = () => {
-      permissions = useOrgMembership()
-      return null
-    }
 
     render(
       <OrgProvider>
@@ -91,6 +97,8 @@ describe('OrgContext & useOrgMembership', () => {
     )
 
     await waitFor(() => {
+      const raw = screen.getByTestId('permissions').textContent || '{}'
+      const permissions = JSON.parse(raw)
       expect(permissions.isOwner).toBe(true)
       expect(permissions.canManageTeam).toBe(true)
       expect(permissions.roleLabel).toBe('Owner')
@@ -104,12 +112,6 @@ describe('OrgContext & useOrgMembership', () => {
       error: null
     })
 
-    let permissions: any
-    const PermissionTester = () => {
-      permissions = useOrgMembership()
-      return null
-    }
-
     render(
       <OrgProvider>
         <PermissionTester />
@@ -117,6 +119,8 @@ describe('OrgContext & useOrgMembership', () => {
     )
 
     await waitFor(() => {
+      const raw = screen.getByTestId('permissions').textContent || '{}'
+      const permissions = JSON.parse(raw)
       expect(permissions.isOwner).toBe(false)
       expect(permissions.isAgent).toBe(true)
       expect(permissions.canManageTeam).toBe(false)

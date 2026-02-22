@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User as UserIcon, LogOut, Settings, UserCircle, ChevronDown } from 'lucide-react'
+import { LogOut, Settings, UserCircle, ChevronDown } from 'lucide-react'
 import supabase from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
 import { useI18n } from '@/lib/i18n'
@@ -47,6 +47,7 @@ export function UserMenu() {
       >
         <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold border border-gold/20 group-hover:scale-105 transition-transform">
           {user?.user_metadata?.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={user.user_metadata.avatar_url} alt="User" className="w-full h-full rounded-full object-cover" />
           ) : (
             <span className="font-bold text-sm tracking-tighter">{userInitial}</span>

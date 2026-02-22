@@ -4,7 +4,6 @@ import React from 'react'
 import { useParams } from 'next/navigation'
 import { InvitationAccept } from '@/components/InvitationAccept'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 
 export default function InvitePage() {
   const params = useParams()
@@ -26,6 +25,7 @@ export default function InvitePage() {
       >
         <div className="relative w-24 h-24 mx-auto mb-6 transform hover:scale-110 transition-transform duration-500">
           <div className="absolute inset-0 bg-gold/20 blur-xl rounded-full animate-pulse"></div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/logo-anclora-nexus.png" 
             alt="Anclora Nexus" 
