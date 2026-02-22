@@ -41,6 +41,7 @@ export default function FeedOrchestratorPage() {
   const [busy, setBusy] = useState<Record<string, boolean>>({})
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [onlyActiveChannels, setOnlyActiveChannels] = useState(false)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -78,6 +79,22 @@ export default function FeedOrchestratorPage() {
     void loadConfig()
   }, [selectedChannel])
 
+  useEffect(() => {
+    if (!workspace?.channels?.length) return
+    const exists = workspace.channels.some((c) => c.channel === selectedChannel)
+    if (!exists) {
+      setSelectedChannel(workspace.channels[0].channel)
+      return
+    }
+    if (onlyActiveChannels) {
+      const selected = workspace.channels.find((c) => c.channel === selectedChannel)
+      if (selected && !selected.is_enabled) {
+        const firstActive = workspace.channels.find((c) => c.is_enabled)
+        if (firstActive) setSelectedChannel(firstActive.channel)
+      }
+    }
+  }, [workspace?.channels, selectedChannel, onlyActiveChannels])
+
   const runAction = useCallback(async (key: string, action: () => Promise<void>) => {
     setBusy((prev) => ({ ...prev, [key]: true }))
     setMessage(null)
@@ -96,6 +113,11 @@ export default function FeedOrchestratorPage() {
   const selectedSummary = useMemo(
     () => workspace?.channels.find((c) => c.channel === selectedChannel),
     [workspace?.channels, selectedChannel],
+  )
+
+  const visibleChannels = useMemo(
+    () => (workspace?.channels || []).filter((c) => (onlyActiveChannels ? c.is_enabled : true)),
+    [workspace?.channels, onlyActiveChannels],
   )
 
   const selectedIssues = useMemo<FeedValidationIssue[]>(
@@ -163,13 +185,24 @@ export default function FeedOrchestratorPage() {
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
           <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0 overflow-hidden">
-            <header className="mb-3 flex items-center justify-between">
+            <header className="mb-3 flex items-center justify-between gap-2">
               <h2 className="text-lg font-semibold text-soft-white">Canales</h2>
-              <span className="text-xs text-soft-muted">{workspace?.channels.length ?? 0}</span>
+              <div className="flex items-center gap-2">
+                <label className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle/60 px-2 py-1 text-xs text-soft-muted">
+                  <input
+                    type="checkbox"
+                    checked={onlyActiveChannels}
+                    onChange={(e) => setOnlyActiveChannels(e.target.checked)}
+                    className="h-3.5 w-3.5 accent-emerald-400"
+                  />
+                  Solo activos
+                </label>
+                <span className="text-xs text-soft-muted">{visibleChannels.length}</span>
+              </div>
             </header>
 
             <div className="space-y-2 max-h-[560px] overflow-auto pr-1 custom-scrollbar">
-              {(workspace?.channels || []).map((channel) => {
+              {visibleChannels.map((channel) => {
                 const chip = statusChip(channel.status)
                 const isSelected = selectedChannel === channel.channel
                 const ratio = channel.total_candidates > 0
@@ -188,7 +221,14 @@ export default function FeedOrchestratorPage() {
                   >
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold text-soft-white">{CHANNEL_LABELS[channel.channel]}</p>
-                      <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${chip.cls}`}>{chip.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        {!channel.is_enabled && (
+                          <span className="rounded-full border border-red-500/40 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+                            Desactivado
+                          </span>
+                        )}
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${chip.cls}`}>{chip.label}</span>
+                      </div>
                     </div>
                     <div className="mt-2 flex items-center gap-2 text-xs text-soft-muted">
                       {channel.format === 'xml' ? <FileText className="w-3.5 h-3.5" /> : <FileJson className="w-3.5 h-3.5" />}
