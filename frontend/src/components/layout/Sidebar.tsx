@@ -126,7 +126,7 @@ export function Sidebar() {
       links: [
         { name: t('ingestion'), href: '/ingestion', icon: Database },
         { name: t('dataQuality'), href: '/data-quality', icon: ShieldCheck },
-        { name: 'Feed Orchestrator', href: '/feed-orchestrator', icon: UploadCloud },
+        { name: t('feedOrchestratorMenu'), href: '/feed-orchestrator', icon: UploadCloud },
       ],
     },
   ]

@@ -48,6 +48,11 @@ Si hay conflicto: gana el nivel superior.
   3.1) Reportar siempre el `project_ref` efectivo derivado de `.env*` y su evidencia.
   3.2) Si aparece otro `project_ref` en QA/Gate: `QA_INVALID_ENV_SOURCE` y QA invalido.
   4) Validar i18n completa en `es`, `en`, `de`, `ru` para texto nuevo/modificado.
+  4.1) Toda feature nueva/modificada debe entregar claves y copys en los 4 idiomas para:
+      - labels de navegación/sidebar,
+      - títulos/subtítulos de pantalla,
+      - CTAs, estados, errores y mensajes operativos.
+  4.2) Prohibido hardcodear texto visible al usuario en vistas nuevas; debe salir de `t(...)`.
   5) Validar que la migracion de la feature esta aplicada antes de B/C/D.
   5.1) QA debe confirmar explicitamente las migraciones SQL verificadas como aplicadas.
   5.2) Sin evidencia de migraciones aplicadas no se puede emitir GO.
