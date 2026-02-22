@@ -95,6 +95,24 @@ export interface RecomputeResult {
   total_computed: number
 }
 
+export interface WorkspaceScope {
+  org_id: string
+  role: string
+  user_id: string | null
+}
+
+export interface ProspectionWorkspaceResponse {
+  scope: WorkspaceScope
+  properties: PaginatedResponse<ProspectedProperty>
+  buyers: PaginatedResponse<BuyerProfile>
+  matches: PaginatedResponse<PropertyBuyerMatch>
+  totals: {
+    properties: number
+    buyers: number
+    matches: number
+  }
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -283,4 +301,27 @@ export async function listActivities(
   matchId: string,
 ): Promise<{ items: MatchActivity[]; total: number }> {
   return apiRequest(`/api/prospection/matches/${matchId}/activities`)
+}
+
+export async function getProspectionWorkspace(params?: {
+  source_system?: string
+  property_status?: string
+  buyer_status?: string
+  match_status?: string
+  min_property_score?: number
+  min_match_score?: number
+  limit?: number
+  offset?: number
+}): Promise<ProspectionWorkspaceResponse> {
+  const query = new URLSearchParams()
+  if (params?.source_system) query.set('source_system', params.source_system)
+  if (params?.property_status) query.set('property_status', params.property_status)
+  if (params?.buyer_status) query.set('buyer_status', params.buyer_status)
+  if (params?.match_status) query.set('match_status', params.match_status)
+  if (params?.min_property_score !== undefined) query.set('min_property_score', String(params.min_property_score))
+  if (params?.min_match_score !== undefined) query.set('min_match_score', String(params.min_match_score))
+  if (params?.limit) query.set('limit', String(params.limit))
+  if (params?.offset) query.set('offset', String(params.offset))
+  const qs = query.toString()
+  return apiRequest(`/api/prospection/workspace${qs ? `?${qs}` : ''}`)
 }

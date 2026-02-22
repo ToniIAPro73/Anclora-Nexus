@@ -11,7 +11,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from backend.api.deps import get_org_id, check_budget_hard_stop
+from backend.api.deps import get_org_id, check_budget_hard_stop, get_current_user
+from backend.api.middleware import verify_org_membership
 from backend.models.prospection import (
     ActivityCreate,
     ActivityList,
@@ -29,6 +30,49 @@ from backend.models.prospection import (
 from backend.services.prospection_service import prospection_service
 
 router = APIRouter()
+
+
+@router.get("/workspace")
+async def get_workspace(
+    org_id: str = Depends(get_org_id),
+    user=Depends(get_current_user),
+    source_system: Optional[str] = Query(None, description="Filter by source_system"),
+    property_status: Optional[str] = Query(None, alias="property_status"),
+    buyer_status: Optional[str] = Query(None, alias="buyer_status"),
+    match_status: Optional[str] = Query(None, alias="match_status"),
+    min_property_score: Optional[float] = Query(None, ge=0, le=100),
+    min_match_score: Optional[float] = Query(None, ge=0, le=100),
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+) -> dict:
+    """
+    Unified prospection workspace payload with role scope.
+    owner/manager -> full org visibility
+    agent -> assigned-only visibility
+    """
+    try:
+        member = await verify_org_membership(user.id, UUID(org_id))
+        role = str(member.get("role") or "agent")
+        return await prospection_service.get_workspace(
+            org_id=org_id,
+            role=role,
+            user_id=str(user.id),
+            source_system=source_system,
+            property_status=property_status,
+            buyer_status=buyer_status,
+            match_status=match_status,
+            min_property_score=min_property_score,
+            min_match_score=min_match_score,
+            limit=limit,
+            offset=offset,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error loading workspace: {str(e)}",
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -708,9 +708,174 @@ class ProspectionService:
             "total": response.count or len(response.data),
         }
 
+    async def get_workspace(
+        self,
+        org_id: str,
+        role: str,
+        user_id: Optional[str] = None,
+        source_system: Optional[str] = None,
+        property_status: Optional[str] = None,
+        buyer_status: Optional[str] = None,
+        match_status: Optional[str] = None,
+        min_property_score: Optional[float] = None,
+        min_match_score: Optional[float] = None,
+        limit: int = 25,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        """
+        Unified workspace payload for prospection operations.
+        Scope:
+        - owner/manager: full org data
+        - agent: assigned data only
+        """
+        role_norm = (role or "").strip().lower()
+        is_agent = role_norm == "agent"
+
+        property_table = self._property_table(org_id)
+        prop_has_assignee = self._table_has_column(property_table, "assigned_user_id")
+        match_has_assignee = self._table_has_column("property_buyer_matches", "assigned_user_id")
+        buyer_has_assignee = self._table_has_column("buyer_profiles", "assigned_user_id")
+
+        assigned_property_ids: List[str] = []
+        if is_agent and user_id and not match_has_assignee:
+            assigned_property_ids = await self._list_assigned_property_ids(org_id, user_id)
+
+        # Properties block
+        prop_query = (
+            supabase_service.client.table(property_table)
+            .select("*", count="exact")
+            .eq("org_id", org_id)
+        )
+        if source_system and self._table_has_column(property_table, "source_system"):
+            prop_query = prop_query.eq("source_system", source_system)
+        if property_status and self._table_has_column(property_table, "status"):
+            prop_query = prop_query.eq("status", property_status)
+        if min_property_score is not None and self._table_has_column(property_table, "high_ticket_score"):
+            prop_query = prop_query.gte("high_ticket_score", min_property_score)
+        if is_agent and user_id and prop_has_assignee:
+            prop_query = prop_query.eq("assigned_user_id", user_id)
+        prop_query = prop_query.range(offset, offset + limit - 1)
+        if self._table_has_column(property_table, "high_ticket_score"):
+            prop_resp = prop_query.order("high_ticket_score", desc=True).execute()
+        else:
+            prop_resp = prop_query.order("created_at", desc=True).execute()
+        prop_items = self._normalize_property_items(prop_resp.data or [])
+        prop_total = prop_resp.count or len(prop_items)
+
+        # Matches block
+        match_items: List[Dict[str, Any]] = []
+        match_total = 0
+        if is_agent and user_id and (not match_has_assignee) and (not assigned_property_ids):
+            match_items = []
+            match_total = 0
+        else:
+            match_query = (
+                supabase_service.client.table("property_buyer_matches")
+                .select("*", count="exact")
+                .eq("org_id", org_id)
+            )
+            if match_status:
+                match_query = match_query.eq("match_status", match_status)
+            if min_match_score is not None:
+                match_query = match_query.gte("match_score", min_match_score)
+            if is_agent and user_id:
+                if match_has_assignee:
+                    match_query = match_query.eq("assigned_user_id", user_id)
+                elif assigned_property_ids:
+                    match_query = match_query.in_("property_id", assigned_property_ids)
+            match_query = match_query.range(offset, offset + limit - 1).order("match_score", desc=True)
+            match_resp = match_query.execute()
+            match_items = match_resp.data or []
+            match_total = match_resp.count or len(match_items)
+            await self._enrich_matches(org_id, match_items)
+
+        # Buyers block
+        buyer_items: List[Dict[str, Any]] = []
+        buyer_total = 0
+        buyer_query = (
+            supabase_service.client.table("buyer_profiles")
+            .select("*", count="exact")
+            .eq("org_id", org_id)
+        )
+        if buyer_status:
+            buyer_query = buyer_query.eq("status", buyer_status)
+        if is_agent and user_id:
+            if buyer_has_assignee:
+                buyer_query = buyer_query.eq("assigned_user_id", user_id)
+            else:
+                scoped_matches_query = (
+                    supabase_service.client.table("property_buyer_matches")
+                    .select("buyer_id")
+                    .eq("org_id", org_id)
+                    .limit(5000)
+                )
+                if match_has_assignee:
+                    scoped_matches_query = scoped_matches_query.eq("assigned_user_id", user_id)
+                elif assigned_property_ids:
+                    scoped_matches_query = scoped_matches_query.in_("property_id", assigned_property_ids)
+
+                scoped_matches_resp = scoped_matches_query.execute()
+                scoped_buyer_ids = list({
+                    m.get("buyer_id")
+                    for m in (scoped_matches_resp.data or [])
+                    if m.get("buyer_id")
+                })
+                if not scoped_buyer_ids:
+                    return {
+                        "scope": {
+                            "org_id": org_id,
+                            "role": role_norm,
+                            "user_id": user_id,
+                        },
+                        "properties": {"items": prop_items, "total": prop_total, "limit": limit, "offset": offset},
+                        "buyers": {"items": [], "total": 0, "limit": limit, "offset": offset},
+                        "matches": {"items": match_items, "total": match_total, "limit": limit, "offset": offset},
+                        "totals": {"properties": prop_total, "buyers": 0, "matches": match_total},
+                    }
+                buyer_query = buyer_query.in_("id", scoped_buyer_ids)
+        buyer_query = buyer_query.range(offset, offset + limit - 1).order("motivation_score", desc=True)
+        buyer_resp = buyer_query.execute()
+        buyer_items = buyer_resp.data or []
+        buyer_total = buyer_resp.count or len(buyer_items)
+
+        return {
+            "scope": {
+                "org_id": org_id,
+                "role": role_norm,
+                "user_id": user_id if is_agent else None,
+            },
+            "properties": {"items": prop_items, "total": prop_total, "limit": limit, "offset": offset},
+            "buyers": {"items": buyer_items, "total": buyer_total, "limit": limit, "offset": offset},
+            "matches": {"items": match_items, "total": match_total, "limit": limit, "offset": offset},
+            "totals": {"properties": prop_total, "buyers": buyer_total, "matches": match_total},
+        }
+
     # ─────────────────────────────────────────────────────────────────────
     # HELPERS
     # ─────────────────────────────────────────────────────────────────────
+
+    async def _list_assigned_property_ids(self, org_id: str, user_id: str) -> List[str]:
+        """Collect assigned property ids across available property tables."""
+        assigned_ids: set[str] = set()
+        for property_table in self._property_tables():
+            if not self._table_has_column(property_table, "assigned_user_id"):
+                continue
+            try:
+                rows = (
+                    supabase_service.client.table(property_table)
+                    .select("id")
+                    .eq("org_id", org_id)
+                    .eq("assigned_user_id", user_id)
+                    .limit(5000)
+                    .execute()
+                ).data or []
+                for row in rows:
+                    row_id = row.get("id")
+                    if row_id:
+                        assigned_ids.add(str(row_id))
+            except Exception:
+                continue
+        return list(assigned_ids)
 
     async def _enrich_matches(
         self, org_id: str, matches: List[Dict[str, Any]]

@@ -11,12 +11,20 @@ from backend.api.routes.prospection import router
 app = FastAPI()
 app.include_router(router, prefix="/api/prospection")
 ORG_ID = str(uuid4())
+USER_ID = str(uuid4())
 
 async def mock_get_org_id() -> str:
     return ORG_ID
 
-from backend.api.deps import get_org_id
+class MockUser:
+    id = USER_ID
+
+async def mock_get_current_user() -> MockUser:
+    return MockUser()
+
+from backend.api.deps import get_org_id, get_current_user
 app.dependency_overrides[get_org_id] = mock_get_org_id
+app.dependency_overrides[get_current_user] = mock_get_current_user
 client = TestClient(app)
 
 
@@ -24,6 +32,7 @@ class TestRouteRegistration:
     @pytest.mark.parametrize("method,path", [
         ("POST", "/api/prospection/properties"),
         ("GET", "/api/prospection/properties"),
+        ("GET", "/api/prospection/workspace"),
         ("PATCH", "/api/prospection/properties/{property_id}"),
         ("POST", "/api/prospection/properties/{property_id}/score"),
         ("POST", "/api/prospection/buyers"),
@@ -64,6 +73,21 @@ class TestPropertyEndpoints:
         mock_svc.update_property = AsyncMock(return_value=None)
         resp = client.patch(f"/api/prospection/properties/{uuid4()}", json={"title": "X"})
         assert resp.status_code == 404
+
+    @patch("backend.api.routes.prospection.verify_org_membership", new_callable=AsyncMock)
+    @patch("backend.api.routes.prospection.prospection_service")
+    def test_workspace_owner_scope(self, mock_svc: MagicMock, mock_verify: MagicMock) -> None:
+        mock_verify.return_value = {"role": "owner"}
+        mock_svc.get_workspace = AsyncMock(return_value={
+            "scope": {"org_id": ORG_ID, "role": "owner", "user_id": None},
+            "properties": {"items": [], "total": 0, "limit": 25, "offset": 0},
+            "buyers": {"items": [], "total": 0, "limit": 25, "offset": 0},
+            "matches": {"items": [], "total": 0, "limit": 25, "offset": 0},
+            "totals": {"properties": 0, "buyers": 0, "matches": 0},
+        })
+        resp = client.get("/api/prospection/workspace")
+        assert resp.status_code == 200
+        assert resp.json()["scope"]["role"] == "owner"
 
 
 class TestBuyerEndpoints:
