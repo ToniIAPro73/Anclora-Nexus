@@ -18,7 +18,7 @@ export default function OpportunityRankingPage() {
   const { t } = useI18n()
   const { formatMoney } = useCurrency()
   const [loading, setLoading] = useState(true)
-  const [minScore, setMinScore] = useState(0)
+  const [minScore, setMinScore] = useState<number | ''>('')
   const [statusFilter, setStatusFilter] = useState('')
   const [data, setData] = useState<OpportunityRankingResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +29,7 @@ export default function OpportunityRankingPage() {
     try {
       const response = await getOpportunityRanking({
         limit: 40,
-        min_opportunity_score: minScore || undefined,
+        min_opportunity_score: minScore === '' ? undefined : minScore,
         match_status: statusFilter || undefined,
       })
       setData(response)
@@ -76,15 +76,17 @@ export default function OpportunityRankingPage() {
               <option value="offer">{t('offer')}</option>
               <option value="closed">{t('closedWon')}</option>
             </select>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={minScore}
-              onChange={(e) => setMinScore(Number(e.target.value || 0))}
-              className="w-28 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-sm text-soft-white outline-none"
-              placeholder={t('matchScore')}
-            />
+            <select
+              value={minScore === '' ? '' : String(minScore)}
+              onChange={(e) => setMinScore(e.target.value === '' ? '' : Number(e.target.value))}
+              className="rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-sm text-soft-white outline-none"
+              title={t('minScore')}
+            >
+              <option value="">{t('noMinScore')}</option>
+              <option value="50">{t('minScore')} 50+</option>
+              <option value="70">{t('minScore')} 70+</option>
+              <option value="85">{t('minScore')} 85+</option>
+            </select>
             <button type="button" onClick={() => void loadRanking()} className="btn-action inline-flex items-center gap-2">
               <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               {t('refresh')}

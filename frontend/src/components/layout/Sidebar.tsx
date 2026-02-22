@@ -217,7 +217,7 @@ export function Sidebar() {
                         }`}
                       >
                         <link.icon className={`w-5 h-5 ${Active ? 'text-gold' : 'text-soft-muted group-hover:text-soft-white'}`} />
-                        <span className="whitespace-nowrap overflow-hidden max-w-[150px]">
+                        <span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[190px]" title={link.name}>
                           {link.name}
                         </span>
                       </Link>
