@@ -2,10 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle2, FileJson, FileText, Loader2, PlayCircle, RotateCcw, ShieldAlert, UploadCloud } from 'lucide-react'
 import {
+  getFeedChannelConfig,
   getFeedWorkspace,
   listFeedRuns,
   publishFeedChannel,
+  updateFeedChannelConfig,
   validateFeedChannel,
+  type FeedChannelConfig,
   type FeedChannelName,
   type FeedChannelSummary,
   type FeedRunItem,
@@ -32,6 +35,9 @@ export default function FeedOrchestratorPage() {
   const [runs, setRuns] = useState<FeedRunItem[]>([])
   const [selectedChannel, setSelectedChannel] = useState<FeedChannelName>('idealista')
   const [validation, setValidation] = useState<FeedValidationResponse | null>(null)
+  const [channelConfig, setChannelConfig] = useState<FeedChannelConfig | null>(null)
+  const [configEnabled, setConfigEnabled] = useState(true)
+  const [configMaxItems, setConfigMaxItems] = useState(100)
   const [busy, setBusy] = useState<Record<string, boolean>>({})
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -57,6 +63,20 @@ export default function FeedOrchestratorPage() {
   useEffect(() => {
     void loadData()
   }, [loadData])
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const cfg = await getFeedChannelConfig(selectedChannel)
+        setChannelConfig(cfg)
+        setConfigEnabled(cfg.is_enabled)
+        setConfigMaxItems(cfg.max_items_per_run)
+      } catch {
+        setChannelConfig(null)
+      }
+    }
+    void loadConfig()
+  }, [selectedChannel])
 
   const runAction = useCallback(async (key: string, action: () => Promise<void>) => {
     setBusy((prev) => ({ ...prev, [key]: true }))
@@ -216,9 +236,9 @@ export default function FeedOrchestratorPage() {
                 </button>
                 <button
                   type="button"
-                  disabled={Boolean(busy[`publish-${selectedChannel}`])}
+                  disabled={Boolean(busy[`publish-${selectedChannel}`]) || !configEnabled}
                   onClick={() => void runAction(`publish-${selectedChannel}`, async () => {
-                    const result = await publishFeedChannel(selectedChannel, { dry_run: false, max_items: 100 })
+                    const result = await publishFeedChannel(selectedChannel, { dry_run: false, max_items: configMaxItems })
                     setValidation(null)
                     setMessage(`Publicacion ${result.status}: ${result.published_count} enviados, ${result.rejected_count} rechazados.`)
                   })}
@@ -228,9 +248,9 @@ export default function FeedOrchestratorPage() {
                 </button>
                 <button
                   type="button"
-                  disabled={Boolean(busy[`dry-${selectedChannel}`])}
+                  disabled={Boolean(busy[`dry-${selectedChannel}`]) || !configEnabled}
                   onClick={() => void runAction(`dry-${selectedChannel}`, async () => {
-                    const result = await publishFeedChannel(selectedChannel, { dry_run: true, max_items: 100 })
+                    const result = await publishFeedChannel(selectedChannel, { dry_run: true, max_items: configMaxItems })
                     setValidation(null)
                     setMessage(`Dry-run ${result.status}: ${result.rejected_count} con incidencias.`)
                   })}
@@ -256,6 +276,53 @@ export default function FeedOrchestratorPage() {
                 )}
               </div>
               <div className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 min-h-[230px]">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-soft-white">Configuracion del canal</h3>
+                  <button
+                    type="button"
+                    disabled={Boolean(busy[`config-${selectedChannel}`])}
+                    onClick={() => void runAction(`config-${selectedChannel}`, async () => {
+                      const cfg = await updateFeedChannelConfig(selectedChannel, {
+                        is_enabled: configEnabled,
+                        max_items_per_run: configMaxItems,
+                      })
+                      setChannelConfig(cfg)
+                      setMessage(`Configuracion guardada en ${CHANNEL_LABELS[selectedChannel]}.`)
+                    })}
+                    className="px-2.5 py-1 rounded-lg border border-gold/40 text-gold hover:bg-gold/10 text-xs font-semibold disabled:opacity-50"
+                  >
+                    {busy[`config-${selectedChannel}`] ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+
+                <div className="space-y-3 mb-4">
+                  <label className="flex items-center justify-between rounded-lg border border-soft-subtle/40 p-2">
+                    <span className="text-xs text-soft-muted">Canal activo</span>
+                    <input
+                      type="checkbox"
+                      checked={configEnabled}
+                      onChange={(e) => setConfigEnabled(e.target.checked)}
+                      className="h-4 w-4 accent-emerald-400"
+                    />
+                  </label>
+                  <label className="block rounded-lg border border-soft-subtle/40 p-2">
+                    <span className="text-xs text-soft-muted">Maximo de items por ejecucion</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={10000}
+                      value={configMaxItems}
+                      onChange={(e) => setConfigMaxItems(Number(e.target.value))}
+                      className="mt-1 w-full rounded-md border border-soft-subtle bg-navy-surface/40 px-2 py-1 text-sm text-soft-white outline-none focus:border-blue-light/50"
+                    />
+                  </label>
+                  {channelConfig && (
+                    <p className="text-[11px] text-soft-muted">
+                      Formato: <span className="text-soft-white">{channelConfig.format.toUpperCase()}</span>
+                    </p>
+                  )}
+                </div>
+
                 <h3 className="text-sm font-semibold text-soft-white mb-2">Issues principales</h3>
                 <div className="max-h-[220px] overflow-auto pr-1 custom-scrollbar space-y-2">
                   {selectedIssues.length === 0 ? (

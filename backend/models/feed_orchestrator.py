@@ -18,6 +18,7 @@ class FeedValidationIssue(BaseModel):
 class FeedChannelSummary(BaseModel):
     channel: str
     format: FeedFormat
+    is_enabled: bool = True
     status: FeedStatus
     total_candidates: int
     ready_to_publish: int
@@ -73,3 +74,17 @@ class FeedRunItem(BaseModel):
 class FeedRunListResponse(BaseModel):
     items: List[FeedRunItem]
     total: int
+
+
+class FeedChannelConfigResponse(BaseModel):
+    channel: str
+    format: FeedFormat
+    is_enabled: bool
+    max_items_per_run: int
+    rules_json: Dict[str, Any] = Field(default_factory=dict)
+
+
+class FeedChannelConfigUpdate(BaseModel):
+    is_enabled: Optional[bool] = None
+    max_items_per_run: Optional[int] = Field(default=None, ge=1, le=10000)
+    rules_json: Optional[Dict[str, Any]] = None

@@ -35,6 +35,8 @@ client = TestClient(app)
 class TestFeedRoutes:
     @pytest.mark.parametrize("method,path", [
         ("GET", "/api/feeds/workspace"),
+        ("GET", "/api/feeds/channels/{channel}/config"),
+        ("PATCH", "/api/feeds/channels/{channel}/config"),
         ("POST", "/api/feeds/channels/{channel}/validate"),
         ("POST", "/api/feeds/channels/{channel}/publish"),
         ("GET", "/api/feeds/runs"),
@@ -79,3 +81,17 @@ class TestFeedRoutes:
         resp = client.post("/api/feeds/channels/idealista/publish", json={"dry_run": False, "max_items": 10})
         assert resp.status_code == 200
         assert resp.json()["status"] == "success"
+
+    @patch("backend.api.routes.feeds.feed_orchestrator_service")
+    def test_update_config(self, mock_svc: MagicMock) -> None:
+        mock_svc.CHANNELS = {"idealista": {}}
+        mock_svc.update_channel_config = AsyncMock(return_value={
+            "channel": "idealista",
+            "format": "xml",
+            "is_enabled": True,
+            "max_items_per_run": 150,
+            "rules_json": {},
+        })
+        resp = client.patch("/api/feeds/channels/idealista/config", json={"is_enabled": True, "max_items_per_run": 150})
+        assert resp.status_code == 200
+        assert resp.json()["max_items_per_run"] == 150

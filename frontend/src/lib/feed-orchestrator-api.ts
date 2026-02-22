@@ -13,6 +13,7 @@ export type FeedChannelName = 'idealista' | 'fotocasa' | 'rightmove' | 'kyero'
 export interface FeedChannelSummary {
   channel: FeedChannelName
   format: 'xml' | 'json'
+  is_enabled: boolean
   status: 'healthy' | 'warning' | 'blocked'
   total_candidates: number
   ready_to_publish: number
@@ -78,6 +79,14 @@ export interface FeedRunListResponse {
   total: number
 }
 
+export interface FeedChannelConfig {
+  channel: FeedChannelName
+  format: 'xml' | 'json'
+  is_enabled: boolean
+  max_items_per_run: number
+  rules_json: Record<string, unknown>
+}
+
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession()
   return {
@@ -120,6 +129,20 @@ export async function publishFeedChannel(
       dry_run: Boolean(payload.dry_run),
       max_items: payload.max_items ?? 100,
     }),
+  })
+}
+
+export async function getFeedChannelConfig(channel: FeedChannelName): Promise<FeedChannelConfig> {
+  return apiRequest(`/api/feeds/channels/${channel}/config`)
+}
+
+export async function updateFeedChannelConfig(
+  channel: FeedChannelName,
+  payload: Partial<Pick<FeedChannelConfig, 'is_enabled' | 'max_items_per_run' | 'rules_json'>>,
+): Promise<FeedChannelConfig> {
+  return apiRequest(`/api/feeds/channels/${channel}/config`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
   })
 }
 

@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from backend.api.deps import get_org_id, get_current_user
 from backend.models.feed_orchestrator import (
+    FeedChannelConfigResponse,
+    FeedChannelConfigUpdate,
     FeedPublishRequest,
     FeedPublishResponse,
     FeedRunListResponse,
@@ -44,6 +46,51 @@ async def validate_channel(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error validating channel: {str(e)}",
+        )
+
+
+@router.get("/channels/{channel}/config", response_model=FeedChannelConfigResponse)
+async def get_channel_config(
+    channel: str,
+    org_id: str = Depends(get_org_id),
+    _user=Depends(get_current_user),
+) -> FeedChannelConfigResponse:
+    normalized_channel = channel.lower().strip()
+    if normalized_channel not in feed_orchestrator_service.CHANNELS:
+        raise HTTPException(status_code=404, detail=f"Channel '{channel}' not found")
+    try:
+        cfg = await feed_orchestrator_service.get_channel_config(org_id, normalized_channel)
+        return FeedChannelConfigResponse(**cfg)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error loading channel config: {str(e)}",
+        )
+
+
+@router.patch("/channels/{channel}/config", response_model=FeedChannelConfigResponse)
+async def update_channel_config(
+    channel: str,
+    payload: FeedChannelConfigUpdate,
+    org_id: str = Depends(get_org_id),
+    _user=Depends(get_current_user),
+) -> FeedChannelConfigResponse:
+    normalized_channel = channel.lower().strip()
+    if normalized_channel not in feed_orchestrator_service.CHANNELS:
+        raise HTTPException(status_code=404, detail=f"Channel '{channel}' not found")
+    try:
+        cfg = await feed_orchestrator_service.update_channel_config(
+            org_id=org_id,
+            channel=normalized_channel,
+            is_enabled=payload.is_enabled,
+            max_items_per_run=payload.max_items_per_run,
+            rules_json=payload.rules_json,
+        )
+        return FeedChannelConfigResponse(**cfg)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating channel config: {str(e)}",
         )
 
 
