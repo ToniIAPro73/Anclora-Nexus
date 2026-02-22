@@ -79,7 +79,7 @@ export default function ProspectionUnifiedPage() {
                 onChange={(e) => setSourceFilter(e.target.value as SourceFilter)}
                 className="bg-transparent text-sm text-soft-white outline-none"
               >
-                <option value="">{t('allSources') || 'Todos los orígenes'}</option>
+                <option value="">{t('allOrigins') || 'Todos los orígenes'}</option>
                 <option value="manual">manual</option>
                 <option value="widget">widget</option>
                 <option value="pbm">pbm</option>
