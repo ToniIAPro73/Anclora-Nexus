@@ -1,3 +1,5 @@
+'use client'
+
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle2, FileJson, FileText, Loader2, PlayCircle, RotateCcw, ShieldAlert, UploadCloud } from 'lucide-react'
