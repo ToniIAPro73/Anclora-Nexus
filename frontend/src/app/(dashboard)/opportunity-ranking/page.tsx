@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import Link from 'next/link'
 import { ArrowLeft, Flame, Gauge, RefreshCcw, Snowflake, ThermometerSun } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { useCurrency } from '@/lib/currency'
 import { getOpportunityRanking, type OpportunityRankingItem, type OpportunityRankingResponse } from '@/lib/prospection-api'
 
@@ -140,7 +141,7 @@ function OpportunityCard({
   formatMoney,
 }: {
   item: OpportunityRankingItem
-  t: (key: string) => string
+  t: (key: TranslationKey) => string
   formatMoney: (amount: number, options?: { minFractionDigits?: number; maxFractionDigits?: number }) => string
 }) {
   const bandIcon = item.priority_band === 'hot' ? Flame : item.priority_band === 'warm' ? ThermometerSun : Snowflake

@@ -147,10 +147,9 @@ export function NotificationPanel() {
 
       const combined = [...leadNotifications, ...taskNotifications]
         .sort((a, b) => b.createdAt - a.createdAt)
-        .map((notification) => {
-          const rest = { ...notification }
-          delete (rest as NotificationWithCreatedAt).createdAt
-          return rest
+        .map(({ createdAt, ...notification }) => {
+          void createdAt
+          return notification
         })
         .slice(0, 30)
 
@@ -168,8 +167,8 @@ export function NotificationPanel() {
         return merged
           .map((notification) => {
             if ('createdAt' in notification) {
-              const rest = { ...notification }
-              delete (rest as NotificationWithCreatedAt).createdAt
+              const { createdAt, ...rest } = notification
+              void createdAt
               return rest
             }
             return notification
