@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck, ChevronDown, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck, ChevronDown, ChevronRight, UploadCloud } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
@@ -126,6 +126,7 @@ export function Sidebar() {
       links: [
         { name: t('ingestion'), href: '/ingestion', icon: Database },
         { name: t('dataQuality'), href: '/data-quality', icon: ShieldCheck },
+        { name: 'Feed Orchestrator', href: '/feed-orchestrator', icon: UploadCloud },
       ],
     },
   ]

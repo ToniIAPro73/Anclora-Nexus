@@ -360,6 +360,7 @@
 | Data Quality & Entity Resolution | ANCLORA-DQER-001 | 1.0 | Specification | Data Quality & Identity | INDEX.md |
 | Content Design & Localization Governance | ANCLORA-CDLG-001 | 1.0 | Implemented | Content Governance & Localization | INDEX.md |
 | Prospection Unified Workspace | ANCLORA-PUW-001 | 1.0 | Specification | Prospection Operations | prospection-unified-workspace-INDEX.md |
+| Multichannel Feed Orchestrator | ANCLORA-MFO-001 | 1.0 | In Progress | Distribution & Publication | multichannel-feed-orchestrator-INDEX.md |
 
 ---
 
@@ -429,6 +430,7 @@
 | 2026-02-16 | Data Quality and Entity Resolution v1 | Entrada inicial en Specification Phase |
 | 2026-02-20 | Role Scoped Workspace Visibility v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-22 | Prospection Unified Workspace v1 | Entrada inicial en Specification Phase |
+| 2026-02-22 | Multichannel Feed Orchestrator v1 | Entrada inicial en In Progress (backend + frontend + estructura feature) |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |

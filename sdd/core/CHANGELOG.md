@@ -4,6 +4,52 @@
 
 ---
 
+## [UPCOMING] - 2026-02-22 - Multichannel Feed Orchestrator v1
+
+**Fecha**: 2026-02-22  
+**Status**: 🛠️ In Progress  
+**Criticidad**: ALTA  
+**Feature**: ANCLORA-MFO-001 v1.0
+
+### Scope objetivo
+
+- Publicación multicanal (XML/JSON) con validación previa.
+- Orquestación por canal con estado operacional.
+- Ejecución de publish y dry-run desde UI.
+- Historial de runs para trazabilidad.
+
+### Core/API Changes
+
+- Nuevos endpoints:
+  - `GET /api/feeds/workspace`
+  - `POST /api/feeds/channels/{channel}/validate`
+  - `POST /api/feeds/channels/{channel}/publish`
+  - `GET /api/feeds/runs`
+- Registro de router:
+  - `backend/api/routes/feeds.py`
+  - `backend/main.py` (`/api/feeds`)
+
+### Frontend Changes
+
+- Nueva pantalla profesional:
+  - `frontend/src/app/(dashboard)/feed-orchestrator/page.tsx`
+- Nuevo cliente API:
+  - `frontend/src/lib/feed-orchestrator-api.ts`
+- Integración en navegación:
+  - `frontend/src/components/layout/Sidebar.tsx`
+
+### Artefactos SDD / Governanza
+
+- `sdd/features/multichannel-feed-orchestrator/multichannel-feed-orchestrator-INDEX.md`
+- `sdd/features/multichannel-feed-orchestrator/multichannel-feed-orchestrator-spec-v1.md`
+- `sdd/features/multichannel-feed-orchestrator/multichannel-feed-orchestrator-spec-migration.md`
+- `sdd/features/multichannel-feed-orchestrator/multichannel-feed-orchestrator-test-plan-v1.md`
+- `.agent/rules/feature-multichannel-feed-orchestrator.md`
+- `.agent/skills/features/multichannel-feed-orchestrator/SKILL.md`
+- `.antigravity/prompts/features/multichannel-feed-orchestrator/`
+
+---
+
 ## [UPCOMING] - 2026-02-22 - Prospection Unified Workspace v1
 
 **Fecha**: 2026-02-22  

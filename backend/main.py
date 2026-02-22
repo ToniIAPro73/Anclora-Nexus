@@ -8,6 +8,7 @@ from backend.api.routes.prospection import router as prospection_router
 from backend.api.routes.finops import router as finops_router
 from backend.api.routes.ingestion import router as ingestion_router
 from backend.api.routes.dq import router as dq_router
+from backend.api.routes.feeds import router as feeds_router
 
 app = FastAPI(title="Anclora Nexus API", version="0.1.0")
 
@@ -28,6 +29,7 @@ app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospec
 app.include_router(finops_router, prefix="/api/finops", tags=["FinOps"])
 app.include_router(ingestion_router, prefix="/api", tags=["Ingestion"])
 app.include_router(dq_router, prefix="/api/dq", tags=["Data Quality"])
+app.include_router(feeds_router, prefix="/api/feeds", tags=["Feeds"])
 
 @app.get("/health")
 async def health_check():
