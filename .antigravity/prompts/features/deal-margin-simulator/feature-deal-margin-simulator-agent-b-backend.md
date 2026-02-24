@@ -6,6 +6,8 @@ Objective:
 - Return explainable and auditable outputs.
 
 Minimum contract:
-- Deterministic response shape with scope and version.
-- Stable validation errors for client handling.
-- Logging/metrics hooks for operational observability.
+- Endpoints:
+  - `POST /api/deal-margin/simulate`
+  - `POST /api/deal-margin/compare`
+- Deterministic formula and explainable drivers in output.
+- Response shape with `version` and `scope`.

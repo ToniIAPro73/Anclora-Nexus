@@ -389,6 +389,7 @@
 | Origin Aware Editability Policy | ANCLORA-OAEP-001 | 1.0 | Implemented | Governance & Data Integrity | origin-aware-editability-policy-INDEX.md |
 | Guardrailed Automation and Alerting | ANCLORA-GAA-001 | 1.0 | Implemented | Automation and Alerting | guardrailed-automation-and-alerting-INDEX.md |
 | FinOps and Commercial Command Center | ANCLORA-FCCC-001 | 1.0 | Implemented | Executive KPI and FinOps | finops-and-commercial-command-center-INDEX.md |
+| Deal Margin Simulator | ANCLORA-DMS-001 | 1.0 | Implemented | Commercial Profitability | deal-margin-simulator-INDEX.md |
 
 ---
 
@@ -462,6 +463,7 @@
 | 2026-02-24 | Origin Aware Editability Policy v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-24 | Guardrailed Automation and Alerting v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-24 | FinOps and Commercial Command Center v1 | Feature RELEASED - Gate Final OK |
+| 2026-02-24 | Deal Margin Simulator v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
@@ -485,7 +487,7 @@
 
 **Documento versión**: 1.0  
 **Última actualización**: 2026-02-24  
-**Próxima revisión**: Post cierre de DMS y SPO
+**Próxima revisión**: Post cierre de SPO
 
 ---
 
@@ -527,12 +529,14 @@
 
 **ID**: ANCLORA-DMS-001  
 **Version**: 1.0  
-**Status**: Specification Phase  
+**Status**: Implemented  
 **Phase**: Commercial Profitability  
 **Priority**: MEDIA-BAJA
 
 **Documentation**:
 - sdd/features/deal-margin-simulator/deal-margin-simulator-INDEX.md
+- sdd/features/deal-margin-simulator/QA_REPORT_ANCLORA_DMS_001.md
+- sdd/features/deal-margin-simulator/GATE_FINAL_ANCLORA_DMS_001.md
 - .agent/rules/feature-deal-margin-simulator.md
 - .agent/skills/features/deal-margin-simulator/SKILL.md
 - .antigravity/prompts/features/deal-margin-simulator/

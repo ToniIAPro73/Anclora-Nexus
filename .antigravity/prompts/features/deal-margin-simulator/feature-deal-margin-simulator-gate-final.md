@@ -7,3 +7,7 @@ Checklist:
 - [ ] Agent D QA report issued with no open P0/P1.
 - [ ] Spec, rules, skill and prompts are aligned.
 - [ ] FEATURES.md and CHANGELOG.md updated.
+
+Minimum expected backend contract:
+- `POST /api/deal-margin/simulate`
+- `POST /api/deal-margin/compare`

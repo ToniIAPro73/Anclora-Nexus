@@ -24,23 +24,54 @@
 
 ---
 
-## [UPCOMING] - 2026-02-24 - Deal Margin Simulator v1
+## [1.0] - 2026-02-24 - Deal Margin Simulator v1
 
 **Date**: 2026-02-24  
-**Status**: Specification Phase  
+**Status**: ✅ RELEASED  
 **Criticality**: MEDIA-BAJA  
 **Feature**: ANCLORA-DMS-001 v1.0
 
-### Scope target
+### Scope delivered
 - Deal margin simulator with scenario assumptions and explainable output.
 - Recommendation bands to prioritize high-margin opportunities.
-- Governance-ready artifacts (rules, skill, prompts A/B/C/D/Gate).
+
+### Core/API Changes
+- New router:
+  - `backend/api/routes/deal_margin.py`
+- New service:
+  - `backend/services/deal_margin_service.py`
+- New models:
+  - `backend/models/deal_margin.py`
+- Endpoints:
+  - `POST /api/deal-margin/simulate`
+  - `POST /api/deal-margin/compare`
+
+### Frontend Changes
+- New page:
+  - `frontend/src/app/(dashboard)/deal-margin-simulator/page.tsx`
+- New API client:
+  - `frontend/src/lib/deal-margin-api.ts`
+- Sidebar integration:
+  - `frontend/src/components/layout/Sidebar.tsx`
+- i18n keys added:
+  - `frontend/src/lib/i18n/translations.ts`
+
+### Agent A (DB) Decision
+- Migration skipped in v1.
+- Rationale: simulation is deterministic and does not require persisted scenarios.
+
+### Validation
+- `python -m pytest -q backend/tests/test_deal_margin_routes.py` -> 4 passed
+- `python -m pytest -q backend/tests/test_command_center_routes.py` -> 4 passed
+- `cd frontend; npm run -s lint` -> passed
 
 ### SDD / Governance Artifacts
 - sdd/features/deal-margin-simulator/
 - .agent/rules/feature-deal-margin-simulator.md
 - .agent/skills/features/deal-margin-simulator/SKILL.md
 - .antigravity/prompts/features/deal-margin-simulator/
+- sdd/features/deal-margin-simulator/QA_REPORT_ANCLORA_DMS_001.md
+- sdd/features/deal-margin-simulator/GATE_FINAL_ANCLORA_DMS_001.md
 
 ---
 
