@@ -159,14 +159,17 @@
 
   /* Button contracts */
   .btn-create {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold;
-    background: var(--color-gold);
-    color: var(--color-navy-deep);
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.28);
+    @apply inline-flex items-center justify-center gap-2 px-6 h-12 rounded-xl text-sm font-bold uppercase tracking-wider;
+    background: rgba(25, 35, 80, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.30);
+    color: var(--color-gold);
     transition: all 0.2s ease;
   }
-  .btn-create:hover { filter: brightness(1.04); }
-  .btn-create:disabled { opacity: 0.5; box-shadow: none; }
+  .btn-create:hover {
+    background: rgba(25, 35, 80, 0.85);
+    border-color: rgba(212, 175, 55, 0.50);
+  }
+  .btn-create:disabled { opacity: 0.5; }
 
   .btn-action {
     @apply inline-flex items-center justify-center gap-2 px-6 h-12 rounded-xl text-sm font-bold;

@@ -198,7 +198,7 @@ export default function ProspectionUnifiedPage() {
               <button
                 type="button"
                 onClick={() => void loadWorkspace()}
-                className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-sm text-soft-white hover:border-gold/50 transition-colors"
+                className="btn-action"
               >
                 <RefreshCw className="h-4 w-4" />
                 Actualizar
@@ -291,7 +291,7 @@ export default function ProspectionUnifiedPage() {
                               },
                               `Match actualizado a ${nextStatus}.`,
                             )}
-                            className="w-full rounded-lg border border-gold/40 bg-gold/10 px-2 py-1.5 text-xs font-semibold text-gold hover:bg-gold/20 disabled:opacity-50"
+                            className="btn-action w-full !h-8 !px-3 !rounded-lg !text-xs !font-semibold disabled:opacity-50"
                           >
                             {actionBusy[busyKey] ? 'Actualizando...' : `Mover a ${nextStatus}`}
                           </button>
@@ -341,7 +341,7 @@ export default function ProspectionUnifiedPage() {
                               },
                               `Propiedad movida a ${nextStatus}.`,
                             )}
-                            className="w-full rounded-lg border border-blue-400/40 bg-blue-500/10 px-2 py-1.5 text-xs font-semibold text-blue-200 hover:bg-blue-500/20 disabled:opacity-50"
+                            className="btn-action w-full !h-8 !px-3 !rounded-lg !text-xs !font-semibold disabled:opacity-50"
                           >
                             {actionBusy[busyKey] ? 'Actualizando...' : `Mover a ${nextStatus}`}
                           </button>
@@ -398,7 +398,7 @@ export default function ProspectionUnifiedPage() {
                               },
                               `Buyer movido a ${nextStatus}.`,
                             )}
-                            className="w-full rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-50"
+                            className="btn-action w-full !h-8 !px-3 !rounded-lg !text-xs !font-semibold disabled:opacity-50"
                           >
                             {actionBusy[busyKey] ? 'Actualizando...' : `Mover a ${nextStatus}`}
                           </button>

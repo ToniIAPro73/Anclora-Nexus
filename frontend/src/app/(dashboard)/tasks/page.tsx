@@ -64,7 +64,7 @@ export default function TasksPage() {
           <div className="flex items-center gap-4">
              <button
                 onClick={handleNewTask}
-                className="px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold border border-gold/20 rounded-lg text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+                className="btn-create"
               >
                 <Plus className="w-4 h-4" />
                 Nueva Tarea

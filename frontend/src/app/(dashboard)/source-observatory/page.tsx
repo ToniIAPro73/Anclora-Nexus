@@ -60,7 +60,7 @@ export default function SourceObservatoryPage() {
           <button
             type="button"
             onClick={() => void load()}
-            className="inline-flex h-12 items-center gap-2 rounded-xl border border-soft-subtle bg-navy-surface/40 px-4 text-sm font-semibold text-soft-white hover:border-blue-light/50 transition-all"
+            className="btn-action"
           >
             <RefreshCw className="h-4 w-4" />
             {t('refresh')}

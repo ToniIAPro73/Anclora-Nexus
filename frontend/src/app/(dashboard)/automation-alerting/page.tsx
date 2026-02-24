@@ -83,7 +83,7 @@ export default function AutomationAlertingPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="inline-flex h-12 items-center gap-2 rounded-xl border border-soft-subtle bg-navy-surface/40 px-4 text-sm font-semibold text-soft-white hover:border-blue-light/50 transition-all"
+              className="btn-action"
               onClick={() => void load()}
             >
               <RefreshCw className="h-4 w-4" />
@@ -91,7 +91,7 @@ export default function AutomationAlertingPage() {
             </button>
             <button
               type="button"
-              className="inline-flex h-12 items-center gap-2 rounded-xl border border-gold/40 bg-gold/10 px-4 text-sm font-semibold text-gold hover:bg-gold/20 transition-all"
+              className="btn-create"
               onClick={() => void run('create-rule', async () => {
                 await createAutomationRule({
                   name: t('automationDefaultRuleName'),
@@ -118,32 +118,32 @@ export default function AutomationAlertingPage() {
           <section className="h-64 rounded-2xl border border-soft-subtle bg-navy-surface/30 animate-pulse" />
         ) : (
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
               <header className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-soft-white">{t('automationRulesTitle')}</h2>
                 <span className="text-sm text-soft-muted">{rules.length}</span>
               </header>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
                 {rules.length === 0 ? <p className="text-sm text-soft-muted">{t('automationNoRules')}</p> : rules.map((r) => (
                   <div key={r.id} className="rounded-xl border border-soft-subtle/60 bg-navy-deep/30 p-3">
-                    <p className="text-lg font-semibold text-soft-white line-clamp-1">{r.name}</p>
-                    <p className="mt-1 text-sm text-soft-muted">{r.event_type} · {r.channel}</p>
+                    <p className="text-sm font-semibold text-soft-white line-clamp-1">{r.name}</p>
+                    <p className="mt-1 text-xs text-soft-muted">{r.event_type} · {r.channel}</p>
                     <div className="mt-3 flex gap-2">
                       <button
                         type="button"
-                        className="rounded-lg border border-blue-400/40 bg-blue-500/10 px-3 py-2 text-sm text-blue-200 hover:bg-blue-500/20"
+                        className="btn-action !h-8 !px-3 !rounded-lg !text-xs !font-semibold"
                         onClick={() => void run(`dry-${r.id}`, async () => {
                           const res = await dryRunAutomationRule(r.id, { cost_estimate_eur: 1 })
                           setMessage(`${t('automationDryRun')}: ${res.decision}`)
                         })}
                         disabled={busyKey === `dry-${r.id}`}
                       >
-                        <ShieldCheck className="mr-1 inline h-4 w-4" />
+                        <ShieldCheck className="mr-1 inline h-3.5 w-3.5" />
                         {t('automationDryRun')}
                       </button>
                       <button
                         type="button"
-                        className="rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-sm font-semibold text-gold hover:bg-gold/20"
+                        className="btn-action !h-8 !px-3 !rounded-lg !text-xs !font-semibold"
                         onClick={() => void run(`exec-${r.id}`, async () => {
                           const res = await executeAutomationRule(r.id, {
                             cost_estimate_eur: 1,
@@ -153,7 +153,7 @@ export default function AutomationAlertingPage() {
                         })}
                         disabled={busyKey === `exec-${r.id}`}
                       >
-                        <Play className="mr-1 inline h-4 w-4" />
+                        <Play className="mr-1 inline h-3.5 w-3.5" />
                         {t('automationExecute')}
                       </button>
                     </div>
@@ -162,12 +162,12 @@ export default function AutomationAlertingPage() {
               </div>
             </article>
 
-            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
               <header className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-soft-white">{t('automationExecutionsTitle')}</h2>
                 <span className="text-sm text-soft-muted">{executions.length}</span>
               </header>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
                 {executions.length === 0 ? <p className="text-sm text-soft-muted">{t('automationNoExecutions')}</p> : executions.slice(0, 8).map((e) => (
                   <div key={e.id} className="rounded-xl border border-soft-subtle/60 bg-navy-deep/30 p-3">
                     <p className="text-xs text-soft-muted">{e.trace_id}</p>
@@ -178,19 +178,19 @@ export default function AutomationAlertingPage() {
               </div>
             </article>
 
-            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
               <header className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-soft-white">{t('automationAlertsTitle')}</h2>
                 <span className="text-sm text-soft-muted">{alerts.length}</span>
               </header>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
                 {alerts.length === 0 ? <p className="text-sm text-soft-muted">{t('automationNoAlerts')}</p> : alerts.slice(0, 8).map((a) => (
                   <div key={a.id} className="rounded-xl border border-red-500/30 bg-red-500/10 p-3">
                     <p className="text-sm font-semibold text-red-200"><AlertTriangle className="mr-1 inline h-4 w-4" />{a.alert_type}</p>
                     <p className="mt-1 text-xs text-red-100">{a.message}</p>
                     <button
                       type="button"
-                      className="mt-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200 hover:bg-emerald-500/20"
+                      className="btn-action !mt-2 !h-8 !px-3 !rounded-lg !text-xs !font-semibold"
                       onClick={() => void run(`ack-${a.id}`, async () => {
                         await acknowledgeAutomationAlert(a.id)
                         setMessage(t('automationAlertAcknowledged'))

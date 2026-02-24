@@ -107,7 +107,7 @@ export default function DealMarginSimulatorPage() {
               setError(null)
               setCompareBest(null)
             }}
-            className="inline-flex h-12 items-center gap-2 rounded-xl border border-soft-subtle bg-navy-surface/40 px-4 text-sm font-semibold text-soft-white hover:border-blue-light/50 transition-all"
+            className="btn-action"
           >
             <RefreshCw className="h-4 w-4" />
             {t('dealMarginReset')}
@@ -136,7 +136,7 @@ export default function DealMarginSimulatorPage() {
               type="button"
               onClick={() => void runSimulation()}
               disabled={loading}
-              className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold hover:bg-gold/20 disabled:opacity-60"
+              className="btn-action disabled:opacity-60"
             >
               {loading ? t('loading') : t('dealMarginSimulate')}
             </button>
@@ -144,7 +144,7 @@ export default function DealMarginSimulatorPage() {
               type="button"
               onClick={() => void runComparison()}
               disabled={loading}
-              className="rounded-xl border border-blue-400/40 bg-blue-500/10 px-4 py-2 text-sm text-blue-200 hover:bg-blue-500/20 disabled:opacity-60"
+              className="btn-action disabled:opacity-60"
             >
               {loading ? t('loading') : t('dealMarginCompare')}
             </button>

@@ -13,12 +13,14 @@ import {
   Save, 
   RotateCcw,
   Check,
-  Wallet
+  Wallet,
+  Download,
+  Upload,
+  RefreshCw
 } from 'lucide-react'
 import { CostGovernanceTab } from '@/components/finops/CostGovernanceTab'
 import { useI18n } from '@/lib/i18n'
 import { LanguageSelector } from '@/components/layout/LanguageSelector'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 
@@ -47,9 +49,10 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-soft-subtle/30">
-        <div>
+    <div className="h-full p-6 overflow-y-auto">
+      <div className="max-w-[1440px] mx-auto space-y-8 pb-20">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-soft-subtle/30">
+          <div>
           <h1 className="text-4xl font-bold text-soft-white tracking-tight flex items-center gap-4">
             <div className="p-3 bg-gold/10 rounded-2xl border border-gold/20">
               <Settings className="w-8 h-8 text-gold" />
@@ -61,19 +64,20 @@ export default function SettingsPage() {
           </p>
         </div>
         
-        <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            className="border-soft-subtle/50 text-soft-white hover:bg-white/5 rounded-xl px-6 h-11 transition-all flex items-center gap-2"
+          <div className="flex gap-3">
+            <button
+            type="button"
+            className="btn-action"
           >
             <RotateCcw className="w-4 h-4" />
             {t('resetDefaults')}
-          </Button>
-          <Button 
+            </button>
+            <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className={`rounded-xl px-8 h-11 font-bold text-navy-deep shadow-lg transition-all flex items-center gap-2 ${
-              saveSuccess ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-gold hover:bg-gold-muted'
+            className={`btn-action min-w-[220px] ${
+              saveSuccess ? '!bg-emerald-500 hover:!bg-emerald-600 !text-white' : ''
             }`}
           >
             {isSaving ? (
@@ -89,11 +93,12 @@ export default function SettingsPage() {
                 {t('saveChanges')}
               </>
             )}
-          </Button>
+            </button>
+          </div>
         </div>
-      </div>
+      
 
-      <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar Navigation */}
         <aside className="w-full md:w-64 space-y-2">
           {tabs.map((tab) => {
@@ -295,9 +300,9 @@ export default function SettingsPage() {
                     <h3 className="text-soft-white font-bold">{t('comingSoon')}</h3>
                     <p className="text-sm text-soft-muted mt-1">{t('notificationsConfig')}</p>
                   </div>
-                  <Button variant="outline" className="mt-4 border-gold/30 text-gold hover:bg-gold/10">
+                  <button type="button" className="btn-action mt-4">
                     {t('managePermissions')}
-                  </Button>
+                  </button>
                 </div>
               )}
 
@@ -310,14 +315,58 @@ export default function SettingsPage() {
                     <h3 className="text-soft-white font-bold">{t('secureAccess')}</h3>
                     <p className="text-sm text-soft-muted mt-1">{t('securityManagedBy')}</p>
                   </div>
-                  <Button variant="outline" className="mt-4 border-soft-subtle/50 text-soft-white">
+                  <button type="button" className="btn-action mt-4">
                     {t('viewLogs')}
-                  </Button>
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'data' && (
+                <div className="space-y-8">
+                  <Card className="bg-navy-surface border-soft-subtle/30 overflow-hidden">
+                    <div className="p-6 border-b border-soft-subtle/30 bg-white/5">
+                      <h3 className="text-lg font-bold text-soft-white">Data & Sync</h3>
+                    </div>
+                    <div className="p-8 space-y-8">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                          <p className="text-soft-white font-bold mb-1">Sincronizacion automatica</p>
+                          <p className="text-sm text-soft-muted">Mantener CRM, leads y tasks sincronizados en segundo plano.</p>
+                        </div>
+                        <div className="w-12 h-6 rounded-full p-1 transition-colors cursor-pointer bg-gold">
+                          <div className="w-4 h-4 rounded-full bg-navy-deep transition-transform translate-x-6" />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-soft-subtle/10">
+                        <button type="button" className="btn-action justify-start">
+                          <Download className="h-4 w-4" />
+                          Exportar backup
+                        </button>
+                        <button type="button" className="btn-action justify-start">
+                          <Upload className="h-4 w-4" />
+                          Importar datos
+                        </button>
+                      </div>
+
+                      <div className="pt-6 border-t border-soft-subtle/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                          <p className="text-soft-white font-bold mb-1">Ultima sincronizacion</p>
+                          <p className="text-sm text-soft-muted">Hoy a las 09:42 - Estado: OK</p>
+                        </div>
+                        <button type="button" className="btn-action">
+                          <RefreshCw className="h-4 w-4" />
+                          Sincronizar ahora
+                        </button>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
       </div>
     </div>
   )
