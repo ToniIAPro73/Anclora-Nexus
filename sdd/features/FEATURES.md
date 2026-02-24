@@ -325,7 +325,7 @@
 
 **ID**: ANCLORA-OAEP-001  
 **Versión**: 1.0  
-**Status**: In Progress  
+**Status**: Implemented  
 **Fase**: Governance & Data Integrity  
 **Prioridad**: ALTA
 
@@ -336,6 +336,8 @@
 - **Spec Técnica**: `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-spec-v1.md`
 - **Spec Migración**: `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-spec-migration.md`
 - **Test Plan**: `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-test-plan-v1.md`
+- **QA Report**: `sdd/features/origin-aware-editability-policy/QA_REPORT_ANCLORA_OAEP_001.md`
+- **Gate Final**: `sdd/features/origin-aware-editability-policy/GATE_FINAL_ANCLORA_OAEP_001.md`
 - **Feature Rules**: `.agent/rules/feature-origin-aware-editability-policy.md`
 - **SKILL**: `.agent/skills/features/origin-aware-editability-policy/SKILL.md`
 - **Prompts Antigravity**: `.antigravity/prompts/features/origin-aware-editability-policy/`
@@ -382,7 +384,7 @@
 | Content Design & Localization Governance | ANCLORA-CDLG-001 | 1.0 | Implemented | Content Governance & Localization | INDEX.md |
 | Prospection Unified Workspace | ANCLORA-PUW-001 | 1.0 | Specification | Prospection Operations | prospection-unified-workspace-INDEX.md |
 | Multichannel Feed Orchestrator | ANCLORA-MFO-001 | 1.0 | In Progress | Distribution & Publication | multichannel-feed-orchestrator-INDEX.md |
-| Origin Aware Editability Policy | ANCLORA-OAEP-001 | 1.0 | In Progress | Governance & Data Integrity | origin-aware-editability-policy-INDEX.md |
+| Origin Aware Editability Policy | ANCLORA-OAEP-001 | 1.0 | Implemented | Governance & Data Integrity | origin-aware-editability-policy-INDEX.md |
 
 ---
 
@@ -453,6 +455,7 @@
 | 2026-02-20 | Role Scoped Workspace Visibility v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-22 | Prospection Unified Workspace v1 | Entrada inicial en Specification Phase |
 | 2026-02-22 | Multichannel Feed Orchestrator v1 | Entrada inicial en In Progress (backend + frontend + estructura feature) |
+| 2026-02-24 | Origin Aware Editability Policy v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
@@ -475,8 +478,8 @@
 ---
 
 **Documento versión**: 1.0  
-**Última actualización**: 2026-02-13  
-**Próxima revisión**: Post Multi-Tenant v1 aprobación
+**Última actualización**: 2026-02-24  
+**Próxima revisión**: Post cierre de MFO y PUW
 
 ---
 

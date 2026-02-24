@@ -83,10 +83,10 @@
 - .antigravity/prompts/features/guardrailed-automation-and-alerting/
 
 ---
-## [UPCOMING] - 2026-02-22 - Origin Aware Editability Policy v1
+## [1.0] - 2026-02-24 - Origin Aware Editability Policy v1
 
-**Fecha**: 2026-02-22  
-**Status**: 🛠️ In Progress  
+**Fecha**: 2026-02-24  
+**Status**: ✅ RELEASED  
 **Criticidad**: ALTA  
 **Feature**: ANCLORA-OAEP-001 v1.0
 
@@ -129,6 +129,8 @@
 - `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-spec-v1.md`
 - `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-spec-migration.md`
 - `sdd/features/origin-aware-editability-policy/origin-aware-editability-policy-test-plan-v1.md`
+- `sdd/features/origin-aware-editability-policy/QA_REPORT_ANCLORA_OAEP_001.md`
+- `sdd/features/origin-aware-editability-policy/GATE_FINAL_ANCLORA_OAEP_001.md`
 - `.agent/rules/feature-origin-aware-editability-policy.md`
 - `.agent/skills/features/origin-aware-editability-policy/SKILL.md`
 - `.antigravity/prompts/features/origin-aware-editability-policy/`
