@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { LineChart, RefreshCw } from 'lucide-react'
-import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { ArrowLeft, LineChart, RefreshCw } from 'lucide-react'
 
 import { useI18n } from '@/lib/i18n'
 import {
@@ -42,40 +42,46 @@ export default function SourceObservatoryPage() {
   }, [load])
 
   return (
-    <div className="min-h-screen p-6">
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-        <section className="rounded-2xl border border-soft-subtle bg-gradient-to-br from-navy-deep/80 via-navy-surface/50 to-navy-deep/70 p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="text-3xl font-bold text-soft-white">{t('sourceObservatoryMenu')}</h1>
-              <p className="mt-1 text-sm text-soft-muted">{t('sourceObservatorySubtitle')}</p>
+    <div className="h-full p-6 overflow-y-auto">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-5">
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-soft-subtle/50">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Link
+                href="/dashboard"
+                className="p-2 rounded-xl border border-soft-subtle bg-navy-surface/40 text-soft-muted hover:text-soft-white hover:border-blue-light/50 transition-all group"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              </Link>
+              <h1 className="text-4xl font-bold text-soft-white tracking-tight">{t('sourceObservatoryMenu')}</h1>
             </div>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-sm text-soft-white hover:border-gold/50"
-            >
-              <RefreshCw className="h-4 w-4" />
-              {t('refresh')}
-            </button>
+            <p className="text-soft-muted">{t('sourceObservatorySubtitle')}</p>
           </div>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="inline-flex h-12 items-center gap-2 rounded-xl border border-soft-subtle bg-navy-surface/40 px-4 text-sm font-semibold text-soft-white hover:border-blue-light/50 transition-all"
+          >
+            <RefreshCw className="h-4 w-4" />
+            {t('refresh')}
+          </button>
         </section>
 
         {error ? <section className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">{error}</section> : null}
 
         {loading ? (
-          <section className="h-64 rounded-xl border border-soft-subtle bg-navy-surface/30 animate-pulse" />
+          <section className="h-64 rounded-2xl border border-soft-subtle bg-navy-surface/30 animate-pulse" />
         ) : overview.length === 0 ? (
-          <section className="rounded-xl border border-soft-subtle bg-navy-surface/35 p-6 text-sm text-soft-muted">
+          <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-6 text-sm text-soft-muted">
             {t('sourceObservatoryEmpty')}
           </section>
         ) : (
           <>
-            <section className="rounded-xl border border-soft-subtle bg-navy-surface/35 p-4">
+            <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
               <h2 className="mb-3 text-lg font-semibold text-soft-white">{t('sourceObservatoryScorecards')}</h2>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {overview.slice(0, 9).map((item) => (
-                  <article key={item.source_key} className="rounded-lg border border-soft-subtle/50 bg-navy-deep/30 p-3">
+                  <article key={item.source_key} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
                     <p className="text-sm font-semibold text-soft-white">{item.source_key}</p>
                     <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatorySuccessRate')}: {item.success_rate_pct.toFixed(2)}%</p>
                     <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryLeads')}: {item.lead_count}</p>
@@ -85,26 +91,26 @@ export default function SourceObservatoryPage() {
               </div>
             </section>
 
-            <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-              <article className="rounded-xl border border-soft-subtle bg-navy-surface/35 p-4">
+            <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
                 <h2 className="mb-3 text-lg font-semibold text-soft-white">{t('sourceObservatoryRanking')}</h2>
                 <div className="space-y-2">
                   {ranking.slice(0, 8).map((row, idx) => (
-                    <div key={row.source_key} className="rounded-lg border border-soft-subtle/50 bg-navy-deep/30 p-3">
+                    <div key={row.source_key} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
                       <p className="text-sm font-semibold text-soft-white">#{idx + 1} {row.source_key}</p>
                       <p className="text-xs text-gold">Score {row.score.toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
               </article>
-              <article className="rounded-xl border border-soft-subtle bg-navy-surface/35 p-4">
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-soft-white">
                   <LineChart className="h-4 w-4 text-gold" />
                   {t('sourceObservatoryTrends')}
                 </h2>
-                <div className="space-y-2 max-h-[420px] overflow-auto pr-1">
+                <div className="space-y-2 max-h-[420px] overflow-auto pr-1 custom-scrollbar">
                   {trends.slice(0, 24).map((p) => (
-                    <div key={`${p.period}-${p.source_key}`} className="rounded-lg border border-soft-subtle/50 bg-navy-deep/30 p-3">
+                    <div key={`${p.period}-${p.source_key}`} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
                       <p className="text-sm text-soft-white">{p.period} · {p.source_key}</p>
                       <p className="text-xs text-soft-muted">{t('sourceObservatoryEvents')}: {p.events} · {t('sourceObservatorySuccessRate')}: {p.success_rate_pct.toFixed(2)}%</p>
                     </div>
@@ -114,7 +120,7 @@ export default function SourceObservatoryPage() {
             </section>
           </>
         )}
-      </motion.div>
+      </div>
     </div>
   )
 }
