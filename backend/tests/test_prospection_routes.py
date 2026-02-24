@@ -22,9 +22,15 @@ class MockUser:
 async def mock_get_current_user() -> MockUser:
     return MockUser()
 
-from backend.api.deps import get_org_id, get_current_user
+async def mock_check_budget_hard_stop():
+    class BudgetStatus:
+        status = "ok"
+    return BudgetStatus()
+
+from backend.api.deps import get_org_id, get_current_user, check_budget_hard_stop
 app.dependency_overrides[get_org_id] = mock_get_org_id
 app.dependency_overrides[get_current_user] = mock_get_current_user
+app.dependency_overrides[check_budget_hard_stop] = mock_check_budget_hard_stop
 client = TestClient(app)
 
 

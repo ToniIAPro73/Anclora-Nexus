@@ -5,6 +5,7 @@ import sys
 from datetime import date
 from uuid import uuid4
 from dotenv import load_dotenv
+import pytest
 
 # Path setup to import backend modules
 sys.path.append(os.getcwd())
@@ -12,6 +13,7 @@ sys.path.append(os.getcwd())
 from backend.services.finops import finops_service
 from backend.models.finops import UsageEventSchema, BudgetUpdate
 
+@pytest.mark.asyncio
 async def test_finops_logic():
     print("=== FinOps Logic & Isolation QA Test ===")
     

@@ -477,3 +477,63 @@
 **Documento versión**: 1.0  
 **Última actualización**: 2026-02-13  
 **Próxima revisión**: Post Multi-Tenant v1 aprobación
+
+---
+
+## ROADMAP CONTINUATION - 2026-02-24
+
+### 12. Guardrailed Automation and Alerting v1
+
+**ID**: ANCLORA-GAA-001  
+**Version**: 1.0  
+**Status**: Specification Phase  
+**Phase**: Automation and Alerting  
+**Priority**: MEDIA
+
+**Documentation**:
+- sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-INDEX.md
+- .agent/rules/feature-guardrailed-automation-and-alerting.md
+- .agent/skills/features/guardrailed-automation-and-alerting/SKILL.md
+- .antigravity/prompts/features/guardrailed-automation-and-alerting/
+
+### 13. FinOps and Commercial Command Center v1
+
+**ID**: ANCLORA-FCCC-001  
+**Version**: 1.0  
+**Status**: Specification Phase  
+**Phase**: Executive KPI and FinOps  
+**Priority**: MEDIA
+
+**Documentation**:
+- sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-INDEX.md
+- .agent/rules/feature-finops-and-commercial-command-center.md
+- .agent/skills/features/finops-and-commercial-command-center/SKILL.md
+- .antigravity/prompts/features/finops-and-commercial-command-center/
+
+### 14. Deal Margin Simulator v1
+
+**ID**: ANCLORA-DMS-001  
+**Version**: 1.0  
+**Status**: Specification Phase  
+**Phase**: Commercial Profitability  
+**Priority**: MEDIA-BAJA
+
+**Documentation**:
+- sdd/features/deal-margin-simulator/deal-margin-simulator-INDEX.md
+- .agent/rules/feature-deal-margin-simulator.md
+- .agent/skills/features/deal-margin-simulator/SKILL.md
+- .antigravity/prompts/features/deal-margin-simulator/
+
+### 15. Source Performance Observatory v1
+
+**ID**: ANCLORA-SPO-001  
+**Version**: 1.0  
+**Status**: Specification Phase  
+**Phase**: Acquisition Optimization  
+**Priority**: BAJA
+
+**Documentation**:
+- sdd/features/source-performance-observatory/source-performance-observatory-INDEX.md
+- .agent/rules/feature-source-performance-observatory.md
+- .agent/skills/features/source-performance-observatory/SKILL.md
+- .antigravity/prompts/features/source-performance-observatory/

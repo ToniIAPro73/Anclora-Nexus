@@ -38,7 +38,10 @@ class SupabaseService:
             fallback = self.client.table("leads").select("*").eq("id", lead_id).limit(1).execute()
             return fallback.data[0] if fallback.data else {}
         response = self.client.table("leads").update(sanitized).eq("id", lead_id).execute()
-        return response.data[0]
+        if response.data:
+            return response.data[0]
+        fallback = self.client.table("leads").select("*").eq("id", lead_id).limit(1).execute()
+        return fallback.data[0] if fallback.data else {}
 
     async def update_lead_scoped(self, org_id: str, lead_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         existing = (

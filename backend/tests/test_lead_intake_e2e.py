@@ -1,14 +1,17 @@
 import asyncio
 import json
+import pytest
+from uuid import uuid4
 from backend.agents.graph import agent_executor
 from backend.agents.state import AgentState
 
+@pytest.mark.asyncio
 async def test_lead_intake():
     print("🚀 Starting Lead Intake E2E Test...")
     
     # Mock lead input
     test_input = {
-        "lead_id": "test-lead-uuid", # In real n8n flow, this would be an actual UUID from Supabase
+        "lead_id": str(uuid4()), # In real n8n flow, this would be an actual UUID from Supabase
         "name": "Juan Palomo",
         "email": "juan.palomo@mallorca-luxury.com",
         "phone": "+34 600 000 000",

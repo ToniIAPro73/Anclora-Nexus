@@ -245,6 +245,7 @@ class TestMatchOperations:
             def eq(self, *args): return self
             def neq(self, *args): return self
             def in_(self, *args): return self
+            def limit(self, *args): return self
             def order(self, *args, **kwargs): return self
             def range(self, *args): return self
 

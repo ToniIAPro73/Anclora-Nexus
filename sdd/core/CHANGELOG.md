@@ -4,6 +4,85 @@
 
 ---
 
+## [UPCOMING] - 2026-02-24 - Source Performance Observatory v1
+
+**Date**: 2026-02-24  
+**Status**: Specification Phase  
+**Criticality**: BAJA  
+**Feature**: ANCLORA-SPO-001 v1.0
+
+### Scope target
+- Source/channel performance observatory with quality and conversion signals.
+- Comparative ranking and trend views by period and org.
+- Governance-ready artifacts (rules, skill, prompts A/B/C/D/Gate).
+
+### SDD / Governance Artifacts
+- sdd/features/source-performance-observatory/
+- .agent/rules/feature-source-performance-observatory.md
+- .agent/skills/features/source-performance-observatory/SKILL.md
+- .antigravity/prompts/features/source-performance-observatory/
+
+---
+
+## [UPCOMING] - 2026-02-24 - Deal Margin Simulator v1
+
+**Date**: 2026-02-24  
+**Status**: Specification Phase  
+**Criticality**: MEDIA-BAJA  
+**Feature**: ANCLORA-DMS-001 v1.0
+
+### Scope target
+- Deal margin simulator with scenario assumptions and explainable output.
+- Recommendation bands to prioritize high-margin opportunities.
+- Governance-ready artifacts (rules, skill, prompts A/B/C/D/Gate).
+
+### SDD / Governance Artifacts
+- sdd/features/deal-margin-simulator/
+- .agent/rules/feature-deal-margin-simulator.md
+- .agent/skills/features/deal-margin-simulator/SKILL.md
+- .antigravity/prompts/features/deal-margin-simulator/
+
+---
+
+## [UPCOMING] - 2026-02-24 - FinOps and Commercial Command Center v1
+
+**Date**: 2026-02-24  
+**Status**: Specification Phase  
+**Criticality**: MEDIA  
+**Feature**: ANCLORA-FCCC-001 v1.0
+
+### Scope target
+- Unified executive dashboard for cost, productivity and conversion KPIs.
+- Commercial and FinOps indicators in a single operational cockpit.
+- Governance-ready artifacts (rules, skill, prompts A/B/C/D/Gate).
+
+### SDD / Governance Artifacts
+- sdd/features/finops-and-commercial-command-center/
+- .agent/rules/feature-finops-and-commercial-command-center.md
+- .agent/skills/features/finops-and-commercial-command-center/SKILL.md
+- .antigravity/prompts/features/finops-and-commercial-command-center/
+
+---
+
+## [UPCOMING] - 2026-02-24 - Guardrailed Automation and Alerting v1
+
+**Date**: 2026-02-24  
+**Status**: Specification Phase  
+**Criticality**: MEDIA  
+**Feature**: ANCLORA-GAA-001 v1.0
+
+### Scope target
+- Intelligent alerts and guarded automation with cost and schedule controls.
+- Safe execution model with human checkpoints and auditable decisions.
+- Governance-ready artifacts (rules, skill, prompts A/B/C/D/Gate).
+
+### SDD / Governance Artifacts
+- sdd/features/guardrailed-automation-and-alerting/
+- .agent/rules/feature-guardrailed-automation-and-alerting.md
+- .agent/skills/features/guardrailed-automation-and-alerting/SKILL.md
+- .antigravity/prompts/features/guardrailed-automation-and-alerting/
+
+---
 ## [UPCOMING] - 2026-02-22 - Origin Aware Editability Policy v1
 
 **Fecha**: 2026-02-22  
@@ -842,5 +921,7 @@ Nuevos grupos de endpoints:
 **Changelog maintained by**: Toni (CTO)  
 **Last updated**: 2026-02-13  
 **Next review**: Post Multi-Tenant v1 Production Deploy
+
+
 
 
