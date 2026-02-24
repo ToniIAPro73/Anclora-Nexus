@@ -64,23 +64,61 @@
 
 ---
 
-## [UPCOMING] - 2026-02-24 - Guardrailed Automation and Alerting v1
+## [1.0] - 2026-02-24 - Guardrailed Automation and Alerting v1
 
 **Date**: 2026-02-24  
-**Status**: Specification Phase  
+**Status**: ✅ RELEASED  
 **Criticality**: MEDIA  
 **Feature**: ANCLORA-GAA-001 v1.0
 
-### Scope target
-- Intelligent alerts and guarded automation with cost and schedule controls.
-- Safe execution model with human checkpoints and auditable decisions.
-- Governance-ready artifacts (rules, skill, prompts A/B/C/D/Gate).
+### Scope delivered
+- Intelligent alerts and guarded automation with cost, role and checkpoint controls.
+- Safe execution model with human checkpoint and auditable decisions.
+- Operational dashboard integrated in sidebar.
+
+### Core/API Changes
+- New router: `backend/api/routes/automation.py`
+- New service: `backend/services/automation_service.py`
+- New models: `backend/models/automation.py`
+- Endpoints:
+  - `GET/POST /api/automation/rules`
+  - `PATCH /api/automation/rules/{rule_id}`
+  - `POST /api/automation/rules/{rule_id}/dry-run`
+  - `POST /api/automation/rules/{rule_id}/execute`
+  - `GET /api/automation/executions`
+  - `GET /api/automation/alerts`
+  - `POST /api/automation/alerts/{alert_id}/ack`
+
+### Database Changes
+- New migration:
+  - `supabase/migrations/035_guardrailed_automation_and_alerting.sql`
+- New tables:
+  - `automation_rules`
+  - `automation_executions`
+  - `automation_alerts`
+
+### Frontend Changes
+- New page:
+  - `frontend/src/app/(dashboard)/automation-alerting/page.tsx`
+- New API client:
+  - `frontend/src/lib/automation-api.ts`
+- Sidebar integration:
+  - `frontend/src/components/layout/Sidebar.tsx`
+- i18n keys added in:
+  - `frontend/src/lib/i18n/translations.ts`
+
+### Validation
+- `python -m pytest -q backend/tests/test_automation_routes.py` -> 14 passed
+- `python -m pytest -q backend/tests/test_prospection_routes.py` -> 28 passed
+- `cd frontend; npm run -s lint` -> passed
 
 ### SDD / Governance Artifacts
 - sdd/features/guardrailed-automation-and-alerting/
 - .agent/rules/feature-guardrailed-automation-and-alerting.md
 - .agent/skills/features/guardrailed-automation-and-alerting/SKILL.md
 - .antigravity/prompts/features/guardrailed-automation-and-alerting/
+- sdd/features/guardrailed-automation-and-alerting/QA_REPORT_ANCLORA_GAA_001.md
+- sdd/features/guardrailed-automation-and-alerting/GATE_FINAL_ANCLORA_GAA_001.md
 
 ---
 ## [1.0] - 2026-02-24 - Origin Aware Editability Policy v1

@@ -1,7 +1,7 @@
 # Gate Final - ANCLORA-GAA-001
 
 Checklist:
-- [ ] Agent A migration decision documented (applied or skipped with rationale).
+- [ ] Agent A migration decision documented and migration 035 aligned.
 - [ ] Agent B backend contract operational.
 - [ ] Agent C frontend integrated and role-safe.
 - [ ] Agent D QA report issued with no open P0/P1.

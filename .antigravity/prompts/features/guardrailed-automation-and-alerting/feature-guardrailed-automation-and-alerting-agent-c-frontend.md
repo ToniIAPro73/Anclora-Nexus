@@ -8,3 +8,7 @@ UI requirements:
 - Loading, empty, error and success states.
 - Actionable data presentation for daily commercial operations.
 - i18n coverage in es/en/de/ru with no hardcoded strings.
+- Delivery target:
+  - Route: `/automation-alerting`
+  - API client: `frontend/src/lib/automation-api.ts`
+  - Sidebar entry in operations section.

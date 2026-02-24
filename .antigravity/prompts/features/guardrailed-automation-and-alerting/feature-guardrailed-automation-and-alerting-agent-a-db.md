@@ -1,11 +1,11 @@
 # Agent A - DB Prompt (ANCLORA-GAA-001)
 
 Objective:
-- Validate whether Supabase migration is required.
-- If required, define minimal additive migration and verification SQL.
-- If not required, document explicit rationale and keep migration skipped.
+- Confirm schema gap and apply additive migration for GAA v1.
+- Deliver verification checklist and rollback-safe notes.
 
 Checks:
-1) Schema readiness for guardrailed-automation-and-alerting.
-2) Required indexes for expected query paths.
-3) Rollback safety and verification script.
+1) Migration `035_guardrailed_automation_and_alerting.sql` created/applied.
+2) Tables present: `automation_rules`, `automation_executions`, `automation_alerts`.
+3) Indexes by org/status and recency query paths are available.
+4) Rollback remains reversible (drop/revert migration only).

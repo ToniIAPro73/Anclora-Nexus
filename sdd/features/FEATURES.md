@@ -387,6 +387,7 @@
 | Prospection Unified Workspace | ANCLORA-PUW-001 | 1.0 | Implemented | Prospection Operations | prospection-unified-workspace-INDEX.md |
 | Multichannel Feed Orchestrator | ANCLORA-MFO-001 | 1.0 | Implemented | Distribution & Publication | multichannel-feed-orchestrator-INDEX.md |
 | Origin Aware Editability Policy | ANCLORA-OAEP-001 | 1.0 | Implemented | Governance & Data Integrity | origin-aware-editability-policy-INDEX.md |
+| Guardrailed Automation and Alerting | ANCLORA-GAA-001 | 1.0 | Implemented | Automation and Alerting | guardrailed-automation-and-alerting-INDEX.md |
 
 ---
 
@@ -458,6 +459,7 @@
 | 2026-02-24 | Prospection Unified Workspace v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-24 | Multichannel Feed Orchestrator v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-24 | Origin Aware Editability Policy v1 | Feature RELEASED - Gate Final OK |
+| 2026-02-24 | Guardrailed Automation and Alerting v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
@@ -481,7 +483,7 @@
 
 **Documento versión**: 1.0  
 **Última actualización**: 2026-02-24  
-**Próxima revisión**: Post cierre de MFO y PUW
+**Próxima revisión**: Post cierre de FCCC, DMS y SPO
 
 ---
 
@@ -491,12 +493,14 @@
 
 **ID**: ANCLORA-GAA-001  
 **Version**: 1.0  
-**Status**: Specification Phase  
+**Status**: Implemented  
 **Phase**: Automation and Alerting  
 **Priority**: MEDIA
 
 **Documentation**:
 - sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-INDEX.md
+- sdd/features/guardrailed-automation-and-alerting/QA_REPORT_ANCLORA_GAA_001.md
+- sdd/features/guardrailed-automation-and-alerting/GATE_FINAL_ANCLORA_GAA_001.md
 - .agent/rules/feature-guardrailed-automation-and-alerting.md
 - .agent/skills/features/guardrailed-automation-and-alerting/SKILL.md
 - .antigravity/prompts/features/guardrailed-automation-and-alerting/

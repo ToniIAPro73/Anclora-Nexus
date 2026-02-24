@@ -6,6 +6,14 @@ Objective:
 - Return explainable and auditable outputs.
 
 Minimum contract:
-- Deterministic response shape with scope and version.
-- Stable validation errors for client handling.
-- Logging/metrics hooks for operational observability.
+- Endpoints:
+  - `GET/POST /api/automation/rules`
+  - `PATCH /api/automation/rules/{rule_id}`
+  - `POST /api/automation/rules/{rule_id}/dry-run`
+  - `POST /api/automation/rules/{rule_id}/execute`
+  - `GET /api/automation/executions`
+  - `GET /api/automation/alerts`
+  - `POST /api/automation/alerts/{alert_id}/ack`
+- Deterministic response shape with `version` and `scope`.
+- Guardrails required: role scope, FinOps hard-stop, per-run cost cap, human checkpoint.
+- Audit logging required for rule changes and executions.
