@@ -34,8 +34,16 @@ export interface ScopeMeta {
   role: string
 }
 
+export type CommandCenterKpiLabel =
+  | 'leads_total'
+  | 'lead_conversion_rate'
+  | 'property_close_rate'
+  | 'tasks_total'
+  | 'tasks_completed'
+  | 'task_completion_rate'
+
 export interface KPIValue {
-  label: string
+  label: CommandCenterKpiLabel
   value: number
   unit: 'count' | 'percent'
   trend?: number
