@@ -137,10 +137,10 @@
 
 ---
 
-## [UPCOMING] - 2026-02-22 - Multichannel Feed Orchestrator v1
+## [1.0] - 2026-02-24 - Multichannel Feed Orchestrator v1
 
-**Fecha**: 2026-02-22  
-**Status**: 🛠️ In Progress  
+**Fecha**: 2026-02-24  
+**Status**: ✅ RELEASED  
 **Criticidad**: ALTA  
 **Feature**: ANCLORA-MFO-001 v1.0
 
@@ -177,6 +177,8 @@
 - `sdd/features/multichannel-feed-orchestrator/multichannel-feed-orchestrator-spec-v1.md`
 - `sdd/features/multichannel-feed-orchestrator/multichannel-feed-orchestrator-spec-migration.md`
 - `sdd/features/multichannel-feed-orchestrator/multichannel-feed-orchestrator-test-plan-v1.md`
+- `sdd/features/multichannel-feed-orchestrator/QA_REPORT_ANCLORA_MFO_001.md`
+- `sdd/features/multichannel-feed-orchestrator/GATE_FINAL_ANCLORA_MFO_001.md`
 - `.agent/rules/feature-multichannel-feed-orchestrator.md`
 - `.agent/skills/features/multichannel-feed-orchestrator/SKILL.md`
 - `.antigravity/prompts/features/multichannel-feed-orchestrator/`
