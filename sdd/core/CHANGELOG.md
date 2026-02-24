@@ -44,23 +44,55 @@
 
 ---
 
-## [UPCOMING] - 2026-02-24 - FinOps and Commercial Command Center v1
+## [1.0] - 2026-02-24 - FinOps and Commercial Command Center v1
 
 **Date**: 2026-02-24  
-**Status**: Specification Phase  
+**Status**: ✅ RELEASED  
 **Criticality**: MEDIA  
 **Feature**: ANCLORA-FCCC-001 v1.0
 
-### Scope target
+### Scope delivered
 - Unified executive dashboard for cost, productivity and conversion KPIs.
 - Commercial and FinOps indicators in a single operational cockpit.
-- Governance-ready artifacts (rules, skill, prompts A/B/C/D/Gate).
+- Role-aware visibility for cost data (`full` vs `limited`).
+
+### Core/API Changes
+- New router:
+  - `backend/api/routes/command_center.py`
+- New service:
+  - `backend/services/command_center_service.py`
+- New models:
+  - `backend/models/command_center.py`
+- Endpoints:
+  - `GET /api/command-center/snapshot`
+  - `GET /api/command-center/trends`
+
+### Frontend Changes
+- New page:
+  - `frontend/src/app/(dashboard)/command-center/page.tsx`
+- New API client:
+  - `frontend/src/lib/command-center-api.ts`
+- Sidebar integration:
+  - `frontend/src/components/layout/Sidebar.tsx`
+- i18n keys added:
+  - `frontend/src/lib/i18n/translations.ts`
+
+### Agent A (DB) Decision
+- Migration skipped in v1.
+- Rationale: existing schema covers KPI aggregates; no blocking gap detected.
+
+### Validation
+- `python -m pytest -q backend/tests/test_command_center_routes.py` -> 4 passed
+- `python -m pytest -q backend/tests/test_automation_routes.py` -> 14 passed
+- `cd frontend; npm run -s lint` -> passed
 
 ### SDD / Governance Artifacts
 - sdd/features/finops-and-commercial-command-center/
 - .agent/rules/feature-finops-and-commercial-command-center.md
 - .agent/skills/features/finops-and-commercial-command-center/SKILL.md
 - .antigravity/prompts/features/finops-and-commercial-command-center/
+- sdd/features/finops-and-commercial-command-center/QA_REPORT_ANCLORA_FCCC_001.md
+- sdd/features/finops-and-commercial-command-center/GATE_FINAL_ANCLORA_FCCC_001.md
 
 ---
 

@@ -6,6 +6,8 @@ Objective:
 - Return explainable and auditable outputs.
 
 Minimum contract:
-- Deterministic response shape with scope and version.
-- Stable validation errors for client handling.
-- Logging/metrics hooks for operational observability.
+- Endpoints:
+  - `GET /api/command-center/snapshot`
+  - `GET /api/command-center/trends`
+- Deterministic response shape with `version` and `scope`.
+- Role-aware cost visibility (`full` for owner/manager, `limited` for agent).

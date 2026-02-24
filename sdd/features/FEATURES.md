@@ -388,6 +388,7 @@
 | Multichannel Feed Orchestrator | ANCLORA-MFO-001 | 1.0 | Implemented | Distribution & Publication | multichannel-feed-orchestrator-INDEX.md |
 | Origin Aware Editability Policy | ANCLORA-OAEP-001 | 1.0 | Implemented | Governance & Data Integrity | origin-aware-editability-policy-INDEX.md |
 | Guardrailed Automation and Alerting | ANCLORA-GAA-001 | 1.0 | Implemented | Automation and Alerting | guardrailed-automation-and-alerting-INDEX.md |
+| FinOps and Commercial Command Center | ANCLORA-FCCC-001 | 1.0 | Implemented | Executive KPI and FinOps | finops-and-commercial-command-center-INDEX.md |
 
 ---
 
@@ -460,6 +461,7 @@
 | 2026-02-24 | Multichannel Feed Orchestrator v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-24 | Origin Aware Editability Policy v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-24 | Guardrailed Automation and Alerting v1 | Feature RELEASED - Gate Final OK |
+| 2026-02-24 | FinOps and Commercial Command Center v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
@@ -483,7 +485,7 @@
 
 **Documento versión**: 1.0  
 **Última actualización**: 2026-02-24  
-**Próxima revisión**: Post cierre de FCCC, DMS y SPO
+**Próxima revisión**: Post cierre de DMS y SPO
 
 ---
 
@@ -509,12 +511,14 @@
 
 **ID**: ANCLORA-FCCC-001  
 **Version**: 1.0  
-**Status**: Specification Phase  
+**Status**: Implemented  
 **Phase**: Executive KPI and FinOps  
 **Priority**: MEDIA
 
 **Documentation**:
 - sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-INDEX.md
+- sdd/features/finops-and-commercial-command-center/QA_REPORT_ANCLORA_FCCC_001.md
+- sdd/features/finops-and-commercial-command-center/GATE_FINAL_ANCLORA_FCCC_001.md
 - .agent/rules/feature-finops-and-commercial-command-center.md
 - .agent/skills/features/finops-and-commercial-command-center/SKILL.md
 - .antigravity/prompts/features/finops-and-commercial-command-center/

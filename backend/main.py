@@ -11,6 +11,7 @@ from backend.api.routes.dq import router as dq_router
 from backend.api.routes.feeds import router as feeds_router
 from backend.api.routes.editability import router as editability_router
 from backend.api.routes.automation import router as automation_router
+from backend.api.routes.command_center import router as command_center_router
 
 app = FastAPI(title="Anclora Nexus API", version="0.1.0")
 
@@ -34,6 +35,7 @@ app.include_router(dq_router, prefix="/api/dq", tags=["Data Quality"])
 app.include_router(feeds_router, prefix="/api/feeds", tags=["Feeds"])
 app.include_router(editability_router, prefix="/api", tags=["Editability"])
 app.include_router(automation_router, prefix="/api/automation", tags=["Automation"])
+app.include_router(command_center_router, prefix="/api/command-center", tags=["Command Center"])
 
 @app.get("/health")
 async def health_check():

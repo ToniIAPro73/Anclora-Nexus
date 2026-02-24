@@ -4,20 +4,21 @@
 Define DB migration strategy for finops-and-commercial-command-center with safe rollout and rollback.
 
 ## Migration Need
-- Status: Conditional
-- Rule: execute migration only if schema gaps are confirmed by Agent A (DB).
+- Status: Skipped (Not Required in v1)
+- Agent A decision date: 2026-02-24
+- Rationale: existing tables (`leads`, `properties`, `tasks`, `org_cost_usage_events`) already cover KPI computation for snapshot and trends.
 
 ## Planned DB Artifacts
-- Materialized KPI views or summary tables by org and period; optional indexes for dashboard latency.
-- Standard metadata: created_at, updated_at, org_id, status.
-- Index baseline: (org_id, status) and feature-specific query paths.
+- No new DB artifacts added in v1.
+- KPI aggregation is computed in backend service layer (`command_center_service.py`).
+- Future optimization path (v1.1+): materialized monthly KPI view if latency requires.
 
 ## Rollout
-1. Create additive schema objects.
-2. Run verification queries for constraints and indexes.
-3. Enable feature behind server-side capability flag if needed.
+1. Validate existing schema availability.
+2. Implement read-only aggregation endpoints in backend.
+3. Validate via automated tests and frontend integration.
 
 ## Rollback
-1. Disable feature writes and background workers.
-2. Revert feature migration file.
-3. Re-run verification helper to confirm schema restoration.
+1. Disable `/api/command-center/*` routes if rollback needed.
+2. Revert backend/frontend FCCC commits.
+3. Re-run validation checks to confirm baseline behavior.

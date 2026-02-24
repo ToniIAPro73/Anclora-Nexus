@@ -43,9 +43,9 @@ Provide an executive command center that combines cost, productivity and commerc
 - Audit trail mandatory for decisions and automated operations.
 
 ## 7. Acceptance Criteria
-- [ ] Spec, migration and test-plan approved.
-- [ ] Rules and skill aligned with spec.
-- [ ] Prompts A/B/C/D and Gate Final created.
-- [ ] QA report generated with no open P0/P1 blockers.
-- [ ] Gate Final checklist evaluated and documented.
-- [ ] sdd/features/FEATURES.md and sdd/core/CHANGELOG.md updated.
+- [x] Spec, migration and test-plan approved.
+- [x] Rules and skill aligned with spec.
+- [x] Prompts A/B/C/D and Gate Final created.
+- [x] QA report generated with no open P0/P1 blockers.
+- [x] Gate Final checklist evaluated and documented.
+- [x] sdd/features/FEATURES.md and sdd/core/CHANGELOG.md updated.
