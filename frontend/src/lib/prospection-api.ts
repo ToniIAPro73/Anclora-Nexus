@@ -113,6 +113,17 @@ export interface ProspectionWorkspaceResponse {
   }
 }
 
+export type WorkspaceEntityType = 'property' | 'buyer' | 'match'
+
+export interface WorkspaceActionResponse {
+  ok: boolean
+  action: 'followup_task' | 'mark_reviewed' | string
+  entity_type: WorkspaceEntityType
+  entity_id: string
+  task_id?: string | null
+  message: string
+}
+
 export interface OpportunityRankingItem {
   match_id: string
   property_id: string
@@ -362,6 +373,31 @@ export async function getProspectionWorkspace(params?: {
   if (params?.offset) query.set('offset', String(params.offset))
   const qs = query.toString()
   return apiRequest(`/api/prospection/workspace${qs ? `?${qs}` : ''}`)
+}
+
+export async function createWorkspaceFollowupTask(data: {
+  entity_type: WorkspaceEntityType
+  entity_id: string
+  title?: string
+  description?: string
+  due_date?: string
+  assigned_user_id?: string
+}): Promise<WorkspaceActionResponse> {
+  return apiRequest('/api/prospection/workspace/actions/followup-task', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function markWorkspaceItemReviewed(data: {
+  entity_type: WorkspaceEntityType
+  entity_id: string
+  note?: string
+}): Promise<WorkspaceActionResponse> {
+  return apiRequest('/api/prospection/workspace/actions/mark-reviewed', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }
 
 export async function getOpportunityRanking(params?: {

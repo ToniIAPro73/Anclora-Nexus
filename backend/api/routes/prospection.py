@@ -19,6 +19,8 @@ from backend.models.prospection import (
     BuyerCreate,
     BuyerList,
     BuyerUpdate,
+    FollowupTaskActionRequest,
+    MarkReviewedActionRequest,
     MatchList,
     MatchUpdate,
     PropertyCreate,
@@ -26,6 +28,7 @@ from backend.models.prospection import (
     PropertyUpdate,
     RecomputeRequest,
     RecomputeResponse,
+    WorkspaceActionResponse,
 )
 from backend.services.prospection_service import prospection_service
 
@@ -80,6 +83,66 @@ async def get_workspace(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error loading workspace: {str(e)}",
+        )
+
+
+@router.post("/workspace/actions/followup-task", response_model=WorkspaceActionResponse)
+async def create_workspace_followup_task(
+    payload: FollowupTaskActionRequest,
+    org_id: str = Depends(get_org_id),
+    user=Depends(get_current_user),
+) -> WorkspaceActionResponse:
+    try:
+        result = await prospection_service.create_workspace_followup_task(
+            org_id=org_id,
+            user_id=str(user.id),
+            entity_type=payload.entity_type.value,
+            entity_id=str(payload.entity_id),
+            title=payload.title,
+            description=payload.description,
+            due_date=payload.due_date.isoformat() if payload.due_date else None,
+            assigned_user_id=str(payload.assigned_user_id) if payload.assigned_user_id else None,
+        )
+        return WorkspaceActionResponse(
+            action="followup_task",
+            entity_type=payload.entity_type,
+            entity_id=payload.entity_id,
+            task_id=result.get("task_id"),
+            message="Follow-up task created",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating follow-up task: {str(e)}",
+        )
+
+
+@router.post("/workspace/actions/mark-reviewed", response_model=WorkspaceActionResponse)
+async def mark_workspace_item_reviewed(
+    payload: MarkReviewedActionRequest,
+    org_id: str = Depends(get_org_id),
+    user=Depends(get_current_user),
+) -> WorkspaceActionResponse:
+    try:
+        await prospection_service.mark_workspace_item_reviewed(
+            org_id=org_id,
+            user_id=str(user.id),
+            entity_type=payload.entity_type.value,
+            entity_id=str(payload.entity_id),
+            note=payload.note,
+        )
+        return WorkspaceActionResponse(
+            action="mark_reviewed",
+            entity_type=payload.entity_type,
+            entity_id=payload.entity_id,
+            message="Entity marked as reviewed",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error marking reviewed: {str(e)}",
         )
 
 

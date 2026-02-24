@@ -421,3 +421,38 @@ class RecomputeResponse(BaseModel):
     matches_created: int
     matches_updated: int
     total_computed: int
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WORKSPACE ACTION MODELS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class WorkspaceEntityType(str, Enum):
+    PROPERTY = "property"
+    BUYER = "buyer"
+    MATCH = "match"
+
+
+class FollowupTaskActionRequest(BaseModel):
+    entity_type: WorkspaceEntityType
+    entity_id: UUID
+    title: Optional[str] = None
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    assigned_user_id: Optional[UUID] = None
+
+
+class MarkReviewedActionRequest(BaseModel):
+    entity_type: WorkspaceEntityType
+    entity_id: UUID
+    note: Optional[str] = None
+
+
+class WorkspaceActionResponse(BaseModel):
+    ok: bool = True
+    action: str
+    entity_type: WorkspaceEntityType
+    entity_id: UUID
+    task_id: Optional[UUID] = None
+    message: str

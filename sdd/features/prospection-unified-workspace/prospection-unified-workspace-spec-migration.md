@@ -1,7 +1,7 @@
 # SPEC MIGRATION: PROSPECTION UNIFIED WORKSPACE V1
 
 **Feature ID**: ANCLORA-PUW-001  
-**Status**: Draft - Specification Phase
+**Status**: Implemented
 
 ## 1. Estrategia
 
@@ -10,8 +10,9 @@ Se minimiza cambio estructural y se apoya en tablas ya desplegadas (`properties`
 
 ## 2. Cambios de esquema propuestos (si aplican tras discovery)
 
-- Opcion A (preferida v1): sin tablas nuevas, solo indices de soporte para filtros combinados.
-- Opcion B: tabla ligera `prospection_workspace_events` para auditoria de acciones rapidas.
+- Opcion aplicada en v1: sin tablas nuevas obligatorias.
+- Trazabilidad de acciones rapidas mediante `audit_log` y tabla `tasks`.
+- Indices opcionales quedan para tuning posterior segun volumen.
 
 ## 3. SQL candidato (placeholder)
 
@@ -41,4 +42,3 @@ create index if not exists idx_leads_org_assignee_source
 - Desactivar feature flag de workspace unificado.
 - Mantener vistas actuales como fallback inmediato.
 - Si se crean indices nuevos, pueden quedarse sin impacto funcional.
-

@@ -964,6 +964,108 @@ class ProspectionService:
             "totals": {"properties": prop_total, "buyers": buyer_total, "matches": match_total},
         }
 
+    async def create_workspace_followup_task(
+        self,
+        org_id: str,
+        user_id: str,
+        entity_type: str,
+        entity_id: str,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        due_date: Optional[str] = None,
+        assigned_user_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Create a follow-up task directly from workspace context."""
+        task_payload = {
+            "org_id": org_id,
+            "title": title or f"Follow-up {entity_type}",
+            "description": description or f"Workspace follow-up for {entity_type} {entity_id}",
+            "type": "follow_up",
+            "related_entity_type": entity_type,
+            "related_entity_id": entity_id,
+            "assigned_user_id": assigned_user_id or user_id,
+            "due_date": due_date or datetime.utcnow().isoformat(),
+            "ai_generated": False,
+        }
+        task_res = supabase_service.client.table("tasks").insert(task_payload).execute()
+        task_row = task_res.data[0] if task_res.data else {}
+
+        try:
+            await supabase_service.insert_audit_log(
+                {
+                    "org_id": org_id,
+                    "event_type": "workspace_followup_task_created",
+                    "actor_user_id": user_id,
+                    "entity_type": entity_type,
+                    "entity_id": entity_id,
+                    "details": {"task_id": task_row.get("id"), "source": "prospection_workspace"},
+                }
+            )
+        except Exception:
+            # Audit logging should not block operational task creation.
+            pass
+
+        return {"task_id": task_row.get("id")}
+
+    async def mark_workspace_item_reviewed(
+        self,
+        org_id: str,
+        user_id: str,
+        entity_type: str,
+        entity_id: str,
+        note: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Persist a reviewed mark on property/buyer/match from workspace."""
+        reviewed_note = (note or "reviewed_from_workspace").strip()
+        stamp = datetime.utcnow().isoformat()
+        entry = f"[reviewed:{stamp}] {reviewed_note}"
+
+        if entity_type == "property":
+            current = await self.get_property(org_id, entity_id)
+            if not current:
+                raise ValueError("property not found")
+            existing_notes = str(current.get("notes") or "").strip()
+            new_notes = f"{existing_notes}\n{entry}".strip() if existing_notes else entry
+            updated = await self.update_property(org_id, entity_id, PropertyUpdate(notes=new_notes))
+            if not updated:
+                raise ValueError("property not found")
+        elif entity_type == "buyer":
+            current = await self.get_buyer(org_id, entity_id)
+            if not current:
+                raise ValueError("buyer not found")
+            existing_notes = str(current.get("notes") or "").strip()
+            new_notes = f"{existing_notes}\n{entry}".strip() if existing_notes else entry
+            updated = await self.update_buyer(org_id, entity_id, BuyerUpdate(notes=new_notes))
+            if not updated:
+                raise ValueError("buyer not found")
+        elif entity_type == "match":
+            current = await self.get_match(org_id, entity_id)
+            if not current:
+                raise ValueError("match not found")
+            existing_notes = str(current.get("notes") or "").strip()
+            new_notes = f"{existing_notes}\n{entry}".strip() if existing_notes else entry
+            updated = await self.update_match(org_id, entity_id, MatchUpdate(notes=new_notes))
+            if not updated:
+                raise ValueError("match not found")
+        else:
+            raise ValueError("unsupported entity type")
+
+        try:
+            await supabase_service.insert_audit_log(
+                {
+                    "org_id": org_id,
+                    "event_type": "workspace_item_reviewed",
+                    "actor_user_id": user_id,
+                    "entity_type": entity_type,
+                    "entity_id": entity_id,
+                    "details": {"note": reviewed_note, "source": "prospection_workspace"},
+                }
+            )
+        except Exception:
+            pass
+
+        return {"entity_id": entity_id, "entity_type": entity_type}
+
     # ─────────────────────────────────────────────────────────────────────
     # HELPERS
     # ─────────────────────────────────────────────────────────────────────

@@ -39,6 +39,8 @@ class TestRouteRegistration:
         ("POST", "/api/prospection/properties"),
         ("GET", "/api/prospection/properties"),
         ("GET", "/api/prospection/workspace"),
+        ("POST", "/api/prospection/workspace/actions/followup-task"),
+        ("POST", "/api/prospection/workspace/actions/mark-reviewed"),
         ("PATCH", "/api/prospection/properties/{property_id}"),
         ("POST", "/api/prospection/properties/{property_id}/score"),
         ("POST", "/api/prospection/buyers"),
@@ -94,6 +96,31 @@ class TestPropertyEndpoints:
         resp = client.get("/api/prospection/workspace")
         assert resp.status_code == 200
         assert resp.json()["scope"]["role"] == "owner"
+
+    @patch("backend.api.routes.prospection.prospection_service")
+    def test_workspace_followup_task_action(self, mock_svc: MagicMock) -> None:
+        task_id = str(uuid4())
+        mock_svc.create_workspace_followup_task = AsyncMock(return_value={"task_id": task_id})
+        resp = client.post(
+            "/api/prospection/workspace/actions/followup-task",
+            json={"entity_type": "property", "entity_id": str(uuid4())},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["action"] == "followup_task"
+        assert resp.json()["task_id"] == task_id
+
+    @patch("backend.api.routes.prospection.prospection_service")
+    def test_workspace_mark_reviewed_action(self, mock_svc: MagicMock) -> None:
+        entity_id = str(uuid4())
+        mock_svc.mark_workspace_item_reviewed = AsyncMock(
+            return_value={"entity_type": "property", "entity_id": entity_id}
+        )
+        resp = client.post(
+            "/api/prospection/workspace/actions/mark-reviewed",
+            json={"entity_type": "property", "entity_id": entity_id},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["action"] == "mark_reviewed"
 
 
 class TestBuyerEndpoints:
