@@ -4,23 +4,55 @@
 
 ---
 
-## [UPCOMING] - 2026-02-24 - Source Performance Observatory v1
+## [1.0] - 2026-02-24 - Source Performance Observatory v1
 
 **Date**: 2026-02-24  
-**Status**: Specification Phase  
+**Status**: ✅ RELEASED  
 **Criticality**: BAJA  
 **Feature**: ANCLORA-SPO-001 v1.0
 
-### Scope target
+### Scope delivered
 - Source/channel performance observatory with quality and conversion signals.
 - Comparative ranking and trend views by period and org.
-- Governance-ready artifacts (rules, skill, prompts A/B/C/D/Gate).
+
+### Core/API Changes
+- New router:
+  - `backend/api/routes/source_observatory.py`
+- New service:
+  - `backend/services/source_observatory_service.py`
+- New models:
+  - `backend/models/source_observatory.py`
+- Endpoints:
+  - `GET /api/source-observatory/overview`
+  - `GET /api/source-observatory/ranking`
+  - `GET /api/source-observatory/trends`
+
+### Frontend Changes
+- New page:
+  - `frontend/src/app/(dashboard)/source-observatory/page.tsx`
+- New API client:
+  - `frontend/src/lib/source-observatory-api.ts`
+- Sidebar integration:
+  - `frontend/src/components/layout/Sidebar.tsx`
+- i18n keys added:
+  - `frontend/src/lib/i18n/translations.ts`
+
+### Agent A (DB) Decision
+- Migration skipped in v1.
+- Rationale: existing tables already provide source/channel performance signals.
+
+### Validation
+- `python -m pytest -q backend/tests/test_source_observatory_routes.py` -> 6 passed
+- `python -m pytest -q backend/tests/test_deal_margin_routes.py` -> 4 passed
+- `cd frontend; npm run -s lint` -> passed
 
 ### SDD / Governance Artifacts
 - sdd/features/source-performance-observatory/
 - .agent/rules/feature-source-performance-observatory.md
 - .agent/skills/features/source-performance-observatory/SKILL.md
 - .antigravity/prompts/features/source-performance-observatory/
+- sdd/features/source-performance-observatory/QA_REPORT_ANCLORA_SPO_001.md
+- sdd/features/source-performance-observatory/GATE_FINAL_ANCLORA_SPO_001.md
 
 ---
 

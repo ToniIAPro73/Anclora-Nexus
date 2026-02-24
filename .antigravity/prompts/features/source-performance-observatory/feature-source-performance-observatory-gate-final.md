@@ -7,3 +7,8 @@ Checklist:
 - [ ] Agent D QA report issued with no open P0/P1.
 - [ ] Spec, rules, skill and prompts are aligned.
 - [ ] FEATURES.md and CHANGELOG.md updated.
+
+Minimum expected backend contract:
+- `GET /api/source-observatory/overview`
+- `GET /api/source-observatory/ranking`
+- `GET /api/source-observatory/trends`

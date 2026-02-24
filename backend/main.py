@@ -13,6 +13,7 @@ from backend.api.routes.editability import router as editability_router
 from backend.api.routes.automation import router as automation_router
 from backend.api.routes.command_center import router as command_center_router
 from backend.api.routes.deal_margin import router as deal_margin_router
+from backend.api.routes.source_observatory import router as source_observatory_router
 
 app = FastAPI(title="Anclora Nexus API", version="0.1.0")
 
@@ -38,6 +39,7 @@ app.include_router(editability_router, prefix="/api", tags=["Editability"])
 app.include_router(automation_router, prefix="/api/automation", tags=["Automation"])
 app.include_router(command_center_router, prefix="/api/command-center", tags=["Command Center"])
 app.include_router(deal_margin_router, prefix="/api/deal-margin", tags=["Deal Margin"])
+app.include_router(source_observatory_router, prefix="/api/source-observatory", tags=["Source Observatory"])
 
 @app.get("/health")
 async def health_check():

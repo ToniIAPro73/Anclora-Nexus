@@ -6,6 +6,9 @@ Objective:
 - Return explainable and auditable outputs.
 
 Minimum contract:
-- Deterministic response shape with scope and version.
-- Stable validation errors for client handling.
-- Logging/metrics hooks for operational observability.
+- Endpoints:
+  - `GET /api/source-observatory/overview`
+  - `GET /api/source-observatory/ranking`
+  - `GET /api/source-observatory/trends`
+- Deterministic response shape with `version` and `scope`.
+- Explainable source score and period trends in output.

@@ -2,10 +2,9 @@
 
 Objective:
 - Validate whether Supabase migration is required.
-- If required, define minimal additive migration and verification SQL.
-- If not required, document explicit rationale and keep migration skipped.
+- For SPO v1, confirm migration skip or define additive migration only if mandatory.
 
 Checks:
-1) Schema readiness for source-performance-observatory.
-2) Required indexes for expected query paths.
-3) Rollback safety and verification script.
+1) Schema readiness for source metrics aggregation from existing tables.
+2) Migration decision documented with explicit rationale.
+3) Rollback safety and verification checks documented.

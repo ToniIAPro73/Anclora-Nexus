@@ -4,20 +4,21 @@
 Define DB migration strategy for source-performance-observatory with safe rollout and rollback.
 
 ## Migration Need
-- Status: Conditional
-- Rule: execute migration only if schema gaps are confirmed by Agent A (DB).
+- Status: Skipped (Not Required in v1)
+- Agent A decision date: 2026-02-24
+- Rationale: current schema (`ingestion_events`, `leads`) is sufficient for source scorecards/ranking/trends.
 
 ## Planned DB Artifacts
-- Tables/views for source metrics snapshots, attribution counters and trend history.
-- Standard metadata: created_at, updated_at, org_id, status.
-- Index baseline: (org_id, status) and feature-specific query paths.
+- No DB artifacts added in v1.
+- KPI aggregation is computed in backend service layer (`source_observatory_service.py`).
+- Future path (v1.1+): optional materialized snapshot view for large-volume orgs.
 
 ## Rollout
-1. Create additive schema objects.
-2. Run verification queries for constraints and indexes.
-3. Enable feature behind server-side capability flag if needed.
+1. Validate existing schema availability and contracts.
+2. Implement read-only observatory endpoints in backend.
+3. Validate with automated tests and frontend integration.
 
 ## Rollback
-1. Disable feature writes and background workers.
-2. Revert feature migration file.
-3. Re-run verification helper to confirm schema restoration.
+1. Disable `/api/source-observatory/*` routes if rollback needed.
+2. Revert backend/frontend SPO commits.
+3. Re-run validation checks to confirm baseline behavior.

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck, ChevronDown, ChevronRight, UploadCloud, Bot, BarChart3, Calculator } from 'lucide-react'
+import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck, ChevronDown, ChevronRight, UploadCloud, Bot, BarChart3, Calculator, LineChart } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
@@ -131,6 +131,7 @@ export function Sidebar() {
         { name: t('automationMenu'), href: '/automation-alerting', icon: Bot },
         { name: t('commandCenterMenu'), href: '/command-center', icon: BarChart3 },
         { name: t('dealMarginMenu'), href: '/deal-margin-simulator', icon: Calculator },
+        { name: t('sourceObservatoryMenu'), href: '/source-observatory', icon: LineChart },
       ],
     },
   ]
