@@ -235,13 +235,9 @@ export default function LoginPage() {
       >
         <Card className="widget-card w-full px-6 py-5 border-soft-subtle/20 bg-navy-surface backdrop-blur-xl">
           <div className="flex flex-col items-center mb-4">
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="mb-2"
-            >
+            <div className="mb-2">
               <BrandLogo size={64} src="/brand/logo-nexus.png" />
-            </motion.div>
+            </div>
             <h1 className="font-display text-2xl text-soft-white mb-1">Anclora Nexus</h1>
             <p className="text-[10px] uppercase tracking-[0.2em] text-soft-muted">Private Estate Intelligence</p>
             <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent mt-3" />

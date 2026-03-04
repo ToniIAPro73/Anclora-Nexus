@@ -36,7 +36,6 @@ export function UserMenu() {
     router.push('/login')
   }
 
-  const userInitial = user?.email?.charAt(0).toUpperCase() || 'T'
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Toni'
 
   return (
@@ -45,13 +44,9 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-gold/30 bg-navy-surface hover:bg-gold/10 transition-all group"
       >
-        <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold border border-gold/20 group-hover:scale-105 transition-transform">
-          {user?.user_metadata?.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.user_metadata.avatar_url} alt="User" className="w-full h-full rounded-full object-cover" />
-          ) : (
-            <span className="font-bold text-sm tracking-tighter">{userInitial}</span>
-          )}
+        <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold border border-gold/20">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-nexus.png" alt="Anclora Nexus logo" className="w-full h-full rounded-full object-cover" />
         </div>
         <ChevronDown className={`w-3.5 h-3.5 text-soft-muted transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
