@@ -5,7 +5,6 @@ import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLef
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
-import supabase from '@/lib/supabase'
 
 function getSectionFromPath(pathname: string): 'core' | 'intelligence' | 'operations' {
   if (
@@ -26,7 +25,6 @@ function getSectionFromPath(pathname: string): 'core' | 'intelligence' | 'operat
 export function Sidebar() {
   const pathname = usePathname()
   const { t } = useI18n()
-  const [logoUrl, setLogoUrl] = useState<string | undefined>()
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
   const [openSection, setOpenSection] = useState<'core' | 'intelligence' | 'operations' | null>(null)
 
@@ -42,49 +40,6 @@ export function Sidebar() {
     const saved = localStorage.getItem('anclora-sidebar-collapsed')
     if (saved === 'true') {
       requestAnimationFrame(() => setIsCollapsed(true))
-    }
-
-    const fetchOrgLogo = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        // Fetch user profile to get org_id
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('org_id')
-          .eq('id', user.id)
-          .single()
-
-        if (profile) {
-          const { data: org } = await supabase
-            .from('organizations')
-            .select('logo_url')
-            .eq('id', profile.org_id)
-            .single()
-            
-          if (org?.logo_url) {
-            setLogoUrl(org.logo_url)
-          }
-        }
-      }
-    }
-    fetchOrgLogo()
-
-    // Realtime subscription for logo changes
-    const channel = supabase
-      .channel('org-logo-changes')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'organizations' },
-        (payload) => {
-          if (payload.new && payload.new.logo_url) {
-            setLogoUrl(payload.new.logo_url)
-          }
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
     }
   }, [])
 
@@ -152,7 +107,7 @@ export function Sidebar() {
         </div>
         <div className="flex flex-col items-center overflow-visible pt-1">
           <div className={`${isCollapsed ? 'mb-0 mt-1' : 'mb-3'} animate-float`}>
-            <BrandLogo size={isCollapsed ? 50 : 60} src={logoUrl} />
+            <BrandLogo size={isCollapsed ? 50 : 60} src="/brand/logo-nexus.png" />
           </div>
           <h1
             className={`font-display text-xl text-soft-white whitespace-nowrap transition-all duration-300 ${

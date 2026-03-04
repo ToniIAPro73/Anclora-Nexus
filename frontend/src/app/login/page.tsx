@@ -240,7 +240,7 @@ export default function LoginPage() {
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="mb-2"
             >
-              <BrandLogo size={64} />
+              <BrandLogo size={64} src="/brand/logo-nexus.png" />
             </motion.div>
             <h1 className="font-display text-2xl text-soft-white mb-1">Anclora Nexus</h1>
             <p className="text-[10px] uppercase tracking-[0.2em] text-soft-muted">Private Estate Intelligence</p>
