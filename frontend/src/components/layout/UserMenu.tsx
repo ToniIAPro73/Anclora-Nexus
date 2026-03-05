@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string>('/brand/logo-nexus.png')
   const { t } = useI18n()
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)
@@ -18,6 +19,15 @@ export function UserMenu() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      setAvatarUrl(profile?.avatar_url || user.user_metadata?.avatar_url || '/brand/logo-nexus.png')
     }
     getUser()
 
@@ -46,7 +56,17 @@ export function UserMenu() {
       >
         <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold border border-gold/20">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo-nexus.png" alt="Anclora Nexus logo" className="w-full h-full rounded-full object-cover" />
+          <img
+            src={avatarUrl}
+            alt="User avatar"
+            className="w-full h-full rounded-full object-cover"
+            onError={(e) => {
+              const target = e.currentTarget
+              if (target.src !== `${window.location.origin}/brand/logo-nexus.png`) {
+                target.src = '/brand/logo-nexus.png'
+              }
+            }}
+          />
         </div>
         <ChevronDown className={`w-3.5 h-3.5 text-soft-muted transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>

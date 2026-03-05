@@ -19,6 +19,11 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Anclora Nexus — AI Real Estate Intelligence",
   description: "Luxury real estate operations powered by OpenClaw",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
@@ -41,4 +46,3 @@ export default function RootLayout({
     </html>
   );
 }
-
