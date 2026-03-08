@@ -7,6 +7,7 @@ import { QuickStats } from "@/components/widgets/QuickStats"
 import { AgentStream } from "@/components/widgets/AgentStream"
 import { QuickActions } from "@/components/widgets/QuickActions"
 import { BudgetStatusWidget } from "@/components/widgets/BudgetStatusWidget"
+import { RadarTerritorial } from "@/components/widgets/RadarTerritorial"
 import { StaggerList, StaggerItem } from "@/components/effects/animations"
 import { useEffect } from "react"
 import { useStore } from "@/lib/store"
@@ -61,6 +62,12 @@ export default function DashboardPage() {
           <StaggerItem>
             <BentoCell colSpan={1} rowSpan={1}>
               <BudgetStatusWidget />
+            </BentoCell>
+          </StaggerItem>
+
+          <StaggerItem>
+            <BentoCell colSpan={6} rowSpan={2}>
+              <RadarTerritorial />
             </BentoCell>
           </StaggerItem>
         </BentoGrid>
