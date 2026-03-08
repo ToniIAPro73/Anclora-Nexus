@@ -71,7 +71,7 @@ export function Sidebar() {
       links: [
         { name: `${t('prospection')} studio`, href: '/prospection', icon: Target },
         { name: `${t('prospection')} operativa`, href: '/prospection-unified', icon: Target },
-        { name: 'Nexus sellers', href: '/sellers', icon: UserSearch },
+        { name: t('sellerPipelineMenu'), href: '/sellers', icon: UserSearch },
         { name: t('opportunityRankingMenu'), href: '/opportunity-ranking', icon: Target },
         { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
       ],

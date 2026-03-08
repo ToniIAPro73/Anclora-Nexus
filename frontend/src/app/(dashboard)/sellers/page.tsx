@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { ArrowLeft, UserSearch, TrendingUp, MapPin, Users, Target, Filter, RefreshCw } from 'lucide-react'
 import { SellersTable, NexusSeller, EstadoContacto } from '@/components/sellers/SellersTable'
 import { SellerDrawer } from '@/components/sellers/SellerDrawer'
+import { useI18n } from '@/lib/i18n'
 
 // ─────────────────────────────────────────────────────────────
 // Config
@@ -81,6 +82,7 @@ function StatCard({
 // ─────────────────────────────────────────────────────────────
 
 export default function SellersPage() {
+  const { t } = useI18n()
   const [sellers, setSellers] = useState<NexusSeller[]>([])
   const [stats, setStats] = useState<Record<string, unknown>>({})
   const [loading, setLoading] = useState(true)
@@ -158,9 +160,9 @@ export default function SellersPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-soft-white">Nexus Sellers</h1>
+                <h1 className="text-3xl font-bold text-soft-white">{t('sellersTitle')}</h1>
                 <p className="mt-1 text-sm text-soft-muted">
-                  Cola priorizada para captación temprana de vendedores antes de que entren en competencia abierta.
+                  {t('sellersSubtitle')}
                 </p>
               </div>
             </div>
@@ -181,13 +183,13 @@ export default function SellersPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
             icon={Users}
-            label="Vendedores detectados"
+            label={t('sellersDetected')}
             value={totalSellers}
             accent="default"
           />
           <StatCard
             icon={Target}
-            label="Prioridad P5"
+            label={t('sellerPriorityP5')}
             value={whales}
             accent="gold"
           />
@@ -277,7 +279,7 @@ export default function SellersPage() {
         <div className="rounded-2xl border border-gold/20 bg-gold/5 p-6 space-y-3">
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5 text-gold" />
-            <h2 className="text-lg font-semibold text-soft-white">Oportunidades territoriales activas</h2>
+            <h2 className="text-lg font-semibold text-soft-white">{t('activeTerritorialOpportunities')}</h2>
           </div>
           <p className="text-sm text-soft-muted">
             Insights del NotebookLM &quot;Inteligencia Territorial Suroeste Mallorca 2026&quot; — actualizado 2026-03-08

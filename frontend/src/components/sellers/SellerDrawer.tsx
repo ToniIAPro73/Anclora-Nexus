@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Mail, Sparkles, X } from 'lucide-react'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -48,7 +48,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
   const [draftBody, setDraftBody] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const loadInteractions = async () => {
+  const loadInteractions = useCallback(async () => {
     if (!sellerId) return
     setLoading(true)
     setError(null)
@@ -62,13 +62,13 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     } finally {
       setLoading(false)
     }
-  }
+  }, [sellerId])
 
   useEffect(() => {
     if (open && sellerId) {
-      loadInteractions()
+      void loadInteractions()
     }
-  }, [open, sellerId])
+  }, [open, sellerId, loadInteractions])
 
   const generateDossier = async () => {
     if (!sellerId) return

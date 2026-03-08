@@ -218,7 +218,7 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
           </tr>
         </thead>
         <tbody>
-          {sellers.map((seller, index) => {
+          {sellers.map((seller) => {
             const isWhale = seller.prioridad >= 5
             const nextEstado = ESTADO_NEXT[seller.estado_contacto]
             const isMandato = seller.estado_contacto === 'mandato_exclusivo'
