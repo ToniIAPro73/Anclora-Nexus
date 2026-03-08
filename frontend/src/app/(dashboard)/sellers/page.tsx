@@ -152,7 +152,7 @@ export default function SellersPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <Link
-                href="/prospection-unified"
+                href="/dashboard"
                 className="mt-0.5 rounded-lg border border-soft-subtle/70 bg-navy-surface/40 p-2 text-soft-white hover:border-gold/50 transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />

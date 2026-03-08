@@ -53,7 +53,7 @@ export default function OpportunityRankingPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Link
-                href="/prospection"
+                href="/dashboard"
                 className="p-2 rounded-xl border border-soft-subtle bg-navy-surface/40 text-soft-muted hover:text-soft-white hover:border-blue-light/50 transition-all"
               >
                 <ArrowLeft className="w-4 h-4" />
