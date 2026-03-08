@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # LLM Provider Settings
     OPENAI_API_KEY: str
     ANTHROPIC_API_KEY: str
+    CRON_SECRET: Optional[str] = None
     
     # LangGraph Settings
     MAX_ITERATIONS: int = 10

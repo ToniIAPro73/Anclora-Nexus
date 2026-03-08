@@ -31,6 +31,7 @@ app.add_middleware(
 from .routes.intelligence import router as intelligence_router
 from .routes.prospection import router as prospection_router
 from .routes.sellers import router as sellers_router
+from .routes.skills import router as skills_router
 
 # Include Intelligence routes (+ NotebookLM territorial insights)
 app.include_router(intelligence_router, prefix="/api/intelligence", tags=["Intelligence"])
@@ -40,6 +41,9 @@ app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospec
 
 # Include Nexus Sellers — Motor de Adquisición de Vendedores
 app.include_router(sellers_router, prefix="/api/sellers", tags=["Sellers"])
+
+# Include operational skill runner routes used by frontend cron jobs
+app.include_router(skills_router, prefix="/api", tags=["Skills"])
 
 # ═══════════════════════════════════════════════════════════════
 # HEALTH CHECK
@@ -67,6 +71,7 @@ async def root():
             "health": "/health",
             "intelligence": "/api/intelligence/query",
             "territorial_insights": "/api/intelligence/territorial-insights",
+            "skills": "/api/skills/run",
             "sellers": "/api/sellers/",
             "sellers_stats": "/api/sellers/stats",
             "docs": "/docs",

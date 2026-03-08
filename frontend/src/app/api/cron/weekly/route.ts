@@ -6,7 +6,7 @@
  *           that Vercel sends automatically.
  *
  * What it does:
- *   1. Calls FastAPI POST /skills/run with skill=prospection_weekly
+ *   1. Calls FastAPI POST /api/skills/run with skill=prospection_weekly
  *   2. Returns a brief summary for Vercel Cron logs
  */
 
@@ -25,9 +25,12 @@ export async function GET(req: NextRequest) {
   const startedAt = new Date().toISOString()
 
   try {
-    const res = await fetch(`${BACKEND_URL}/skills/run`, {
+    const res = await fetch(`${BACKEND_URL}/api/skills/run`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-cron-secret': CRON_SECRET || '',
+      },
       body: JSON.stringify({
         skill: 'prospection_weekly',
         data: { priority_min: 3 },

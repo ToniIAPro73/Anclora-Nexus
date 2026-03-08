@@ -128,7 +128,7 @@ Responde ÚNICAMENTE con el JSON válido.
             metadata={
                 "structured": structured,
                 "synced_at": datetime.now(timezone.utc).isoformat(),
-                "source": "notebooklm_territorial_brain",
+                "source": "notebooklm_territorial_2026",
             },
         )
         insight_id = saved.get("id", "unknown")

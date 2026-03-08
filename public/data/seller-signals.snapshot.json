@@ -1,0 +1,53 @@
+[
+  {
+    "nombre_propietario": "Propietario confidencial",
+    "anuncio_url": "https://example.com/idealista/punta-negra-villa-001",
+    "direccion": "Punta Negra, referencia privada 001",
+    "zona": "punta_negra",
+    "fuente": "idealista",
+    "precio_publicado": 4200000,
+    "superficie_m2": 410,
+    "tipo_propiedad": "villa",
+    "dias_en_mercado": 214,
+    "senales_motivacion": ["bajada_precio", "dom_180_plus"],
+    "datos_extraidos": {
+      "portal": "idealista",
+      "listing_ref": "PN-001",
+      "captured_at": "2026-03-08T19:30:00Z"
+    },
+    "notas": "Snapshot operativo para pipeline territorial."
+  },
+  {
+    "nombre_propietario": "Herederos finca Costa d'en Blanes",
+    "anuncio_url": "https://example.com/fotocasa/costa-den-blanes-estate-002",
+    "direccion": "Costa d'en Blanes, referencia privada 002",
+    "zona": "costa_den_blanes",
+    "fuente": "fotocasa",
+    "precio_publicado": 2950000,
+    "superficie_m2": 360,
+    "tipo_propiedad": "villa",
+    "dias_en_mercado": 143,
+    "senales_motivacion": ["herencia", "fsbo"],
+    "datos_extraidos": {
+      "portal": "fotocasa",
+      "listing_ref": "CDB-002",
+      "captured_at": "2026-03-08T19:35:00Z"
+    }
+  },
+  {
+    "empresa": "Titular STR Calvia",
+    "website_url": "https://example.com/str-enforcement/calvia-003",
+    "direccion": "Calvia, referencia privada 003",
+    "zona": "calvia",
+    "fuente": "str_enforcement",
+    "precio_publicado": 1250000,
+    "tipo_propiedad": "chalet",
+    "dias_en_mercado": 97,
+    "senales_motivacion": ["str_enforcement", "liquidez"],
+    "datos_extraidos": {
+      "source": "territorial-alert",
+      "listing_ref": "CAL-003",
+      "captured_at": "2026-03-08T19:40:00Z"
+    }
+  }
+]
