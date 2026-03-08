@@ -17,7 +17,7 @@ Este archivo define las reglas duras, restricciones y criterios de validación p
 | Backend | FastAPI + Uvicorn | Latest |
 | Language | Python | 3.11+ |
 | Agents | LangGraph | 0.3+ |
-| LLM | OpenAI GPT-4o-mini + Anthropic Claude Sonnet | Latest |
+| LLM | Groq + Cloudflare Workers AI | Runtime profile |
 | Database | Supabase PostgreSQL | Cloud |
 | Typing | Pydantic v2 | Latest |
 
@@ -28,7 +28,7 @@ Este archivo define las reglas duras, restricciones y criterios de validación p
 ### Seguridad
 - **NUNCA** concatenar strings para construir queries SQL — usar queries parametrizadas siempre
 - **NUNCA** incluir API keys, passwords o tokens en código fuente — solo en `.env` (nunca en git)
-- `SUPABASE_SERVICE_ROLE_KEY` y `ANTHROPIC_API_KEY` solo en el backend (server-side)
+- `SUPABASE_SERVICE_ROLE_KEY`, `GROQ_API_KEY`, `CLOUDFLARE_API_TOKEN` e `INTERNAL_AUDIT_SECRET` solo en el backend (server-side)
 - Prefijo `NEXT_PUBLIC_` solo para variables seguras de exponer en el cliente
 - Sanitizar todo input de usuario antes de pasarlo a LLMs (prevención de prompt injection)
 

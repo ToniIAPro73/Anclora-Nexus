@@ -327,7 +327,7 @@ async def audit_logger_node(state: AgentState) -> AgentState:
         "skill_name": state["selected_skill"],
         "input": state["input_data"],
         "output": state.get("skill_output"),
-        "llm_model": state.get("skill_output", {}).get("llm_model", "gpt-4o-mini"),
+        "llm_model": state.get("skill_output", {}).get("llm_model", "runtime-default"),
         "tokens_used": state.get("skill_output", {}).get("tokens_used", 0),
         "status": "success" if not state.get("error") else "error"
     }

@@ -391,6 +391,7 @@
 | FinOps and Commercial Command Center | ANCLORA-FCCC-001 | 1.0 | Implemented | Executive KPI and FinOps | finops-and-commercial-command-center-INDEX.md |
 | Deal Margin Simulator | ANCLORA-DMS-001 | 1.0 | Implemented | Commercial Profitability | deal-margin-simulator-INDEX.md |
 | Source Performance Observatory | ANCLORA-SPO-001 | 1.0 | Implemented | Acquisition Optimization | source-performance-observatory-INDEX.md |
+| AI Runtime Provider Profiles | ANCLORA-AIRP-001 | 1.0 | Implemented | AI Runtime & Provider Governance | ai-runtime-provider-profiles-INDEX.md |
 
 ---
 
@@ -466,6 +467,7 @@
 | 2026-02-24 | FinOps and Commercial Command Center v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-24 | Deal Margin Simulator v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-24 | Source Performance Observatory v1 | Feature RELEASED - Gate Final OK |
+| 2026-03-08 | AI Runtime Provider Profiles v1 | Feature RELEASED - Groq + Cloudflare runtime profile enabled |
 | 2026-02-15 | Lead Source Observability v1 | Feature RELEASED - Gate Final OK |
 | 2026-02-14 | Prospection & Buyer Matching v1 | Entrada inicial en Specification Phase |
 | 2026-02-13 | Multi-Tenant v1 | Entrada inicial en Specification Phase |
@@ -488,7 +490,7 @@
 ---
 
 **Documento versión**: 1.0  
-**Última actualización**: 2026-02-24  
+**Última actualización**: 2026-03-08  
 **Próxima revisión**: Post roadmap continuation completion
 
 ---
@@ -558,3 +560,19 @@
 - .agent/rules/feature-source-performance-observatory.md
 - .agent/skills/features/source-performance-observatory/SKILL.md
 - .antigravity/prompts/features/source-performance-observatory/
+
+### 16. AI Runtime Provider Profiles v1
+
+**ID**: ANCLORA-AIRP-001  
+**Version**: 1.0  
+**Status**: Implemented  
+**Phase**: AI Runtime & Provider Governance  
+**Priority**: ALTA
+
+**Documentation**:
+- sdd/features/ai-runtime-provider-profiles/ai-runtime-provider-profiles-INDEX.md
+- sdd/features/ai-runtime-provider-profiles/QA_REPORT_ANCLORA_AIRP_001.md
+- sdd/features/ai-runtime-provider-profiles/GATE_FINAL_ANCLORA_AIRP_001.md
+- .agent/rules/feature-ai-runtime-provider-profiles.md
+- .agent/skills/features/ai-runtime-provider-profiles/SKILL.md
+- .antigravity/prompts/features/ai-runtime-provider-profiles/

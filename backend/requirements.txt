@@ -6,6 +6,5 @@ email-validator
 supabase
 python-dotenv
 sqlalchemy
-langchain-openai
-langchain-anthropic
+httpx
 langgraph

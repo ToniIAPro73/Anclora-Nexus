@@ -13,9 +13,32 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
     PUBLIC_CTA_ORG_ID: str = "00000000-0000-0000-0000-000000000000"
     
-    # LLM Provider Settings
-    OPENAI_API_KEY: str
-    ANTHROPIC_API_KEY: str
+    # AI Runtime Settings
+    AI_RUNTIME_PROFILE: str = "groq-cloudflare"
+
+    GROQ_API_KEY: Optional[str] = None
+    GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
+    GROQ_MODEL_PRIMARY: str = "openai/gpt-oss-20b"
+    GROQ_MODEL_FALLBACK: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL_FAST: str = "llama-3.1-8b-instant"
+    GROQ_MODEL_NO_EVIDENCE: str = "llama-3.1-8b-instant"
+    GROQ_MODEL_GUARD: str = "llama-3.1-8b-instant"
+
+    CLOUDFLARE_ACCOUNT_ID: Optional[str] = None
+    CLOUDFLARE_API_TOKEN: Optional[str] = None
+    CLOUDFLARE_AI_BASE_URL: Optional[str] = None
+    CLOUDFLARE_MODEL_PRIMARY: str = "@cf/openai/gpt-oss-20b"
+    CLOUDFLARE_MODEL_FALLBACK: str = "@cf/meta/llama-3.1-8b-instruct"
+    CLOUDFLARE_MODEL_FAST: str = "@cf/meta/llama-3.1-8b-instruct"
+    CLOUDFLARE_MODEL_NO_EVIDENCE: str = "@cf/meta/llama-3.1-8b-instruct"
+    CLOUDFLARE_MODEL_GUARD: str = "@cf/meta/llama-3.1-8b-instruct"
+    CLOUDFLARE_EMBED_MODEL: str = "@cf/baai/bge-small-en-v1.5"
+
+    INTERNAL_AUDIT_SECRET: Optional[str] = None
+
+    # Legacy compatibility - deprecated
+    OPENAI_API_KEY: Optional[str] = None
+    ANTHROPIC_API_KEY: Optional[str] = None
     CRON_SECRET: Optional[str] = None
     
     # LangGraph Settings

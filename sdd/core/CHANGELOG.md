@@ -4,6 +4,54 @@
 
 ---
 
+## [1.0] - 2026-03-08 - AI Runtime Provider Profiles v1
+
+**Date**: 2026-03-08  
+**Status**: ✅ RELEASED  
+**Criticality**: ALTA  
+**Feature**: ANCLORA-AIRP-001 v1.0
+
+### Scope delivered
+- Runtime profile resolution for Groq + Cloudflare.
+- Task-based model routing for `summarize`, `analyze` and `generate_copy`.
+- Observable runtime contract for QA and operations.
+- Dedicated audit secret decoupled from provider credentials.
+
+### Core/API Changes
+- New service:
+  - `backend/services/ai_runtime.py`
+- Rewritten service:
+  - `backend/services/llm_service.py`
+- Updated modules:
+  - `backend/config.py`
+  - `backend/services/supabase_service.py`
+  - `backend/api/routes/intelligence.py`
+  - `backend/api/main.py`
+- New endpoint:
+  - `GET /api/intelligence/runtime-profile`
+
+### Database Changes
+- Migration skipped in v1.
+- Rationale: no persisted schema changes required.
+
+### Frontend Changes
+- No UI scope in v1.
+- Runtime observability exposed via backend API contract.
+
+### Validation
+- `python -m pytest -q backend/tests/test_ai_runtime_routes.py` -> 2 passed
+- `python -m pytest -q backend/tests/test_ai_runtime_service.py` -> 3 passed
+
+### SDD / Governance Artifacts
+- sdd/features/ai-runtime-provider-profiles/
+- .agent/rules/feature-ai-runtime-provider-profiles.md
+- .agent/skills/features/ai-runtime-provider-profiles/SKILL.md
+- .antigravity/prompts/features/ai-runtime-provider-profiles/
+- sdd/features/ai-runtime-provider-profiles/QA_REPORT_ANCLORA_AIRP_001.md
+- sdd/features/ai-runtime-provider-profiles/GATE_FINAL_ANCLORA_AIRP_001.md
+
+---
+
 ## [1.0] - 2026-02-24 - Source Performance Observatory v1
 
 **Date**: 2026-02-24  

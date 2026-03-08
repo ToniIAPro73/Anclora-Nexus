@@ -18,6 +18,7 @@ from ...services.notebooklm_service import (
     get_vulnerabilidades,
     save_insight,
 )
+from ...services.ai_runtime import get_runtime_summary
 from ...services.supabase_service import SupabaseService
 from ..deps import check_budget_hard_stop
 
@@ -169,6 +170,7 @@ async def intelligence_info():
             "retrieval_enabled": True,
             "notebooklm_notebook": NOTEBOOK_NAME,
             "notebooklm_notebook_id": NOTEBOOK_ID,
+            "ai_runtime_profile": get_runtime_summary().get("profile"),
         },
         "limits": {
             "max_message_length": 5000,
@@ -179,7 +181,23 @@ async def intelligence_info():
             "query": "POST /api/intelligence/query",
             "status": "GET /api/intelligence/status",
             "info": "GET /api/intelligence/info",
+            "runtime_profile": "GET /api/intelligence/runtime-profile",
         },
+    }
+
+
+@router.get("/runtime-profile")
+async def intelligence_runtime_profile():
+    """
+    Return the active AI runtime profile and task-to-model routing.
+
+    This contract is part of ANCLORA-AIRP-001 and exists so QA/operations
+    can verify that Groq + Cloudflare routing is correctly configured
+    without relying on hidden environment variables.
+    """
+    return {
+        "runtime": get_runtime_summary(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

@@ -71,6 +71,7 @@ async def root():
             "health": "/health",
             "intelligence": "/api/intelligence/query",
             "territorial_insights": "/api/intelligence/territorial-insights",
+            "runtime_profile": "/api/intelligence/runtime-profile",
             "skills": "/api/skills/run",
             "sellers": "/api/sellers/",
             "sellers_stats": "/api/sellers/stats",

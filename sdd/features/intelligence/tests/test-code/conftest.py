@@ -4,9 +4,11 @@ import sys
 # Inject environment variables before any backend imports to satisfy Pydantic Settings
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test-key")
-os.environ.setdefault("OPENAI_API_KEY", "sk-test")
-os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-test")
-os.environ.setdefault("AUDIT_SECRET", "test-secret")
+os.environ.setdefault("AI_RUNTIME_PROFILE", "groq-cloudflare")
+os.environ.setdefault("GROQ_API_KEY", "groq-test")
+os.environ.setdefault("CLOUDFLARE_ACCOUNT_ID", "cf-account-test")
+os.environ.setdefault("CLOUDFLARE_API_TOKEN", "cf-token-test")
+os.environ.setdefault("INTERNAL_AUDIT_SECRET", "test-secret")
 
 import pytest
 from unittest.mock import MagicMock, AsyncMock

@@ -13,7 +13,11 @@ class SupabaseService:
             settings.SUPABASE_URL, 
             settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_ANON_KEY
         )
-        self.audit_secret = settings.OPENAI_API_KEY # Using OpenAI key as a placeholder secret if dedicated not found
+        self.audit_secret = (
+            settings.INTERNAL_AUDIT_SECRET
+            or settings.SUPABASE_SERVICE_ROLE_KEY
+            or settings.SUPABASE_ANON_KEY
+        )
         self.fixed_org_id = "00000000-0000-0000-0000-000000000000" # Fixed Org ID for v0
 
     def _generate_signature(self, data: Dict[str, Any]) -> str:
