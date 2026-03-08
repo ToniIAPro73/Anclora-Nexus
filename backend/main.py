@@ -14,6 +14,7 @@ from backend.api.routes.automation import router as automation_router
 from backend.api.routes.command_center import router as command_center_router
 from backend.api.routes.deal_margin import router as deal_margin_router
 from backend.api.routes.source_observatory import router as source_observatory_router
+from backend.api.routes.sellers import router as sellers_router
 
 app = FastAPI(title="Anclora Nexus API", version="0.1.0")
 
@@ -40,6 +41,7 @@ app.include_router(automation_router, prefix="/api/automation", tags=["Automatio
 app.include_router(command_center_router, prefix="/api/command-center", tags=["Command Center"])
 app.include_router(deal_margin_router, prefix="/api/deal-margin", tags=["Deal Margin"])
 app.include_router(source_observatory_router, prefix="/api/source-observatory", tags=["Source Observatory"])
+app.include_router(sellers_router, prefix="/api/sellers", tags=["Sellers"])
 
 @app.get("/health")
 async def health_check():
