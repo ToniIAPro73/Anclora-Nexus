@@ -30,12 +30,16 @@ app.add_middleware(
 
 from .routes.intelligence import router as intelligence_router
 from .routes.prospection import router as prospection_router
+from .routes.sellers import router as sellers_router
 
-# Include Intelligence routes
+# Include Intelligence routes (+ NotebookLM territorial insights)
 app.include_router(intelligence_router, prefix="/api/intelligence", tags=["Intelligence"])
 
 # Include Prospection & Buyer Matching routes
 app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospection"])
+
+# Include Nexus Sellers — Motor de Adquisición de Vendedores
+app.include_router(sellers_router, prefix="/api/sellers", tags=["Sellers"])
 
 # ═══════════════════════════════════════════════════════════════
 # HEALTH CHECK
@@ -58,10 +62,13 @@ async def health_check():
 async def root():
     """Root endpoint."""
     return {
-        "message": "Anclora Intelligence API v1.0",
+        "message": "Anclora Intelligence API v2.0",
         "endpoints": {
             "health": "/health",
             "intelligence": "/api/intelligence/query",
+            "territorial_insights": "/api/intelligence/territorial-insights",
+            "sellers": "/api/sellers/",
+            "sellers_stats": "/api/sellers/stats",
             "docs": "/docs",
             "redoc": "/redoc",
         },

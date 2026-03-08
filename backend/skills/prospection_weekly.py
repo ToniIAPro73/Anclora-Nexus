@@ -3,6 +3,11 @@ from datetime import datetime
 from typing import Dict, Any, List
 from backend.services.llm_service import LLMService
 from backend.services.supabase_service import SupabaseService
+from backend.services.sellers_service import create_seller
+from backend.models.sellers import NexusSellerCreate, ZonaEnum, FuenteEnum
+
+# Default org_id for single-tenant v0
+DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 
 async def run_prospection_weekly(data: Dict[str, Any], llm: LLMService, db: SupabaseService) -> Dict[str, Any]:
     """
@@ -77,13 +82,57 @@ async def run_prospection_weekly(data: Dict[str, Any], llm: LLMService, db: Supa
     
     summary = await llm.generate_copy(summary_prompt)
 
-    # 4. Prepare results
+    # 4. Detect potential FSBOs / stagnant properties → write to nexus_sellers
+    sellers_created = 0
+    for prop in properties:
+        # Heuristic: properties without an assigned agent or with long DOM
+        # are candidates for seller prospecting
+        prop_type = prop.get("property_type", "")
+        address = prop.get("address", "")
+        price = prop.get("price")
+
+        # Only prospect luxury properties (>€500K) in target zones
+        if price and price >= 500000:
+            zona_raw = prop.get("zone", prop.get("zona", "otra")).lower().replace(" ", "_").replace("-", "_")
+            # Map to valid ZonaEnum value
+            zona_map = {
+                "andratx": "andratx", "calvià": "calvia", "calvia": "calvia",
+                "son_ferrer": "son_ferrer", "santa_ponça": "santa_ponca",
+                "santa_ponca": "santa_ponca", "paguera": "paguera",
+                "portals_nous": "portals_nous", "bendinat": "bendinat",
+                "punta_negra": "punta_negra", "costa_den_blanes": "costa_den_blanes",
+                "port_adriano": "port_adriano", "palma": "palma",
+            }
+            zona_value = zona_map.get(zona_raw, "otra")
+
+            try:
+                seller_data = NexusSellerCreate(
+                    anuncio_url=prop.get("url", prop.get("listing_url")),
+                    direccion=address,
+                    zona=ZonaEnum(zona_value),
+                    fuente=FuenteEnum.prospection_match,
+                    precio_publicado=float(price),
+                    tipo_propiedad=prop_type,
+                    dias_en_mercado=prop.get("days_on_market"),
+                    datos_extraidos={
+                        "property_id": str(prop.get("id", "")),
+                        "match_context": "detected_by_prospection_weekly",
+                    },
+                    prioridad=4 if price >= 2000000 else 3,
+                )
+                await create_seller(db=db, org_id=DEFAULT_ORG_ID, data=seller_data)
+                sellers_created += 1
+            except Exception as e:
+                print(f"[prospection_weekly] Warning: Could not create seller for property {prop.get('id')}: {e}")
+
+    # 5. Prepare results
     result = {
         "leads_processed": len(leads),
         "properties_analyzed": len(properties),
         "matches_found": len(matchings),
         "matchings": matchings,
         "luxury_summary": summary,
+        "sellers_detected": sellers_created,
         "processed_at": datetime.utcnow().isoformat()
     }
 

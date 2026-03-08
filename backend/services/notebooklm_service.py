@@ -1,0 +1,178 @@
+"""
+NotebookLM Intelligence Cache Service
+
+Manages storage and retrieval of intelligence insights in Supabase.
+NotebookLM MCP is not directly callable from the production backend
+(it uses browser session cookies). Claude Code queries NotebookLM and
+writes the results here for the API to serve.
+
+Flow: Claude Code (MCP) → NotebookLM → Save here → API serves from Supabase
+"""
+
+from datetime import datetime, timezone
+from typing import Optional
+from uuid import UUID
+
+from .supabase_service import SupabaseService
+
+
+NOTEBOOK_ID = "452e73bc-8c2a-42ec-a34f-d0219fc8995a"
+NOTEBOOK_NAME = "Anclora Nexus Territorial Brain"
+
+VALID_INSIGHT_TYPES = {
+    "territorial", "cma", "competitive", "whale_audit",
+    "buyer_profile", "market_signal"
+}
+
+VALID_ZONAS = {
+    "andratx", "calvia", "son_ferrer", "santa_ponca",
+    "paguera", "portals_nous", "bendinat", "punta_negra",
+    "costa_den_blanes", "port_adriano", "palma", "general"
+}
+
+
+async def save_insight(
+    db: SupabaseService,
+    org_id: str,
+    query: str,
+    response: str,
+    insight_type: str,
+    zona: Optional[str] = None,
+    metadata: Optional[dict] = None,
+    notebook_id: str = NOTEBOOK_ID,
+    notebook_name: str = NOTEBOOK_NAME,
+) -> dict:
+    """
+    Save a NotebookLM query result to Supabase for API consumption.
+
+    Args:
+        db: SupabaseService instance
+        org_id: Organization UUID
+        query: The question asked to NotebookLM
+        response: The answer from NotebookLM
+        insight_type: One of: territorial, cma, competitive, whale_audit,
+                      buyer_profile, market_signal
+        zona: Geographic zone (optional)
+        metadata: Additional metadata (urgency, related_seller_id, etc.)
+        notebook_id: NotebookLM notebook UUID
+        notebook_name: Notebook display name
+
+    Returns:
+        Created insight record
+    """
+    if insight_type not in VALID_INSIGHT_TYPES:
+        raise ValueError(
+            f"Invalid insight_type '{insight_type}'. "
+            f"Valid: {VALID_INSIGHT_TYPES}"
+        )
+
+    if zona and zona not in VALID_ZONAS:
+        raise ValueError(
+            f"Invalid zona '{zona}'. Valid: {VALID_ZONAS}"
+        )
+
+    row = {
+        "org_id": str(org_id),
+        "notebook_id": notebook_id,
+        "notebook_name": notebook_name,
+        "query": query,
+        "response": response,
+        "insight_type": insight_type,
+        "zona": zona,
+        "metadata": metadata or {},
+    }
+
+    result = db.client.table("notebooklm_insights").insert(row).execute()
+    return result.data[0] if result.data else row
+
+
+async def get_latest_insights(
+    db: SupabaseService,
+    org_id: str,
+    insight_type: Optional[str] = None,
+    zona: Optional[str] = None,
+    limit: int = 10,
+) -> list[dict]:
+    """
+    Retrieve the most recent intelligence insights from Supabase.
+
+    Args:
+        db: SupabaseService instance
+        org_id: Organization UUID
+        insight_type: Filter by type (optional)
+        zona: Filter by geographic zone (optional)
+        limit: Maximum number of results (default 10)
+
+    Returns:
+        List of insight records ordered by created_at DESC
+    """
+    query = (
+        db.client.table("notebooklm_insights")
+        .select("*")
+        .eq("org_id", str(org_id))
+        .order("created_at", desc=True)
+        .limit(limit)
+    )
+
+    if insight_type:
+        query = query.eq("insight_type", insight_type)
+
+    if zona:
+        query = query.eq("zona", zona)
+
+    result = query.execute()
+    return result.data or []
+
+
+async def get_territorial_summary(
+    db: SupabaseService,
+    org_id: str,
+) -> dict:
+    """
+    Retrieve the latest territorial insight per zone for the Radar Territorial
+    dashboard widget.
+
+    Returns:
+        Dict with zones as keys and their latest insight as value
+    """
+    result = (
+        db.client.table("notebooklm_insights")
+        .select("zona, response, created_at, metadata")
+        .eq("org_id", str(org_id))
+        .eq("insight_type", "territorial")
+        .order("created_at", desc=True)
+        .limit(50)
+        .execute()
+    )
+
+    # Keep only the most recent insight per zone
+    summary: dict = {}
+    for row in (result.data or []):
+        zona = row.get("zona") or "general"
+        if zona not in summary:
+            summary[zona] = row
+
+    return summary
+
+
+async def get_vulnerabilidades(
+    db: SupabaseService,
+    org_id: str,
+) -> Optional[dict]:
+    """
+    Retrieve the most recent territorial vulnerabilities/opportunities insight.
+    This corresponds to the vulnerabilidades.md content but served via API.
+    """
+    result = (
+        db.client.table("notebooklm_insights")
+        .select("*")
+        .eq("org_id", str(org_id))
+        .eq("insight_type", "territorial")
+        .eq("zona", "general")
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+
+    data = result.data or []
+    return data[0] if data else None

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck, ChevronDown, ChevronRight, UploadCloud, Bot, BarChart3, Calculator, LineChart } from 'lucide-react'
+import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck, ChevronDown, ChevronRight, UploadCloud, Bot, BarChart3, Calculator, LineChart, UserSearch } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
@@ -16,7 +16,7 @@ function getSectionFromPath(pathname: string): 'core' | 'intelligence' | 'operat
   ) {
     return 'core'
   }
-  if (pathname.startsWith('/prospection') || pathname.startsWith('/intelligence')) {
+  if (pathname.startsWith('/prospection') || pathname.startsWith('/intelligence') || pathname.startsWith('/sellers')) {
     return 'intelligence'
   }
   return 'operations'
@@ -71,6 +71,7 @@ export function Sidebar() {
       links: [
         { name: `${t('prospection')} studio`, href: '/prospection', icon: Target },
         { name: `${t('prospection')} operativa`, href: '/prospection-unified', icon: Target },
+        { name: 'Nexus Sellers', href: '/sellers', icon: UserSearch },
         { name: t('opportunityRankingMenu'), href: '/opportunity-ranking', icon: Target },
         { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
       ],
