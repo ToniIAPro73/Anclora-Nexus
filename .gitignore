@@ -32,6 +32,9 @@ venv/
 .DS_Store
 *.pem
 
+# Claude Code local config (session-specific, not project config)
+.claude/settings.local.json
+
 # env files
 .env*
 !.env.example
