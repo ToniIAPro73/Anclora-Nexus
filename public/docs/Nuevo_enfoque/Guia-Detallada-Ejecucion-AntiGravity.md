@@ -55,11 +55,11 @@ Usaremos NotebookLM como motor RAG global de costo cero para memoria a largo pla
 ### 2.2 Ingesta de Datos Base
 1.  Crea dos carpetas locales: `@notebook_to_add` y `@notebook_added`.
 2.  Coloca aquí los informes de Idealista, IBESTAT, Consell de Mallorca, etc.
-3.  **Prompt:** *"Crea un nuevo cuaderno en NotebookLM llamado 'Anclora Nexus Territorial Brain'. Añade cada archivo de la carpeta `@notebook_to_add` como fuente en ese cuaderno. Si fallas subiendo un PDF, crea un script en Python para convertir el PDF a texto plano de forma local e inyéctalo nuevamente. Una vez completado, mueve los archivos a `@notebook_added`."*
+3.  **Prompt:** *"Crea un nuevo cuaderno en NotebookLM llamado 'Inteligencia Territorial Suroeste Mallorca 2026'. Añade cada archivo de la carpeta `@notebook_to_add` como fuente en ese cuaderno. Si fallas subiendo un PDF, crea un script en Python para convertir el PDF a texto plano de forma local e inyéctalo nuevamente. Una vez completado, mueve los archivos a `@notebook_added`."*
 
 ### 2.3 Despliegue de Agentes Paralelos (Agent Swarm)
 Abre el **Agent Manager** de AntiGravity y levanta 3 terminales concurrentes:
-1.  **Terminal 1 (Data Strategist):** *"Usa el NotebookLM MCP. Consulta el cuaderno 'Anclora Nexus Territorial Brain' y extrae las 5 vulnerabilidades/oportunidades territoriales más críticas. Guarda esto en `vulnerabilidades.md`."*
+1.  **Terminal 1 (Data Strategist):** *"Usa el NotebookLM MCP. Consulta el cuaderno 'Inteligencia Territorial Suroeste Mallorca 2026' y extrae las 5 vulnerabilidades/oportunidades territoriales más críticas. Guarda esto en `vulnerabilidades.md`."*
 2.  **Terminal 2 (Artifact Synthesizer):** *"Usa el NotebookLM MCP. Genera un Audio Overview (Podcast) y un informe de Inteligencia Competitiva basado en los datos del Agente 1, y descárgalos al espacio de trabajo."*
 3.  **Terminal 3 (Full-Stack Dev):** *"Lee `vulnerabilidades.md`. Construye un dashboard interactivo local (HTML/React) que visualice esta inteligencia en tiempo real. Usa los lineamientos de diseño de la marca especificados en `claude.md`."*
 

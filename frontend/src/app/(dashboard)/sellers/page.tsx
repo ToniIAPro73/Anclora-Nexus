@@ -270,7 +270,7 @@ export default function SellersPage() {
             <h2 className="font-display text-lg text-gold">Oportunidades Territoriales Activas</h2>
           </div>
           <p className="text-sm text-soft-muted">
-            Insights del NotebookLM &quot;Anclora Nexus Territorial Brain&quot; — actualizado 2026-03-08
+            Insights del NotebookLM &quot;Inteligencia Territorial Suroeste Mallorca 2026&quot; — actualizado 2026-03-08
           </p>
           <div className="grid md:grid-cols-2 gap-3 text-sm">
             {[

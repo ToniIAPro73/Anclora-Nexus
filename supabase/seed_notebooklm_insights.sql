@@ -6,8 +6,8 @@
 DO $$
 DECLARE
   v_org_id UUID := '00000000-0000-0000-0000-000000000001';
-  v_notebook_id TEXT := '452e73bc-8c2a-42ec-a34f-d0219fc8995a';
-  v_notebook_name TEXT := 'Anclora Nexus Territorial Brain';
+  v_notebook_id TEXT := '9f003773-16c5-4fb4-ab37-7b6c230ab4da';
+  v_notebook_name TEXT := 'Inteligencia Territorial Suroeste Mallorca 2026';
 BEGIN
 
 -- ─── Global territorial insight (all 5 opportunities) ───────────────────────

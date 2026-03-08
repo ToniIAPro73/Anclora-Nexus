@@ -2,7 +2,7 @@
 
 > [Generado por Anclora Nexus Agent — notebooklm_territorial_brain]
 > Fecha: 2026-03-08
-> Fuente: NotebookLM "Anclora Nexus Territorial Brain" (7 fuentes de inteligencia)
+> Fuente: NotebookLM "Inteligencia Territorial Suroeste Mallorca 2026" (7 fuentes de inteligencia)
 > Próxima acción recomendada: Ejecutar prospección en Punta Negra/Costa d'en Blanes (Oportunidad #1)
 
 ---

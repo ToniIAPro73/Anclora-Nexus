@@ -17,8 +17,11 @@ from uuid import UUID
 from .supabase_service import SupabaseService
 
 
-NOTEBOOK_ID = os.getenv("NOTEBOOKLM_NOTEBOOK_ID", "452e73bc-8c2a-42ec-a34f-d0219fc8995a")
-NOTEBOOK_NAME = os.getenv("NOTEBOOKLM_NOTEBOOK_NAME", "Anclora Nexus Territorial Brain")
+NOTEBOOK_ID = os.getenv("NOTEBOOKLM_NOTEBOOK_ID", "9f003773-16c5-4fb4-ab37-7b6c230ab4da")
+NOTEBOOK_NAME = os.getenv(
+    "NOTEBOOKLM_NOTEBOOK_NAME",
+    "Inteligencia Territorial Suroeste Mallorca 2026",
+)
 
 VALID_INSIGHT_TYPES = {
     "territorial", "cma", "competitive", "whale_audit",

@@ -176,7 +176,7 @@ export function RadarTerritorial() {
           </div>
           <div>
             <h3 className="widget-title">Radar Territorial</h3>
-            <p className="text-[10px] text-soft-muted">Suroeste Mallorca · NotebookLM Brain</p>
+            <p className="text-[10px] text-soft-muted">Suroeste Mallorca · Inteligencia Territorial 2026</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
