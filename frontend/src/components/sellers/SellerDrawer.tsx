@@ -97,36 +97,39 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40">
-      <div className="w-full max-w-2xl h-full bg-navy border-l border-soft-subtle/40 p-6 overflow-y-auto">
+      <div className="w-full max-w-2xl h-full bg-navy-darker/95 border-l border-soft-subtle/40 p-6 overflow-y-auto backdrop-blur-xl">
         <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="font-display text-xl text-soft-white">Gravity Claw</h2>
-            <p className="text-sm text-soft-muted">{sellerName || 'Seller seleccionado'}</p>
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold text-soft-white">Ficha del seller</h2>
+            <p className="text-sm text-soft-muted">{sellerName || 'Vendedor seleccionado'}</p>
           </div>
-          <button onClick={onClose} className="text-soft-muted hover:text-gold">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-soft-subtle/70 bg-navy-surface/40 p-2 text-soft-white hover:border-gold/50 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="mb-6 rounded-xl border border-gold/30 bg-gold/5 p-4">
+        <div className="mb-6 rounded-2xl border border-gold/20 bg-gradient-to-br from-navy-deep/70 via-navy-surface/45 to-navy-deep/60 p-5">
           <button
             onClick={generateDossier}
             disabled={generating || !sellerId}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gold/50 text-gold hover:bg-gold/10 disabled:opacity-50"
+            className="btn-action"
           >
             <Sparkles className="w-4 h-4" />
-            {generating ? 'Generando dossier...' : 'Generar Dossier + Email Draft'}
+            {generating ? 'Generando dossier...' : 'Generar dossier y email'}
           </button>
           <p className="text-xs text-soft-muted mt-2">
-            Usa inteligencia territorial + LLM para crear argumentario y primer contacto.
+            Usa inteligencia territorial y el LLM para preparar argumentario y primer contacto.
           </p>
         </div>
 
         {(draftSubject || draftBody) && (
-          <div className="mb-6 rounded-xl border border-blue-light/30 bg-blue-light/5 p-4">
+          <div className="mb-6 rounded-2xl border border-blue-light/20 bg-navy-surface/35 p-5">
             <div className="flex items-center gap-2 mb-2 text-blue-light">
               <Mail className="w-4 h-4" />
-              <span className="text-sm font-semibold">Borrador de Email</span>
+              <span className="text-sm font-semibold">Borrador de email</span>
             </div>
             <p className="text-xs text-soft-muted mb-2">Asunto</p>
             <p className="text-sm text-soft-white mb-3">{draftSubject || '—'}</p>
@@ -138,7 +141,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
         <div>
           <h3 className="text-sm font-semibold text-soft-white mb-3">Historial de interacciones</h3>
           {error && (
-            <div className="mb-3 rounded-lg border border-red-800/40 bg-red-900/20 px-3 py-2 text-red-300 text-xs">
+            <div className="mb-3 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-red-300 text-xs">
               {error}
             </div>
           )}
@@ -149,7 +152,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
           ) : (
             <div className="space-y-3">
               {interactions.map((item) => (
-                <div key={item.id} className="rounded-lg border border-soft-subtle/30 bg-navy-surface/30 p-3">
+                <div key={item.id} className="rounded-xl border border-soft-subtle/30 bg-navy-surface/30 p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-gold">{typeLabel(item.tipo)}</span>
                     <span className="text-[11px] text-soft-muted">{formatDate(item.created_at)}</span>

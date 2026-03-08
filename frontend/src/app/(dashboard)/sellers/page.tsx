@@ -1,7 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
-import { UserSearch, TrendingUp, MapPin, Users, Target, Filter, RefreshCw } from 'lucide-react'
+import { ArrowLeft, UserSearch, TrendingUp, MapPin, Users, Target, Filter, RefreshCw } from 'lucide-react'
 import { SellersTable, NexusSeller, EstadoContacto } from '@/components/sellers/SellersTable'
 import { SellerDrawer } from '@/components/sellers/SellerDrawer'
 
@@ -145,42 +146,48 @@ export default function SellersPage() {
 
   return (
     <div className="min-h-screen bg-navy text-soft-white">
-      <div className="max-w-screen-xl mx-auto px-6 py-8 space-y-8">
+      <div className="max-w-screen-xl mx-auto px-6 py-8 space-y-6">
 
-        {/* ── Header ── */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center">
-                <UserSearch className="w-5 h-5 text-gold" />
+        <section className="rounded-2xl border border-soft-subtle bg-gradient-to-br from-navy-deep/80 via-navy-surface/50 to-navy-deep/70 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <Link
+                href="/prospection-unified"
+                className="mt-0.5 rounded-lg border border-soft-subtle/70 bg-navy-surface/40 p-2 text-soft-white hover:border-gold/50 transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold text-soft-white">Nexus Sellers</h1>
+                <p className="mt-1 text-sm text-soft-muted">
+                  Cola priorizada para captación temprana de vendedores antes de que entren en competencia abierta.
+                </p>
               </div>
-              <h1 className="font-display text-2xl text-soft-white">Nexus Sellers</h1>
             </div>
-            <p className="text-sm text-soft-muted pl-1">
-              Motor de adquisición de vendedores — señales tempranas antes que la competencia
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={fetchSellers}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-soft-subtle/40 text-soft-muted hover:text-gold hover:border-gold/40 transition-colors text-sm"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Actualizar
-          </button>
-        </div>
 
-        {/* ── Stats ── */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchSellers}
+                className="btn-action"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Actualizar
+              </button>
+            </div>
+          </div>
+        </section>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
             icon={Users}
-            label="Total Sellers"
+            label="Vendedores detectados"
             value={totalSellers}
             accent="default"
           />
           <StatCard
             icon={Target}
-            label="Whales (P5)"
+            label="Prioridad P5"
             value={whales}
             accent="gold"
           />
@@ -198,64 +205,68 @@ export default function SellersPage() {
           />
         </div>
 
-        {/* ── Filters ── */}
-        <div className="flex flex-wrap gap-3 items-center">
-          <Filter className="w-4 h-4 text-soft-muted shrink-0" />
+        <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2">
+              <Filter className="h-4 w-4 text-soft-muted" />
+              <select
+                value={zona}
+                onChange={(e) => setZona(e.target.value)}
+                className="bg-transparent text-sm text-soft-white outline-none"
+              >
+                {ZONA_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value} className="bg-navy">
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <select
-            value={zona}
-            onChange={(e) => setZona(e.target.value)}
-            className="text-sm bg-navy-surface/40 border border-soft-subtle/30 rounded-lg px-3 py-2 text-soft-white focus:outline-none focus:border-gold/50"
-          >
-            {ZONA_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} className="bg-navy">
-                {o.label}
-              </option>
-            ))}
-          </select>
+            <div className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2">
+              <select
+                value={estado}
+                onChange={(e) => setEstado(e.target.value)}
+                className="bg-transparent text-sm text-soft-white outline-none"
+              >
+                {ESTADO_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value} className="bg-navy">
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <select
-            value={estado}
-            onChange={(e) => setEstado(e.target.value)}
-            className="text-sm bg-navy-surface/40 border border-soft-subtle/30 rounded-lg px-3 py-2 text-soft-white focus:outline-none focus:border-gold/50"
-          >
-            {ESTADO_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} className="bg-navy">
-                {o.label}
-              </option>
-            ))}
-          </select>
+            <div className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2">
+              <select
+                value={prioridadMin}
+                onChange={(e) => setPrioridadMin(e.target.value ? Number(e.target.value) : '')}
+                className="bg-transparent text-sm text-soft-white outline-none"
+              >
+                <option value="" className="bg-navy">Toda prioridad</option>
+                <option value="5" className="bg-navy">Prioridad P5</option>
+                <option value="4" className="bg-navy">Alta (P4+)</option>
+                <option value="3" className="bg-navy">Media (P3+)</option>
+              </select>
+            </div>
 
-          <select
-            value={prioridadMin}
-            onChange={(e) => setPrioridadMin(e.target.value ? Number(e.target.value) : '')}
-            className="text-sm bg-navy-surface/40 border border-soft-subtle/30 rounded-lg px-3 py-2 text-soft-white focus:outline-none focus:border-gold/50"
-          >
-            <option value="" className="bg-navy">Toda prioridad</option>
-            <option value="5" className="bg-navy">★ Whale (P5)</option>
-            <option value="4" className="bg-navy">Alta (P4+)</option>
-            <option value="3" className="bg-navy">Media (P3+)</option>
-          </select>
+            {(zona || estado || prioridadMin) && (
+              <button
+                type="button"
+                onClick={() => { setZona(''); setEstado(''); setPrioridadMin('') }}
+                className="rounded-full border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-xs text-soft-muted hover:text-soft-white transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        </section>
 
-          {(zona || estado || prioridadMin) && (
-            <button
-              type="button"
-              onClick={() => { setZona(''); setEstado(''); setPrioridadMin('') }}
-              className="text-xs text-soft-muted hover:text-gold transition-colors px-2 py-1 rounded border border-soft-subtle/20"
-            >
-              Limpiar filtros
-            </button>
-          )}
-        </div>
-
-        {/* ── Error ── */}
         {error && (
-          <div className="rounded-xl border border-red-800/50 bg-red-900/20 px-4 py-3 text-red-400 text-sm">
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
             Error al cargar sellers: {error}
           </div>
         )}
 
-        {/* ── Table ── */}
         <SellersTable
           sellers={sellers}
           onEstadoChange={handleEstadoChange}
@@ -263,11 +274,10 @@ export default function SellersPage() {
           loading={loading}
         />
 
-        {/* ── Oportunidades (vulnerabilidades.md summary) ── */}
-        <div className="rounded-xl border border-gold/20 bg-gold/5 p-6 space-y-3">
+        <div className="rounded-2xl border border-gold/20 bg-gold/5 p-6 space-y-3">
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5 text-gold" />
-            <h2 className="font-display text-lg text-gold">Oportunidades Territoriales Activas</h2>
+            <h2 className="text-lg font-semibold text-soft-white">Oportunidades territoriales activas</h2>
           </div>
           <p className="text-sm text-soft-muted">
             Insights del NotebookLM &quot;Inteligencia Territorial Suroeste Mallorca 2026&quot; — actualizado 2026-03-08

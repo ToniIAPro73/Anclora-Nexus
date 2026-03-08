@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { UserSearch, MapPin, ExternalLink, ChevronDown, Phone, Mail, Calendar, Star } from 'lucide-react'
+import { UserSearch, MapPin, ExternalLink, Star } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -77,7 +77,7 @@ const FUENTE_LABELS: Record<string, string> = {
   idealista: 'Idealista',
   fotocasa: 'Fotocasa',
   fsbo: 'FSBO',
-  str_enforcement: 'STR Enforcement',
+  str_enforcement: 'Control STR',
   prospection_match: 'Prospección',
   manual: 'Manual',
   referral: 'Referido',
@@ -168,7 +168,7 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
     return (
       <div className="flex items-center justify-center py-16 text-soft-muted">
         <div className="animate-spin w-6 h-6 border-2 border-gold border-t-transparent rounded-full mr-3" />
-        Cargando sellers...
+        Cargando vendedores...
       </div>
     )
   }
@@ -177,9 +177,9 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
     return (
       <div className="flex flex-col items-center justify-center py-16 text-soft-muted gap-3">
         <UserSearch className="w-12 h-12 opacity-30" />
-        <p className="text-sm">No hay sellers detectados todavía.</p>
+        <p className="text-sm">No hay vendedores detectados todavía.</p>
         <p className="text-xs opacity-60">
-          Los sellers se añaden automáticamente cuando se detectan señales de vendedores motivados.
+          Los registros se añaden automáticamente cuando se detectan señales de vendedores motivados.
         </p>
       </div>
     )
@@ -190,28 +190,28 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-soft-subtle/30 bg-navy-surface/40">
-            <th className="text-left px-4 py-3 text-soft-muted font-medium text-xs uppercase tracking-wide">
+            <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               Propietario / Propiedad
             </th>
-            <th className="text-left px-4 py-3 text-soft-muted font-medium text-xs uppercase tracking-wide">
+            <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               Zona
             </th>
-            <th className="text-left px-4 py-3 text-soft-muted font-medium text-xs uppercase tracking-wide">
+            <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               Fuente
             </th>
-            <th className="text-right px-4 py-3 text-soft-muted font-medium text-xs uppercase tracking-wide">
+            <th className="text-right px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               Precio
             </th>
-            <th className="text-right px-4 py-3 text-soft-muted font-medium text-xs uppercase tracking-wide">
+            <th className="text-right px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               DOM
             </th>
-            <th className="text-left px-4 py-3 text-soft-muted font-medium text-xs uppercase tracking-wide">
+            <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               Estado
             </th>
-            <th className="text-left px-4 py-3 text-soft-muted font-medium text-xs uppercase tracking-wide">
+            <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               Prioridad
             </th>
-            <th className="text-left px-4 py-3 text-soft-muted font-medium text-xs uppercase tracking-wide">
+            <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               Detección
             </th>
             <th className="px-4 py-3" />
@@ -326,9 +326,9 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
                     <button
                       type="button"
                       onClick={() => onOpenDetail(seller)}
-                      className="text-xs px-2 py-1 rounded-lg border border-blue-light/30 text-blue-light hover:bg-blue-light/10 transition-colors mr-2"
+                      className="text-xs px-2.5 py-1.5 rounded-lg border border-soft-subtle/40 text-soft-muted hover:text-soft-white hover:border-blue-light/40 transition-colors mr-2"
                     >
-                      Gravity Claw
+                      Ver ficha
                     </button>
                   )}
                   {nextEstado && !isMandato && (
