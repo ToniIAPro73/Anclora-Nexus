@@ -37,6 +37,7 @@ export interface NexusSeller {
 interface SellersTableProps {
   sellers: NexusSeller[]
   onEstadoChange?: (sellerId: string, newEstado: EstadoContacto) => Promise<void>
+  onOpenDetail?: (seller: NexusSeller) => void
   loading?: boolean
 }
 
@@ -149,7 +150,7 @@ function formatDate(iso?: string): string {
 // Component
 // ─────────────────────────────────────────────────────────────
 
-export function SellersTable({ sellers, onEstadoChange, loading }: SellersTableProps) {
+export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }: SellersTableProps) {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   const handleAdvanceEstado = async (seller: NexusSeller) => {
@@ -321,6 +322,15 @@ export function SellersTable({ sellers, onEstadoChange, loading }: SellersTableP
 
                 {/* Acción */}
                 <td className="px-4 py-3">
+                  {onOpenDetail && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenDetail(seller)}
+                      className="text-xs px-2 py-1 rounded-lg border border-blue-light/30 text-blue-light hover:bg-blue-light/10 transition-colors mr-2"
+                    >
+                      Gravity Claw
+                    </button>
+                  )}
                   {nextEstado && !isMandato && (
                     <button
                       type="button"

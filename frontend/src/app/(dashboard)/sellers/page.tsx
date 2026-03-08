@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { UserSearch, TrendingUp, MapPin, Users, Target, Plus, Filter, RefreshCw } from 'lucide-react'
+import { UserSearch, TrendingUp, MapPin, Users, Target, Filter, RefreshCw } from 'lucide-react'
 import { SellersTable, NexusSeller, EstadoContacto } from '@/components/sellers/SellersTable'
+import { SellerDrawer } from '@/components/sellers/SellerDrawer'
 
 // ─────────────────────────────────────────────────────────────
 // Config
@@ -83,6 +84,7 @@ export default function SellersPage() {
   const [stats, setStats] = useState<Record<string, unknown>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedSeller, setSelectedSeller] = useState<NexusSeller | null>(null)
 
   // Filters
   const [zona, setZona] = useState('')
@@ -257,6 +259,7 @@ export default function SellersPage() {
         <SellersTable
           sellers={sellers}
           onEstadoChange={handleEstadoChange}
+          onOpenDetail={(seller) => setSelectedSeller(seller)}
           loading={loading}
         />
 
@@ -293,6 +296,12 @@ export default function SellersPage() {
         </div>
 
       </div>
+      <SellerDrawer
+        sellerId={selectedSeller?.id ?? null}
+        sellerName={selectedSeller?.nombre_propietario}
+        open={Boolean(selectedSeller)}
+        onClose={() => setSelectedSeller(null)}
+      />
     </div>
   )
 }

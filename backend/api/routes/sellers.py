@@ -7,7 +7,8 @@ before they appear on the open market.
 """
 
 from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import List, Optional
+from pydantic import BaseModel
+from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 
 from ...models.sellers import (
@@ -22,7 +23,17 @@ from ...models.sellers import (
 )
 from ...services import sellers_service
 from ...services.supabase_service import SupabaseService
+from ...services.llm_service import llm_service
 from ..deps import check_budget_hard_stop
+from ...skills.whale_dossier import run_whale_dossier
+
+
+class InteractionCreate(BaseModel):
+    tipo: str  # llamada | email | whatsapp | reunion | nota | email_draft
+    contenido: str
+    estado: str = "realizado"
+    resultado: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 router = APIRouter()
 
@@ -199,3 +210,99 @@ async def update_seller_estado(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating seller estado: {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# GRAVITY CLAW — WHALE DOSSIER (Phase 4)
+# ═══════════════════════════════════════════════════════════════
+
+@router.post("/{seller_id}/generate-dossier", response_model=dict)
+async def generate_whale_dossier(
+    seller_id: str,
+    _budget=Depends(check_budget_hard_stop),
+):
+    """
+    Generate a hyper-personalized captation dossier for a Whale seller.
+
+    Uses zone territorial intelligence from NotebookLM cache + Claude Sonnet
+    to produce:
+    - Argumentario: 3-paragraph captation pitch with local market data
+    - Email draft: First-outreach email ready to review and send
+
+    Both are saved to seller_interactions (tipo=dossier, tipo=email_draft).
+    The argumentario is also stored in nexus_sellers.argumentario.
+
+    Recommended for sellers with prioridad >= 4 (High value / Whale).
+    """
+    try:
+        db = get_db()
+        result = await run_whale_dossier(
+            data={"seller_id": seller_id, "org_id": DEFAULT_ORG_ID},
+            llm=llm_service,
+            db=db,
+        )
+        if result.get("status") == "error":
+            raise HTTPException(status_code=404, detail=result.get("reason", "Error"))
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating dossier: {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# INTERACTION MEMORY (Gravity Claw Phase 4)
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/{seller_id}/interactions", response_model=list)
+async def list_seller_interactions(
+    seller_id: str,
+    limit: int = Query(20, ge=1, le=100),
+):
+    """
+    List all interactions for a seller (most recent first).
+
+    Returns: calls, emails, WhatsApp messages, meetings, notes, AI drafts.
+    """
+    try:
+        db = get_db()
+        interactions = await sellers_service.get_interactions(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+            limit=limit,
+        )
+        return interactions
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing interactions: {str(e)}")
+
+
+@router.post("/{seller_id}/interactions", response_model=dict, status_code=201)
+async def log_seller_interaction(
+    seller_id: str,
+    data: InteractionCreate,
+):
+    """
+    Log a manual interaction with a seller.
+
+    Use this to record calls, WhatsApp messages, meetings, or free-form notes.
+    AI-generated drafts are created automatically via /generate-dossier.
+    """
+    valid_tipos = {"llamada", "email", "whatsapp", "reunion", "nota", "email_draft"}
+    if data.tipo not in valid_tipos:
+        raise HTTPException(status_code=422, detail=f"tipo must be one of {valid_tipos}")
+    try:
+        db = get_db()
+        interaction = await sellers_service.add_interaction(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+            tipo=data.tipo,
+            contenido=data.contenido,
+            estado=data.estado,
+            resultado=data.resultado,
+            metadata=data.metadata,
+        )
+        return interaction
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error logging interaction: {str(e)}")

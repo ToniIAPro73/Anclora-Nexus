@@ -9,6 +9,7 @@ writes the results here for the API to serve.
 Flow: Claude Code (MCP) → NotebookLM → Save here → API serves from Supabase
 """
 
+import os
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
@@ -16,8 +17,8 @@ from uuid import UUID
 from .supabase_service import SupabaseService
 
 
-NOTEBOOK_ID = "452e73bc-8c2a-42ec-a34f-d0219fc8995a"
-NOTEBOOK_NAME = "Anclora Nexus Territorial Brain"
+NOTEBOOK_ID = os.getenv("NOTEBOOKLM_NOTEBOOK_ID", "452e73bc-8c2a-42ec-a34f-d0219fc8995a")
+NOTEBOOK_NAME = os.getenv("NOTEBOOKLM_NOTEBOOK_NAME", "Anclora Nexus Territorial Brain")
 
 VALID_INSIGHT_TYPES = {
     "territorial", "cma", "competitive", "whale_audit",

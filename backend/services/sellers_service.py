@@ -223,3 +223,60 @@ async def get_seller_stats(
         "tasa_mandatos": tasa_mandatos,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ═══════════════════════════════════════════════════════════════
+# INTERACTION MEMORY (Gravity Claw Phase 4)
+# ═══════════════════════════════════════════════════════════════
+
+async def add_interaction(
+    db: SupabaseService,
+    org_id: str,
+    seller_id: str,
+    tipo: str,
+    contenido: str,
+    estado: str = "realizado",
+    resultado: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Log a seller interaction (call, email, WhatsApp, meeting, note, draft).
+
+    Args:
+        tipo: 'llamada' | 'email' | 'whatsapp' | 'reunion' | 'nota' | 'email_draft' | 'dossier'
+        estado: 'realizado' | 'borrador' | 'programado'
+    """
+    row = {
+        "org_id": str(org_id),
+        "seller_id": str(seller_id),
+        "tipo": tipo,
+        "estado": estado,
+        "contenido": contenido,
+        "metadata": metadata or {},
+    }
+    if resultado:
+        row["resultado"] = resultado
+
+    result = db.client.table("seller_interactions").insert(row).execute()
+    return result.data[0] if result.data else {}
+
+
+async def get_interactions(
+    db: SupabaseService,
+    org_id: str,
+    seller_id: str,
+    limit: int = 20,
+) -> List[Dict[str, Any]]:
+    """
+    Get interaction history for a seller, most recent first.
+    """
+    result = (
+        db.client.table("seller_interactions")
+        .select("*")
+        .eq("org_id", str(org_id))
+        .eq("seller_id", str(seller_id))
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return result.data or []
