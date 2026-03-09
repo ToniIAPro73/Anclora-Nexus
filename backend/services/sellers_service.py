@@ -340,3 +340,56 @@ async def get_seller_workbench(
             "interactions_count": len(interactions),
         },
     }
+
+
+async def build_seller_dossier_export(
+    db: SupabaseService,
+    org_id: str,
+    seller_id: str,
+) -> Optional[Dict[str, Any]]:
+    """
+    Build a normalized export payload for PDF/share workflows.
+    """
+    workbench = await get_seller_workbench(
+        db=db,
+        org_id=org_id,
+        seller_id=seller_id,
+        interaction_limit=30,
+    )
+    if not workbench:
+        return None
+
+    seller = workbench["seller"]
+    artifacts = workbench["latest_artifacts"]
+
+    nombre = seller.get("nombre_propietario") or "Vendedor"
+    zona = seller.get("zona") or "general"
+    prioridad = seller.get("prioridad") or 0
+    estado = seller.get("estado_contacto") or "sin_contacto"
+
+    email_draft = artifacts.get("email_draft")
+    whatsapp_draft = artifacts.get("whatsapp_draft")
+    call_brief = artifacts.get("call_brief")
+    context_brief = artifacts.get("context_brief")
+    dossier = artifacts.get("dossier")
+
+    share_summary = (
+        f"{nombre} · zona {zona} · prioridad P{prioridad} · estado {estado}\n\n"
+        f"Dossier:\n{(dossier or {}).get('contenido', 'Pendiente de generar')[:500]}\n\n"
+        f"Siguiente paso sugerido:\n{(context_brief or {}).get('contenido', 'Sin resumen de contexto')[:300]}"
+    )
+
+    return {
+        "seller": seller,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "file_name": f"dossier-{str(nombre).strip().lower().replace(' ', '-')[:40] or 'seller'}-{str(seller_id)[:8]}.pdf",
+        "sections": {
+            "context_brief": (context_brief or {}).get("contenido", ""),
+            "call_brief": (call_brief or {}).get("contenido", ""),
+            "dossier": (dossier or {}).get("contenido", ""),
+            "email_subject": ((email_draft or {}).get("metadata") or {}).get("subject", ""),
+            "email_body": (email_draft or {}).get("contenido", ""),
+            "whatsapp_body": (whatsapp_draft or {}).get("contenido", ""),
+        },
+        "share_summary": share_summary,
+    }

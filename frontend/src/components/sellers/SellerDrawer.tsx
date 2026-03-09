@@ -3,14 +3,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Clipboard,
+  Download,
   Mail,
   MessageCircle,
   Phone,
   Save,
+  Share2,
   Sparkles,
   StickyNote,
   X,
 } from 'lucide-react'
+import jsPDF from 'jspdf'
 import { useI18n } from '@/lib/i18n'
 import { buildBackendUrl } from '@/lib/backend-url'
 
@@ -50,6 +53,21 @@ interface WorkbenchPayload {
     has_context_brief: boolean
     interactions_count: number
   }
+}
+
+interface DossierExportPayload {
+  seller: Record<string, unknown>
+  generated_at: string
+  file_name: string
+  sections: {
+    context_brief: string
+    call_brief: string
+    dossier: string
+    email_subject: string
+    email_body: string
+    whatsapp_body: string
+  }
+  share_summary: string
 }
 
 interface SellerDrawerProps {
@@ -100,6 +118,8 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [workbench, setWorkbench] = useState<WorkbenchPayload | null>(null)
+  const [exportingPdf, setExportingPdf] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [formType, setFormType] = useState<InteractionType>('llamada')
   const [formState, setFormState] = useState('realizado')
   const [formResult, setFormResult] = useState('')
@@ -184,6 +204,119 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     if (!value) return
     await navigator.clipboard.writeText(value)
     setSuccess(t('copiedToClipboard'))
+  }
+
+  const fetchExportPayload = async (): Promise<DossierExportPayload> => {
+    if (!sellerId) {
+      throw new Error('Missing sellerId')
+    }
+    const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/dossier-export`))
+    if (!res.ok) {
+      throw new Error(`Export ${res.status}`)
+    }
+    return res.json()
+  }
+
+  const exportPdf = async () => {
+    setExportingPdf(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const payload = await fetchExportPayload()
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      })
+
+      const seller = payload.seller
+      const sections = payload.sections
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 16
+      let y = 20
+
+      const ensureSpace = (required = 12) => {
+        if (y + required > pageHeight - margin) {
+          pdf.addPage()
+          y = 20
+        }
+      }
+
+      const writeSection = (title: string, content?: string) => {
+        if (!content) return
+        ensureSpace(20)
+        pdf.setFont('helvetica', 'bold')
+        pdf.setFontSize(13)
+        pdf.text(title, margin, y)
+        y += 7
+        pdf.setFont('helvetica', 'normal')
+        pdf.setFontSize(10)
+        const lines = pdf.splitTextToSize(content, pageWidth - margin * 2)
+        lines.forEach((line: string) => {
+          ensureSpace(6)
+          pdf.text(line, margin, y)
+          y += 5
+        })
+        y += 4
+      }
+
+      pdf.setFont('helvetica', 'bold')
+      pdf.setFontSize(20)
+      pdf.text(t('dossierSection'), margin, y)
+      y += 10
+
+      pdf.setFont('helvetica', 'normal')
+      pdf.setFontSize(11)
+      const headerLines = [
+        `${t('selectedSeller')}: ${String(seller.nombre_propietario || sellerName || '—')}`,
+        `${t('zone')}: ${String(seller.zona || '—')}`,
+        `${t('priority')}: P${String(seller.prioridad || '—')}`,
+        `${t('status')}: ${String(seller.estado_contacto || '—')}`,
+        `${t('generatedAt')}: ${new Date(payload.generated_at).toLocaleString()}`,
+      ]
+      headerLines.forEach((line) => {
+        pdf.text(line, margin, y)
+        y += 6
+      })
+      y += 4
+
+      writeSection(t('contextBrief'), sections.context_brief)
+      writeSection(t('callBrief'), sections.call_brief)
+      writeSection(t('dossierSection'), sections.dossier)
+      writeSection(`${t('emailDraft')} · ${t('subject')}`, sections.email_subject)
+      writeSection(`${t('emailDraft')} · ${t('body')}`, sections.email_body)
+      writeSection('WhatsApp', sections.whatsapp_body)
+
+      pdf.save(payload.file_name || 'dossier-seller.pdf')
+      setSuccess(t('pdfExported'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorExportingPdf'))
+    } finally {
+      setExportingPdf(false)
+    }
+  }
+
+  const shareDossier = async () => {
+    setSharing(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const payload = await fetchExportPayload()
+      if (navigator.share) {
+        await navigator.share({
+          title: `${t('dossierSection')} · ${String(payload.seller.nombre_propietario || sellerName || '')}`,
+          text: payload.share_summary,
+        })
+      } else {
+        await navigator.clipboard.writeText(payload.share_summary)
+      }
+      setSuccess(t('shareReady'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorSharingDossier'))
+    } finally {
+      setSharing(false)
+    }
   }
 
   const emailDraft = workbench?.latest_artifacts.email_draft
@@ -321,6 +454,24 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
                 >
                   <Clipboard className="mr-1 inline h-3.5 w-3.5" />
                   {t('copyDossier')}
+                </button>
+                <button
+                  type="button"
+                  onClick={exportPdf}
+                  disabled={exportingPdf}
+                  className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-xs text-soft-white hover:border-gold/40 transition-colors disabled:opacity-50"
+                >
+                  <Download className="mr-1 inline h-3.5 w-3.5" />
+                  {exportingPdf ? t('exportingPdf') : t('exportPdf')}
+                </button>
+                <button
+                  type="button"
+                  onClick={shareDossier}
+                  disabled={sharing}
+                  className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-xs text-soft-white hover:border-gold/40 transition-colors disabled:opacity-50"
+                >
+                  <Share2 className="mr-1 inline h-3.5 w-3.5" />
+                  {sharing ? t('sharing') : t('shareDossier')}
                 </button>
               </div>
             </>

@@ -203,6 +203,27 @@ async def get_seller_workbench(
         raise HTTPException(status_code=500, detail=f"Error building seller workbench: {str(e)}")
 
 
+@router.get("/{seller_id}/dossier-export", response_model=dict)
+async def get_seller_dossier_export(seller_id: str):
+    """
+    Return a normalized export/share payload for the seller dossier.
+    """
+    try:
+        db = get_db()
+        payload = await sellers_service.build_seller_dossier_export(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+        )
+        if not payload:
+            raise HTTPException(status_code=404, detail="Seller not found")
+        return payload
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error building dossier export: {str(e)}")
+
+
 @router.patch("/{seller_id}/estado", response_model=dict)
 async def update_seller_estado(
     seller_id: str,

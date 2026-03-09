@@ -38,6 +38,14 @@ class TestSellersRouteRegistration:
         ]
         assert len(matching) == 1
 
+    def test_dossier_export_endpoint_exists(self) -> None:
+        routes = [r for r in app.routes if hasattr(r, "methods")]
+        matching = [
+            r for r in routes
+            if hasattr(r, "path") and r.path == "/api/sellers/{seller_id}/dossier-export" and "GET" in r.methods
+        ]
+        assert len(matching) == 1
+
 
 class TestSellersRouteContracts:
     @patch("backend.api.routes.sellers.sellers_service")
@@ -92,3 +100,28 @@ class TestSellersRouteContracts:
         assert body["whatsapp_body"] == "WhatsApp body"
         assert body["call_brief"] == "Call brief body"
         assert body["context_brief"] == "Context brief body"
+
+    @patch("backend.api.routes.sellers.sellers_service")
+    def test_dossier_export_returns_payload(self, mock_service: MagicMock) -> None:
+        seller_id = str(uuid4())
+        mock_service.build_seller_dossier_export = AsyncMock(return_value={
+            "seller": {"id": seller_id, "nombre_propietario": "Toni"},
+            "generated_at": "2026-03-09T00:00:00+00:00",
+            "file_name": "dossier-toni.pdf",
+            "sections": {
+                "context_brief": "Context",
+                "call_brief": "Call",
+                "dossier": "Dossier",
+                "email_subject": "Subject",
+                "email_body": "Body",
+                "whatsapp_body": "WhatsApp",
+            },
+            "share_summary": "share text",
+        })
+
+        response = client.get(f"/api/sellers/{seller_id}/dossier-export")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["file_name"] == "dossier-toni.pdf"
+        assert body["sections"]["dossier"] == "Dossier"
