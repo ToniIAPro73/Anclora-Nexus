@@ -6,12 +6,11 @@ import { ArrowLeft, UserSearch, TrendingUp, MapPin, Users, Target, Filter, Refre
 import { SellersTable, NexusSeller, EstadoContacto } from '@/components/sellers/SellersTable'
 import { SellerDrawer } from '@/components/sellers/SellerDrawer'
 import { useI18n } from '@/lib/i18n'
+import { buildBackendUrl } from '@/lib/backend-url'
 
 // ─────────────────────────────────────────────────────────────
 // Config
 // ─────────────────────────────────────────────────────────────
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 const ZONA_OPTIONS = [
   { value: '', label: 'Todas las zonas' },
@@ -105,23 +104,23 @@ export default function SellersPage() {
       params.set('limit', '100')
 
       const [sellersRes, statsRes] = await Promise.all([
-        fetch(`${API_BASE}/api/sellers/?${params}`),
-        fetch(`${API_BASE}/api/sellers/stats`),
+        fetch(buildBackendUrl(`/api/sellers/?${params}`)),
+        fetch(buildBackendUrl('/api/sellers/stats')),
       ])
 
-      if (!sellersRes.ok) throw new Error(`Error ${sellersRes.status}`)
+      if (!sellersRes.ok) throw new Error(`${t('error')} ${sellersRes.status}`)
       const sellersData = await sellersRes.json()
       const statsData = statsRes.ok ? await statsRes.json() : {}
 
       setSellers(sellersData)
       setStats(statsData)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
+      setError(err instanceof Error ? err.message : t('unknownError'))
       setSellers([])
     } finally {
       setLoading(false)
     }
-  }, [zona, estado, prioridadMin])
+  }, [zona, estado, prioridadMin, t])
 
   useEffect(() => {
     fetchSellers()
@@ -129,12 +128,12 @@ export default function SellersPage() {
 
   const handleEstadoChange = async (sellerId: string, newEstado: EstadoContacto) => {
     try {
-      const res = await fetch(`${API_BASE}/api/sellers/${sellerId}/estado`, {
+      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/estado`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado_contacto: newEstado }),
       })
-      if (!res.ok) throw new Error(`Error ${res.status}`)
+      if (!res.ok) throw new Error(`${t('error')} ${res.status}`)
       await fetchSellers()
     } catch (err) {
       console.error('Error updating seller estado:', err)
@@ -174,7 +173,7 @@ export default function SellersPage() {
                 className="btn-action"
               >
                 <RefreshCw className="h-4 w-4" />
-                Actualizar
+                {t('refresh')}
               </button>
             </div>
           </div>
@@ -195,13 +194,13 @@ export default function SellersPage() {
           />
           <StatCard
             icon={TrendingUp}
-            label="Mandatos"
+            label={t('mandates')}
             value={mandatos}
             accent="green"
           />
           <StatCard
             icon={MapPin}
-            label="Conversión"
+            label={t('conversion')}
             value={`${tasaMandatos}%`}
             accent="blue"
           />
@@ -217,7 +216,12 @@ export default function SellersPage() {
                 className="bg-transparent text-sm text-soft-white outline-none"
               >
                 {ZONA_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value} className="bg-navy">
+                  <option
+                    key={o.value}
+                    value={o.value}
+                    className="bg-navy text-soft-white"
+                    style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}
+                  >
                     {o.label}
                   </option>
                 ))}
@@ -231,7 +235,12 @@ export default function SellersPage() {
                 className="bg-transparent text-sm text-soft-white outline-none"
               >
                 {ESTADO_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value} className="bg-navy">
+                  <option
+                    key={o.value}
+                    value={o.value}
+                    className="bg-navy text-soft-white"
+                    style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}
+                  >
                     {o.label}
                   </option>
                 ))}
@@ -244,10 +253,10 @@ export default function SellersPage() {
                 onChange={(e) => setPrioridadMin(e.target.value ? Number(e.target.value) : '')}
                 className="bg-transparent text-sm text-soft-white outline-none"
               >
-                <option value="" className="bg-navy">Toda prioridad</option>
-                <option value="5" className="bg-navy">Prioridad P5</option>
-                <option value="4" className="bg-navy">Alta (P4+)</option>
-                <option value="3" className="bg-navy">Media (P3+)</option>
+                <option value="" className="bg-navy text-soft-white" style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}>{t('allPriority')}</option>
+                <option value="5" className="bg-navy text-soft-white" style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}>{t('sellerPriorityP5')}</option>
+                <option value="4" className="bg-navy text-soft-white" style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}>{t('priorityHigh')}</option>
+                <option value="3" className="bg-navy text-soft-white" style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}>{t('priorityMedium')}</option>
               </select>
             </div>
 
@@ -257,7 +266,7 @@ export default function SellersPage() {
                 onClick={() => { setZona(''); setEstado(''); setPrioridadMin('') }}
                 className="rounded-full border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-xs text-soft-muted hover:text-soft-white transition-colors"
               >
-                Limpiar filtros
+                {t('clearFilters')}
               </button>
             )}
           </div>
@@ -265,7 +274,7 @@ export default function SellersPage() {
 
         {error && (
           <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
-            Error al cargar sellers: {error}
+            {t('errorLoadingSellers')}: {error}
           </div>
         )}
 
@@ -282,15 +291,15 @@ export default function SellersPage() {
             <h2 className="text-lg font-semibold text-soft-white">{t('activeTerritorialOpportunities')}</h2>
           </div>
           <p className="text-sm text-soft-muted">
-            Insights del NotebookLM &quot;Inteligencia Territorial Suroeste Mallorca 2026&quot; — actualizado 2026-03-08
+            {t('territorialInsightsSource')}
           </p>
           <div className="grid md:grid-cols-2 gap-3 text-sm">
             {[
-              { urgencia: '🔴', label: 'Mandarin Oriental Halo Effect', zona: 'Punta Negra / Costa d\'en Blanes', nota: '+15-25% valorización en 18-24 meses' },
-              { urgencia: '🔴', label: 'Enforcement STR → Vendedores Forzados', zona: 'Calvià / Andratx', nota: '+19% inspecciones, 4.400 anuncios retirados' },
-              { urgencia: '🟡', label: 'Divergencias Microzonales + DOM >180d', zona: 'Son Ferrer / Costa d\'en Blanes', nota: 'Calvià +22% vs -3% zona vecina' },
-              { urgencia: '🟡', label: 'Hub Superyates + Demanda UHNWI', zona: 'Puerto Portals / Puerto Andratx', nota: '20 nuevos amarres 30-60m LOA' },
-              { urgencia: '🟢', label: 'FSBO + Cambio Generacional', zona: 'Paguera / Santa Ponça / Andratx', nota: 'Propietarios 50-75 sin acceso a compradores int.' },
+              { urgencia: '🔴', label: t('territorialOpportunity1Title'), zona: 'Punta Negra / Costa d\'en Blanes', nota: t('territorialOpportunity1Note') },
+              { urgencia: '🔴', label: t('territorialOpportunity2Title'), zona: 'Calvià / Andratx', nota: t('territorialOpportunity2Note') },
+              { urgencia: '🟡', label: t('territorialOpportunity3Title'), zona: 'Son Ferrer / Costa d\'en Blanes', nota: t('territorialOpportunity3Note') },
+              { urgencia: '🟡', label: t('territorialOpportunity4Title'), zona: 'Puerto Portals / Puerto Andratx', nota: t('territorialOpportunity4Note') },
+              { urgencia: '🟢', label: t('territorialOpportunity5Title'), zona: 'Paguera / Santa Ponça / Andratx', nota: t('territorialOpportunity5Note') },
             ].map((o) => (
               <div
                 key={o.label}

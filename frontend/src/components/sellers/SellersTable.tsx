@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { UserSearch, MapPin, ExternalLink, Star } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -151,6 +152,7 @@ function formatDate(iso?: string): string {
 // ─────────────────────────────────────────────────────────────
 
 export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }: SellersTableProps) {
+  const { t } = useI18n()
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   const handleAdvanceEstado = async (seller: NexusSeller) => {
@@ -168,7 +170,7 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
     return (
       <div className="flex items-center justify-center py-16 text-soft-muted">
         <div className="animate-spin w-6 h-6 border-2 border-gold border-t-transparent rounded-full mr-3" />
-        Cargando vendedores...
+        {t('loadingSellers')}
       </div>
     )
   }
@@ -177,9 +179,9 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
     return (
       <div className="flex flex-col items-center justify-center py-16 text-soft-muted gap-3">
         <UserSearch className="w-12 h-12 opacity-30" />
-        <p className="text-sm">No hay vendedores detectados todavía.</p>
+        <p className="text-sm">{t('noSellersDetected')}</p>
         <p className="text-xs opacity-60">
-          Los registros se añaden automáticamente cuando se detectan señales de vendedores motivados.
+          {t('noSellersDetectedHint')}
         </p>
       </div>
     )
@@ -191,28 +193,28 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
         <thead>
           <tr className="border-b border-soft-subtle/30 bg-navy-surface/40">
             <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
-              Propietario / Propiedad
+              {t('sellerOwnerProperty')}
             </th>
             <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
-              Zona
+              {t('zone')}
             </th>
             <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
-              Fuente
+              {t('source')}
             </th>
             <th className="text-right px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
-              Precio
+              {t('price')}
             </th>
             <th className="text-right px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
               DOM
             </th>
             <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
-              Estado
+              {t('status')}
             </th>
             <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
-              Prioridad
+              {t('priority')}
             </th>
             <th className="text-left px-4 py-3 text-soft-muted font-medium text-[11px] uppercase tracking-[0.16em]">
-              Detección
+              {t('detection')}
             </th>
             <th className="px-4 py-3" />
           </tr>
@@ -236,7 +238,7 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-0.5">
                     <span className="font-medium text-soft-white">
-                      {seller.nombre_propietario || 'Propietario desconocido'}
+                      {seller.nombre_propietario || t('unknownOwner')}
                     </span>
                     {seller.direccion && (
                       <span className="text-xs text-soft-muted truncate max-w-[200px]">
@@ -250,7 +252,7 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs text-blue-light hover:text-gold transition-colors"
                       >
-                        Ver anuncio <ExternalLink className="w-3 h-3" />
+                        {t('viewListing')} <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
                   </div>
@@ -328,7 +330,7 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
                       onClick={() => onOpenDetail(seller)}
                       className="text-xs px-2.5 py-1.5 rounded-lg border border-soft-subtle/40 text-soft-muted hover:text-soft-white hover:border-blue-light/40 transition-colors mr-2"
                     >
-                      Ver ficha
+                      {t('viewRecord')}
                     </button>
                   )}
                   {nextEstado && !isMandato && (
@@ -342,7 +344,7 @@ export function SellersTable({ sellers, onEstadoChange, onOpenDetail, loading }:
                     </button>
                   )}
                   {isMandato && (
-                    <span className="text-xs text-emerald-400 font-semibold">✓ Exclusiva</span>
+                    <span className="text-xs text-emerald-400 font-semibold">✓ {t('exclusive')}</span>
                   )}
                 </td>
               </tr>

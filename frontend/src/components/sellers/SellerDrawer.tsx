@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Mail, Sparkles, X } from 'lucide-react'
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { useI18n } from '@/lib/i18n'
+import { buildBackendUrl } from '@/lib/backend-url'
 
 interface Interaction {
   id: string
@@ -41,6 +41,7 @@ function typeLabel(tipo: string) {
 }
 
 export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDrawerProps) {
+  const { t } = useI18n()
   const [loading, setLoading] = useState(false)
   const [interactions, setInteractions] = useState<Interaction[]>([])
   const [generating, setGenerating] = useState(false)
@@ -53,16 +54,16 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/api/sellers/${sellerId}/interactions?limit=30`)
-      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/interactions?limit=30`))
+      if (!res.ok) throw new Error(`${t('error')} ${res.status}`)
       const data = (await res.json()) as Interaction[]
       setInteractions(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error cargando interacciones')
+      setError(err instanceof Error ? err.message : t('errorLoadingInteractions'))
     } finally {
       setLoading(false)
     }
-  }, [sellerId])
+  }, [sellerId, t])
 
   useEffect(() => {
     if (open && sellerId) {
@@ -75,7 +76,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setGenerating(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/api/sellers/${sellerId}/generate-dossier`, {
+      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/generate-dossier`), {
         method: 'POST',
       })
       if (!res.ok) {
@@ -87,7 +88,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
       setDraftBody(data.email_body || '')
       await loadInteractions()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo generar dossier')
+      setError(err instanceof Error ? err.message : t('errorGeneratingDossier'))
     } finally {
       setGenerating(false)
     }
@@ -100,8 +101,8 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
       <div className="w-full max-w-2xl h-full bg-navy-darker/95 border-l border-soft-subtle/40 p-6 overflow-y-auto backdrop-blur-xl">
         <div className="flex items-start justify-between mb-6">
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-soft-white">Ficha del seller</h2>
-            <p className="text-sm text-soft-muted">{sellerName || 'Vendedor seleccionado'}</p>
+            <h2 className="text-2xl font-bold text-soft-white">{t('sellerRecordTitle')}</h2>
+            <p className="text-sm text-soft-muted">{sellerName || t('selectedSeller')}</p>
           </div>
           <button
             onClick={onClose}
@@ -118,10 +119,10 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             className="btn-action"
           >
             <Sparkles className="w-4 h-4" />
-            {generating ? 'Generando dossier...' : 'Generar dossier y email'}
+            {generating ? t('generatingDossier') : t('generateDossierEmail')}
           </button>
           <p className="text-xs text-soft-muted mt-2">
-            Usa inteligencia territorial y el LLM para preparar argumentario y primer contacto.
+            {t('dossierHelperText')}
           </p>
         </div>
 
@@ -129,26 +130,26 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
           <div className="mb-6 rounded-2xl border border-blue-light/20 bg-navy-surface/35 p-5">
             <div className="flex items-center gap-2 mb-2 text-blue-light">
               <Mail className="w-4 h-4" />
-              <span className="text-sm font-semibold">Borrador de email</span>
+              <span className="text-sm font-semibold">{t('emailDraft')}</span>
             </div>
-            <p className="text-xs text-soft-muted mb-2">Asunto</p>
+            <p className="text-xs text-soft-muted mb-2">{t('subject')}</p>
             <p className="text-sm text-soft-white mb-3">{draftSubject || '—'}</p>
-            <p className="text-xs text-soft-muted mb-2">Cuerpo</p>
+            <p className="text-xs text-soft-muted mb-2">{t('body')}</p>
             <pre className="whitespace-pre-wrap text-sm text-soft-white">{draftBody || '—'}</pre>
           </div>
         )}
 
         <div>
-          <h3 className="text-sm font-semibold text-soft-white mb-3">Historial de interacciones</h3>
+          <h3 className="text-sm font-semibold text-soft-white mb-3">{t('interactionHistory')}</h3>
           {error && (
             <div className="mb-3 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-red-300 text-xs">
               {error}
             </div>
           )}
           {loading ? (
-            <p className="text-sm text-soft-muted">Cargando...</p>
+            <p className="text-sm text-soft-muted">{t('loading')}</p>
           ) : interactions.length === 0 ? (
-            <p className="text-sm text-soft-muted">Sin interacciones todavía.</p>
+            <p className="text-sm text-soft-muted">{t('noInteractionsYet')}</p>
           ) : (
             <div className="space-y-3">
               {interactions.map((item) => (
