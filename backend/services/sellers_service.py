@@ -6,6 +6,7 @@ All queries enforce org_id isolation (single-tenant v0).
 """
 
 from datetime import datetime, timezone
+import re
 from typing import Any, Dict, List, Optional
 
 from .supabase_service import SupabaseService
@@ -163,6 +164,34 @@ async def update_seller_estado(
     result = (
         db.client.table("nexus_sellers")
         .update(update_data)
+        .eq("org_id", str(org_id))
+        .eq("id", str(seller_id))
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+async def update_seller(
+    db: SupabaseService,
+    org_id: str,
+    seller_id: str,
+    data: NexusSellerUpdate,
+) -> Optional[Dict[str, Any]]:
+    """
+    Update general seller fields, including supervised outreach channels.
+    """
+    payload = data.model_dump(exclude_none=True)
+    if not payload:
+        return await get_seller(db=db, org_id=org_id, seller_id=seller_id)
+
+    if "zona" in payload and data.zona is not None:
+        payload["zona"] = data.zona.value
+    if "estado_contacto" in payload and data.estado_contacto is not None:
+        payload["estado_contacto"] = data.estado_contacto.value
+
+    result = (
+        db.client.table("nexus_sellers")
+        .update(payload)
         .eq("org_id", str(org_id))
         .eq("id", str(seller_id))
         .execute()
@@ -393,3 +422,147 @@ async def build_seller_dossier_export(
         },
         "share_summary": share_summary,
     }
+
+
+def _extract_email(seller: Dict[str, Any]) -> Optional[str]:
+    datos = seller.get("datos_extraidos") or {}
+    return (
+        seller.get("email_contacto")
+        or datos.get("email_contacto")
+        or datos.get("contact_email")
+        or datos.get("email")
+    )
+
+
+def _extract_phone(seller: Dict[str, Any]) -> Optional[str]:
+    datos = seller.get("datos_extraidos") or {}
+    return (
+        seller.get("telefono_contacto")
+        or datos.get("telefono_contacto")
+        or datos.get("phone")
+        or datos.get("telefono")
+    )
+
+
+def _extract_whatsapp(seller: Dict[str, Any]) -> Optional[str]:
+    datos = seller.get("datos_extraidos") or {}
+    return (
+        seller.get("whatsapp_contacto")
+        or datos.get("whatsapp_contacto")
+        or datos.get("whatsapp")
+        or _extract_phone(seller)
+    )
+
+
+async def build_supervised_send_payload(
+    db: SupabaseService,
+    org_id: str,
+    seller_id: str,
+    channel: str,
+) -> Dict[str, Any]:
+    """
+    Build a HITL delivery payload and register the intent as a scheduled interaction.
+    """
+    if channel not in {"email", "whatsapp"}:
+        raise ValueError("channel must be email or whatsapp")
+
+    export_payload = await build_seller_dossier_export(db=db, org_id=org_id, seller_id=seller_id)
+    if not export_payload:
+        raise ValueError("Seller not found")
+
+    seller = export_payload["seller"]
+    sections = export_payload["sections"]
+
+    if channel == "email":
+        target = _extract_email(seller)
+        if not target:
+            raise ValueError("Seller email_contacto is required for supervised email send")
+        subject = sections.get("email_subject", "").strip() or "Seguimiento de propiedad"
+        body = sections.get("email_body", "").strip()
+        launch_url = f"mailto:{target}?subject={subject}&body={body}"
+        launch_url = launch_url.replace(" ", "%20").replace("\n", "%0A")
+    else:
+        target = _extract_whatsapp(seller)
+        if not target:
+            raise ValueError("Seller whatsapp_contacto or telefono_contacto is required for supervised WhatsApp send")
+        digits = re.sub(r"\D", "", str(target))
+        body = sections.get("whatsapp_body", "").strip()
+        subject = ""
+        launch_url = f"https://wa.me/{digits}?text={body}".replace(" ", "%20").replace("\n", "%0A")
+
+    interaction = await add_interaction(
+        db=db,
+        org_id=org_id,
+        seller_id=seller_id,
+        tipo=channel,
+        contenido=body,
+        estado="programado",
+        resultado="launch_intent_created",
+        metadata={
+            "artifact": f"supervised_send_{channel}",
+            "target": target,
+            "subject": subject,
+            "launch_url": launch_url,
+        },
+    )
+
+    return {
+        "channel": channel,
+        "seller_id": seller_id,
+        "interaction_id": interaction.get("id"),
+        "target": target,
+        "subject": subject,
+        "body": body,
+        "launch_url": launch_url,
+        "status": "ready_for_human_send",
+    }
+
+
+async def confirm_supervised_send(
+    db: SupabaseService,
+    org_id: str,
+    seller_id: str,
+    interaction_id: str,
+) -> Optional[Dict[str, Any]]:
+    """
+    Mark a supervised send intent as confirmed by the human operator.
+    """
+    current = (
+        db.client.table("seller_interactions")
+        .select("metadata")
+        .eq("org_id", str(org_id))
+        .eq("seller_id", str(seller_id))
+        .eq("id", str(interaction_id))
+        .maybe_single()
+        .execute()
+    )
+    current_metadata = (current.data or {}).get("metadata") or {}
+
+    result = (
+        db.client.table("seller_interactions")
+        .update({
+            "estado": "realizado",
+            "resultado": "sent_confirmed_human",
+            "metadata": {
+                **current_metadata,
+                "confirmed_at": datetime.now(timezone.utc).isoformat(),
+            },
+        })
+        .eq("org_id", str(org_id))
+        .eq("seller_id", str(seller_id))
+        .eq("id", str(interaction_id))
+        .execute()
+    )
+    if not result.data:
+        return None
+
+    seller = await get_seller(db=db, org_id=org_id, seller_id=seller_id)
+    if seller and seller.get("estado_contacto") == EstadoContactoEnum.sin_contacto.value:
+        await update_seller_estado(
+            db=db,
+            org_id=org_id,
+            seller_id=seller_id,
+            estado=EstadoContactoEnum.primer_contacto.value,
+        )
+
+    return result.data[0]

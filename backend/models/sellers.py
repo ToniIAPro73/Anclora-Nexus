@@ -56,6 +56,9 @@ class NexusSellerCreate(BaseModel):
     empresa: Optional[str] = None
     website_url: Optional[str] = None
     anuncio_url: Optional[str] = None
+    email_contacto: Optional[str] = None
+    telefono_contacto: Optional[str] = None
+    whatsapp_contacto: Optional[str] = None
     direccion: Optional[str] = None
     zona: ZonaEnum
     fuente: FuenteEnum
@@ -85,6 +88,9 @@ class NexusSellerUpdate(BaseModel):
     empresa: Optional[str] = None
     website_url: Optional[str] = None
     anuncio_url: Optional[str] = None
+    email_contacto: Optional[str] = None
+    telefono_contacto: Optional[str] = None
+    whatsapp_contacto: Optional[str] = None
     direccion: Optional[str] = None
     zona: Optional[ZonaEnum] = None
     precio_publicado: Optional[float] = None
@@ -115,6 +121,9 @@ class NexusSellerResponse(BaseModel):
     empresa: Optional[str]
     website_url: Optional[str]
     anuncio_url: Optional[str]
+    email_contacto: Optional[str]
+    telefono_contacto: Optional[str]
+    whatsapp_contacto: Optional[str]
     direccion: Optional[str]
     zona: str
     fuente: str

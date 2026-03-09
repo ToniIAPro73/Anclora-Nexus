@@ -32,6 +32,9 @@ interface WorkbenchPayload {
   seller: {
     id: string
     nombre_propietario?: string
+    email_contacto?: string
+    telefono_contacto?: string
+    whatsapp_contacto?: string
     zona?: string
     fuente?: string
     prioridad?: number
@@ -76,6 +79,17 @@ interface SellerDrawerProps {
   sellerName?: string
   open: boolean
   onClose: () => void
+}
+
+interface SupervisedSendPayload {
+  channel: 'email' | 'whatsapp'
+  seller_id: string
+  interaction_id: string
+  target: string
+  subject?: string
+  body: string
+  launch_url: string
+  status: string
 }
 
 type InteractionType = 'llamada' | 'email' | 'whatsapp' | 'reunion' | 'nota'
@@ -125,6 +139,12 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
   const [formState, setFormState] = useState('realizado')
   const [formResult, setFormResult] = useState('')
   const [formContent, setFormContent] = useState('')
+  const [emailContacto, setEmailContacto] = useState('')
+  const [telefonoContacto, setTelefonoContacto] = useState('')
+  const [whatsappContacto, setWhatsappContacto] = useState('')
+  const [savingContact, setSavingContact] = useState(false)
+  const [dispatchingChannel, setDispatchingChannel] = useState<'email' | 'whatsapp' | null>(null)
+  const [pendingSend, setPendingSend] = useState<Partial<Record<'email' | 'whatsapp', SupervisedSendPayload>>>({})
 
   const loadWorkbench = useCallback(async () => {
     if (!sellerId) return
@@ -135,6 +155,9 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
       if (!res.ok) throw new Error(`${t('error')} ${res.status}`)
       const data = (await res.json()) as WorkbenchPayload
       setWorkbench(data)
+      setEmailContacto(data.seller.email_contacto || '')
+      setTelefonoContacto(data.seller.telefono_contacto || '')
+      setWhatsappContacto(data.seller.whatsapp_contacto || '')
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errorLoadingInteractions'))
     } finally {
@@ -198,6 +221,33 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
       setError(err instanceof Error ? err.message : t('errorSavingInteraction'))
     } finally {
       setSavingInteraction(false)
+    }
+  }
+
+  const saveContactChannels = async () => {
+    if (!sellerId) return
+    setSavingContact(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email_contacto: emailContacto || null,
+          telefono_contacto: telefonoContacto || null,
+          whatsapp_contacto: whatsappContacto || null,
+        }),
+      })
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+      await loadWorkbench()
+      setSuccess(t('contactChannelsSaved'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorSavingContactChannels'))
+    } finally {
+      setSavingContact(false)
     }
   }
 
@@ -320,6 +370,54 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     }
   }
 
+  const launchSupervisedSend = async (channel: 'email' | 'whatsapp') => {
+    if (!sellerId) return
+    setDispatchingChannel(channel)
+    setError(null)
+    setSuccess(null)
+    try {
+      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/send-supervised/${channel}`), {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+      const payload = (await res.json()) as SupervisedSendPayload
+      setPendingSend((prev) => ({ ...prev, [channel]: payload }))
+      window.open(payload.launch_url, '_blank', 'noopener,noreferrer')
+      setSuccess(channel === 'email' ? t('emailClientOpened') : t('whatsappOpened'))
+      await loadWorkbench()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorPreparingSupervisedSend'))
+    } finally {
+      setDispatchingChannel(null)
+    }
+  }
+
+  const confirmSend = async (channel: 'email' | 'whatsapp') => {
+    const payload = pendingSend[channel]
+    if (!sellerId || !payload?.interaction_id) return
+    setDispatchingChannel(channel)
+    setError(null)
+    setSuccess(null)
+    try {
+      const res = await fetch(
+        buildBackendUrl(`/api/sellers/${sellerId}/interactions/${payload.interaction_id}/confirm-send`),
+        { method: 'POST' }
+      )
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+      setPendingSend((prev) => ({ ...prev, [channel]: undefined }))
+      await loadWorkbench()
+      setSuccess(channel === 'email' ? t('emailSendConfirmed') : t('whatsappSendConfirmed'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorConfirmingSend'))
+    } finally {
+      setDispatchingChannel(null)
+    }
+  }
+
   const emailDraft = workbench?.latest_artifacts.email_draft
   const whatsappDraft = workbench?.latest_artifacts.whatsapp_draft
   const callBrief = workbench?.latest_artifacts.call_brief
@@ -399,6 +497,41 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
           </div>
         </section>
 
+        <section className="mb-6 rounded-2xl border border-soft-subtle/30 bg-navy-surface/30 p-5">
+          <h3 className="mb-3 text-sm font-semibold text-soft-white">{t('supervisedChannels')}</h3>
+          <div className="grid gap-3 md:grid-cols-3">
+            <input
+              value={emailContacto}
+              onChange={(e) => setEmailContacto(e.target.value)}
+              placeholder={t('sellerEmailPlaceholder')}
+              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+            />
+            <input
+              value={telefonoContacto}
+              onChange={(e) => setTelefonoContacto(e.target.value)}
+              placeholder={t('sellerPhonePlaceholder')}
+              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+            />
+            <input
+              value={whatsappContacto}
+              onChange={(e) => setWhatsappContacto(e.target.value)}
+              placeholder={t('sellerWhatsAppPlaceholder')}
+              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+            />
+          </div>
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={saveContactChannels}
+              disabled={savingContact}
+              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-4 py-2 text-sm font-semibold text-soft-white hover:border-gold/40 transition-colors disabled:opacity-50"
+            >
+              <Save className="mr-2 inline h-4 w-4" />
+              {savingContact ? t('savingContactChannels') : t('saveContactChannels')}
+            </button>
+          </div>
+        </section>
+
         <div className="mb-6 grid gap-4 md:grid-cols-2">
           <ArtifactCard
             title={t('contextBrief')}
@@ -426,6 +559,10 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             copyLabel={t('copyEmail')}
             actionHref={emailBody ? emailHref : undefined}
             actionLabel={t('openEmailClient')}
+            primaryAction={() => launchSupervisedSend('email')}
+            primaryActionLabel={dispatchingChannel === 'email' ? t('preparingSend') : t('sendSupervisedEmail')}
+            secondaryAction={pendingSend.email ? () => confirmSend('email') : undefined}
+            secondaryActionLabel={pendingSend.email ? t('confirmEmailSent') : undefined}
           />
           <ArtifactCard
             title={t('whatsappDraft')}
@@ -436,6 +573,10 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             copyLabel={t('copyWhatsApp')}
             actionHref={whatsappBody ? whatsappHref : undefined}
             actionLabel={t('openWhatsApp')}
+            primaryAction={() => launchSupervisedSend('whatsapp')}
+            primaryActionLabel={dispatchingChannel === 'whatsapp' ? t('preparingSend') : t('sendSupervisedWhatsApp')}
+            secondaryAction={pendingSend.whatsapp ? () => confirmSend('whatsapp') : undefined}
+            secondaryActionLabel={pendingSend.whatsapp ? t('confirmWhatsAppSent') : undefined}
           />
         </div>
 
@@ -583,6 +724,10 @@ function ArtifactCard({
   copyLabel,
   actionHref,
   actionLabel,
+  primaryAction,
+  primaryActionLabel,
+  secondaryAction,
+  secondaryActionLabel,
 }: {
   title: string
   icon: typeof Mail
@@ -593,6 +738,10 @@ function ArtifactCard({
   copyLabel: string
   actionHref?: string
   actionLabel?: string
+  primaryAction?: () => void
+  primaryActionLabel?: string
+  secondaryAction?: () => void
+  secondaryActionLabel?: string
 }) {
   return (
     <div className="rounded-2xl border border-soft-subtle/30 bg-navy-surface/35 p-5">
@@ -623,6 +772,24 @@ function ArtifactCard({
               >
                 {actionLabel}
               </a>
+            )}
+            {primaryAction && primaryActionLabel && (
+              <button
+                type="button"
+                onClick={primaryAction}
+                className="rounded-lg border border-gold/40 bg-gold px-3 py-2 text-xs font-semibold text-navy-deep transition-colors"
+              >
+                {primaryActionLabel}
+              </button>
+            )}
+            {secondaryAction && secondaryActionLabel && (
+              <button
+                type="button"
+                onClick={secondaryAction}
+                className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300 transition-colors"
+              >
+                {secondaryActionLabel}
+              </button>
             )}
           </div>
         </>

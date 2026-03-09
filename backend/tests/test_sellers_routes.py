@@ -46,6 +46,14 @@ class TestSellersRouteRegistration:
         ]
         assert len(matching) == 1
 
+    def test_supervised_send_endpoint_exists(self) -> None:
+        routes = [r for r in app.routes if hasattr(r, "methods")]
+        matching = [
+            r for r in routes
+            if hasattr(r, "path") and r.path == "/api/sellers/{seller_id}/send-supervised/{channel}" and "POST" in r.methods
+        ]
+        assert len(matching) == 1
+
 
 class TestSellersRouteContracts:
     @patch("backend.api.routes.sellers.sellers_service")
@@ -125,3 +133,24 @@ class TestSellersRouteContracts:
         body = response.json()
         assert body["file_name"] == "dossier-toni.pdf"
         assert body["sections"]["dossier"] == "Dossier"
+
+    @patch("backend.api.routes.sellers.sellers_service")
+    def test_supervised_send_returns_launch_payload(self, mock_service: MagicMock) -> None:
+        seller_id = str(uuid4())
+        mock_service.build_supervised_send_payload = AsyncMock(return_value={
+            "channel": "email",
+            "seller_id": seller_id,
+            "interaction_id": str(uuid4()),
+            "target": "owner@example.com",
+            "subject": "Subject",
+            "body": "Body",
+            "launch_url": "mailto:owner@example.com?subject=Subject&body=Body",
+            "status": "ready_for_human_send",
+        })
+
+        response = client.post(f"/api/sellers/{seller_id}/send-supervised/email")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["channel"] == "email"
+        assert body["target"] == "owner@example.com"

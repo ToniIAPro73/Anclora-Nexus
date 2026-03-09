@@ -259,6 +259,29 @@ async def update_seller_estado(
         raise HTTPException(status_code=500, detail=f"Error updating seller estado: {str(e)}")
 
 
+@router.patch("/{seller_id}", response_model=dict)
+async def update_seller_record(
+    seller_id: str,
+    data: NexusSellerUpdate,
+):
+    """Update seller contact channels and general editable fields."""
+    try:
+        db = get_db()
+        seller = await sellers_service.update_seller(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+            data=data,
+        )
+        if not seller:
+            raise HTTPException(status_code=404, detail="Seller not found")
+        return seller
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating seller: {str(e)}")
+
+
 # ═══════════════════════════════════════════════════════════════
 # GRAVITY CLAW — WHALE DOSSIER (Phase 4)
 # ═══════════════════════════════════════════════════════════════
@@ -356,3 +379,51 @@ async def log_seller_interaction(
         return interaction
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error logging interaction: {str(e)}")
+
+
+@router.post("/{seller_id}/send-supervised/{channel}", response_model=dict)
+async def build_supervised_send(
+    seller_id: str,
+    channel: str,
+):
+    """
+    Prepare a real supervised send via mailto or wa.me and log the launch intent.
+    """
+    try:
+        db = get_db()
+        payload = await sellers_service.build_supervised_send_payload(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+            channel=channel,
+        )
+        return payload
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error preparing supervised send: {str(e)}")
+
+
+@router.post("/{seller_id}/interactions/{interaction_id}/confirm-send", response_model=dict)
+async def confirm_supervised_send(
+    seller_id: str,
+    interaction_id: str,
+):
+    """
+    Confirm that a human operator completed the external send action.
+    """
+    try:
+        db = get_db()
+        payload = await sellers_service.confirm_supervised_send(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+            interaction_id=interaction_id,
+        )
+        if not payload:
+            raise HTTPException(status_code=404, detail="Interaction not found")
+        return payload
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error confirming supervised send: {str(e)}")
