@@ -1,9 +1,75 @@
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
+function createNoopChannel() {
+  return {
+    on() {
+      return this
+    },
+    subscribe() {
+      return {
+        unsubscribe() {
+          return undefined
+        },
+      }
+    },
+  }
+}
+
+function createNoopSupabaseClient() {
+  return {
+    auth: {
+      async getSession() {
+        return { data: { session: null }, error: null }
+      },
+      async getUser() {
+        return { data: { user: null }, error: null }
+      },
+      async signInWithPassword() {
+        return { data: null, error: new Error('Supabase env not configured') }
+      },
+      async signOut() {
+        return { error: null }
+      },
+      async exchangeCodeForSession() {
+        return { data: null, error: new Error('Supabase env not configured') }
+      },
+      onAuthStateChange() {
+        return { data: { subscription: { unsubscribe() {} } } }
+      },
+    },
+    from() {
+      const chain = {
+        select() { return chain },
+        insert() { return chain },
+        update() { return chain },
+        delete() { return chain },
+        upsert() { return chain },
+        eq() { return chain },
+        neq() { return chain },
+        in() { return chain },
+        order() { return chain },
+        limit() { return chain },
+        single() { return chain },
+        maybeSingle() { return chain },
+        async then(resolve: (value: unknown) => unknown) {
+          return resolve({ data: null, error: new Error('Supabase env not configured') })
+        },
+      }
+      return chain
+    },
+    channel() {
+      return createNoopChannel()
+    },
+  }
+}
+
+const supabase: any =
+  typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey
+    ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+    : createNoopSupabaseClient()
 
 export function subscribeToLeads(cb: (payload: Record<string, unknown>) => void) {
   return supabase
@@ -39,4 +105,3 @@ export function subscribeToTasks(cb: (payload: Record<string, unknown>) => void)
 }
 
 export default supabase
-

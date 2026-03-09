@@ -142,8 +142,10 @@ export function NotificationPanel() {
 
       const [{ data: leads }, { data: tasks }] = await Promise.all([leadsQuery, tasksQuery])
 
-      const leadNotifications = (leads || []).map((lead) => toLeadNotification(lead as Record<string, unknown>))
-      const taskNotifications = (tasks || []).map((task) => toTaskNotification(task as Record<string, unknown>))
+      const leadNotifications = ((leads || []) as Array<Record<string, unknown>>)
+        .map((lead) => toLeadNotification(lead))
+      const taskNotifications = ((tasks || []) as Array<Record<string, unknown>>)
+        .map((task) => toTaskNotification(task))
 
       const combined = [...leadNotifications, ...taskNotifications]
         .sort((a, b) => b.createdAt - a.createdAt)

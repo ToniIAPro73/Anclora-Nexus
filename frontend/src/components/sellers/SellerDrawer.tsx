@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import { useI18n } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { buildBackendUrl } from '@/lib/backend-url'
 
 interface Interaction {
@@ -101,7 +102,7 @@ function getTypeIcon(tipo: string) {
   }
 }
 
-function getTypeLabel(tipo: string, artifact: string | undefined, t: (key: never) => string) {
+function getTypeLabel(tipo: string, artifact: string | undefined, t: (key: TranslationKey) => string) {
   if (artifact === 'call_brief') return t('callBrief')
   if (artifact === 'context_brief') return t('contextBrief')
   if (artifact === 'whatsapp_draft') return 'WhatsApp'
