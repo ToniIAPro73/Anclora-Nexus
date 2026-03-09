@@ -47,3 +47,20 @@ class TestStatefoxBridgeRoutes:
         response = client.post("/api/intelligence/statefox-bridge/import", json={"raw_text": "sample"})
         assert response.status_code == 200
         assert response.json()["result"]["imported_count"] == 1
+
+    @patch("backend.api.routes.intelligence.import_latest_statefox_capture", new_callable=AsyncMock)
+    def test_import_latest_capture_returns_payload(self, mock_import_latest) -> None:
+        app.dependency_overrides.clear()
+        from backend.api.deps import get_org_id as dep_org_id, check_budget_hard_stop as dep_budget
+        app.dependency_overrides[dep_org_id] = lambda: "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
+        app.dependency_overrides[dep_budget] = lambda: {}
+        mock_import_latest.return_value = {
+            "capture_metadata": {"captured_at": "2026-03-09T00:00:00Z"},
+            "import_result": {"imported_count": 1, "skipped_count": 0},
+        }
+        response = client.post(
+            "/api/intelligence/statefox-bridge/live-capture/import",
+            json={"zone": "palma", "city": "Palma"},
+        )
+        assert response.status_code == 200
+        assert response.json()["result"]["import_result"]["imported_count"] == 1

@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
-import { ArrowLeft, Bot, ExternalLink, Link2, MapPinned, Upload } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowLeft, Bot, ExternalLink, Link2, MapPinned, RefreshCw, Upload } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import supabase from '@/lib/supabase'
 import { buildBackendUrl } from '@/lib/backend-url'
@@ -18,6 +18,19 @@ type ParsedListing = {
   public_url?: string | null
 }
 
+type LiveCaptureStatus = {
+  available: boolean
+  status: string
+  message?: string
+  path?: string
+  capture?: {
+    captured_at?: string
+    statefox_links?: string[]
+    public_property_links?: string[]
+    raw_text?: string
+  }
+}
+
 export default function StatefoxBridgePage() {
   const { t } = useI18n()
   const [rawText, setRawText] = useState('')
@@ -28,8 +41,34 @@ export default function StatefoxBridgePage() {
   const [error, setError] = useState<string | null>(null)
   const [parsed, setParsed] = useState<{ listings: ParsedListing[]; count: number; has_reproducible_app_links?: boolean } | null>(null)
   const [importResult, setImportResult] = useState<{ imported_count: number; skipped_count: number } | null>(null)
+  const [liveCapture, setLiveCapture] = useState<LiveCaptureStatus | null>(null)
+  const [loadingLiveCapture, setLoadingLiveCapture] = useState(false)
 
   const canRun = rawText.trim().length > 0
+
+  const loadLiveCapture = async () => {
+    setLoadingLiveCapture(true)
+    try {
+      const res = await fetch(buildBackendUrl('/api/intelligence/statefox-bridge/live-capture'), {
+        cache: 'no-store',
+      })
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.detail || 'Live capture unavailable')
+      setLiveCapture(body.live_capture)
+    } catch (e) {
+      setLiveCapture({
+        available: false,
+        status: 'error',
+        message: e instanceof Error ? e.message : 'Live capture unavailable',
+      })
+    } finally {
+      setLoadingLiveCapture(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadLiveCapture()
+  }, [])
 
   const parsePayload = async () => {
     setLoading(true)
@@ -73,6 +112,30 @@ export default function StatefoxBridgePage() {
     }
   }
 
+  const importLatestCapture = async () => {
+    setImporting(true)
+    setError(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(buildBackendUrl('/api/intelligence/statefox-bridge/live-capture/import'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
+        body: JSON.stringify({ zone: zone || undefined, city: city || undefined }),
+      })
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.detail || 'Import error')
+      setImportResult(body.result.import_result)
+      setRawText(liveCapture?.capture?.raw_text || '')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Import error')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const reproducibleCount = useMemo(() => parsed?.listings.filter((x) => x.app_url).length || 0, [parsed])
 
   return (
@@ -89,6 +152,62 @@ export default function StatefoxBridgePage() {
         </div>
 
         <section className="rounded-2xl border border-soft-subtle/20 bg-navy-surface/40 p-6 space-y-4">
+          <div className="rounded-2xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-semibold text-soft-white">{t('statefoxBridgeLiveCaptureTitle')}</h2>
+                <p className="text-sm text-soft-muted mt-1">{t('statefoxBridgeLiveCaptureSubtitle')}</p>
+              </div>
+              <button type="button" onClick={() => void loadLiveCapture()} className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle/20 px-3 py-2 text-sm text-soft-white hover:border-gold/40">
+                <RefreshCw className={`w-4 h-4 ${loadingLiveCapture ? 'animate-spin' : ''}`} />
+                {t('refresh')}
+              </button>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3 text-sm text-soft-muted">
+              <span className="rounded-full border border-soft-subtle/20 px-3 py-1">
+                {t('status')}: {liveCapture?.available ? t('success') : t('statefoxBridgeNoLiveCapture')}
+              </span>
+              {liveCapture?.capture?.captured_at && (
+                <span className="rounded-full border border-soft-subtle/20 px-3 py-1">
+                  {t('lastUpdate')}: {new Date(liveCapture.capture.captured_at).toLocaleString()}
+                </span>
+              )}
+              {liveCapture?.capture?.statefox_links && (
+                <span className="rounded-full border border-soft-subtle/20 px-3 py-1">
+                  {t('statefoxBridgeObservedLinks')}: {liveCapture.capture.statefox_links.length}
+                </span>
+              )}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={!liveCapture?.available}
+                onClick={() => setRawText(liveCapture?.capture?.raw_text || '')}
+                className="btn-action disabled:opacity-40"
+              >
+                <Bot className="w-4 h-4" />
+                {t('statefoxBridgeLoadCapture')}
+              </button>
+              <button
+                type="button"
+                disabled={!liveCapture?.available || importing}
+                onClick={() => void importLatestCapture()}
+                className="btn-create disabled:opacity-40"
+              >
+                <Upload className="w-4 h-4" />
+                {t('statefoxBridgeImportLatest')}
+              </button>
+            </div>
+
+            {!liveCapture?.available && (
+              <p className="mt-4 text-sm text-soft-muted">
+                {liveCapture?.message || t('statefoxBridgeNoLiveCaptureHint')}
+              </p>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <input value={zone} onChange={(e) => setZone(e.target.value)} placeholder={t('zone')} className="rounded-xl border border-soft-subtle/20 bg-navy-darker/30 px-4 py-3 text-soft-white outline-none" />
             <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('statefoxBridgeCity')} className="rounded-xl border border-soft-subtle/20 bg-navy-darker/30 px-4 py-3 text-soft-white outline-none" />

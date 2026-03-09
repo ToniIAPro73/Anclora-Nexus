@@ -23,6 +23,7 @@ from ...services.supabase_service import SupabaseService
 from ...services.territorial_sync_service import get_territorial_sync_status
 from ...services.statefox_discovery_service import get_statefox_discovery
 from ...services.statefox_bridge_service import parse_statefox_raw, import_statefox_listings
+from ...services.statefox_live_capture_service import get_statefox_live_capture, import_latest_statefox_capture
 from ..deps import check_budget_hard_stop
 from ..deps import get_org_id
 
@@ -59,6 +60,11 @@ class QueryResponse(BaseModel):
 
 class StatefoxParseRequest(BaseModel):
     raw_text: str
+    zone: Optional[str] = None
+    city: Optional[str] = "Mallorca"
+
+
+class StatefoxLiveCaptureImportRequest(BaseModel):
     zone: Optional[str] = None
     city: Optional[str] = "Mallorca"
 
@@ -392,3 +398,39 @@ async def import_statefox_bridge(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error importing StateFox payload: {str(e)}")
+
+
+@router.get("/statefox-bridge/live-capture")
+async def get_statefox_live_capture_endpoint():
+    try:
+        return {
+            "live_capture": get_statefox_live_capture(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading StateFox live capture: {str(e)}")
+
+
+@router.post("/statefox-bridge/live-capture/import")
+async def import_statefox_live_capture_endpoint(
+    payload: StatefoxLiveCaptureImportRequest,
+    org_id: str = Depends(get_org_id),
+    _budget=Depends(check_budget_hard_stop),
+):
+    try:
+        result = await import_latest_statefox_capture(
+            org_id=org_id,
+            zone=payload.zone,
+            city=payload.city,
+        )
+        return {
+            "result": result,
+            "org_id": org_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error importing latest StateFox live capture: {str(e)}")

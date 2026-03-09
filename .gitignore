@@ -53,3 +53,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local ops artifacts
+ops/statefox-live-capture.json
+ops/statefox-playwright-profile/
+
