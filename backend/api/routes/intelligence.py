@@ -21,6 +21,7 @@ from ...services.notebooklm_service import (
 from ...services.ai_runtime import get_runtime_summary
 from ...services.supabase_service import SupabaseService
 from ...services.territorial_sync_service import get_territorial_sync_status
+from ...services.statefox_discovery_service import get_statefox_discovery
 from ..deps import check_budget_hard_stop
 
 # Create router
@@ -332,3 +333,18 @@ async def get_territorial_sync_status_endpoint():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving territorial sync status: {str(e)}")
+
+
+@router.get("/statefox-discovery")
+async def get_statefox_discovery_endpoint():
+    """
+    Return discovery evidence and import strategy for the StateFox Telegram
+    surface observed by operations.
+    """
+    try:
+        return {
+            "discovery": get_statefox_discovery(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving StateFox discovery: {str(e)}")

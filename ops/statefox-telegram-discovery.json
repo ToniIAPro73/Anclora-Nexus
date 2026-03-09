@@ -1,0 +1,80 @@
+{
+  "feature_id": "ANCLORA-STFX-001.v1",
+  "status": "discovery_ready",
+  "checked_at": "2026-03-09T10:45:00Z",
+  "source_mode": "official_docs_plus_supervised_observation",
+  "provider": "Telegram Mini App via StateFox bot",
+  "surface": {
+    "bot_profile_open_button": true,
+    "mini_app_supported": true,
+    "direct_api_confirmed": false,
+    "deep_link_reproduced": false,
+    "location_query_observed": true,
+    "property_results_observed": true,
+    "portal_grid_observed": true
+  },
+  "entrypoints": {
+    "observed": [
+      "Telegram bot chat with Open button",
+      "Mini App home with portals grid and operational modules",
+      "Location-driven property search returning sale/rent listings"
+    ],
+    "official_docs": [
+      "https://core.telegram.org/bots/webapps",
+      "https://core.telegram.org/api/bots/webapps"
+    ]
+  },
+  "import_strategy": {
+    "primary_target": "properties",
+    "secondary_target": "nexus_sellers",
+    "secondary_condition": "Only when seller-side signals exist: direct owner, direct phone, no agency, urgency or captation indicator."
+  },
+  "automation": {
+    "mode": "supervised_browser_adapter",
+    "first_milestone": "Capture reproducible open/deep-link contract and manual query flow.",
+    "risk_level": "medium",
+    "constraints": [
+      "StateFox public API not confirmed.",
+      "Telegram Web / Mini App DOM may change.",
+      "User session is required for supervised operation."
+    ]
+  },
+  "normalization_contract": {
+    "property_fields": [
+      "source",
+      "source_url",
+      "title",
+      "zone",
+      "city",
+      "price",
+      "property_type",
+      "bedrooms",
+      "bathrooms",
+      "area_m2",
+      "notes",
+      "source_system",
+      "source_portal"
+    ],
+    "seller_signal_fields": [
+      "nombre_propietario",
+      "telefono_contacto",
+      "whatsapp_contacto",
+      "anuncio_url",
+      "zona",
+      "precio_publicado",
+      "senales_motivacion",
+      "datos_extraidos"
+    ]
+  },
+  "evidence": [
+    "User-provided screenshot: StateFox bot returns listings after location input.",
+    "User-provided screenshot: StateFox exposes Mini App with portal tiles and operational modules.",
+    "Official Telegram docs confirm bot Open button and Mini App / startapp surface."
+  ],
+  "decision": {
+    "adapter_name": "statefox-telegram-bridge",
+    "next_feature": "statefox-telegram-bridge",
+    "go": true,
+    "reason": "Discovery evidence is sufficient to justify a supervised adapter MVP. Destination of imported data should be properties first, with seller derivation only by explicit signal."
+  }
+}
