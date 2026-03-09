@@ -1,7 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { Mail, Sparkles, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  Clipboard,
+  Mail,
+  MessageCircle,
+  Phone,
+  Save,
+  Sparkles,
+  StickyNote,
+  X,
+} from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import { buildBackendUrl } from '@/lib/backend-url'
 
@@ -15,6 +24,34 @@ interface Interaction {
   created_at: string
 }
 
+interface WorkbenchPayload {
+  seller: {
+    id: string
+    nombre_propietario?: string
+    zona?: string
+    fuente?: string
+    prioridad?: number
+    estado_contacto?: string
+    argumentario?: string
+  }
+  interactions: Interaction[]
+  latest_artifacts: {
+    dossier?: Interaction | null
+    email_draft?: Interaction | null
+    whatsapp_draft?: Interaction | null
+    call_brief?: Interaction | null
+    context_brief?: Interaction | null
+  }
+  snapshot: {
+    has_argumentario: boolean
+    has_email_draft: boolean
+    has_whatsapp_draft: boolean
+    has_call_brief: boolean
+    has_context_brief: boolean
+    interactions_count: number
+  }
+}
+
 interface SellerDrawerProps {
   sellerId: string | null
   sellerName?: string
@@ -22,42 +59,61 @@ interface SellerDrawerProps {
   onClose: () => void
 }
 
+type InteractionType = 'llamada' | 'email' | 'whatsapp' | 'reunion' | 'nota'
+
+const TYPE_OPTIONS: InteractionType[] = ['llamada', 'email', 'whatsapp', 'reunion', 'nota']
+const STATE_OPTIONS = ['realizado', 'programado', 'borrador']
+
 function formatDate(value?: string) {
   if (!value) return '—'
-  return new Date(value).toLocaleString('es-ES')
+  return new Date(value).toLocaleString()
 }
 
-function typeLabel(tipo: string) {
-  const labels: Record<string, string> = {
-    llamada: 'Llamada',
-    email: 'Email',
-    whatsapp: 'WhatsApp',
-    reunion: 'Reunión',
-    nota: 'Nota',
-    email_draft: 'Borrador email',
-    dossier: 'Dossier',
+function getTypeIcon(tipo: string) {
+  switch (tipo) {
+    case 'email':
+    case 'email_draft':
+      return Mail
+    case 'whatsapp':
+      return MessageCircle
+    case 'llamada':
+      return Phone
+    default:
+      return StickyNote
   }
-  return labels[tipo] || tipo
+}
+
+function getTypeLabel(tipo: string, artifact: string | undefined, t: (key: never) => string) {
+  if (artifact === 'call_brief') return t('callBrief')
+  if (artifact === 'context_brief') return t('contextBrief')
+  if (artifact === 'whatsapp_draft') return 'WhatsApp'
+  if (tipo === 'email_draft') return t('emailDraft')
+  if (tipo === 'dossier') return t('dossierSection')
+  return t(`interactionType_${tipo}` as never)
 }
 
 export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDrawerProps) {
   const { t } = useI18n()
   const [loading, setLoading] = useState(false)
-  const [interactions, setInteractions] = useState<Interaction[]>([])
   const [generating, setGenerating] = useState(false)
-  const [draftSubject, setDraftSubject] = useState('')
-  const [draftBody, setDraftBody] = useState('')
+  const [savingInteraction, setSavingInteraction] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [workbench, setWorkbench] = useState<WorkbenchPayload | null>(null)
+  const [formType, setFormType] = useState<InteractionType>('llamada')
+  const [formState, setFormState] = useState('realizado')
+  const [formResult, setFormResult] = useState('')
+  const [formContent, setFormContent] = useState('')
 
-  const loadInteractions = useCallback(async () => {
+  const loadWorkbench = useCallback(async () => {
     if (!sellerId) return
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/interactions?limit=30`))
+      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/workbench?interaction_limit=30`))
       if (!res.ok) throw new Error(`${t('error')} ${res.status}`)
-      const data = (await res.json()) as Interaction[]
-      setInteractions(data)
+      const data = (await res.json()) as WorkbenchPayload
+      setWorkbench(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errorLoadingInteractions'))
     } finally {
@@ -67,14 +123,15 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
 
   useEffect(() => {
     if (open && sellerId) {
-      void loadInteractions()
+      void loadWorkbench()
     }
-  }, [open, sellerId, loadInteractions])
+  }, [open, sellerId, loadWorkbench])
 
-  const generateDossier = async () => {
+  const generateWorkbench = async () => {
     if (!sellerId) return
     setGenerating(true)
     setError(null)
+    setSuccess(null)
     try {
       const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/generate-dossier`), {
         method: 'POST',
@@ -83,10 +140,8 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
         const txt = await res.text()
         throw new Error(txt || `Error ${res.status}`)
       }
-      const data = await res.json()
-      setDraftSubject(data.email_subject || '')
-      setDraftBody(data.email_body || '')
-      await loadInteractions()
+      await loadWorkbench()
+      setSuccess(t('dossierGenerated'))
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errorGeneratingDossier'))
     } finally {
@@ -94,12 +149,69 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     }
   }
 
+  const saveInteraction = async () => {
+    if (!sellerId || !formContent.trim()) return
+    setSavingInteraction(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/interactions`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: formType,
+          estado: formState,
+          resultado: formResult.trim() || null,
+          contenido: formContent.trim(),
+        }),
+      })
+      if (!res.ok) {
+        const txt = await res.text()
+        throw new Error(txt || `Error ${res.status}`)
+      }
+      setFormResult('')
+      setFormContent('')
+      await loadWorkbench()
+      setSuccess(t('interactionSaved'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorSavingInteraction'))
+    } finally {
+      setSavingInteraction(false)
+    }
+  }
+
+  const copyText = async (value?: string) => {
+    if (!value) return
+    await navigator.clipboard.writeText(value)
+    setSuccess(t('copiedToClipboard'))
+  }
+
+  const emailDraft = workbench?.latest_artifacts.email_draft
+  const whatsappDraft = workbench?.latest_artifacts.whatsapp_draft
+  const callBrief = workbench?.latest_artifacts.call_brief
+  const contextBrief = workbench?.latest_artifacts.context_brief
+  const dossier = workbench?.latest_artifacts.dossier
+
+  const emailSubject = String(emailDraft?.metadata?.subject || '')
+  const emailBody = emailDraft?.contenido || ''
+  const whatsappBody = whatsappDraft?.contenido || ''
+
+  const emailHref = useMemo(() => {
+    if (!emailBody) return '#'
+    return `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+  }, [emailSubject, emailBody])
+
+  const whatsappHref = useMemo(() => {
+    if (!whatsappBody) return '#'
+    return `https://wa.me/?text=${encodeURIComponent(whatsappBody)}`
+  }, [whatsappBody])
+
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/40">
-      <div className="w-full max-w-2xl h-full bg-navy-darker/95 border-l border-soft-subtle/40 p-6 overflow-y-auto backdrop-blur-xl">
-        <div className="flex items-start justify-between mb-6">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/50">
+      <div className="h-full w-full max-w-3xl overflow-y-auto border-l border-soft-subtle/40 bg-navy-darker/95 p-6 backdrop-blur-xl">
+        <div className="mb-6 flex items-start justify-between">
           <div className="space-y-1">
             <h2 className="text-2xl font-bold text-soft-white">{t('sellerRecordTitle')}</h2>
             <p className="text-sm text-soft-muted">{sellerName || t('selectedSeller')}</p>
@@ -108,63 +220,263 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             onClick={onClose}
             className="rounded-lg border border-soft-subtle/70 bg-navy-surface/40 p-2 text-soft-white hover:border-gold/50 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-gold/20 bg-gradient-to-br from-navy-deep/70 via-navy-surface/45 to-navy-deep/60 p-5">
-          <button
-            onClick={generateDossier}
-            disabled={generating || !sellerId}
-            className="btn-action"
-          >
-            <Sparkles className="w-4 h-4" />
-            {generating ? t('generatingDossier') : t('generateDossierEmail')}
-          </button>
-          <p className="text-xs text-soft-muted mt-2">
-            {t('dossierHelperText')}
-          </p>
-        </div>
-
-        {(draftSubject || draftBody) && (
-          <div className="mb-6 rounded-2xl border border-blue-light/20 bg-navy-surface/35 p-5">
-            <div className="flex items-center gap-2 mb-2 text-blue-light">
-              <Mail className="w-4 h-4" />
-              <span className="text-sm font-semibold">{t('emailDraft')}</span>
-            </div>
-            <p className="text-xs text-soft-muted mb-2">{t('subject')}</p>
-            <p className="text-sm text-soft-white mb-3">{draftSubject || '—'}</p>
-            <p className="text-xs text-soft-muted mb-2">{t('body')}</p>
-            <pre className="whitespace-pre-wrap text-sm text-soft-white">{draftBody || '—'}</pre>
+        {(error || success) && (
+          <div className="mb-4 space-y-2">
+            {error && (
+              <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                {success}
+              </div>
+            )}
           </div>
         )}
 
-        <div>
-          <h3 className="text-sm font-semibold text-soft-white mb-3">{t('interactionHistory')}</h3>
-          {error && (
-            <div className="mb-3 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-red-300 text-xs">
-              {error}
+        <section className="mb-6 rounded-2xl border border-gold/20 bg-gradient-to-br from-navy-deep/80 via-navy-surface/45 to-navy-deep/70 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-soft-white">{t('gravityClawWorkbench')}</h3>
+              <p className="max-w-xl text-sm text-soft-muted">{t('gravityClawWorkbenchHint')}</p>
+              {workbench?.snapshot && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <span className="rounded-full border border-soft-subtle/40 bg-navy-surface/40 px-3 py-1 text-xs text-soft-muted">
+                    {t('interactions')}: {workbench.snapshot.interactions_count}
+                  </span>
+                  <span className="rounded-full border border-soft-subtle/40 bg-navy-surface/40 px-3 py-1 text-xs text-soft-muted">
+                    {t('status')}: {workbench.seller.estado_contacto || '—'}
+                  </span>
+                  <span className="rounded-full border border-soft-subtle/40 bg-navy-surface/40 px-3 py-1 text-xs text-soft-muted">
+                    {t('priority')}: P{workbench.seller.prioridad ?? 0}
+                  </span>
+                </div>
+              )}
             </div>
+            <button onClick={generateWorkbench} disabled={generating || !sellerId} className="btn-action">
+              <Sparkles className="h-4 w-4" />
+              {generating ? t('generatingDossier') : t('generateWorkbench')}
+            </button>
+          </div>
+        </section>
+
+        <div className="mb-6 grid gap-4 md:grid-cols-2">
+          <ArtifactCard
+            title={t('contextBrief')}
+            icon={StickyNote}
+            content={contextBrief?.contenido}
+            meta={contextBrief?.created_at ? formatDate(contextBrief.created_at) : undefined}
+            onCopy={() => copyText(contextBrief?.contenido)}
+            copyLabel={t('copyBrief')}
+          />
+          <ArtifactCard
+            title={t('callBrief')}
+            icon={Phone}
+            content={callBrief?.contenido}
+            meta={callBrief?.created_at ? formatDate(callBrief.created_at) : undefined}
+            onCopy={() => copyText(callBrief?.contenido)}
+            copyLabel={t('copyCallBrief')}
+          />
+          <ArtifactCard
+            title={t('emailDraft')}
+            icon={Mail}
+            content={emailBody}
+            subtitle={emailSubject ? `${t('subject')}: ${emailSubject}` : undefined}
+            meta={emailDraft?.created_at ? formatDate(emailDraft.created_at) : undefined}
+            onCopy={() => copyText(`${emailSubject}\n\n${emailBody}`.trim())}
+            copyLabel={t('copyEmail')}
+            actionHref={emailBody ? emailHref : undefined}
+            actionLabel={t('openEmailClient')}
+          />
+          <ArtifactCard
+            title={t('whatsappDraft')}
+            icon={MessageCircle}
+            content={whatsappBody}
+            meta={whatsappDraft?.created_at ? formatDate(whatsappDraft.created_at) : undefined}
+            onCopy={() => copyText(whatsappBody)}
+            copyLabel={t('copyWhatsApp')}
+            actionHref={whatsappBody ? whatsappHref : undefined}
+            actionLabel={t('openWhatsApp')}
+          />
+        </div>
+
+        <section className="mb-6 rounded-2xl border border-blue-light/20 bg-navy-surface/35 p-5">
+          <div className="mb-3 flex items-center gap-2 text-blue-light">
+            <StickyNote className="h-4 w-4" />
+            <h3 className="text-sm font-semibold">{t('dossierSection')}</h3>
+          </div>
+          {dossier?.contenido ? (
+            <>
+              <pre className="whitespace-pre-wrap text-sm text-soft-white">{dossier.contenido}</pre>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => copyText(dossier.contenido)}
+                  className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-xs text-soft-white hover:border-gold/40 transition-colors"
+                >
+                  <Clipboard className="mr-1 inline h-3.5 w-3.5" />
+                  {t('copyDossier')}
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-soft-muted">{t('noDossierGenerated')}</p>
           )}
+        </section>
+
+        <section className="mb-6 rounded-2xl border border-soft-subtle/30 bg-navy-surface/30 p-5">
+          <h3 className="mb-3 text-sm font-semibold text-soft-white">{t('logInteraction')}</h3>
+          <div className="grid gap-3 md:grid-cols-3">
+            <select
+              value={formType}
+              onChange={(e) => setFormType(e.target.value as InteractionType)}
+              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white outline-none"
+            >
+              {TYPE_OPTIONS.map((value) => (
+                <option key={value} value={value}>
+                  {t(`interactionType_${value}` as never)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={formState}
+              onChange={(e) => setFormState(e.target.value)}
+              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white outline-none"
+            >
+              {STATE_OPTIONS.map((value) => (
+                <option key={value} value={value}>
+                  {t(`interactionState_${value}` as never)}
+                </option>
+              ))}
+            </select>
+            <input
+              value={formResult}
+              onChange={(e) => setFormResult(e.target.value)}
+              placeholder={t('interactionResultPlaceholder')}
+              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+            />
+          </div>
+          <textarea
+            value={formContent}
+            onChange={(e) => setFormContent(e.target.value)}
+            placeholder={t('interactionContentPlaceholder')}
+            rows={5}
+            className="mt-3 w-full rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-3 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+          />
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={saveInteraction}
+              disabled={savingInteraction || !formContent.trim()}
+              className="rounded-lg border border-gold/40 bg-gold px-4 py-2 text-sm font-semibold text-navy-deep transition-opacity disabled:opacity-50"
+            >
+              <Save className="mr-2 inline h-4 w-4" />
+              {savingInteraction ? t('savingInteraction') : t('saveInteraction')}
+            </button>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="mb-3 text-sm font-semibold text-soft-white">{t('interactionHistory')}</h3>
           {loading ? (
             <p className="text-sm text-soft-muted">{t('loading')}</p>
-          ) : interactions.length === 0 ? (
+          ) : !workbench?.interactions?.length ? (
             <p className="text-sm text-soft-muted">{t('noInteractionsYet')}</p>
           ) : (
             <div className="space-y-3">
-              {interactions.map((item) => (
-                <div key={item.id} className="rounded-xl border border-soft-subtle/30 bg-navy-surface/30 p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gold">{typeLabel(item.tipo)}</span>
-                    <span className="text-[11px] text-soft-muted">{formatDate(item.created_at)}</span>
+              {workbench.interactions.map((item) => {
+                const artifact = String(item.metadata?.artifact || '')
+                const Icon = getTypeIcon(item.tipo)
+                return (
+                  <div key={item.id} className="rounded-xl border border-soft-subtle/30 bg-navy-surface/30 p-3">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-gold" />
+                        <span className="text-xs text-gold">{getTypeLabel(item.tipo, artifact, t)}</span>
+                        <span className="rounded-full border border-soft-subtle/30 bg-navy-surface/50 px-2 py-0.5 text-[10px] uppercase tracking-wide text-soft-muted">
+                          {t(`interactionState_${item.estado}` as never)}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-soft-muted">{formatDate(item.created_at)}</span>
+                    </div>
+                    {!!item.resultado && (
+                      <p className="mb-2 text-xs text-blue-light">
+                        {t('result')}: {item.resultado}
+                      </p>
+                    )}
+                    <p className="whitespace-pre-wrap text-sm text-soft-white">{item.contenido}</p>
                   </div>
-                  <p className="text-sm text-soft-white whitespace-pre-wrap">{item.contenido}</p>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
-        </div>
+        </section>
       </div>
+    </div>
+  )
+}
+
+function ArtifactCard({
+  title,
+  icon: Icon,
+  content,
+  subtitle,
+  meta,
+  onCopy,
+  copyLabel,
+  actionHref,
+  actionLabel,
+}: {
+  title: string
+  icon: typeof Mail
+  content?: string
+  subtitle?: string
+  meta?: string
+  onCopy: () => void
+  copyLabel: string
+  actionHref?: string
+  actionLabel?: string
+}) {
+  return (
+    <div className="rounded-2xl border border-soft-subtle/30 bg-navy-surface/35 p-5">
+      <div className="mb-3 flex items-center gap-2 text-soft-white">
+        <Icon className="h-4 w-4 text-gold" />
+        <h3 className="text-sm font-semibold">{title}</h3>
+      </div>
+      {subtitle && <p className="mb-2 text-xs text-soft-muted">{subtitle}</p>}
+      {meta && <p className="mb-2 text-[11px] text-soft-muted">{meta}</p>}
+      {content ? (
+        <>
+          <pre className="whitespace-pre-wrap text-sm text-soft-white">{content}</pre>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={onCopy}
+              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-xs text-soft-white hover:border-gold/40 transition-colors"
+            >
+              <Clipboard className="mr-1 inline h-3.5 w-3.5" />
+              {copyLabel}
+            </button>
+            {actionHref && actionLabel && (
+              <a
+                href={actionHref}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg border border-blue-light/30 bg-blue-light/10 px-3 py-2 text-xs text-blue-light hover:border-blue-light/50 transition-colors"
+              >
+                {actionLabel}
+              </a>
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-soft-muted">—</p>
+      )}
     </div>
   )
 }

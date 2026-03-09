@@ -280,3 +280,63 @@ async def get_interactions(
         .execute()
     )
     return result.data or []
+
+
+async def get_seller_workbench(
+    db: SupabaseService,
+    org_id: str,
+    seller_id: str,
+    interaction_limit: int = 20,
+) -> Optional[Dict[str, Any]]:
+    """
+    Aggregate seller data, recent interactions and latest generated artifacts
+    into a single payload for the Gravity Claw workbench.
+    """
+    seller = await get_seller(db=db, org_id=org_id, seller_id=seller_id)
+    if not seller:
+        return None
+
+    interactions = await get_interactions(
+        db=db,
+        org_id=org_id,
+        seller_id=seller_id,
+        limit=interaction_limit,
+    )
+
+    latest_artifacts: Dict[str, Optional[Dict[str, Any]]] = {
+        "dossier": None,
+        "email_draft": None,
+        "whatsapp_draft": None,
+        "call_brief": None,
+        "context_brief": None,
+    }
+
+    for item in interactions:
+        metadata = item.get("metadata") or {}
+        artifact = metadata.get("artifact")
+        tipo = item.get("tipo")
+
+        if not latest_artifacts["dossier"] and tipo == "dossier":
+            latest_artifacts["dossier"] = item
+        if not latest_artifacts["email_draft"] and tipo == "email_draft":
+            latest_artifacts["email_draft"] = item
+        if not latest_artifacts["whatsapp_draft"] and artifact == "whatsapp_draft":
+            latest_artifacts["whatsapp_draft"] = item
+        if not latest_artifacts["call_brief"] and artifact == "call_brief":
+            latest_artifacts["call_brief"] = item
+        if not latest_artifacts["context_brief"] and artifact == "context_brief":
+            latest_artifacts["context_brief"] = item
+
+    return {
+        "seller": seller,
+        "interactions": interactions,
+        "latest_artifacts": latest_artifacts,
+        "snapshot": {
+            "has_argumentario": bool(seller.get("argumentario")),
+            "has_email_draft": latest_artifacts["email_draft"] is not None,
+            "has_whatsapp_draft": latest_artifacts["whatsapp_draft"] is not None,
+            "has_call_brief": latest_artifacts["call_brief"] is not None,
+            "has_context_brief": latest_artifacts["context_brief"] is not None,
+            "interactions_count": len(interactions),
+        },
+    }

@@ -1,30 +1,20 @@
 """
 Whale Dossier Skill — Gravity Claw Phase 4
 
-Generates a hyper-personalized captation dossier for a high-priority seller (Whale).
+Generates a compact seller workbench for a high-priority seller:
+  - Captation dossier / argumentario
+  - Email draft
+  - WhatsApp draft
+  - Call brief
+  - Context brief for resuming the conversation later
 
-Pipeline:
-  1. Load seller data from nexus_sellers
-  2. Load zone territorial intelligence from notebooklm_insights
-  3. Generate argumentario (captation pitch) via Claude Sonnet
-  4. Generate email draft (first outreach) via Claude Sonnet
-  5. Update seller.argumentario in Supabase
-  6. Save dossier + email_draft to seller_interactions table
-
-Usage (from backend endpoint):
-    from backend.skills.whale_dossier import run_whale_dossier
-    result = await run_whale_dossier(
-        data={"seller_id": "uuid"},
-        llm=llm_service,
-        db=db_service
-    )
-
-Output tag: [Generado por Anclora Nexus Agent — whale_dossier]
+All artifacts are persisted into seller_interactions so the commercial
+workflow can resume without losing context.
 """
 
 import json
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from backend.services.llm_service import LLMService
 from backend.services.supabase_service import SupabaseService
@@ -54,7 +44,7 @@ async def run_whale_dossier(
     db: SupabaseService,
 ) -> Dict[str, Any]:
     """
-    Generate a captation dossier + email draft for a Whale seller.
+    Generate a captation dossier + multichannel outreach drafts for a Whale seller.
 
     Args:
         data: {"seller_id": "uuid", "org_id": "uuid" (optional)}
@@ -67,6 +57,9 @@ async def run_whale_dossier(
           "argumentario": "...",
           "email_subject": "...",
           "email_body": "...",
+          "whatsapp_body": "...",
+          "call_brief": "...",
+          "context_brief": "...",
           "zona_insight_used": True/False,
           "processed_at": "...",
         }
@@ -121,6 +114,24 @@ async def run_whale_dossier(
     )
     zona_intel_snippet = zona_intel[:600]
     zona_insight_used = bool(insights)
+
+    recent_interactions_resp = (
+        db.client.table("seller_interactions")
+        .select("tipo, estado, contenido, resultado, metadata, created_at")
+        .eq("org_id", org_id)
+        .eq("seller_id", seller_id)
+        .order("created_at", desc=True)
+        .limit(6)
+        .execute()
+    )
+    recent_interactions = recent_interactions_resp.data or []
+    recent_interactions_text = "\n".join(
+        [
+            f"- {item.get('created_at')}: {item.get('tipo')} / {item.get('estado')} / "
+            f"{(item.get('contenido') or '')[:180]}"
+            for item in recent_interactions
+        ]
+    ) or "- Sin historial previo."
 
     # ── 3. Generate argumentario ──────────────────────────────────────────────
     argumentario_prompt = f"""Eres Toni Amengual, agente inmobiliario de eXp Global Spain \
@@ -179,16 +190,94 @@ Responde ÚNICAMENTE con JSON válido:
     email_body = email_raw
 
     try:
-        clean = email_raw.strip()
-        if "```json" in clean:
-            clean = clean.split("```json")[1].split("```")[0].strip()
-        elif "```" in clean:
-            clean = clean.split("```")[1].split("```")[0].strip()
-        parsed = json.loads(clean)
+        parsed = _parse_json_payload(email_raw)
         email_subject = parsed.get("subject", email_subject)
         email_body = parsed.get("body", email_raw)
     except Exception:
         pass  # Keep raw text as body
+
+    whatsapp_prompt = f"""Eres Toni Amengual. Redacta un primer mensaje de WhatsApp
+profesional, breve y elegante para este propietario.
+
+DATOS:
+- Nombre: {nombre}
+- Zona: {zona_label}
+- Propiedad: {tipo} a {precio_str}
+- Contexto comercial: {senales_str}
+
+ARGUMENTARIO BASE:
+{argumentario[:450]}
+
+REGLAS:
+- 4 líneas máximo
+- tono cercano y premium
+- no sonar invasivo
+- cerrar proponiendo una llamada corta
+
+Responde ÚNICAMENTE con JSON válido:
+{{"body": "..."}}"""
+
+    whatsapp_raw = await llm.analyze(whatsapp_prompt)
+    whatsapp_body = whatsapp_raw
+    try:
+        whatsapp_body = _parse_json_payload(whatsapp_raw).get("body", whatsapp_raw)
+    except Exception:
+        pass
+
+    call_brief_prompt = f"""Eres un sales strategist inmobiliario premium.
+
+Genera un briefing de llamada de 6 bullets para Toni antes de llamar a este seller.
+
+SELLER:
+- Nombre: {nombre}
+- Zona: {zona_label}
+- Tipo: {tipo}
+- Precio: {precio_str}
+- Tiempo en mercado: {dom_str}
+- Señales: {senales_str}
+
+INTELIGENCIA TERRITORIAL:
+{zona_intel_snippet}
+
+HISTORIAL RECIENTE:
+{recent_interactions_text}
+
+Incluye:
+- hipótesis de motivación
+- argumento local principal
+- objeción probable
+- respuesta sugerida
+- CTA de cierre de llamada
+"""
+    call_brief = await llm.generate_copy(call_brief_prompt)
+
+    context_brief_prompt = f"""Resume el estado actual de este seller para que Toni pueda
+retomar la conversación sin leer todo el historial.
+
+SELLER:
+- Nombre: {nombre}
+- Zona: {zona_label}
+- Tipo: {tipo}
+- Precio: {precio_str}
+- Tiempo en mercado: {dom_str}
+- Señales: {senales_str}
+
+ARGUMENTARIO:
+{argumentario[:500]}
+
+EMAIL DRAFT:
+Asunto: {email_subject}
+Cuerpo: {email_body[:400]}
+
+HISTORIAL RECIENTE:
+{recent_interactions_text}
+
+Devuelve:
+- un resumen ejecutivo de máximo 6 líneas
+- próximos pasos concretos
+- canal recomendado siguiente
+"""
+    context_brief = await llm.generate_copy(context_brief_prompt)
 
     # ── 5. Save argumentario to seller record ─────────────────────────────────
     db.client.table("nexus_sellers").update({
@@ -206,7 +295,11 @@ Responde ÚNICAMENTE con JSON válido:
             "tipo": "dossier",
             "estado": "realizado",
             "contenido": argumentario,
-            "metadata": {"zona_insight_used": zona_insight_used, "zona": zona},
+            "metadata": {
+                "zona_insight_used": zona_insight_used,
+                "zona": zona,
+                "artifact": "captation_dossier",
+            },
         },
         {
             "org_id": org_id,
@@ -214,7 +307,44 @@ Responde ÚNICAMENTE con JSON válido:
             "tipo": "email_draft",
             "estado": "borrador",
             "contenido": email_body,
-            "metadata": {"subject": email_subject, "zona": zona},
+            "metadata": {
+                "subject": email_subject,
+                "zona": zona,
+                "artifact": "email_draft",
+            },
+        },
+        {
+            "org_id": org_id,
+            "seller_id": seller_id,
+            "tipo": "whatsapp",
+            "estado": "borrador",
+            "contenido": whatsapp_body,
+            "metadata": {
+                "zona": zona,
+                "artifact": "whatsapp_draft",
+            },
+        },
+        {
+            "org_id": org_id,
+            "seller_id": seller_id,
+            "tipo": "nota",
+            "estado": "borrador",
+            "contenido": call_brief,
+            "metadata": {
+                "zona": zona,
+                "artifact": "call_brief",
+            },
+        },
+        {
+            "org_id": org_id,
+            "seller_id": seller_id,
+            "tipo": "nota",
+            "estado": "realizado",
+            "contenido": context_brief,
+            "metadata": {
+                "zona": zona,
+                "artifact": "context_brief",
+            },
         },
     ]).execute()
 
@@ -225,6 +355,19 @@ Responde ÚNICAMENTE con JSON válido:
         "argumentario": argumentario,
         "email_subject": email_subject,
         "email_body": email_body,
+        "whatsapp_body": whatsapp_body,
+        "call_brief": call_brief,
+        "context_brief": context_brief,
         "zona_insight_used": zona_insight_used,
         "processed_at": now,
     }
+
+
+def _parse_json_payload(raw: str) -> Dict[str, Any]:
+    clean = raw.strip()
+    if "```json" in clean:
+        clean = clean.split("```json", 1)[1].split("```", 1)[0].strip()
+    elif "```" in clean:
+        clean = clean.split("```", 1)[1].split("```", 1)[0].strip()
+    parsed = json.loads(clean)
+    return parsed if isinstance(parsed, dict) else {"body": raw}

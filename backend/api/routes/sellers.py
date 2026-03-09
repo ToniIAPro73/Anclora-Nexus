@@ -177,6 +177,32 @@ async def get_seller(seller_id: str):
         raise HTTPException(status_code=500, detail=f"Error retrieving seller: {str(e)}")
 
 
+@router.get("/{seller_id}/workbench", response_model=dict)
+async def get_seller_workbench(
+    seller_id: str,
+    interaction_limit: int = Query(20, ge=1, le=100),
+):
+    """
+    Return the seller workbench payload used by Gravity Claw:
+    seller record, recent interactions and latest generated artifacts.
+    """
+    try:
+        db = get_db()
+        workbench = await sellers_service.get_seller_workbench(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+            interaction_limit=interaction_limit,
+        )
+        if not workbench:
+            raise HTTPException(status_code=404, detail="Seller not found")
+        return workbench
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error building seller workbench: {str(e)}")
+
+
 @router.patch("/{seller_id}/estado", response_model=dict)
 async def update_seller_estado(
     seller_id: str,
@@ -224,13 +250,16 @@ async def generate_whale_dossier(
     """
     Generate a hyper-personalized captation dossier for a Whale seller.
 
-    Uses zone territorial intelligence from NotebookLM cache + Claude Sonnet
-    to produce:
-    - Argumentario: 3-paragraph captation pitch with local market data
-    - Email draft: First-outreach email ready to review and send
+    Uses zone territorial intelligence from NotebookLM cache + the current
+    runtime profile to produce:
+    - Argumentario: captation pitch with local market data
+    - Email draft
+    - WhatsApp draft
+    - Call brief
+    - Context brief to resume the conversation later
 
-    Both are saved to seller_interactions (tipo=dossier, tipo=email_draft).
-    The argumentario is also stored in nexus_sellers.argumentario.
+    All artifacts are saved to seller_interactions. The argumentario is also
+    stored in nexus_sellers.argumentario.
 
     Recommended for sellers with prioridad >= 4 (High value / Whale).
     """
