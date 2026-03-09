@@ -20,6 +20,7 @@ from ...services.notebooklm_service import (
 )
 from ...services.ai_runtime import get_runtime_summary
 from ...services.supabase_service import SupabaseService
+from ...services.territorial_sync_service import get_territorial_sync_status
 from ..deps import check_budget_hard_stop
 
 # Create router
@@ -312,3 +313,22 @@ async def get_vulnerabilidades_endpoint():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving vulnerabilities: {str(e)}")
+
+
+@router.get("/territorial-sync-status")
+async def get_territorial_sync_status_endpoint():
+    """
+    Return the control-plane status of the territorial NotebookLM sync pack.
+
+    This exposes validation, freshness, coverage and source references so the
+    frontend and operations can verify that the sync pack remains the primary
+    territorial source without manually inspecting repo files.
+    """
+    try:
+        status = get_territorial_sync_status()
+        return {
+            "sync_status": status,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving territorial sync status: {str(e)}")

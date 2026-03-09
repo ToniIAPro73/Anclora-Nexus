@@ -51,11 +51,13 @@ export async function GET(req: NextRequest) {
   try {
     const snapshotPath = path.join(process.cwd(), 'public', 'data', 'seller-signals.snapshot.json')
     const notebookSyncPath = path.join(process.cwd(), 'public', 'data', 'notebooklm-territorial.sync.json')
+    const notebookSyncStatusPath = path.join(process.cwd(), 'ops', 'notebooklm-territorial-sync-status.json')
     const territorialPath = path.join(process.cwd(), 'public', 'docs', 'vulnerabilidades.md')
 
-    const [signalsRaw, notebookSyncRaw, territorialRaw] = await Promise.all([
+    const [signalsRaw, notebookSyncRaw, notebookSyncStatusRaw, territorialRaw] = await Promise.all([
       readFile(snapshotPath, 'utf8'),
       readFile(notebookSyncPath, 'utf8'),
+      readFile(notebookSyncStatusPath, 'utf8').catch(() => ''),
       readFile(territorialPath, 'utf8'),
     ])
 
@@ -71,6 +73,15 @@ export async function GET(req: NextRequest) {
         zona?: string
         response: string
       }>
+    }
+    const notebookSyncStatus = notebookSyncStatusRaw
+      ? JSON.parse(notebookSyncStatusRaw) as { status?: string; errors?: string[]; warnings?: string[] }
+      : null
+
+    if (notebookSyncStatus?.status === 'error') {
+      throw new Error(
+        `territorial sync status is error: ${(notebookSyncStatus.errors || []).join(' | ')}`
+      )
     }
 
     const ingestion = await postSkill('seller_signal_ingest', {
@@ -119,6 +130,7 @@ export async function GET(req: NextRequest) {
             notebook_name: notebookSyncPack.notebook_name,
             generated_at: notebookSyncPack.generated_at,
             queries_synced: notebookQueries.length,
+            validation_status: notebookSyncStatus?.status || 'unknown',
           }
         : {
             mode: 'fallback_markdown_snapshot',

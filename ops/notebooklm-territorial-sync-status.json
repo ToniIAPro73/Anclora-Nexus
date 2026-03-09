@@ -1,0 +1,100 @@
+{
+  "feature_id": "ANCLORA-TSCP-001.v1",
+  "status": "ready",
+  "checked_at": "2026-03-09T00:54:57.650Z",
+  "generated_at": "2026-03-09T00:00:00Z",
+  "notebook_id": "9f003773-16c5-4fb4-ab37-7b6c230ab4da",
+  "notebook_name": "Inteligencia Territorial Suroeste Mallorca 2026",
+  "source_mode": "live_notebook_sync_pack",
+  "freshness_hours": 96,
+  "age_hours": 0.9,
+  "coverage": {
+    "query_count": 4,
+    "zones": [
+      "calvia",
+      "general",
+      "punta_negra",
+      "son_ferrer"
+    ],
+    "insight_types": [
+      "territorial"
+    ],
+    "total_word_count": 1908
+  },
+  "source_refs": [
+    "ops/notebooklm-territorial-sync-raw.json",
+    "public/docs/Nuevo_enfoque/SOP_NOTEBOOKLM_TERRITORIAL_SYNC_PACK.md",
+    "public/docs/Nuevo_enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md",
+    "public/docs/vulnerabilidades.md"
+  ],
+  "control_plane": {
+    "manifest_path": "ops/notebooklm-territorial-sync-manifest.json",
+    "raw_path": "ops/notebooklm-territorial-sync-raw.json",
+    "output_path": "public/data/notebooklm-territorial.sync.json",
+    "status_path": "ops/notebooklm-territorial-sync-status.json"
+  },
+  "checks": [
+    {
+      "id": "manifest_queries_present",
+      "ok": true,
+      "detail": "4 queries declaradas en manifiesto."
+    },
+    {
+      "id": "raw_entries_present",
+      "ok": true,
+      "detail": "4 respuestas capturadas en raw."
+    },
+    {
+      "id": "raw_coverage_matches_manifest",
+      "ok": true,
+      "detail": "raw=4 / manifest=4"
+    },
+    {
+      "id": "pack_queries_match_manifest",
+      "ok": true,
+      "detail": "El pack construido mantiene el orden y contenido de queries del manifiesto."
+    },
+    {
+      "id": "responses_non_empty",
+      "ok": true,
+      "detail": "Todas las respuestas del pack contienen texto útil."
+    },
+    {
+      "id": "response_word_counts_present",
+      "ok": true,
+      "detail": "Todas las respuestas derivadas exponen word count > 0."
+    },
+    {
+      "id": "generated_at_valid",
+      "ok": true,
+      "detail": "generated_at=2026-03-09T00:00:00Z"
+    },
+    {
+      "id": "freshness_window",
+      "ok": true,
+      "detail": "0.9h <= 96h"
+    },
+    {
+      "id": "source_refs_present",
+      "ok": true,
+      "detail": "4 referencias trazables."
+    },
+    {
+      "id": "pack_matches_inputs",
+      "ok": true,
+      "detail": "El pack publicado coincide con manifiesto + raw."
+    }
+  ],
+  "warnings": [],
+  "errors": [],
+  "summary": {
+    "primary_source_locked": true,
+    "pack_query_count": 4,
+    "zones_covered": [
+      "calvia",
+      "general",
+      "punta_negra",
+      "son_ferrer"
+    ]
+  }
+}

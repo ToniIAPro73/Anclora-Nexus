@@ -2,6 +2,7 @@
 import { ChatConsole } from '@/components/intelligence/ChatConsole'
 import { DecisionConsole } from '@/components/intelligence/DecisionConsole'
 import { QueryPlanPanel } from '@/components/intelligence/QueryPlanPanel'
+import { TerritorialSyncStatusCard } from '@/components/intelligence/TerritorialSyncStatusCard'
 import { useStore } from '@/lib/store'
 import { useI18n } from '@/lib/i18n'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -58,6 +59,8 @@ export default function IntelligencePage() {
             </div>
           </div>
         </div>
+
+        <TerritorialSyncStatusCard />
 
         {/* MAIN BENTO GRID */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0 overflow-hidden">

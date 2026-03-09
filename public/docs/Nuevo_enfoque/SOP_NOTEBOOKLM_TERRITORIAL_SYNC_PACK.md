@@ -210,13 +210,16 @@ Acción:
 
 ## Estado actual
 
-Fase 2 queda operativamente en `98%`:
-- NotebookLM territorial 2026 ya es la fuente principal configurada.
+Fase 2 queda operativamente en `100%` dentro del perímetro del repositorio:
+- NotebookLM territorial 2026 es la fuente principal configurada.
 - El pipeline territorial prioriza el `sync pack`.
 - Existe un proceso reproducible y documentado dentro del repositorio.
+- El control plane valida freshness, cobertura y consistencia.
+- El estado operativo se expone por API y por UI.
+- El cron territorial bloquea un `sync pack` inválido.
 
-El `2%` restante depende de una limitación externa:
-- automatizar la captura live desde NotebookLM MCP sin intervención humana sobre la sesión autenticada de Google.
+Limitación externa asumida:
+- la captura live desde NotebookLM MCP sigue requiriendo sesión Google válida, pero queda encapsulada en el paso manual de actualización de `raw.json`.
 
 ## Referencias relacionadas
 

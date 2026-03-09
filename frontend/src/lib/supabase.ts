@@ -66,9 +66,13 @@ function createNoopSupabaseClient() {
   }
 }
 
-const supabase: any =
+type SupabaseLike =
+  | ReturnType<typeof createNoopSupabaseClient>
+  | ReturnType<typeof createBrowserClient>
+
+const supabase: SupabaseLike =
   typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey
-    ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+    ? (createBrowserClient(supabaseUrl, supabaseAnonKey) as SupabaseLike)
     : createNoopSupabaseClient()
 
 export function subscribeToLeads(cb: (payload: Record<string, unknown>) => void) {
