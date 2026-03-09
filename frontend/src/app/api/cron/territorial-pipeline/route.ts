@@ -3,7 +3,7 @@
  *
  * What it does:
  *   1. Loads seller signal snapshot and ingests it into nexus_sellers
- *   2. Loads territorial markdown snapshot and syncs it into notebooklm_insights
+ *   2. Loads territorial NotebookLM sync pack and syncs it into notebooklm_insights
  *   3. Generates dossier/email drafts for high-priority sellers
  */
 
@@ -50,26 +50,58 @@ export async function GET(req: NextRequest) {
 
   try {
     const snapshotPath = path.join(process.cwd(), 'public', 'data', 'seller-signals.snapshot.json')
+    const notebookSyncPath = path.join(process.cwd(), 'public', 'data', 'notebooklm-territorial.sync.json')
     const territorialPath = path.join(process.cwd(), 'public', 'docs', 'vulnerabilidades.md')
 
-    const [signalsRaw, territorialRaw] = await Promise.all([
+    const [signalsRaw, notebookSyncRaw, territorialRaw] = await Promise.all([
       readFile(snapshotPath, 'utf8'),
+      readFile(notebookSyncPath, 'utf8'),
       readFile(territorialPath, 'utf8'),
     ])
 
     const signals = JSON.parse(signalsRaw)
+    const notebookSyncPack = JSON.parse(notebookSyncRaw) as {
+      notebook_id?: string
+      notebook_name?: string
+      generated_at?: string
+      source_mode?: string
+      queries?: Array<{
+        query: string
+        insight_type?: string
+        zona?: string
+        response: string
+      }>
+    }
 
     const ingestion = await postSkill('seller_signal_ingest', {
       snapshot_id: 'public/data/seller-signals.snapshot.json',
       signals,
     })
 
-    const notebookSync = await postSkill('notebooklm_sync', {
-      query: '¿Cuáles son las 5 vulnerabilidades u oportunidades territoriales más críticas para el suroeste de Mallorca en 2026?',
-      insight_type: 'territorial',
-      zona: 'general',
-      notebooklm_response: territorialRaw,
-    })
+    const notebookQueries = notebookSyncPack.queries || []
+    const notebookSync = notebookQueries.length > 0
+      ? await Promise.all(
+          notebookQueries.map((entry) =>
+            postSkill('notebooklm_sync', {
+              query: entry.query,
+              insight_type: entry.insight_type || 'territorial',
+              zona: entry.zona || 'general',
+              notebooklm_response: entry.response,
+              source_mode: notebookSyncPack.source_mode || 'live_notebook_sync_pack',
+              source_ref: notebookSyncPack.notebook_id || 'public/data/notebooklm-territorial.sync.json',
+            })
+          )
+        )
+      : [
+          await postSkill('notebooklm_sync', {
+            query: '¿Cuáles son las 5 vulnerabilidades u oportunidades territoriales más críticas para el suroeste de Mallorca en 2026?',
+            insight_type: 'territorial',
+            zona: 'general',
+            notebooklm_response: territorialRaw,
+            source_mode: 'fallback_markdown_snapshot',
+            source_ref: 'public/docs/vulnerabilidades.md',
+          }),
+        ]
 
     const outreach = await postSkill('seller_outreach_batch', {
       prioridad_min: 4,
@@ -80,6 +112,19 @@ export async function GET(req: NextRequest) {
       ok: true,
       started_at: startedAt,
       finished_at: new Date().toISOString(),
+      notebook_source: notebookQueries.length > 0
+        ? {
+            mode: notebookSyncPack.source_mode || 'live_notebook_sync_pack',
+            notebook_id: notebookSyncPack.notebook_id,
+            notebook_name: notebookSyncPack.notebook_name,
+            generated_at: notebookSyncPack.generated_at,
+            queries_synced: notebookQueries.length,
+          }
+        : {
+            mode: 'fallback_markdown_snapshot',
+            source_ref: 'public/docs/vulnerabilidades.md',
+            queries_synced: 1,
+          },
       ingestion,
       notebook_sync: notebookSync,
       outreach,

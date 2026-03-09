@@ -13,6 +13,8 @@ Fecha de actualización: 2026-03-08
 2. NotebookLM MCP está operativo y autenticado, pero el backend de producción no puede invocarlo directamente.
    - El patrón correcto sigue siendo puente externo o snapshot operativo.
    - Se dejó alineado el notebook activo `Inteligencia Territorial Suroeste Mallorca 2026`.
+   - Para acercar Fase 2 al 95%, el cron territorial debe priorizar un sync pack generado desde el notebook real y no depender de `vulnerabilidades.md` como fuente principal.
+   - El repo ya dispone de manifiesto de queries, raw source expected shape y script de build del sync pack para regeneración consistente.
 
 3. Había una incoherencia de ejecución:
    - el frontend ya tenía un cron semanal en `frontend/src/app/api/cron/weekly/route.ts`
@@ -32,6 +34,7 @@ Fecha de actualización: 2026-03-08
 ## Restricciones relevantes
 
 - `NotebookLM MCP` depende de sesión web de Google.
+- La automatización 100% autónoma sigue bloqueada por esa dependencia de sesión.
 - `Supabase Cloud` ya está linkado y la migración 039 fue aplicada.
 - No conviene reescribir migraciones históricas.
 - Para un pipeline robusto, el cron debe llamar solo a rutas backend reales y estables.

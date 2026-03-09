@@ -18,24 +18,25 @@ Cerrar de forma operativa las 5 líneas prioritarias derivadas de:
 - [x] Crear `progress.md`
 
 ### 2. Ingesta seller-side
-- [ ] Exponer un flujo ejecutable para ingerir señales de vendedores
-- [ ] Añadir snapshot local verificable para pruebas end-to-end
-- [ ] Persistir señales normalizadas en `nexus_sellers`
+- [x] Exponer un flujo ejecutable para ingerir señales de vendedores
+- [x] Añadir snapshot local verificable para pruebas end-to-end
+- [x] Persistir señales normalizadas en `nexus_sellers`
 
 ### 3. Sync NotebookLM
-- [ ] Exponer un runner API para `notebooklm_sync`
-- [ ] Sincronizar snapshot territorial hacia `notebooklm_insights`
-- [ ] Dejarlo consumible por cron cloud
+- [x] Exponer un runner API para `notebooklm_sync`
+- [x] Sincronizar inteligencia territorial hacia `notebooklm_insights`
+- [x] Dejarlo consumible por cron cloud
+- [x] Priorizar un sync pack derivado del notebook territorial activo
 
 ### 4. Outreach asistido
-- [ ] Exponer ejecución batch para dossier + email draft
-- [ ] Generar borradores solo para sellers priorizados
-- [ ] Guardar salida en `seller_interactions`
+- [x] Exponer ejecución batch para dossier + email draft
+- [x] Generar borradores solo para sellers priorizados
+- [x] Guardar salida en `seller_interactions`
 
 ### 5. Orquestación cloud
-- [ ] Añadir cron dedicado al pipeline territorial
-- [ ] Encadenar ingestión, sync territorial y outreach batch
-- [ ] Verificar rutas y documentación
+- [x] Añadir cron dedicado al pipeline territorial
+- [x] Encadenar ingestión, sync territorial y outreach batch
+- [x] Verificar rutas y documentación
 
 ## Criterio de cierre
 
@@ -45,3 +46,12 @@ Se considera cerrado cuando exista un flujo verificable:
 3. sincronizar inteligencia territorial,
 4. generar drafts de outreach,
 5. dejar un cron cloud apuntando a rutas reales del backend.
+
+## Estado fase 2
+
+Fase 2 queda al 98%:
+- NotebookLM territorial 2026 ya es la fuente principal configurada.
+- El cron territorial consume primero un sync pack derivado del notebook real.
+- `vulnerabilidades.md` queda como fallback operativo, no como fuente primaria.
+- Existe ya un runbook reproducible y un script de build del sync pack.
+- El 2% restante depende de automatizar la captura live desde MCP sin intervención humana sobre la sesión autenticada.

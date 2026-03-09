@@ -67,6 +67,8 @@ async def run_notebooklm_sync(
     insight_type = data.get("insight_type", "territorial")
     zona = data.get("zona")
     org_id = data.get("org_id", DEFAULT_ORG_ID)
+    source_mode = data.get("source_mode", "manual")
+    source_ref = data.get("source_ref")
 
     if not raw_response:
         return {
@@ -129,6 +131,8 @@ Responde ÚNICAMENTE con el JSON válido.
                 "structured": structured,
                 "synced_at": datetime.now(timezone.utc).isoformat(),
                 "source": "notebooklm_territorial_2026",
+                "source_mode": source_mode,
+                "source_ref": source_ref,
             },
         )
         insight_id = saved.get("id", "unknown")

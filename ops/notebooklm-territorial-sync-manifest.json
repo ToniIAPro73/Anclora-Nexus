@@ -1,0 +1,27 @@
+{
+  "notebook_id": "9f003773-16c5-4fb4-ab37-7b6c230ab4da",
+  "notebook_name": "Inteligencia Territorial Suroeste Mallorca 2026",
+  "source_mode": "live_notebook_sync_pack",
+  "queries": [
+    {
+      "query": "Resume las 5 vulnerabilidades u oportunidades territoriales más críticas del suroeste de Mallorca en 2026, con foco accionable para captación seller-side.",
+      "insight_type": "territorial",
+      "zona": "general"
+    },
+    {
+      "query": "Genera un insight territorial breve y accionable para Punta Negra y Costa d'en Blanes orientado a captar propietarios en 2026.",
+      "insight_type": "territorial",
+      "zona": "punta_negra"
+    },
+    {
+      "query": "Genera un insight territorial breve y accionable para Calvià orientado a detectar vendedores motivados en 2026.",
+      "insight_type": "territorial",
+      "zona": "calvia"
+    },
+    {
+      "query": "Genera un insight territorial breve y accionable para Son Ferrer y Paguera orientado a captar propietarios en 2026.",
+      "insight_type": "territorial",
+      "zona": "son_ferrer"
+    }
+  ]
+}
