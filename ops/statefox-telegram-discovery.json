@@ -8,7 +8,7 @@
     "bot_profile_open_button": true,
     "mini_app_supported": true,
     "direct_api_confirmed": false,
-    "deep_link_reproduced": false,
+    "deep_link_reproduced": true,
     "location_query_observed": true,
     "property_results_observed": true,
     "portal_grid_observed": true
@@ -17,7 +17,8 @@
     "observed": [
       "Telegram bot chat with Open button",
       "Mini App home with portals grid and operational modules",
-      "Location-driven property search returning sale/rent listings"
+      "Location-driven property search returning sale/rent listings",
+      "Observed reproducible `t.me/StateFoxBot?startapp=...` links inside listing messages"
     ],
     "official_docs": [
       "https://core.telegram.org/bots/webapps",
@@ -69,8 +70,17 @@
   "evidence": [
     "User-provided screenshot: StateFox bot returns listings after location input.",
     "User-provided screenshot: StateFox exposes Mini App with portal tiles and operational modules.",
-    "Official Telegram docs confirm bot Open button and Mini App / startapp surface."
+    "Official Telegram docs confirm bot Open button and Mini App / startapp surface.",
+    "Live supervised Telegram Web session confirmed listing links with reproducible `startapp` payloads and public property URLs."
   ],
+  "observed_contract": {
+    "startapp_pattern": "https://t.me/StateFoxBot?startapp=<payload>",
+    "public_property_pattern": "https://es.statefox.com/public/ln/property/<...>",
+    "notes": [
+      "The bot emits both public property URLs and Telegram Mini App deep links in listing messages.",
+      "This is sufficient to build a supervised import bridge without assuming a private API."
+    ]
+  },
   "decision": {
     "adapter_name": "statefox-telegram-bridge",
     "next_feature": "statefox-telegram-bridge",

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowLeft, Bot, Compass, ExternalLink, MapPinned, Waypoints } from 'lucide-react'
+import { ArrowLeft, Bot, Compass, Download, ExternalLink, MapPinned, Waypoints } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -25,6 +25,11 @@ type DiscoveryPayload = {
   }
   decision?: {
     reason?: string
+  }
+  observed_contract?: {
+    startapp_pattern?: string
+    public_property_pattern?: string
+    notes?: string[]
   }
 }
 
@@ -118,6 +123,26 @@ export default function StatefoxDiscoveryPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="rounded-2xl border border-soft-subtle/20 bg-navy-surface/40 p-6">
             <div className="flex items-center gap-3 mb-4">
+              <Compass className="w-5 h-5 text-gold" />
+              <h2 className="text-lg font-semibold text-soft-white">{t('statefoxBridgeObservedContract')}</h2>
+            </div>
+            <div className="space-y-3 text-sm text-soft-white">
+              <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-soft-muted mb-1">{t('statefoxBridgeStartappPattern')}</p>
+                <code className="text-blue-light break-all">{data?.observed_contract?.startapp_pattern}</code>
+              </div>
+              <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-soft-muted mb-1">{t('statefoxBridgePublicPattern')}</p>
+                <code className="text-blue-light break-all">{data?.observed_contract?.public_property_pattern}</code>
+              </div>
+              {(data?.observed_contract?.notes || []).map((note) => (
+                <div key={note} className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">{note}</div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-soft-subtle/20 bg-navy-surface/40 p-6">
+            <div className="flex items-center gap-3 mb-4">
               <Waypoints className="w-5 h-5 text-gold" />
               <h2 className="text-lg font-semibold text-soft-white">{t('statefoxDiscoveryPrimaryTarget')}</h2>
             </div>
@@ -148,6 +173,13 @@ export default function StatefoxDiscoveryPage() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Link href="/intelligence/statefox-bridge" className="btn-create inline-flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            {t('statefoxBridgeGoToBridge')}
+          </Link>
         </div>
       </div>
     </div>

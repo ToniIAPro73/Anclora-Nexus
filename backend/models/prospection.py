@@ -73,6 +73,7 @@ ALLOWED_SOURCES: set[str] = {
     "fotocasa",
     "rightmove",
     "kyero",
+    "statefox",
     "properstar",
     "inmobalia",
     "james_edition",

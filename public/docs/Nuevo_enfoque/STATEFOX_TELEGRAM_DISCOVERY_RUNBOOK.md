@@ -13,6 +13,9 @@ Documentar de forma operativa el flujo real de StateFox como bot + Mini App de T
    - botón `Open App`
    - Mini Apps de bot
    - deep links `startapp`
+5. En sesión supervisada de Telegram Web se observaron contratos reproducibles:
+   - `https://t.me/StateFoxBot?startapp=<payload>`
+   - `https://es.statefox.com/public/ln/property/...`
 
 ## Objetivo técnico de discovery
 
@@ -21,6 +24,8 @@ Confirmar si el flujo se puede abrir y reproducir con un contrato estable:
 - deep link `t.me/...?...startapp=...`
 - `web_app` directa
 - o solo navegación interna de Telegram Web
+
+Estado actual: `GO` para bridge supervisado MVP.
 
 ## Decisión de importación
 

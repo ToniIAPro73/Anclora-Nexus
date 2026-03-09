@@ -22,7 +22,9 @@ from ...services.ai_runtime import get_runtime_summary
 from ...services.supabase_service import SupabaseService
 from ...services.territorial_sync_service import get_territorial_sync_status
 from ...services.statefox_discovery_service import get_statefox_discovery
+from ...services.statefox_bridge_service import parse_statefox_raw, import_statefox_listings
 from ..deps import check_budget_hard_stop
+from ..deps import get_org_id
 
 # Create router
 router = APIRouter()
@@ -53,6 +55,12 @@ class QueryResponse(BaseModel):
     execution_times: Optional[Dict[str, float]]
     error: Optional[str] = None
     timestamp: str
+
+
+class StatefoxParseRequest(BaseModel):
+    raw_text: str
+    zone: Optional[str] = None
+    city: Optional[str] = "Mallorca"
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -348,3 +356,39 @@ async def get_statefox_discovery_endpoint():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving StateFox discovery: {str(e)}")
+
+
+@router.post("/statefox-bridge/parse")
+async def parse_statefox_bridge(payload: StatefoxParseRequest):
+    try:
+        parsed = parse_statefox_raw(payload.raw_text)
+        return {
+            "parsed": parsed,
+            "zone": payload.zone,
+            "city": payload.city,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error parsing StateFox payload: {str(e)}")
+
+
+@router.post("/statefox-bridge/import")
+async def import_statefox_bridge(
+    payload: StatefoxParseRequest,
+    org_id: str = Depends(get_org_id),
+    _budget=Depends(check_budget_hard_stop),
+):
+    try:
+        result = await import_statefox_listings(
+            org_id=org_id,
+            raw_text=payload.raw_text,
+            zone=payload.zone,
+            city=payload.city,
+        )
+        return {
+            "result": result,
+            "org_id": org_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error importing StateFox payload: {str(e)}")
