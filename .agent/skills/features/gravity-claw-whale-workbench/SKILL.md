@@ -10,6 +10,7 @@ description: Completa Fase 4 con una mesa de trabajo comercial por seller, artef
 2) sdd/features/gravity-claw-whale-workbench/gravity-claw-whale-workbench-INDEX.md
 3) sdd/features/gravity-claw-whale-workbench/gravity-claw-whale-workbench-spec-v1.md
 4) sdd/features/gravity-claw-whale-workbench/gravity-claw-whale-workbench-spec-v1_1.md
+5) sdd/features/gravity-claw-whale-workbench/gravity-claw-whale-workbench-spec-v1_2.md
 5) .agent/rules/feature-gravity-claw-whale-workbench.md
 
 ## Instructions
@@ -18,6 +19,7 @@ description: Completa Fase 4 con una mesa de trabajo comercial por seller, artef
 - Reutiliza `seller_interactions` antes de proponer nuevas tablas.
 - Mantiene el control humano sobre cualquier outreach externo.
 - Si `/sellers` muestra inteligencia territorial, debe venir del backend operacional.
+- La workbench debe devolver canal recomendado, siguiente paso y highlights de memoria recuperada.
 
 ## Stop Rules
 - No crear automatizacion de envio real en v1.

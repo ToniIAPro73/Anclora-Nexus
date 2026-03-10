@@ -71,6 +71,15 @@ interface WorkbenchPayload {
       }
     }>
   }
+  console: {
+    readiness: string
+    recommended_channel: string
+    next_action: string
+    reasons: string[]
+    last_touch_at?: string | null
+    memory_focus_terms: string[]
+    memory_highlights: Array<{ summary: string; score: number }>
+  }
   snapshot: {
     has_argumentario: boolean
     has_email_draft: boolean
@@ -80,6 +89,8 @@ interface WorkbenchPayload {
     interactions_count: number
     semantic_memory_count: number
     semantic_memory_ready: boolean
+    recommended_channel: string
+    readiness: string
   }
 }
 
@@ -147,6 +158,11 @@ function getTypeLabel(tipo: string, artifact: string | undefined, t: (key: Trans
   if (tipo === 'email_draft') return t('emailDraft')
   if (tipo === 'dossier') return t('dossierSection')
   return t(`interactionType_${tipo}` as never)
+}
+
+function formatConsoleLabel(value?: string) {
+  if (!value) return '—'
+  return value.replace(/_/g, ' ')
 }
 
 export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDrawerProps) {
@@ -566,6 +582,9 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
                   <span className="rounded-full border border-soft-subtle/40 bg-navy-surface/40 px-3 py-1 text-xs text-soft-muted">
                     {t('semanticMemory')}: {workbench.snapshot.semantic_memory_count}
                   </span>
+                  <span className="rounded-full border border-soft-subtle/40 bg-navy-surface/40 px-3 py-1 text-xs text-soft-muted">
+                    {t('status')}: {formatConsoleLabel(workbench.snapshot.readiness)}
+                  </span>
                 </div>
               )}
             </div>
@@ -612,6 +631,52 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
         </section>
 
         <div className="mb-6 grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-gold/20 bg-gold/5 p-5 md:col-span-2">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-soft-white">{t('workbenchConsole')}</h3>
+                <p className="text-sm text-soft-white">{workbench?.console?.next_action || '—'}</p>
+                <p className="text-xs text-soft-muted">
+                  {t('recommendedChannel')}: {formatConsoleLabel(workbench?.console?.recommended_channel)}
+                  {workbench?.console?.last_touch_at ? ` · ${t('generatedAt')}: ${formatDate(workbench.console.last_touch_at)}` : ''}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(workbench?.console?.memory_focus_terms || []).map((term) => (
+                  <span key={term} className="rounded-full border border-gold/20 bg-gold/10 px-2 py-1 text-[11px] text-gold">
+                    {term}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-xl border border-soft-subtle/30 bg-navy-surface/35 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('recommendedChannel')}</p>
+                <p className="mt-2 text-lg font-semibold text-soft-white">{formatConsoleLabel(workbench?.console?.recommended_channel)}</p>
+              </div>
+              <div className="rounded-xl border border-soft-subtle/30 bg-navy-surface/35 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('nextStep')}</p>
+                <p className="mt-2 text-lg font-semibold text-soft-white">{workbench?.console?.next_action || '—'}</p>
+              </div>
+            </div>
+            <div className="mt-4 space-y-2">
+              {(workbench?.console?.reasons || []).map((reason, index) => (
+                <p key={`${reason}-${index}`} className="text-sm text-soft-muted">
+                  {reason}
+                </p>
+              ))}
+            </div>
+            {(workbench?.console?.memory_highlights || []).length > 0 && (
+              <div className="mt-4 space-y-2">
+                {(workbench?.console?.memory_highlights || []).map((item, index) => (
+                  <div key={`${item.summary}-${index}`} className="rounded-xl border border-soft-subtle/30 bg-navy-deep/30 p-3">
+                    <p className="text-sm text-soft-white">{item.summary}</p>
+                    <p className="mt-1 text-[11px] text-soft-muted">Score: {item.score}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="rounded-2xl border border-soft-subtle/30 bg-navy-surface/35 p-5 md:col-span-2">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>

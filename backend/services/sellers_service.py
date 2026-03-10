@@ -24,6 +24,100 @@ from ..models.sellers import (
 DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 
 
+def _latest_touch_timestamp(interactions: List[Dict[str, Any]]) -> Optional[str]:
+    for item in interactions:
+        created_at = item.get("created_at")
+        if created_at:
+            return str(created_at)
+    return None
+
+
+def _memory_focus_terms(memory_matches: List[Dict[str, Any]]) -> List[str]:
+    terms: List[str] = []
+    for match in memory_matches[:3]:
+        for keyword in match.get("matched_keywords") or []:
+            if keyword not in terms:
+                terms.append(str(keyword))
+    return terms[:6]
+
+
+def _build_workbench_console(
+    seller: Dict[str, Any],
+    latest_artifacts: Dict[str, Optional[Dict[str, Any]]],
+    interactions: List[Dict[str, Any]],
+    memory_payload: Dict[str, Any],
+) -> Dict[str, Any]:
+    estado = str(seller.get("estado_contacto") or "sin_contacto")
+    has_dossier = latest_artifacts.get("dossier") is not None
+    has_email = latest_artifacts.get("email_draft") is not None
+    has_whatsapp = latest_artifacts.get("whatsapp_draft") is not None
+    has_call_brief = latest_artifacts.get("call_brief") is not None
+    email_contact = bool(_extract_email(seller))
+    whatsapp_contact = bool(_extract_whatsapp(seller))
+    memory_matches = memory_payload.get("matches") or []
+    focus_terms = _memory_focus_terms(memory_matches)
+
+    readiness = "ready_to_send"
+    next_action = "Launch supervised outreach"
+    recommended_channel = "call"
+    reasons: List[str] = []
+
+    if not has_dossier or not has_call_brief:
+        readiness = "needs_dossier"
+        next_action = "Generate dossier and seller briefs"
+        recommended_channel = "review"
+        reasons.append("Workbench still lacks core artifacts for a context-rich approach.")
+    elif estado == EstadoContactoEnum.sin_contacto.value:
+        if whatsapp_contact and has_whatsapp:
+            recommended_channel = "whatsapp"
+            next_action = "Open the first WhatsApp touchpoint"
+            reasons.append("Seller is still cold and WhatsApp is the fastest warm intro channel.")
+        elif email_contact and has_email:
+            recommended_channel = "email"
+            next_action = "Send the first supervised email"
+            reasons.append("Seller is still cold and email is ready with contact channel persisted.")
+        else:
+            readiness = "needs_contact_channel"
+            recommended_channel = "review"
+            next_action = "Persist seller contact channels before outreach"
+            reasons.append("No valid supervised outreach channel is persisted yet.")
+    elif estado in {
+        EstadoContactoEnum.primer_contacto.value,
+        EstadoContactoEnum.en_seguimiento.value,
+        EstadoContactoEnum.reunion_agendada.value,
+    }:
+        recommended_channel = "call" if has_call_brief else "email"
+        next_action = "Resume the conversation using recovered context"
+        reasons.append("There is already interaction history, so context-led follow-up is higher value.")
+    elif estado == EstadoContactoEnum.propuesta_enviada.value:
+        recommended_channel = "call"
+        next_action = "Call to unblock objections and exclusivity decision"
+        reasons.append("Proposal already sent; the next step is objection handling, not another draft.")
+    elif estado == EstadoContactoEnum.mandato_exclusivo.value:
+        recommended_channel = "review"
+        next_action = "Maintain relationship and capture referral signals"
+        reasons.append("Seller is already converted; use the workbench for account stewardship.")
+
+    if focus_terms:
+        reasons.append(f"Memory focus: {', '.join(focus_terms[:4])}")
+
+    return {
+        "readiness": readiness,
+        "recommended_channel": recommended_channel,
+        "next_action": next_action,
+        "reasons": reasons,
+        "last_touch_at": _latest_touch_timestamp(interactions),
+        "memory_focus_terms": focus_terms,
+        "memory_highlights": [
+            {
+                "summary": ((match.get("record") or {}).get("summary") or ""),
+                "score": match.get("score") or 0,
+            }
+            for match in memory_matches[:3]
+        ],
+    }
+
+
 async def create_seller(
     db: SupabaseService,
     org_id: str,
@@ -365,12 +459,20 @@ async def get_seller_workbench(
         query="seguimiento captacion objeciones siguiente paso",
         limit=5,
     )
+    memory_payload = memory.model_dump()
+    console = _build_workbench_console(
+        seller=seller,
+        latest_artifacts=latest_artifacts,
+        interactions=interactions,
+        memory_payload=memory_payload,
+    )
 
     return {
         "seller": seller,
         "interactions": interactions,
         "latest_artifacts": latest_artifacts,
-        "memory": memory.model_dump(),
+        "memory": memory_payload,
+        "console": console,
         "snapshot": {
             "has_argumentario": bool(seller.get("argumentario")),
             "has_email_draft": latest_artifacts["email_draft"] is not None,
@@ -380,6 +482,8 @@ async def get_seller_workbench(
             "interactions_count": len(interactions),
             "semantic_memory_count": memory.total_records,
             "semantic_memory_ready": memory.status == "ready",
+            "recommended_channel": console["recommended_channel"],
+            "readiness": console["readiness"],
         },
     }
 

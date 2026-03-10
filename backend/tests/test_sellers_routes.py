@@ -114,6 +114,8 @@ class TestSellersRouteContracts:
                 "interactions_count": 0,
                 "semantic_memory_count": 1,
                 "semantic_memory_ready": True,
+                "recommended_channel": "whatsapp",
+                "readiness": "ready_to_send",
             },
             "memory": {
                 "version": "ANCLORA-SMSR-001.v1",
@@ -124,6 +126,15 @@ class TestSellersRouteContracts:
                 "matches": [],
                 "retrieval_summary": "nota",
             },
+            "console": {
+                "readiness": "ready_to_send",
+                "recommended_channel": "whatsapp",
+                "next_action": "Open the first WhatsApp touchpoint",
+                "reasons": ["Seller is still cold."],
+                "last_touch_at": None,
+                "memory_focus_terms": ["seguimiento"],
+                "memory_highlights": [{"summary": "nota", "score": 82}],
+            },
         })
 
         response = client.get(f"/api/sellers/{seller_id}/workbench")
@@ -133,6 +144,7 @@ class TestSellersRouteContracts:
         assert body["seller"]["id"] == seller_id
         assert body["snapshot"]["interactions_count"] == 0
         assert body["snapshot"]["semantic_memory_ready"] is True
+        assert body["console"]["recommended_channel"] == "whatsapp"
 
     @patch("backend.api.routes.sellers.run_whale_dossier", new_callable=AsyncMock)
     def test_generate_dossier_returns_multichannel_artifacts(self, mock_skill: AsyncMock) -> None:
