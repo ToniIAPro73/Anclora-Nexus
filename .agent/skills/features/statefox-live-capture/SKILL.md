@@ -11,9 +11,11 @@ Reducir fricción operativa entre Telegram Web y el bridge de StateFox mediante 
 3. Confirmar captura desde terminal.
 4. Guardar `ops/statefox-live-capture.json`.
 5. Importar desde `/intelligence/statefox-bridge`.
+6. Verificar que el artifact quede marcado como apto para importación.
 
 ## Verificación
 
 1. Existe `ops/statefox-live-capture.json`.
 2. `GET /api/intelligence/statefox-bridge/live-capture` responde 200.
 3. `POST /api/intelligence/statefox-bridge/live-capture/import` importa la última captura.
+4. El artifact contiene handoff operativo y validaciones mínimas.

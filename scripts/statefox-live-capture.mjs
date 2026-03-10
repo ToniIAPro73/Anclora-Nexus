@@ -24,6 +24,7 @@ const repoRoot = path.resolve(__dirname, '..')
 const profileDir = path.join(repoRoot, 'ops', 'statefox-playwright-profile')
 const outputPath = path.join(repoRoot, 'ops', 'statefox-live-capture.json')
 const targetUrl = process.env.STATEFOX_CHAT_URL || 'https://web.telegram.org/k/#@StateFoxBot'
+const runbookPath = path.join('public', 'docs', 'Nuevo_enfoque', 'STATEFOX_LIVE_CAPTURE_RUNBOOK.md')
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -73,7 +74,9 @@ async function main() {
   })
 
   const payload = {
-    feature_id: 'ANCLORA-STFX-003.v1',
+    feature_id: 'ANCLORA-STFX-003.v1_1',
+    artifact_version: 'v1.1',
+    capture_mode: 'supervised_local_playwright',
     captured_at: new Date().toISOString(),
     target_url: targetUrl,
     page_title: snapshot.title,
@@ -82,6 +85,18 @@ async function main() {
     public_property_links: uniq(snapshot.public_property_links),
     hrefs: uniq(snapshot.hrefs),
     raw_text: snapshot.raw_text,
+    handoff: {
+      runbook_path: runbookPath,
+      capture_command: 'npm run ops:statefox:capture',
+      bridge_page: '/intelligence/statefox-bridge',
+      import_endpoint: '/api/intelligence/statefox-bridge/live-capture/import',
+    },
+    validation: {
+      raw_text_present: Boolean(snapshot.raw_text && snapshot.raw_text.trim()),
+      raw_text_chars: (snapshot.raw_text || '').trim().length,
+      statefox_links_count: uniq(snapshot.statefox_links).length,
+      public_property_links_count: uniq(snapshot.public_property_links).length,
+    },
   }
 
   await fs.writeFile(outputPath, JSON.stringify(payload, null, 2), 'utf8')

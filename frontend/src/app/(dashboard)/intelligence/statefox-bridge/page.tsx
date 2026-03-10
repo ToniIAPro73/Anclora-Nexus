@@ -16,19 +16,43 @@ type ParsedListing = {
   area_m2?: number
   app_url?: string | null
   public_url?: string | null
+  seller_signals?: string[]
+  routing?: {
+    create_seller?: boolean
+  }
 }
 
 type LiveCaptureStatus = {
   available: boolean
   status: string
   message?: string
+  import_ready?: boolean
   path?: string
+  validation?: {
+    raw_text_present?: boolean
+    raw_text_chars?: number
+    statefox_links_count?: number
+    public_property_links_count?: number
+    import_ready?: boolean
+  }
+  handoff?: {
+    capture_command?: string
+    bridge_page?: string
+  }
   capture?: {
     captured_at?: string
     statefox_links?: string[]
     public_property_links?: string[]
     raw_text?: string
   }
+}
+
+type ImportResult = {
+  imported_count: number
+  skipped_count: number
+  seller_candidate_count?: number
+  sellers_imported_count?: number
+  sellers_duplicates_count?: number
 }
 
 export default function StatefoxBridgePage() {
@@ -39,8 +63,8 @@ export default function StatefoxBridgePage() {
   const [loading, setLoading] = useState(false)
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [parsed, setParsed] = useState<{ listings: ParsedListing[]; count: number; has_reproducible_app_links?: boolean } | null>(null)
-  const [importResult, setImportResult] = useState<{ imported_count: number; skipped_count: number } | null>(null)
+  const [parsed, setParsed] = useState<{ listings: ParsedListing[]; count: number; has_reproducible_app_links?: boolean; seller_candidate_count?: number } | null>(null)
+  const [importResult, setImportResult] = useState<ImportResult | null>(null)
   const [liveCapture, setLiveCapture] = useState<LiveCaptureStatus | null>(null)
   const [loadingLiveCapture, setLoadingLiveCapture] = useState(false)
 
@@ -137,6 +161,10 @@ export default function StatefoxBridgePage() {
   }
 
   const reproducibleCount = useMemo(() => parsed?.listings.filter((x) => x.app_url).length || 0, [parsed])
+  const sellerCandidateCount = useMemo(
+    () => parsed?.seller_candidate_count || parsed?.listings.filter((x) => x.routing?.create_seller).length || 0,
+    [parsed],
+  )
 
   return (
     <div className="min-h-screen p-8">
@@ -166,7 +194,7 @@ export default function StatefoxBridgePage() {
 
             <div className="mt-4 flex flex-wrap gap-3 text-sm text-soft-muted">
               <span className="rounded-full border border-soft-subtle/20 px-3 py-1">
-                {t('status')}: {liveCapture?.available ? t('success') : t('statefoxBridgeNoLiveCapture')}
+                {t('status')}: {liveCapture?.available ? (liveCapture.import_ready ? t('success') : t('statefoxBridgeStatusInvalid')) : t('statefoxBridgeNoLiveCapture')}
               </span>
               {liveCapture?.capture?.captured_at && (
                 <span className="rounded-full border border-soft-subtle/20 px-3 py-1">
@@ -176,6 +204,11 @@ export default function StatefoxBridgePage() {
               {liveCapture?.capture?.statefox_links && (
                 <span className="rounded-full border border-soft-subtle/20 px-3 py-1">
                   {t('statefoxBridgeObservedLinks')}: {liveCapture.capture.statefox_links.length}
+                </span>
+              )}
+              {liveCapture?.validation && (
+                <span className="rounded-full border border-soft-subtle/20 px-3 py-1">
+                  {t('statefoxBridgeImportReady')}: {liveCapture.validation.import_ready ? t('yes') : t('no')}
                 </span>
               )}
             </div>
@@ -206,6 +239,19 @@ export default function StatefoxBridgePage() {
                 {liveCapture?.message || t('statefoxBridgeNoLiveCaptureHint')}
               </p>
             )}
+            {liveCapture?.available && (
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 px-4 py-3 text-soft-muted">
+                  {t('statefoxBridgeCaptureChars')}: {liveCapture.validation?.raw_text_chars || 0}
+                </div>
+                <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 px-4 py-3 text-soft-muted">
+                  {t('statefoxBridgePublicLinks')}: {liveCapture.validation?.public_property_links_count || 0}
+                </div>
+                <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 px-4 py-3 text-soft-muted">
+                  {t('statefoxBridgeCaptureCommand')}: <span className="text-soft-white">{liveCapture.handoff?.capture_command || 'npm run ops:statefox:capture'}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -235,8 +281,10 @@ export default function StatefoxBridgePage() {
 
           <div className="flex flex-wrap gap-3 text-sm text-soft-muted">
             <span className="rounded-full border border-soft-subtle/20 px-3 py-1">{t('statefoxBridgeObservedLinks')}: {reproducibleCount}</span>
+            <span className="rounded-full border border-soft-subtle/20 px-3 py-1">{t('statefoxBridgeSellerCandidates')}: {sellerCandidateCount}</span>
             {importResult && <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">{t('statefoxBridgeImported')}: {importResult.imported_count}</span>}
             {importResult && <span className="rounded-full border border-soft-subtle/20 px-3 py-1">{t('statefoxBridgeSkipped')}: {importResult.skipped_count}</span>}
+            {importResult && <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-amber-200">{t('statefoxBridgeSellersImported')}: {importResult.sellers_imported_count || 0}</span>}
           </div>
         </section>
 
@@ -255,6 +303,18 @@ export default function StatefoxBridgePage() {
                     <p className="text-sm text-soft-muted mt-1">
                       €{listing.price.toLocaleString('es-ES')} · {listing.bedrooms || 0} hab · {listing.bathrooms || 0} baños · {listing.area_m2 || 0} m²
                     </p>
+                    {listing.routing?.create_seller && (
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                        <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-amber-200">
+                          {t('statefoxBridgeSellerCandidate')}
+                        </span>
+                        {(listing.seller_signals || []).slice(0, 3).map((signal) => (
+                          <span key={signal} className="rounded-full border border-soft-subtle/20 px-2 py-1 text-soft-muted">
+                            {signal}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     {listing.public_url && (
