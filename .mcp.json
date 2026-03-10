@@ -4,6 +4,13 @@
       "command": "notebooklm-mcp-server",
       "args": [],
       "env": {}
+    },
+    "firecrawl-mcp": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+      }
     }
   }
 }
