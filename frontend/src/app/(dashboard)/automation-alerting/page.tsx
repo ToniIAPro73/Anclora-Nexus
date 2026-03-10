@@ -212,6 +212,9 @@ export default function AutomationAlertingPage() {
                   (() => {
                     const sourceKey = typeof a.metadata_json?.['source_key'] === 'string' ? String(a.metadata_json['source_key']) : null
                     const freshnessHours = a.metadata_json?.['freshness_hours']
+                    const heartbeatAgeHours = a.metadata_json?.['heartbeat_age_hours']
+                    const retryCount = a.metadata_json?.['retry_count']
+                    const missingEnv = Array.isArray(a.metadata_json?.['missing_env']) ? (a.metadata_json['missing_env'] as string[]) : []
                     return (
                       <div
                         key={a.id}
@@ -234,7 +237,7 @@ export default function AutomationAlertingPage() {
                             {a.severity === 'critical' ? t('automationSeverityCritical') : t('automationSeverityWarning')}
                           </span>
                         </div>
-                        <p className={`mt-1 min-w-0 text-xs ${a.severity === 'critical' ? 'text-red-100' : 'text-amber-50'}`}>{a.message}</p>
+                        <p className={`mt-1 min-w-0 break-words text-xs ${a.severity === 'critical' ? 'text-red-100' : 'text-amber-50'}`}>{a.message}</p>
                         <p className="mt-2 min-w-0 text-xs text-soft-muted">
                           {t('automationAlertScope')}: {a.alert_scope} · {t('lastUpdate')}: {new Date(a.updated_at || a.created_at).toLocaleString()}
                         </p>
@@ -246,6 +249,21 @@ export default function AutomationAlertingPage() {
                         {freshnessHours != null && (
                           <p className="mt-1 min-w-0 text-xs text-soft-muted">
                             {t('automationFreshness')}: {String(freshnessHours)}h
+                          </p>
+                        )}
+                        {heartbeatAgeHours != null && (
+                          <p className="mt-1 min-w-0 text-xs text-soft-muted">
+                            {t('automationHeartbeatAge')}: {String(heartbeatAgeHours)}h
+                          </p>
+                        )}
+                        {retryCount != null && (
+                          <p className="mt-1 min-w-0 text-xs text-soft-muted">
+                            {t('sourceObservatoryRetries')}: {String(retryCount)}
+                          </p>
+                        )}
+                        {missingEnv.length > 0 && (
+                          <p className="mt-1 min-w-0 break-words text-xs text-soft-muted">
+                            Missing env: {missingEnv.join(', ')}
                           </p>
                         )}
                     <button

@@ -52,7 +52,7 @@ class TestSourceObservatoryRoutes:
     def test_overview(self, mock_svc: MagicMock) -> None:
         mock_svc.get_overview = AsyncMock(
             return_value={
-                "version": "ANCLORA-SPO-001.v1_1",
+                "version": "ANCLORA-SPO-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "summary": {
                     "total_sources": 1,
@@ -96,7 +96,7 @@ class TestSourceObservatoryRoutes:
     def test_ranking(self, mock_svc: MagicMock) -> None:
         mock_svc.get_ranking = AsyncMock(
             return_value={
-                "version": "ANCLORA-SPO-001.v1_1",
+                "version": "ANCLORA-SPO-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "manager"},
                 "items": [
                     {
@@ -120,7 +120,7 @@ class TestSourceObservatoryRoutes:
     def test_trends(self, mock_svc: MagicMock) -> None:
         mock_svc.get_trends = AsyncMock(
             return_value={
-                "version": "ANCLORA-SPO-001.v1_1",
+                "version": "ANCLORA-SPO-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "agent"},
                 "months": 6,
                 "points": [

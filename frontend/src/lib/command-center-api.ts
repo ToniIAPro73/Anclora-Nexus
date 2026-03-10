@@ -57,8 +57,12 @@ export interface OperationalOverview {
   critical_alerts: number
   degraded_sources: number
   stale_sources: number
+  cloud_warning_checks: number
+  cloud_critical_checks: number
   territorial_sync_status: string
   territorial_pipeline_status: string
+  seller_signal_source_status: string
+  ai_runtime_status: string
   top_alerts: OperationalAlertPreview[]
 }
 

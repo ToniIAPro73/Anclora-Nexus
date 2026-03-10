@@ -17,6 +17,7 @@ description: Implements Guardrailed Automation and Alerting v1 following SDD gov
 - Document QA result and gate decision before release status.
 - Use existing operational sources first: territorial sync, territorial pipeline and source observatory.
 - Surface alert scope, severity and actionable metadata in the UI.
+- For v1.2, prefer alert metadata that explains remediation directly: stale heartbeat, retry count, missing env or degraded runtime profile.
 
 ## Stop Rules
 - Do not introduce out-of-scope integrations.

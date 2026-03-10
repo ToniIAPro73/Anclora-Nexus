@@ -3,7 +3,7 @@ from typing import List
 from pydantic import BaseModel
 
 
-FEATURE_VERSION = "ANCLORA-SPO-001.v1_1"
+FEATURE_VERSION = "ANCLORA-SPO-001.v1_2"
 
 
 class ScopeMetadata(BaseModel):
@@ -29,6 +29,10 @@ class SourceScorecard(BaseModel):
     latest_event_at: str | None
     operational_status: str
     entity_types: List[str]
+    heartbeat_age_hours: float | None = None
+    latency_ms: int | None = None
+    retry_count: int = 0
+    ops_message: str | None = None
 
 
 class ObservatorySummary(BaseModel):
@@ -40,6 +44,10 @@ class ObservatorySummary(BaseModel):
     total_events: int
     total_created_entities: int
     total_failures: int
+    cloud_checks_total: int = 0
+    cloud_checks_healthy: int = 0
+    cloud_checks_warning: int = 0
+    cloud_checks_critical: int = 0
 
 
 class ObservatoryOverviewResponse(BaseModel):

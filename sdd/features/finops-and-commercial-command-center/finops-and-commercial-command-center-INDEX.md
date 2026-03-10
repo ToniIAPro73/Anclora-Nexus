@@ -13,13 +13,17 @@ Provide an executive command center that combines cost, productivity and commerc
 ## Artifacts
 - Spec: sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-spec-v1.md
 - Spec v1.1: sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-spec-v1_1.md
+- Spec v1.2: sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-spec-v1_2.md
 - Migration: sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-spec-migration.md
 - Test plan: sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-test-plan-v1.md
 - Test plan v1.1: sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-test-plan-v1_1.md
+- Test plan v1.2: sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-test-plan-v1_2.md
 - QA Report: sdd/features/finops-and-commercial-command-center/QA_REPORT_ANCLORA_FCCC_001.md
 - QA Report v1.1: sdd/features/finops-and-commercial-command-center/QA_REPORT_ANCLORA_FCCC_001_v1_1.md
+- QA Report v1.2: sdd/features/finops-and-commercial-command-center/QA_REPORT_ANCLORA_FCCC_001_v1_2.md
 - Gate Final: sdd/features/finops-and-commercial-command-center/GATE_FINAL_ANCLORA_FCCC_001.md
 - Gate Final v1.1: sdd/features/finops-and-commercial-command-center/GATE_FINAL_ANCLORA_FCCC_001_v1_1.md
+- Gate Final v1.2: sdd/features/finops-and-commercial-command-center/GATE_FINAL_ANCLORA_FCCC_001_v1_2.md
 - Rules: .agent/rules/feature-finops-and-commercial-command-center.md
 - Skill: .agent/skills/features/finops-and-commercial-command-center/SKILL.md
 - Prompts: .antigravity/prompts/features/finops-and-commercial-command-center/
@@ -32,3 +36,4 @@ Provide an executive command center that combines cost, productivity and commerc
 - Frontend operativo: `/command-center` con integración de sidebar e i18n.
 - Agent A: migración DB no requerida en v1 (métricas agregadas en tiempo de lectura).
 - v1.1 consolida alertas operativas y salud territorial sin nueva migración.
+- v1.2 consolida también seller-side source y AI runtime sobre el mismo resumen cloud operativo.

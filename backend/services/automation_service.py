@@ -22,6 +22,7 @@ from backend.models.automation import (
 )
 from backend.models.membership import UserRole
 from backend.models.source_observatory import SourceScorecard
+from backend.services.cloud_ops_service import get_cloud_ops_checks
 from backend.services.finops import finops_service
 from backend.services.source_observatory_service import source_observatory_service
 from backend.services.supabase_service import supabase_service
@@ -347,6 +348,7 @@ class AutomationService:
         sync_status: Dict[str, Any],
         pipeline_status: Dict[str, Any],
         observatory_items: List[SourceScorecard],
+        cloud_checks: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         candidates: List[Dict[str, Any]] = []
 
@@ -416,6 +418,8 @@ class AutomationService:
             )
 
         for item in observatory_items:
+            if item.source_key.startswith("cloud:"):
+                continue
             if item.operational_status not in {"warning", "critical"}:
                 continue
             candidates.append(
@@ -435,6 +439,38 @@ class AutomationService:
                     },
                 }
             )
+
+        for check in cloud_checks:
+            check_key = str(check.get("check_key") or "")
+            check_status = str(check.get("status") or "")
+            if check_status not in {"warning", "critical"}:
+                continue
+            if check_key == "cloud:ai-runtime":
+                candidates.append(
+                    {
+                        "alert_scope": "ai_runtime",
+                        "severity": "critical" if check_status == "critical" else "warning",
+                        "alert_type": "ai_runtime_degraded",
+                        "message": "AI runtime is degraded and may affect seller memory and outreach quality.",
+                        "dedupe_key": f"ai-runtime:{check_status}",
+                        "metadata_json": check.get("metadata") or {},
+                    }
+                )
+            if check_key == "cloud:seller-signal-source":
+                candidates.append(
+                    {
+                        "alert_scope": "seller_signal_source",
+                        "severity": "critical" if check_status == "critical" else "warning",
+                        "alert_type": "seller_signal_source_degraded",
+                        "message": "Seller signal live source is degraded or stale.",
+                        "dedupe_key": f"seller-signal-source:{check_status}",
+                        "metadata_json": {
+                            **(check.get("metadata") or {}),
+                            "heartbeat_age_hours": check.get("heartbeat_age_hours"),
+                            "retry_count": check.get("retry_count"),
+                        },
+                    }
+                )
 
         return candidates
 
@@ -518,14 +554,16 @@ class AutomationService:
         sync_status = get_territorial_sync_status()
         pipeline_status = get_territorial_pipeline_status()
         observatory = await source_observatory_service.get_overview(org_id=org_id, user_id=user_id)
+        cloud_checks = get_cloud_ops_checks()
         candidates = self._build_operational_alert_candidates(
             sync_status=sync_status,
             pipeline_status=pipeline_status,
             observatory_items=observatory.items,
+            cloud_checks=[item.to_dict() for item in cloud_checks],
         )
         active_operational = self._list_active_alerts_by_scope(
             org_id,
-            scopes=["territorial_sync", "territorial_pipeline", "source_connector"],
+            scopes=["territorial_sync", "territorial_pipeline", "source_connector", "seller_signal_source", "ai_runtime"],
         )
         existing_by_dedupe = {
             str(item.get("dedupe_key")): item for item in active_operational if item.get("dedupe_key")

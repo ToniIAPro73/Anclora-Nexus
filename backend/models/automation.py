@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
-FEATURE_VERSION = "ANCLORA-GAA-001.v1_1"
+FEATURE_VERSION = "ANCLORA-GAA-001.v1_2"
 
 
 class AutomationRuleStatus(str, Enum):

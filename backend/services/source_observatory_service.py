@@ -13,6 +13,7 @@ from backend.models.source_observatory import (
     SourceScorecard,
     TrendPoint,
 )
+from backend.services.cloud_ops_service import get_cloud_ops_summary
 from backend.services.supabase_service import supabase_service
 
 
@@ -238,6 +239,34 @@ class SourceObservatoryService:
                 )
             )
 
+        cloud_ops = get_cloud_ops_summary()
+        for check in cloud_ops["checks"]:
+            items.append(
+                SourceScorecard(
+                    source_key=str(check["check_key"]),
+                    total_events=0,
+                    success_events=0,
+                    duplicate_events=0,
+                    error_events=0,
+                    success_rate_pct=100.0 if check["status"] == "healthy" else 0.0,
+                    lead_count=0,
+                    property_count=0,
+                    seller_count=0,
+                    processed_events=0,
+                    rejected_events=0,
+                    failed_events=0,
+                    created_entities=0,
+                    freshness_hours=check["heartbeat_age_hours"],
+                    latest_event_at=check["heartbeat_at"],
+                    operational_status=str(check["status"]),
+                    entity_types=["ops"],
+                    heartbeat_age_hours=check["heartbeat_age_hours"],
+                    latency_ms=check["latency_ms"],
+                    retry_count=int(check["retry_count"]),
+                    ops_message=str(check["message"]),
+                )
+            )
+
         items.sort(
             key=lambda item: (
                 {"critical": 2, "warning": 1, "healthy": 0}.get(item.operational_status, 0),
@@ -255,6 +284,10 @@ class SourceObservatoryService:
             total_events=sum(item.total_events for item in items),
             total_created_entities=sum(item.created_entities for item in items),
             total_failures=sum(item.error_events for item in items),
+            cloud_checks_total=int(cloud_ops["total_checks"]),
+            cloud_checks_healthy=int(cloud_ops["healthy_checks"]),
+            cloud_checks_warning=int(cloud_ops["warning_checks"]),
+            cloud_checks_critical=int(cloud_ops["critical_checks"]),
         )
         return ObservatoryOverviewResponse(
             scope=ScopeMetadata(org_id=org_id, role=role),

@@ -13,13 +13,17 @@ Enable useful commercial alerts and safe automations with strict guardrails by o
 ## Artifacts
 - Spec: sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-spec-v1.md
 - Spec v1.1: sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-spec-v1_1.md
+- Spec v1.2: sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-spec-v1_2.md
 - Migration: sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-spec-migration.md
 - Test plan: sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-test-plan-v1.md
 - Test plan v1.1: sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-test-plan-v1_1.md
+- Test plan v1.2: sdd/features/guardrailed-automation-and-alerting/guardrailed-automation-and-alerting-test-plan-v1_2.md
 - QA Report: sdd/features/guardrailed-automation-and-alerting/QA_REPORT_ANCLORA_GAA_001.md
 - QA Report v1.1: sdd/features/guardrailed-automation-and-alerting/QA_REPORT_ANCLORA_GAA_001_v1_1.md
+- QA Report v1.2: sdd/features/guardrailed-automation-and-alerting/QA_REPORT_ANCLORA_GAA_001_v1_2.md
 - Gate Final: sdd/features/guardrailed-automation-and-alerting/GATE_FINAL_ANCLORA_GAA_001.md
 - Gate Final v1.1: sdd/features/guardrailed-automation-and-alerting/GATE_FINAL_ANCLORA_GAA_001_v1_1.md
+- Gate Final v1.2: sdd/features/guardrailed-automation-and-alerting/GATE_FINAL_ANCLORA_GAA_001_v1_2.md
 - Rules: .agent/rules/feature-guardrailed-automation-and-alerting.md
 - Skill: .agent/skills/features/guardrailed-automation-and-alerting/SKILL.md
 - Prompts: .antigravity/prompts/features/guardrailed-automation-and-alerting/
@@ -33,3 +37,4 @@ Enable useful commercial alerts and safe automations with strict guardrails by o
 - Backend operativo: /api/automation/* (rules, dry-run, execute, executions, alerts).
 - Frontend operativo: /automation-alerting + navegación en sidebar.
 - v1.1 amplía alertas operativas reales sobre sync territorial, pipeline y conectores degradados.
+- v1.2 añade degradación de AI runtime y seller-side source sobre el mismo contrato cloud sin nueva migración.

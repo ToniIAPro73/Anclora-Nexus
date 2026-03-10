@@ -31,16 +31,46 @@ def test_source_observatory_overview_aggregates_health_and_coverage() -> None:
     sellers = [{"fuente": "scraping"}]
 
     with patch.object(service, "_get_role", new=AsyncMock(return_value="owner")), \
-         patch.object(service, "_load_source_data", new=AsyncMock(return_value=(events, leads, properties, sellers))):
+         patch.object(service, "_load_source_data", new=AsyncMock(return_value=(events, leads, properties, sellers))), \
+         patch("backend.services.source_observatory_service.get_cloud_ops_summary", return_value={
+             "total_checks": 2,
+             "healthy_checks": 1,
+             "warning_checks": 1,
+             "critical_checks": 0,
+             "checks": [
+                 {
+                     "check_key": "cloud:territorial-sync",
+                     "status": "healthy",
+                     "heartbeat_age_hours": 2.0,
+                     "heartbeat_at": "2026-03-10T09:00:00+00:00",
+                     "latency_ms": None,
+                     "retry_count": 0,
+                     "message": "ok",
+                 },
+                 {
+                     "check_key": "cloud:ai-runtime",
+                     "status": "warning",
+                     "heartbeat_age_hours": None,
+                     "heartbeat_at": None,
+                     "latency_ms": None,
+                     "retry_count": 0,
+                     "message": "degraded",
+                 },
+             ],
+         }):
         overview = asyncio.run(service.get_overview(org_id="org-1", user_id="user-1"))
 
-    assert overview.version == "ANCLORA-SPO-001.v1_1"
-    assert overview.summary.total_sources == 4
+    assert overview.version == "ANCLORA-SPO-001.v1_2"
+    assert overview.summary.total_sources == 6
     assert overview.summary.total_created_entities == 1
+    assert overview.summary.cloud_checks_total == 2
     statefox_item = next(item for item in overview.items if item.source_key == "statefox:telegram-bridge")
     assert statefox_item.operational_status == "critical"
     assert statefox_item.failed_events == 1
     assert statefox_item.created_entities == 1
+    runtime_item = next(item for item in overview.items if item.source_key == "cloud:ai-runtime")
+    assert runtime_item.operational_status == "warning"
+    assert runtime_item.ops_message == "degraded"
 
 
 def test_source_observatory_trends_use_processed_and_failed_counts() -> None:

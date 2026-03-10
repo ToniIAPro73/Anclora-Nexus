@@ -74,7 +74,14 @@
   - `22 passed` en backend sobre memoria seller-side y rutas sellers
   - `npm run frontend:lint` OK
   - `npm run frontend:build` OK
+- `BL-next-05` cerrado: observabilidad cloud end-to-end con contrato único de heartbeats y runtime
+- `ANCLORA-SPO-001`, `ANCLORA-GAA-001` y `ANCLORA-FCCC-001` ampliadas a `v1.2`
+- `cloud_ops_service` sintetiza checks de sync territorial, pipeline, seller-side source y AI runtime
+- validación:
+  - `33 passed` en backend sobre observatorio, alertado, command center y cloud ops
+  - `npm run frontend:lint` OK
+  - `npm run frontend:build` OK
 
 ### Próximo hito operativo
 
-- abrir `BL-next-05` para observabilidad cloud end-to-end
+- abrir `BL-next-06` para hardening de tenant/config legacy

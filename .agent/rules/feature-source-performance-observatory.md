@@ -22,3 +22,5 @@ trigger: always_on
 - Enforce i18n discipline and avoid hardcoded UI strings.
 - Prioritize metrics that are operationally actionable: freshness, failures, created entities and degraded sources.
 - Support both unified-ingestion statuses (`processed`, `rejected`, `failed`) and legacy fallback statuses (`success`, `error`) when aggregating history.
+- v1.2 must treat cloud heartbeat checks as first-class scorecards without requiring a new persistence layer.
+- Any cloud scorecard must expose enough metadata to explain operator action: freshness/heartbeat, latency, retries or runtime degradation.

@@ -31,8 +31,12 @@ def test_command_center_snapshot_includes_operational_overview() -> None:
              critical_alerts=1,
              degraded_sources=2,
              stale_sources=1,
+             cloud_warning_checks=1,
+             cloud_critical_checks=0,
              territorial_sync_status="ready",
              territorial_pipeline_status="warning",
+             seller_signal_source_status="healthy",
+             ai_runtime_status="warning",
              top_alerts=[],
          ))), \
          patch.object(service, "_build_pipeline_overview", return_value=PipelineOverview(
@@ -132,6 +136,10 @@ def test_build_operational_overview_aggregates_alerts_and_observatory() -> None:
             total_events=10,
             total_created_entities=5,
             total_failures=2,
+            cloud_checks_total=4,
+            cloud_checks_healthy=2,
+            cloud_checks_warning=1,
+            cloud_checks_critical=1,
         ),
         items=[],
         total=3,
@@ -139,6 +147,16 @@ def test_build_operational_overview_aggregates_alerts_and_observatory() -> None:
 
     with patch("backend.services.command_center_service.automation_service.list_alerts", new=AsyncMock(return_value=alerts)), \
          patch("backend.services.command_center_service.source_observatory_service.get_overview", new=AsyncMock(return_value=observatory)), \
+         patch("backend.services.command_center_service.get_cloud_ops_summary", return_value={
+             "total_checks": 4,
+             "healthy_checks": 2,
+             "warning_checks": 1,
+             "critical_checks": 1,
+             "checks": [
+                 {"check_key": "cloud:seller-signal-source", "status": "warning"},
+                 {"check_key": "cloud:ai-runtime", "status": "critical"},
+             ],
+         }), \
          patch("backend.services.command_center_service.get_territorial_sync_status", return_value={"status": "ready"}), \
          patch("backend.services.command_center_service.get_territorial_pipeline_status", return_value={"status": "idle"}):
         overview = asyncio.run(service._build_operational_overview(org_id="org-1", user_id="user-1"))
@@ -147,3 +165,7 @@ def test_build_operational_overview_aggregates_alerts_and_observatory() -> None:
     assert overview.critical_alerts == 1
     assert overview.degraded_sources == 2
     assert overview.territorial_pipeline_status == "idle"
+    assert overview.cloud_warning_checks == 1
+    assert overview.cloud_critical_checks == 1
+    assert overview.seller_signal_source_status == "warning"
+    assert overview.ai_runtime_status == "critical"

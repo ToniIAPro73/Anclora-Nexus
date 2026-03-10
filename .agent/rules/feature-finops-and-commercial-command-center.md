@@ -24,3 +24,4 @@ trigger: always_on
 - Treat the command center as the operational consolidation layer across cost, alerts and source health.
 - Prefer read-time aggregation from existing services before adding persistence.
 - Surface throughput and value signals from the productive seller pipeline, not just infrastructure health.
+- v1.2 must consolidate cloud warning/critical checks from the shared ops contract rather than recomputing health locally.

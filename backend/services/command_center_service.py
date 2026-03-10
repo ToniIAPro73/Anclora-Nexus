@@ -16,6 +16,7 @@ from backend.models.command_center import (
 )
 from backend.models.membership import UserRole
 from backend.services.automation_service import automation_service
+from backend.services.cloud_ops_service import get_cloud_ops_summary
 from backend.services.finops import finops_service
 from backend.services.source_observatory_service import source_observatory_service
 from backend.services.supabase_service import supabase_service
@@ -67,14 +68,20 @@ class CommandCenterService:
         observatory = await source_observatory_service.get_overview(org_id=org_id, user_id=user_id)
         sync_status = get_territorial_sync_status()
         pipeline_status = get_territorial_pipeline_status()
+        cloud_ops = get_cloud_ops_summary()
+        cloud_checks = {item["check_key"]: item for item in cloud_ops["checks"]}
 
         return OperationalOverview(
             active_alerts=alerts.total,
             critical_alerts=sum(1 for item in alerts.items if item.severity == "critical"),
             degraded_sources=observatory.summary.warning_sources + observatory.summary.critical_sources,
             stale_sources=observatory.summary.stale_sources,
+            cloud_warning_checks=int(cloud_ops["warning_checks"]),
+            cloud_critical_checks=int(cloud_ops["critical_checks"]),
             territorial_sync_status=str(sync_status.get("status") or "unknown"),
             territorial_pipeline_status=str(pipeline_status.get("status") or "unknown"),
+            seller_signal_source_status=str((cloud_checks.get("cloud:seller-signal-source") or {}).get("status") or "unknown"),
+            ai_runtime_status=str((cloud_checks.get("cloud:ai-runtime") or {}).get("status") or "unknown"),
             top_alerts=[
                 OperationalAlertPreview(
                     id=item.id,

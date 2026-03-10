@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
 
-FEATURE_VERSION = "ANCLORA-FCCC-001.v1_1"
+FEATURE_VERSION = "ANCLORA-FCCC-001.v1_2"
 
 
 class ScopeMetadata(BaseModel):
@@ -33,8 +33,12 @@ class OperationalOverview(BaseModel):
     critical_alerts: int
     degraded_sources: int
     stale_sources: int
+    cloud_warning_checks: int
+    cloud_critical_checks: int
     territorial_sync_status: str
     territorial_pipeline_status: str
+    seller_signal_source_status: str
+    ai_runtime_status: str
     top_alerts: List[OperationalAlertPreview]
 
 

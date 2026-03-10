@@ -19,6 +19,7 @@ description: Implements FinOps and Commercial Command Center v1 following SDD go
 - Reuse FinOps, automation alerts, territorial control plane and source observatory as first-class inputs.
 - Reuse seller-side pipeline metrics from ingestion, nexus_sellers and supervised sends before inventing new stores.
 - Surface only signals that help prioritise action from management.
+- For v1.2, surface cloud health as executive summary only; detailed remediation belongs to observatory and automation alerting.
 
 ## Stop Rules
 - Do not introduce out-of-scope integrations.

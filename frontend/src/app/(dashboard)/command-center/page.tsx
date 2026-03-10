@@ -124,6 +124,15 @@ export default function CommandCenterPage() {
                 <p className="mt-1 text-sm font-semibold text-soft-white">
                   Pipeline: {snapshot?.operational_overview.territorial_pipeline_status || '-'}
                 </p>
+                <p className="mt-1 text-sm font-semibold text-soft-white">
+                  Source: {snapshot?.operational_overview.seller_signal_source_status || '-'}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-soft-white">
+                  Runtime: {snapshot?.operational_overview.ai_runtime_status || '-'}
+                </p>
+                <p className="kpi-meta mt-2">
+                  {t('sourceObservatoryStatus_warning')}: {snapshot?.operational_overview.cloud_warning_checks || 0} · {t('sourceObservatoryStatus_critical')}: {snapshot?.operational_overview.cloud_critical_checks || 0}
+                </p>
               </article>
             </section>
 

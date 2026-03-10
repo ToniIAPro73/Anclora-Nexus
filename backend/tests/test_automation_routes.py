@@ -57,7 +57,7 @@ class TestAutomationRoutes:
     def test_list_rules(self, mock_svc: MagicMock) -> None:
         mock_svc.list_rules = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1_1",
+                "version": "ANCLORA-GAA-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "items": [],
                 "total": 0,
@@ -107,7 +107,7 @@ class TestAutomationRoutes:
         rule_id = str(uuid4())
         mock_svc.dry_run = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1_1",
+                "version": "ANCLORA-GAA-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "manager"},
                 "rule_id": rule_id,
                 "decision": "allow",
@@ -128,7 +128,7 @@ class TestAutomationRoutes:
         execution_id = str(uuid4())
         mock_svc.execute = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1_1",
+                "version": "ANCLORA-GAA-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "rule_id": rule_id,
                 "execution_id": execution_id,
@@ -150,7 +150,7 @@ class TestAutomationRoutes:
     def test_list_executions(self, mock_svc: MagicMock) -> None:
         mock_svc.list_executions = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1_1",
+                "version": "ANCLORA-GAA-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "items": [],
                 "total": 0,
@@ -164,7 +164,7 @@ class TestAutomationRoutes:
     def test_list_alerts_includes_operational_metadata(self, mock_svc: MagicMock) -> None:
         mock_svc.list_alerts = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1_1",
+                "version": "ANCLORA-GAA-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "items": [
                     {

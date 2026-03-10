@@ -40,6 +40,10 @@ export interface SourceScorecard {
   latest_event_at: string | null
   operational_status: string
   entity_types: string[]
+  heartbeat_age_hours?: number | null
+  latency_ms?: number | null
+  retry_count?: number
+  ops_message?: string | null
 }
 
 export interface ObservatorySummary {
@@ -51,6 +55,10 @@ export interface ObservatorySummary {
   total_events: number
   total_created_entities: number
   total_failures: number
+  cloud_checks_total: number
+  cloud_checks_healthy: number
+  cloud_checks_warning: number
+  cloud_checks_critical: number
 }
 
 export interface RankingItem {

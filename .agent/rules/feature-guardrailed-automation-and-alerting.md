@@ -23,3 +23,4 @@ trigger: always_on
 - Operational alerts must be deduplicated and self-explanatory.
 - Alerting must prefer real system health signals over synthetic placeholders.
 - Guardrail-block alerts and operational alerts may coexist but must remain distinguishable by scope.
+- v1.2 operational alerts must consume the shared cloud ops contract before adding new scope-specific logic.

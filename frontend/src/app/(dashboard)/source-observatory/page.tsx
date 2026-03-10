@@ -108,6 +108,20 @@ export default function SourceObservatoryPage() {
                   <p className="mt-2 text-2xl font-semibold text-red-300">{summary.total_failures}</p>
                   <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryActionability')}</p>
                 </article>
+                <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 col-span-2 lg:col-span-4">
+                  <p className="kpi-label">{t('sourceObservatoryCloudChecks')}</p>
+                  <div className="mt-2 flex flex-wrap gap-3 text-sm">
+                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">
+                      {t('sourceObservatoryHealthy')}: {summary.cloud_checks_healthy}
+                    </span>
+                    <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-amber-200">
+                      {t('sourceObservatoryStatus_warning')}: {summary.cloud_checks_warning}
+                    </span>
+                    <span className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-red-300">
+                      {t('sourceObservatoryStatus_critical')}: {summary.cloud_checks_critical}
+                    </span>
+                  </div>
+                </article>
               </section>
             )}
 
@@ -132,6 +146,12 @@ export default function SourceObservatoryPage() {
                     <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryEvents')}: {item.total_events} · {t('sourceObservatoryCreated')}: {item.created_entities}</p>
                     <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryCoverage')}: {t('sourceObservatoryLeads')} {item.lead_count} · {t('sourceObservatoryProperties')} {item.property_count} · {t('sourceObservatorySellers')} {item.seller_count}</p>
                     <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryFreshness')}: {item.freshness_hours == null ? t('sourceObservatoryNoRuns') : `${item.freshness_hours}h`}</p>
+                    {item.latency_ms != null || (item.retry_count || 0) > 0 ? (
+                      <p className="mt-1 text-xs text-soft-muted">
+                        {t('sourceObservatoryLatency')}: {item.latency_ms == null ? '-' : `${(item.latency_ms / 1000).toFixed(1)}s`} · {t('sourceObservatoryRetries')}: {item.retry_count || 0}
+                      </p>
+                    ) : null}
+                    {item.ops_message ? <p className="mt-1 text-xs text-soft-muted break-words">{item.ops_message}</p> : null}
                   </article>
                 ))}
               </div>

@@ -36,11 +36,27 @@ def test_build_operational_alert_candidates_surfaces_pipeline_and_connector_issu
                 entity_types=["property", "seller_signal"],
             )
         ],
+        cloud_checks=[
+            {
+                "check_key": "cloud:ai-runtime",
+                "status": "warning",
+                "metadata": {"missing_env": ["GROQ_API_KEY"]},
+            },
+            {
+                "check_key": "cloud:seller-signal-source",
+                "status": "critical",
+                "heartbeat_age_hours": 96.0,
+                "retry_count": 2,
+                "metadata": {"source_selected": "snapshot:seller-signals"},
+            },
+        ],
     )
 
     alert_types = {item["alert_type"] for item in candidates}
     assert "territorial_pipeline_missing" in alert_types
     assert "source_connector_degraded" in alert_types
+    assert "ai_runtime_degraded" in alert_types
+    assert "seller_signal_source_degraded" in alert_types
 
 
 def test_reconcile_operational_alerts_resolves_missing_candidates() -> None:
@@ -71,6 +87,7 @@ def test_reconcile_operational_alerts_resolves_missing_candidates() -> None:
              items=[],
              total=0,
          ))), \
+         patch("backend.services.automation_service.get_cloud_ops_checks", return_value=[]), \
          patch.object(service, "_list_active_alerts_by_scope", return_value=existing), \
          patch.object(service, "_resolve_alert") as mock_resolve, \
          patch.object(service, "_activate_or_refresh_alert") as mock_activate:

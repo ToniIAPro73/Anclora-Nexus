@@ -51,7 +51,7 @@ class TestCommandCenterRoutes:
     def test_snapshot(self, mock_svc: MagicMock) -> None:
         mock_svc.get_snapshot = AsyncMock(
             return_value={
-                "version": "ANCLORA-FCCC-001.v1_1",
+                "version": "ANCLORA-FCCC-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "commercial_kpis": [{"label": "leads_total", "value": 10, "unit": "count"}],
                 "productivity_kpis": [{"label": "tasks_total", "value": 8, "unit": "count"}],
@@ -65,8 +65,12 @@ class TestCommandCenterRoutes:
                     "critical_alerts": 1,
                     "degraded_sources": 2,
                     "stale_sources": 1,
+                    "cloud_warning_checks": 1,
+                    "cloud_critical_checks": 0,
                     "territorial_sync_status": "ready",
                     "territorial_pipeline_status": "warning",
+                    "seller_signal_source_status": "healthy",
+                    "ai_runtime_status": "warning",
                     "top_alerts": [],
                 },
                 "pipeline_overview": {
@@ -92,7 +96,7 @@ class TestCommandCenterRoutes:
     def test_trends(self, mock_svc: MagicMock) -> None:
         mock_svc.get_trends = AsyncMock(
             return_value={
-                "version": "ANCLORA-FCCC-001.v1_1",
+                "version": "ANCLORA-FCCC-001.v1_2",
                 "scope": {"org_id": ORG_ID, "role": "manager"},
                 "months": 6,
                 "points": [

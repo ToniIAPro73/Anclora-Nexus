@@ -35,8 +35,8 @@ No incluye la feature de manual de usuario ni trabajo documental periférico.
 
 ### Estimación actual
 
-- Estado global estimado: **94%**
-- Resto para 100%: **6%**
+- Estado global estimado: **96%**
+- Resto para 100%: **4%**
 
 ### Riesgos reales que siguen abiertos
 
@@ -45,7 +45,7 @@ No incluye la feature de manual de usuario ni trabajo documental periférico.
 3. Outreach todavía sin canal nativo trazable end-to-end.
 4. Memoria semántica sin vector store real.
 5. Deuda estructural de `single-tenant v0` y `org_id` por defecto en skills legacy.
-6. Observabilidad cloud todavía incompleta para operación continua.
+6. Observabilidad cloud ya consolidada en base, pero falta hardening tenant/config y gate recurrente.
 
 ---
 
@@ -228,6 +228,8 @@ Extender la memoria seller-side actual a retrieval semántico real.
 
 ## BL-next-05 - Observabilidad cloud end-to-end
 
+Estado: `Closed`
+
 ### Objetivo
 
 Cerrar salud operacional real en cloud para cron, conectores, sync territorial y runtime.
@@ -255,6 +257,17 @@ Cerrar salud operacional real en cloud para cron, conectores, sync territorial y
 ### Criterio de salida
 
 - una incidencia operativa real de cron o conector genera alerta, contexto y visibilidad ejecutiva sin inspección manual.
+
+### Cierre ejecutado `2026-03-11`
+
+- `cloud_ops_service` añadido como contrato único de checks cloud para sync territorial, pipeline, seller-side source y AI runtime
+- `ANCLORA-SPO-001` ampliada a `v1.2` con scorecards cloud, latencia y reintentos
+- `ANCLORA-GAA-001` ampliada a `v1.2` con alertas para `ai_runtime_degraded` y `seller_signal_source_degraded`
+- `ANCLORA-FCCC-001` ampliada a `v1.2` con warning/critical checks cloud y estado ejecutivo de runtime/source
+- validación:
+  - `33 passed` en backend
+  - `npm run frontend:lint` OK
+  - `npm run frontend:build` OK
 
 ---
 
