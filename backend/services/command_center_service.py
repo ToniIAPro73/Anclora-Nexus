@@ -8,17 +8,32 @@ from backend.models.command_center import (
     CommandCenterSnapshotResponse,
     CommandCenterTrendsResponse,
     KPIValue,
+    OperationalAlertPreview,
+    OperationalOverview,
     ScopeMetadata,
     TrendPoint,
 )
 from backend.models.membership import UserRole
+from backend.services.automation_service import automation_service
 from backend.services.finops import finops_service
+from backend.services.source_observatory_service import source_observatory_service
 from backend.services.supabase_service import supabase_service
+from backend.services.territorial_sync_service import (
+    get_territorial_pipeline_status,
+    get_territorial_sync_status,
+)
 
 
 class CommandCenterService:
     def __init__(self) -> None:
         self.client = supabase_service.client
+
+    def _table_exists(self, table: str) -> bool:
+        try:
+            self.client.table(table).select("id").limit(1).execute()
+            return True
+        except Exception:
+            return False
 
     async def _get_role(self, org_id: str, user_id: str) -> str:
         result = (
@@ -46,6 +61,33 @@ class CommandCenterService:
         result = query.execute()
         return result.count or 0
 
+    async def _build_operational_overview(self, org_id: str, user_id: str) -> OperationalOverview:
+        alerts = await automation_service.list_alerts(org_id=org_id, user_id=user_id)
+        observatory = await source_observatory_service.get_overview(org_id=org_id, user_id=user_id)
+        sync_status = get_territorial_sync_status()
+        pipeline_status = get_territorial_pipeline_status()
+
+        return OperationalOverview(
+            active_alerts=alerts.total,
+            critical_alerts=sum(1 for item in alerts.items if item.severity == "critical"),
+            degraded_sources=observatory.summary.warning_sources + observatory.summary.critical_sources,
+            stale_sources=observatory.summary.stale_sources,
+            territorial_sync_status=str(sync_status.get("status") or "unknown"),
+            territorial_pipeline_status=str(pipeline_status.get("status") or "unknown"),
+            top_alerts=[
+                OperationalAlertPreview(
+                    id=item.id,
+                    alert_scope=item.alert_scope,
+                    severity=item.severity,
+                    alert_type=item.alert_type,
+                    message=item.message,
+                    created_at=item.created_at.isoformat() if hasattr(item.created_at, "isoformat") else str(item.created_at),
+                    metadata_json=item.metadata_json,
+                )
+                for item in alerts.items[:5]
+            ],
+        )
+
     async def get_snapshot(self, org_id: str, user_id: str) -> CommandCenterSnapshotResponse:
         role = await self._get_role(org_id, user_id)
         leads_total = await self._count_entities("leads", org_id, role, user_id)
@@ -61,6 +103,7 @@ class CommandCenterService:
 
         budget = await finops_service.get_budget_status(org_id)
         has_full_cost_visibility = not self._is_agent(role)
+        operational_overview = await self._build_operational_overview(org_id=org_id, user_id=user_id)
 
         return CommandCenterSnapshotResponse(
             scope=ScopeMetadata(org_id=org_id, role=role),
@@ -79,6 +122,7 @@ class CommandCenterService:
             monthly_budget_eur=budget.monthly_budget_eur if has_full_cost_visibility else None,
             current_usage_eur=budget.current_usage_eur if has_full_cost_visibility else None,
             cost_visibility="full" if has_full_cost_visibility else "limited",
+            operational_overview=operational_overview,
         )
 
     def _month_keys(self, months: int) -> List[str]:
@@ -118,6 +162,8 @@ class CommandCenterService:
         lead_map: Dict[str, int] = defaultdict(int)
         task_map: Dict[str, int] = defaultdict(int)
         cost_map: Dict[str, float] = defaultdict(float)
+        alert_map: Dict[str, int] = defaultdict(int)
+        critical_alert_map: Dict[str, int] = defaultdict(int)
 
         for item in leads:
             created_at = str(item.get("created_at") or "")
@@ -137,12 +183,36 @@ class CommandCenterService:
                 if len(created_at) >= 7:
                     cost_map[created_at[:7]] += float(item.get("cost_eur") or 0)
 
+        if self._table_exists("automation_alerts"):
+            try:
+                alerts = (
+                    self.client.table("automation_alerts")
+                    .select("created_at,severity")
+                    .eq("org_id", org_id)
+                    .gte("created_at", min_date)
+                    .execute()
+                    .data
+                    or []
+                )
+                for item in alerts:
+                    created_at = str(item.get("created_at") or "")
+                    if len(created_at) < 7:
+                        continue
+                    key = created_at[:7]
+                    alert_map[key] += 1
+                    if str(item.get("severity") or "") == "critical":
+                        critical_alert_map[key] += 1
+            except Exception:
+                pass
+
         points = [
             TrendPoint(
                 period=key,
                 leads_created=lead_map.get(key, 0),
                 tasks_completed=task_map.get(key, 0),
                 cost_eur=round(cost_map.get(key, 0), 2),
+                active_alerts=alert_map.get(key, 0),
+                critical_alerts=critical_alert_map.get(key, 0),
             )
             for key in month_keys
         ]

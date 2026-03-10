@@ -6,3 +6,4 @@ Implement finops-and-commercial-command-center following SDD.
 - Deliver contracts and tests.
 - Enforce org-safe and role-safe behavior.
 - Complete QA and final gate artifacts.
+- Consolidate operational alerting and source health before adding new standalone dashboards.

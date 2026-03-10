@@ -51,7 +51,7 @@ class TestCommandCenterRoutes:
     def test_snapshot(self, mock_svc: MagicMock) -> None:
         mock_svc.get_snapshot = AsyncMock(
             return_value={
-                "version": "ANCLORA-FCCC-001.v1",
+                "version": "ANCLORA-FCCC-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "commercial_kpis": [{"label": "leads_total", "value": 10, "unit": "count"}],
                 "productivity_kpis": [{"label": "tasks_total", "value": 8, "unit": "count"}],
@@ -60,6 +60,15 @@ class TestCommandCenterRoutes:
                 "monthly_budget_eur": 1000.0,
                 "current_usage_eur": 320.0,
                 "cost_visibility": "full",
+                "operational_overview": {
+                    "active_alerts": 3,
+                    "critical_alerts": 1,
+                    "degraded_sources": 2,
+                    "stale_sources": 1,
+                    "territorial_sync_status": "ready",
+                    "territorial_pipeline_status": "warning",
+                    "top_alerts": [],
+                },
             }
         )
         resp = client.get("/api/command-center/snapshot")
@@ -67,20 +76,22 @@ class TestCommandCenterRoutes:
         body = resp.json()
         assert body["scope"]["org_id"] == ORG_ID
         assert body["budget_status"] == "ok"
+        assert body["operational_overview"]["active_alerts"] == 3
 
     @patch("backend.api.routes.command_center.command_center_service")
     def test_trends(self, mock_svc: MagicMock) -> None:
         mock_svc.get_trends = AsyncMock(
             return_value={
-                "version": "ANCLORA-FCCC-001.v1",
+                "version": "ANCLORA-FCCC-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "manager"},
                 "months": 6,
                 "points": [
-                    {"period": "2025-09", "leads_created": 3, "tasks_completed": 2, "cost_eur": 120.5},
-                    {"period": "2025-10", "leads_created": 4, "tasks_completed": 3, "cost_eur": 95.0},
+                    {"period": "2025-09", "leads_created": 3, "tasks_completed": 2, "cost_eur": 120.5, "active_alerts": 1, "critical_alerts": 0},
+                    {"period": "2025-10", "leads_created": 4, "tasks_completed": 3, "cost_eur": 95.0, "active_alerts": 2, "critical_alerts": 1},
                 ],
             }
         )
         resp = client.get("/api/command-center/trends?months=6")
         assert resp.status_code == 200
         assert len(resp.json()["points"]) == 2
+        assert resp.json()["points"][1]["critical_alerts"] == 1

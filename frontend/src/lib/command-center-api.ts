@@ -42,6 +42,26 @@ export interface KPIValue {
   trend?: number
 }
 
+export interface OperationalAlertPreview {
+  id: string
+  alert_scope: string
+  severity: string
+  alert_type: string
+  message: string
+  created_at: string
+  metadata_json: Record<string, unknown>
+}
+
+export interface OperationalOverview {
+  active_alerts: number
+  critical_alerts: number
+  degraded_sources: number
+  stale_sources: number
+  territorial_sync_status: string
+  territorial_pipeline_status: string
+  top_alerts: OperationalAlertPreview[]
+}
+
 export interface CommandCenterSnapshotResponse {
   version: string
   scope: ScopeMeta
@@ -52,6 +72,7 @@ export interface CommandCenterSnapshotResponse {
   monthly_budget_eur?: number | null
   current_usage_eur?: number | null
   cost_visibility: 'full' | 'limited'
+  operational_overview: OperationalOverview
 }
 
 export interface TrendPoint {
@@ -59,6 +80,8 @@ export interface TrendPoint {
   leads_created: number
   tasks_completed: number
   cost_eur: number
+  active_alerts: number
+  critical_alerts: number
 }
 
 export interface CommandCenterTrendsResponse {

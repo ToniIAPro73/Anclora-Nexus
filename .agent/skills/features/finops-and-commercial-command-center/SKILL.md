@@ -15,6 +15,8 @@ description: Implements FinOps and Commercial Command Center v1 following SDD go
 - Keep rollouts reversible and migration-safe.
 - Produce complete prompt set A/B/C/D and Gate Final.
 - Document QA result and gate decision before release status.
+- Reuse FinOps, automation alerts, territorial control plane and source observatory as first-class inputs.
+- Surface only signals that help prioritise action from management.
 
 ## Stop Rules
 - Do not introduce out-of-scope integrations.
