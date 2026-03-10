@@ -19,7 +19,7 @@ Bloques cerrados y empujados en `main`:
 - `ANCLORA-STFX-LC-001 v1.0` StateFox Live Capture
 - `ANCLORA-SPO-001 v1.1` Source Performance Observatory
 - `ANCLORA-GAA-001 v1.1` Guardrailed Automation & Operational Alerting
-- `ANCLORA-SMSR-001 v1.0` Seller Memory Semantic Recall
+- `ANCLORA-SMSR-001 v1.1` Seller Memory Semantic Recall
 - `ANCLORA-GCWW-001 v1.2` Gravity Claw Whale Workbench contextual
 - `ANCLORA-FCCC-001 v1.1` FinOps and Commercial Command Center productivo
 

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from backend.config import settings
+from .embedding_service import embedding_service
 
 
 VALID_PROFILES = {"cloudflare", "groq-cloudflare"}
@@ -148,10 +149,8 @@ def get_runtime_summary() -> Dict[str, Any]:
         "status": "ready" if not missing_env else "degraded",
         "routes": {name: route.to_public_dict() for name, route in routes.items()},
         "embeddings": {
-            "provider": "cloudflare",
-            "model": settings.CLOUDFLARE_EMBED_MODEL,
-            "active": False,
-            "note": "Reserved for future retrieval/pgvector work. Chat runtime only in v1.",
+            **embedding_service.summary(),
+            "note": "Used by seller semantic memory vector retrieval when configured.",
         },
         "audit_secret_configured": bool(settings.INTERNAL_AUDIT_SECRET),
         "deprecated_env_present": {

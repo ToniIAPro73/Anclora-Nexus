@@ -1,4 +1,5 @@
 import asyncio
+from unittest.mock import AsyncMock, patch
 
 from backend.services.seller_memory_service import SellerMemoryService
 
@@ -30,7 +31,21 @@ class _MockQuery:
         self.rows = rows
         return self
 
+    def update(self, payload):
+        self._update_payload = payload
+        return self
+
     def execute(self):
+        if hasattr(self, "_update_payload"):
+            id_value = None
+            for row in self.rows:
+                if row.get("id"):
+                    id_value = row.get("id")
+                    row.update(self._update_payload)
+            if id_value:
+                for row in self.store.get(self.table_name, []):
+                    if row.get("id") == id_value:
+                        row.update(self._update_payload)
         return type("Resp", (), {"data": self.rows})()
 
 
@@ -77,6 +92,39 @@ def test_rebuild_for_seller_creates_redacted_memory_records() -> None:
     assert "[redacted-email]" in saved["redacted_content"]
 
 
+def test_rebuild_for_seller_vectorizes_new_records_when_provider_ready() -> None:
+    store = {
+        "seller_interactions": [
+            {
+                "id": "i-2",
+                "org_id": "org-1",
+                "seller_id": "seller-1",
+                "tipo": "email",
+                "estado": "realizado",
+                "contenido": "Seguimiento sobre exclusividad en Andratx",
+                "resultado": "reply_pending",
+                "metadata": {"artifact": "supervised_send_email"},
+                "created_at": "2026-03-10T10:00:00+00:00",
+            }
+        ],
+        "seller_memory_records": [],
+    }
+    service = SellerMemoryService()
+    service.client = _MockClient(store)
+    db = _MockDb(store)
+
+    with patch("backend.services.seller_memory_service.embedding_service.is_ready", return_value=True), \
+         patch("backend.services.seller_memory_service.embedding_service.embed_text", new_callable=AsyncMock) as mock_embed:
+        mock_embed.return_value = [0.1, 0.2, 0.3]
+        result = asyncio.run(service.rebuild_for_seller(db=db, org_id="org-1", seller_id="seller-1"))
+
+    assert result.vectorized_records == 1
+    saved = store["seller_memory_records"][0]
+    assert saved["embedding_status"] == "ready"
+    assert saved["embedding_dimensions"] == 3
+    assert saved["embedding"] == [0.1, 0.2, 0.3]
+
+
 def test_search_returns_explainable_matches() -> None:
     store = {
         "seller_interactions": [],
@@ -108,3 +156,41 @@ def test_search_returns_explainable_matches() -> None:
     assert result.total_records == 1
     assert result.matches[0].matched_keywords == ["seguimiento", "exclusividad"]
     assert any(reason.type == "keyword_hits" for reason in result.matches[0].reasons)
+
+
+def test_search_uses_vector_hybrid_when_embeddings_available() -> None:
+    store = {
+        "seller_interactions": [],
+        "seller_memory_records": [
+            {
+                "id": "m-2",
+                "org_id": "org-1",
+                "seller_id": "seller-1",
+                "interaction_id": "i-2",
+                "memory_kind": "outreach",
+                "source_type": "email",
+                "source_artifact": "supervised_send_email",
+                "summary": "seguimiento exclusividad andratx",
+                "redacted_content": "propietario pidió seguimiento y exclusividad",
+                "semantic_payload": {},
+                "keywords": ["seguimiento", "exclusividad"],
+                "salience_score": 60,
+                "embedding": [0.1, 0.2, 0.3],
+                "embedding_dimensions": 3,
+                "embedding_status": "ready",
+                "source_created_at": "2026-03-10T10:00:00+00:00",
+            }
+        ],
+    }
+    service = SellerMemoryService()
+    service.client = _MockClient(store)
+    db = _MockDb(store)
+
+    with patch("backend.services.seller_memory_service.embedding_service.is_ready", return_value=True), \
+         patch("backend.services.seller_memory_service.embedding_service.embed_text", new_callable=AsyncMock) as mock_embed:
+        mock_embed.return_value = [0.1, 0.2, 0.29]
+        result = asyncio.run(service.search(db=db, org_id="org-1", seller_id="seller-1", query="seguimiento exclusividad"))
+
+    assert result.retrieval_mode == "vector_hybrid"
+    assert result.vector_ready_records == 1
+    assert any(reason.type == "vector_similarity" for reason in result.matches[0].reasons)

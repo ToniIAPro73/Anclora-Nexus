@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from datetime import datetime, timezone
+import math
 import re
 from typing import Any, Dict, List, Tuple
 
@@ -12,6 +13,7 @@ from backend.models.seller_memory import (
     SellerMemoryRecord,
     SellerMemoryResponse,
 )
+from backend.services.embedding_service import embedding_service
 from backend.services.supabase_service import SupabaseService
 
 
@@ -101,8 +103,46 @@ class SellerMemoryService:
             },
             "keywords": keywords,
             "salience_score": salience,
+            "embedding": None,
+            "embedding_dimensions": None,
+            "embedding_provider": None,
+            "embedding_model": None,
+            "embedding_status": "pending",
+            "embedding_generated_at": None,
             "source_created_at": interaction.get("created_at") or datetime.now(timezone.utc).isoformat(),
         }
+
+    @staticmethod
+    def _embedding_source_text(record: Dict[str, Any]) -> str:
+        return f"{record.get('summary') or ''}\n{record.get('redacted_content') or ''}".strip()
+
+    async def _vectorize_record(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        if not embedding_service.is_ready():
+            record["embedding_status"] = "provider_unavailable"
+            return record
+
+        try:
+            vector = await embedding_service.embed_text(self._embedding_source_text(record))
+            record["embedding"] = vector
+            record["embedding_dimensions"] = len(vector)
+            record["embedding_provider"] = "cloudflare"
+            record["embedding_model"] = embedding_service.summary().get("model")
+            record["embedding_status"] = "ready"
+            record["embedding_generated_at"] = datetime.now(timezone.utc).isoformat()
+        except Exception:
+            record["embedding_status"] = "error"
+        return record
+
+    @staticmethod
+    def _cosine_similarity(left: List[float], right: List[float]) -> float:
+        if not left or not right or len(left) != len(right):
+            return 0.0
+        dot = sum(a * b for a, b in zip(left, right))
+        left_norm = math.sqrt(sum(a * a for a in left))
+        right_norm = math.sqrt(sum(b * b for b in right))
+        if left_norm == 0 or right_norm == 0:
+            return 0.0
+        return dot / (left_norm * right_norm)
 
     async def rebuild_for_seller(
         self,
@@ -131,7 +171,7 @@ class SellerMemoryService:
         )
         current = (
             db.client.table("seller_memory_records")
-            .select("interaction_id")
+            .select("interaction_id,id,embedding_status,summary,redacted_content,embedding")
             .eq("org_id", str(org_id))
             .eq("seller_id", str(seller_id))
             .execute()
@@ -145,8 +185,35 @@ class SellerMemoryService:
             for interaction in interactions
             if interaction.get("id") not in existing_ids
         ]
+        vectorized_records = 0
+        for row in new_rows:
+            await self._vectorize_record(row)
+            if row.get("embedding_status") == "ready":
+                vectorized_records += 1
         if new_rows:
             db.client.table("seller_memory_records").insert(new_rows).execute()
+
+        existing_pending = [
+            row for row in current
+            if str(row.get("embedding_status") or "pending") != "ready"
+        ]
+        for row in existing_pending:
+            update_payload = {
+                "summary": row.get("summary") or "",
+                "redacted_content": row.get("redacted_content") or "",
+                "embedding_status": row.get("embedding_status") or "pending",
+            }
+            await self._vectorize_record(update_payload)
+            if update_payload.get("embedding_status") == "ready":
+                vectorized_records += 1
+            db.client.table("seller_memory_records").update({
+                "embedding": update_payload.get("embedding"),
+                "embedding_dimensions": update_payload.get("embedding_dimensions"),
+                "embedding_provider": update_payload.get("embedding_provider"),
+                "embedding_model": update_payload.get("embedding_model"),
+                "embedding_status": update_payload.get("embedding_status"),
+                "embedding_generated_at": update_payload.get("embedding_generated_at"),
+            }).eq("id", row.get("id")).execute()
 
         total = len(existing_ids) + len(new_rows)
         return SellerMemoryRebuildResponse(
@@ -154,6 +221,7 @@ class SellerMemoryService:
             status="ready",
             indexed_records=total,
             created_records=len(new_rows),
+            vectorized_records=vectorized_records,
         )
 
     def _score_record(self, record: Dict[str, Any], query_tokens: List[str]) -> Tuple[float, List[str], List[MemoryMatchReason]]:
@@ -201,6 +269,8 @@ class SellerMemoryService:
                 status="migration_missing",
                 query=query,
                 total_records=0,
+                vector_ready_records=0,
+                retrieval_mode="lexical",
                 matches=[],
                 retrieval_summary="Semantic memory unavailable until migration 043 is applied.",
             )
@@ -218,9 +288,29 @@ class SellerMemoryService:
             or []
         )
         query_tokens = self._tokenize(query or DEFAULT_QUERY)
+        query_embedding = None
+        vector_mode = False
+        if embedding_service.is_ready():
+            try:
+                query_embedding = await embedding_service.embed_text(query or DEFAULT_QUERY)
+            except Exception:
+                query_embedding = None
         ranked: List[SellerMemoryMatch] = []
+        vector_ready_records = 0
         for row in rows:
             score, matched_keywords, reasons = self._score_record(row, query_tokens)
+            row_embedding = row.get("embedding") or []
+            if row.get("embedding_status") == "ready" and isinstance(row_embedding, list):
+                vector_ready_records += 1
+            if query_embedding and row.get("embedding_status") == "ready" and isinstance(row_embedding, list):
+                similarity = self._cosine_similarity(
+                    [float(item) for item in row_embedding],
+                    query_embedding,
+                )
+                if similarity > 0:
+                    vector_mode = True
+                    score += similarity * 35
+                    reasons.append(MemoryMatchReason(type="vector_similarity", value=f"{similarity:.3f}"))
             if query_tokens and not matched_keywords and score < 30:
                 continue
             ranked.append(
@@ -236,6 +326,8 @@ class SellerMemoryService:
                         semantic_payload=row.get("semantic_payload") or {},
                         keywords=[str(item) for item in (row.get("keywords") or [])],
                         salience_score=int(row.get("salience_score") or 0),
+                        embedding_status=str(row.get("embedding_status") or "pending"),
+                        embedding_dimensions=row.get("embedding_dimensions"),
                         source_created_at=str(row.get("source_created_at") or ""),
                     ),
                     score=round(score, 2),
@@ -252,6 +344,8 @@ class SellerMemoryService:
             status="ready",
             query=query,
             total_records=len(rows),
+            vector_ready_records=vector_ready_records,
+            retrieval_mode="vector_hybrid" if vector_mode else "lexical",
             matches=matches,
             retrieval_summary=summary,
         )

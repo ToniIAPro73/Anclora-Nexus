@@ -67,7 +67,14 @@
   - `21 passed` en backend sobre sellers y command center
   - `npm run frontend:lint` OK
   - `npm run frontend:build` OK
+- `BL-next-04` cerrado: memoria vectorial real para sellers con fallback léxico
+- `ANCLORA-SMSR-001` ampliada a `v1.1` con embeddings persistidos, `retrieval_mode` y vector retrieval híbrido
+- `whale_dossier` consume memoria recuperada para contexto comercial
+- validación:
+  - `22 passed` en backend sobre memoria seller-side y rutas sellers
+  - `npm run frontend:lint` OK
+  - `npm run frontend:build` OK
 
 ### Próximo hito operativo
 
-- abrir `BL-next-04` para memoria vectorial real de sellers
+- abrir `BL-next-05` para observabilidad cloud end-to-end

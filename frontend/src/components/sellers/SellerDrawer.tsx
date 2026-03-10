@@ -55,6 +55,8 @@ interface WorkbenchPayload {
     status: string
     query: string
     total_records: number
+    vector_ready_records?: number
+    retrieval_mode?: string
     retrieval_summary: string
     matches: Array<{
       score: number
@@ -703,6 +705,9 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
                 <h3 className="text-sm font-semibold text-soft-white">{t('semanticMemory')}</h3>
                 <p className="mt-1 text-xs text-soft-muted">
                   {workbench?.memory?.retrieval_summary || t('sellerMemoryEmpty')}
+                </p>
+                <p className="mt-1 text-[11px] text-soft-muted">
+                  {t('status')}: {workbench?.memory?.retrieval_mode || 'lexical'} · vectors: {workbench?.memory?.vector_ready_records || 0}
                 </p>
               </div>
               <button

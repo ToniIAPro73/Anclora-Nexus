@@ -35,8 +35,8 @@ No incluye la feature de manual de usuario ni trabajo documental periférico.
 
 ### Estimación actual
 
-- Estado global estimado: **92%**
-- Resto para 100%: **8%**
+- Estado global estimado: **94%**
+- Resto para 100%: **6%**
 
 ### Riesgos reales que siguen abiertos
 
@@ -190,6 +190,8 @@ Convertir el supervised send actual en canal real de email con trazabilidad oper
 
 ## BL-next-04 - Memoria vectorial real para sellers
 
+Estado: `Closed`
+
 ### Objetivo
 
 Extender la memoria seller-side actual a retrieval semántico real.
@@ -213,6 +215,14 @@ Extender la memoria seller-side actual a retrieval semántico real.
 ### Criterio de salida
 
 - el seller drawer y los flujos de dossier/outreach pueden recuperar memoria relevante por similitud semántica de forma verificable.
+
+### Cierre ejecutado `2026-03-10`
+
+- embeddings reales persistidos en `seller_memory_records`
+- retrieval híbrido `vector_hybrid | lexical` con fallback seguro
+- `whale_dossier` ya consume memoria recuperada para contexto comercial
+- el drawer muestra modo de retrieval y recuento vectorial
+- tests backend y validación frontend en verde
 
 ---
 

@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 from backend.services.llm_service import LLMService
+from backend.services.seller_memory_service import seller_memory_service
 from backend.services.supabase_service import SupabaseService
 from backend.services.notebooklm_service import get_latest_insights
 
@@ -132,6 +133,14 @@ async def run_whale_dossier(
             for item in recent_interactions
         ]
     ) or "- Sin historial previo."
+    memory = await seller_memory_service.search(
+        db=db,
+        org_id=org_id,
+        seller_id=seller_id,
+        query="seguimiento objeciones exclusividad siguiente paso captacion",
+        limit=3,
+    )
+    memory_text = memory.retrieval_summary or "Sin memoria semántica reusable."
 
     # ── 3. Generate argumentario ──────────────────────────────────────────────
     argumentario_prompt = f"""Eres Toni Amengual, agente inmobiliario de eXp Global Spain \
@@ -149,6 +158,9 @@ DATOS DEL PROPIETARIO:
 
 INTELIGENCIA TERRITORIAL DE {zona_label.upper()}:
 {zona_intel_snippet}
+
+MEMORIA COMERCIAL RECUPERADA:
+{memory_text}
 
 REGLAS:
 - 3 párrafos máximo, cada uno con un argumento concreto
@@ -169,6 +181,9 @@ a una conversación, no vender directamente.
 
 ARGUMENTARIO BASE:
 {argumentario[:400]}
+
+MEMORIA COMERCIAL:
+{memory_text}
 
 DATOS:
 - Propietario: {nombre}
@@ -208,6 +223,9 @@ DATOS:
 ARGUMENTARIO BASE:
 {argumentario[:450]}
 
+MEMORIA COMERCIAL:
+{memory_text}
+
 REGLAS:
 - 4 líneas máximo
 - tono cercano y premium
@@ -242,6 +260,9 @@ INTELIGENCIA TERRITORIAL:
 HISTORIAL RECIENTE:
 {recent_interactions_text}
 
+MEMORIA COMERCIAL:
+{memory_text}
+
 Incluye:
 - hipótesis de motivación
 - argumento local principal
@@ -271,6 +292,9 @@ Cuerpo: {email_body[:400]}
 
 HISTORIAL RECIENTE:
 {recent_interactions_text}
+
+MEMORIA COMERCIAL:
+{memory_text}
 
 Devuelve:
 - un resumen ejecutivo de máximo 6 líneas

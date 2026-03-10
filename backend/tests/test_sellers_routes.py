@@ -118,7 +118,7 @@ class TestSellersRouteContracts:
                 "readiness": "ready_to_send",
             },
             "memory": {
-                "version": "ANCLORA-SMSR-001.v1",
+                "version": "ANCLORA-SMSR-001.v1_1",
                 "seller_id": seller_id,
                 "status": "ready",
                 "query": "seguimiento",
@@ -265,7 +265,7 @@ class TestSellersRouteContracts:
         seller_id = str(uuid4())
         mock_memory.search = AsyncMock(return_value=type("MemoryResponse", (), {
             "model_dump": lambda self: {
-                "version": "ANCLORA-SMSR-001.v1",
+                "version": "ANCLORA-SMSR-001.v1_1",
                 "seller_id": seller_id,
                 "status": "ready",
                 "query": "objeciones",
@@ -285,7 +285,7 @@ class TestSellersRouteContracts:
         seller_id = str(uuid4())
         mock_memory.rebuild_for_seller = AsyncMock(return_value=type("RebuildResponse", (), {
             "model_dump": lambda self: {
-                "version": "ANCLORA-SMSR-001.v1",
+                "version": "ANCLORA-SMSR-001.v1_1",
                 "seller_id": seller_id,
                 "status": "ready",
                 "indexed_records": 4,
