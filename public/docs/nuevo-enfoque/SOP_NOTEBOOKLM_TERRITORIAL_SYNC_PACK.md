@@ -45,12 +45,15 @@ La máquina operadora debe tener:
 
 Archivos implicados:
 
-- [`ops/notebooklm-territorial-sync-manifest.json`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/ops/notebooklm-territorial-sync-manifest.json)
-- [`ops/notebooklm-territorial-sync-raw.json`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/ops/notebooklm-territorial-sync-raw.json)
-- [`ops/notebooklm-territorial-sync-raw.example.json`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/ops/notebooklm-territorial-sync-raw.example.json)
-- [`scripts/build-notebooklm-sync-pack.mjs`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/scripts/build-notebooklm-sync-pack.mjs)
-- [`public/data/notebooklm-territorial.sync.json`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/public/data/notebooklm-territorial.sync.json)
-- [`frontend/src/app/api/cron/territorial-pipeline/route.ts`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/frontend/src/app/api/cron/territorial-pipeline/route.ts)
+- [`ops/notebooklm-territorial-sync-manifest.json`](/home/dev/proyectos/anclora-nexus/ops/notebooklm-territorial-sync-manifest.json)
+- [`ops/notebooklm-territorial-sync-raw.json`](/home/dev/proyectos/anclora-nexus/ops/notebooklm-territorial-sync-raw.json)
+- [`ops/notebooklm-territorial-sync-raw.example.json`](/home/dev/proyectos/anclora-nexus/ops/notebooklm-territorial-sync-raw.example.json)
+- [`scripts/build-notebooklm-sync-pack.mjs`](/home/dev/proyectos/anclora-nexus/scripts/build-notebooklm-sync-pack.mjs)
+- [`scripts/validate-notebooklm-sync-pack.mjs`](/home/dev/proyectos/anclora-nexus/scripts/validate-notebooklm-sync-pack.mjs)
+- [`scripts/notebooklm-sync-ops-summary.mjs`](/home/dev/proyectos/anclora-nexus/scripts/notebooklm-sync-ops-summary.mjs)
+- [`public/data/notebooklm-territorial.sync.json`](/home/dev/proyectos/anclora-nexus/public/data/notebooklm-territorial.sync.json)
+- [`ops/notebooklm-territorial-sync-status.json`](/home/dev/proyectos/anclora-nexus/ops/notebooklm-territorial-sync-status.json)
+- [`frontend/src/app/api/cron/territorial-pipeline/route.ts`](/home/dev/proyectos/anclora-nexus/frontend/src/app/api/cron/territorial-pipeline/route.ts)
 
 ## Principios de operación
 
@@ -59,6 +62,7 @@ Archivos implicados:
 3. El `sync pack` no se edita manualmente.
 4. Primero se actualiza `raw.json`, después se ejecuta el script de build.
 5. Las queries del manifiesto no se cambian salvo decisión estratégica explícita.
+6. El ownership, la cadencia y la política de fallback se mantienen en el manifiesto y no se gestionan verbalmente.
 
 ## Procedimiento
 
@@ -89,7 +93,7 @@ Si la autenticación falla:
 ### 3. Revisar el manifiesto
 
 Abrir:
-- [`ops/notebooklm-territorial-sync-manifest.json`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/ops/notebooklm-territorial-sync-manifest.json)
+- [`ops/notebooklm-territorial-sync-manifest.json`](/home/dev/proyectos/anclora-nexus/ops/notebooklm-territorial-sync-manifest.json)
 
 Validar:
 - `notebook_id` correcto
@@ -125,23 +129,31 @@ Reglas:
 
 ```powershell
 npm run ops:notebooklm:build-sync-pack
+npm run ops:notebooklm:validate-sync-pack
+npm run ops:notebooklm:ops-summary
 ```
 
 Esto debe regenerar:
-- [`public/data/notebooklm-territorial.sync.json`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/public/data/notebooklm-territorial.sync.json)
+- [`public/data/notebooklm-territorial.sync.json`](/home/dev/proyectos/anclora-nexus/public/data/notebooklm-territorial.sync.json)
+- [`ops/notebooklm-territorial-sync-status.json`](/home/dev/proyectos/anclora-nexus/ops/notebooklm-territorial-sync-status.json)
 
 Criterio de paso:
 - sin error de script
 - archivo final escrito correctamente
+- status validado con owner, cadencia, fallback y próxima acción visibles
 
 ### 7. Verificación rápida
 
 Comprobar:
 - `generated_at` actualizado
+- `next_refresh_due_at` calculado
+- `freshness_state` correcto
 - `notebook_id` correcto
 - `notebook_name` correcto
 - `queries` no vacío
 - todas las `response` tienen contenido útil
+- `operational_contract` presente
+- `runbook_refs` presentes
 
 Si algo falla:
 - corregir `raw.json`
@@ -151,6 +163,7 @@ Si algo falla:
 
 ```powershell
 git add ops/notebooklm-territorial-sync-raw.json public/data/notebooklm-territorial.sync.json
+git add ops/notebooklm-territorial-sync-status.json ops/notebooklm-territorial-sync-manifest.json
 git commit -m "Refresh territorial NotebookLM sync pack"
 git push origin main
 ```
@@ -165,6 +178,7 @@ Verificar que:
 - el `sync pack` publicado corresponde al notebook activo,
 - el pipeline territorial sigue apuntando a esa fuente,
 - no se ha activado el fallback por error.
+- owner, frescura, runbooks y siguiente acción se ven en `/intelligence`.
 
 ## Criterios de rechazo
 
@@ -220,10 +234,9 @@ Fase 2 queda operativamente en `100%` dentro del perímetro del repositorio:
 
 Limitación externa asumida:
 - la captura live desde NotebookLM MCP sigue requiriendo sesión Google válida, pero queda encapsulada en el paso manual de actualización de `raw.json`.
+- el conocimiento operativo deja de depender de memoria tácita porque ownership, fallback y runbooks quedan versionados en el manifiesto y visibles por API/UI.
 
 ## Referencias relacionadas
 
-- [`public/docs/Nuevo_enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/public/docs/Nuevo_enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md)
-- [`task_plan.md`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/task_plan.md)
-- [`findings.md`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/findings.md)
-- [`progress.md`](/C:/Users/Usuario/Workspace/01_Proyectos/anclora-nexus/progress.md)
+- [`public/docs/nuevo-enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md`](/home/dev/proyectos/anclora-nexus/public/docs/nuevo-enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md)
+- [`progress.md`](/home/dev/proyectos/anclora-nexus/progress.md)

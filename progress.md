@@ -52,7 +52,16 @@
   - `14 passed` en backend sobre source runner, FSBO, unified ingestion y StateFox live capture
   - `npm run frontend:lint` OK
   - `npm run frontend:build` OK
+- `BL-next-02` cerrado: refresh territorial reproducible con owner, cadencia, runbooks y fallback visibles
+- `ANCLORA-TSCP-001` ampliada a `v1.2` con `freshness_state`, `next_refresh_due_at`, `runbook_status` y `next_action`
+- validación:
+  - `npm run ops:notebooklm:build-sync-pack` OK
+  - `npm run ops:notebooklm:validate-sync-pack` OK
+  - `npm run ops:notebooklm:ops-summary` OK
+  - `3 passed` en backend sobre servicio y rutas territoriales
+  - `npm run frontend:lint` OK
+  - `npm run frontend:build` OK
 
 ### Próximo hito operativo
 
-- abrir `BL-next-02` para cerrar refresh territorial reproducible sin manualidad frágil
+- abrir `BL-next-03` para conectar email nativo trazable

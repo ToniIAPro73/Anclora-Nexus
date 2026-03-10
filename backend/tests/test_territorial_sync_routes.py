@@ -38,6 +38,13 @@ class TestTerritorialSyncRouteContract:
             "status": "ready",
             "generated_at": "2026-03-09T00:00:00Z",
             "notebook_name": "Inteligencia Territorial Suroeste Mallorca 2026",
+            "freshness_state": "fresh",
+            "next_refresh_due_at": "2026-03-13T00:00:00Z",
+            "next_action": "Mantener la cadencia operativa y revalidar el sync pack en la siguiente ventana planificada.",
+            "operational_contract": {
+                "owner_display": "Owner / Ops (Toni)",
+                "schedule": {"cadence": "twice_weekly", "timezone": "Europe/Madrid"},
+            },
             "coverage": {"query_count": 4, "zones": ["general", "calvia"]},
             "source_refs": ["ops/notebooklm-territorial-sync-raw.json"],
             "warnings": [],
@@ -62,5 +69,7 @@ class TestTerritorialSyncRouteContract:
         body = response.json()
         assert body["sync_status"]["status"] == "ready"
         assert body["sync_status"]["coverage"]["query_count"] == 4
+        assert body["sync_status"]["freshness_state"] == "fresh"
+        assert body["sync_status"]["operational_contract"]["owner_display"] == "Owner / Ops (Toni)"
         assert body["pipeline_status"]["status"] == "success"
         assert body["pipeline_status"]["stats"]["queries_synced"] == 4

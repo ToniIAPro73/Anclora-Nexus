@@ -35,8 +35,8 @@ No incluye la feature de manual de usuario ni trabajo documental periférico.
 
 ### Estimación actual
 
-- Estado global estimado: **88%**
-- Resto para 100%: **12%**
+- Estado global estimado: **90%**
+- Resto para 100%: **10%**
 
 ### Riesgos reales que siguen abiertos
 
@@ -113,6 +113,8 @@ Cerrar una fuente primaria de señales seller-side que funcione sin paso manual 
 
 ## BL-next-02 - Refresh territorial reproducible sin manualidad frágil
 
+Estado: `Closed`
+
 ### Objetivo
 
 Reducir la dependencia operativa de NotebookLM a un proceso reproducible, con ventana de frescura y fallback definidos.
@@ -137,6 +139,14 @@ Reducir la dependencia operativa de NotebookLM a un proceso reproducible, con ve
 ### Criterio de salida
 
 - cualquier operador puede ejecutar o recuperar el refresh territorial siguiendo runbook, sin inspección manual del repo.
+
+### Cierre ejecutado `2026-03-10`
+
+- contrato operativo versionado en el manifiesto territorial
+- owner, cadencia, runbooks y fallback visibles en `sync-status`, API y UI
+- script `ops:notebooklm:ops-summary` para comprobación operativa rápida
+- runbooks y SOP corregidos a rutas reales del repo
+- validación backend y frontend en verde
 
 ---
 

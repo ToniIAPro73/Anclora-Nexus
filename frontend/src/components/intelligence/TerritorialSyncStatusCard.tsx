@@ -13,12 +13,37 @@ type SyncStatus = {
   source_mode?: string
   notebook_name?: string
   age_hours?: number | null
+  freshness_hours?: number | null
+  freshness_state?: 'fresh' | 'expiring' | 'stale' | 'unknown' | string
+  next_refresh_due_at?: string | null
   coverage?: {
     query_count?: number
     zones?: string[]
     total_word_count?: number
   }
   source_refs?: string[]
+  next_action?: string
+  operational_contract?: {
+    owner_display?: string
+    owner_team?: string
+    recovery_slo_hours?: number
+    schedule?: {
+      cadence?: string
+      recommended_days?: string[]
+      timezone?: string
+    }
+    runbook_refs?: string[]
+    fallback_policy?: {
+      primary_source?: string
+      fallback_source?: string
+      activation_rule?: string
+      manual_edit_forbidden?: boolean
+    }
+  }
+  runbook_status?: {
+    all_present?: boolean
+    refs?: Array<{ path: string; exists: boolean }>
+  }
   warnings?: string[]
   errors?: string[]
 }
@@ -105,6 +130,18 @@ export function TerritorialSyncStatusCard() {
     : '—'
   const latestRunAt = pipelineStatus?.finished_at || pipelineStatus?.started_at
   const latestRunLabel = latestRunAt ? new Date(latestRunAt).toLocaleString('es-ES') : '—'
+  const nextRefreshDue = current.next_refresh_due_at
+    ? new Date(current.next_refresh_due_at).toLocaleString('es-ES')
+    : '—'
+  const freshnessState = current.freshness_state || 'unknown'
+  const freshnessTone =
+    freshnessState === 'fresh'
+      ? 'text-emerald-400'
+      : freshnessState === 'expiring'
+        ? 'text-amber-300'
+        : freshnessState === 'stale'
+          ? 'text-red-400'
+          : 'text-soft-muted'
   const pipelineStats = pipelineStatus?.stats || {}
   const pipelineTone =
     pipelineStatus?.status === 'success'
@@ -163,40 +200,95 @@ export function TerritorialSyncStatusCard() {
         </div>
         <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncMode')}</p>
-          <p className="text-sm text-soft-white mt-2">{current.source_mode || '—'}</p>
+          <p className="text-sm text-soft-white mt-2 break-words">{current.source_mode || '—'}</p>
         </div>
         <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
-          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialPipelineLastRun')}</p>
-          <p className={`text-sm mt-2 ${pipelineTone}`}>{latestRunLabel}</p>
+          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncFreshness')}</p>
+          <p className={`text-sm mt-2 ${freshnessTone}`}>
+            {t(`territorialSyncFreshness_${freshnessState}` as TranslationKey)}
+          </p>
           <p className="text-[11px] text-soft-muted mt-1">
-            {t('status')}: {pipelineStatus?.status || 'idle'}
+            {t('territorialSyncAge')}: {current.age_hours == null ? '—' : `${current.age_hours}h`} · {t('territorialSyncNextRefreshDue')}: {nextRefreshDue}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
         <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
-          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncSourceRefs')}</p>
+          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncOwner')}</p>
+          <div className="mt-2 space-y-2 text-sm text-soft-white">
+            <p className="break-words">{current.operational_contract?.owner_display || '—'}</p>
+            <p className="text-xs text-soft-muted break-words">
+              {t('territorialSyncCadence')}: {current.operational_contract?.schedule?.cadence || '—'} · {(current.operational_contract?.schedule?.recommended_days || []).join(', ') || '—'} · {current.operational_contract?.schedule?.timezone || '—'}
+            </p>
+            <p className="text-xs text-soft-muted">
+              {t('territorialSyncRecoverySlo')}: {current.operational_contract?.recovery_slo_hours || '—'}h
+            </p>
+          </div>
+        </div>
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncFallbackPolicy')}</p>
+          <div className="mt-2 space-y-2 text-sm text-soft-white">
+            <p className="break-words">
+              <span className="text-soft-muted">{t('territorialSyncPrimarySource')}:</span> {current.operational_contract?.fallback_policy?.primary_source || '—'}
+            </p>
+            <p className="break-words">
+              <span className="text-soft-muted">{t('territorialSyncFallbackSource')}:</span> {current.operational_contract?.fallback_policy?.fallback_source || '—'}
+            </p>
+            <p className="text-xs text-soft-muted break-words">
+              {current.operational_contract?.fallback_policy?.activation_rule || '—'}
+            </p>
+          </div>
+        </div>
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncRunbooks')}</p>
           <ul className="mt-2 space-y-1 text-sm text-soft-white">
+            {(current.runbook_status?.refs || current.operational_contract?.runbook_refs || []).map((entry) => {
+              const path = typeof entry === 'string' ? entry : entry.path
+              const exists = typeof entry === 'string' ? true : entry.exists
+              return (
+                <li key={path} className={`break-all ${exists ? 'text-soft-white' : 'text-red-300'}`}>
+                  {path}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4 min-w-0">
+          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncSourceRefs')}</p>
+          <ul className="mt-2 space-y-1 text-sm text-soft-white min-w-0">
             {(current.source_refs || []).slice(0, 4).map((ref) => (
-              <li key={ref}>{ref}</li>
+              <li key={ref} className="break-all">{ref}</li>
             ))}
           </ul>
         </div>
-        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4 min-w-0">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncObservations')}</p>
-          <ul className="mt-2 space-y-1 text-sm text-soft-white">
+          <ul className="mt-2 space-y-1 text-sm text-soft-white min-w-0">
             {(current.errors?.length ? current.errors : current.warnings)?.slice(0, 3).map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item} className="break-words">{item}</li>
             ))}
             {!current.errors?.length && !current.warnings?.length && (
               <li>{t('territorialSyncHealthy')}</li>
             )}
           </ul>
+          <p className="text-xs text-soft-muted mt-3 break-words">
+            <span className="uppercase tracking-wide">{t('territorialSyncNextAction')}:</span> {current.next_action || '—'}
+          </p>
         </div>
       </div>
 
       <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4 mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialPipelineLastRun')}</p>
+          <p className={`text-sm ${pipelineTone}`}>{latestRunLabel}</p>
+        </div>
+        <p className="text-[11px] text-soft-muted mt-1">
+          {t('status')}: {pipelineStatus?.status || 'idle'}
+        </p>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialPipelineStats')}</p>
           <p className={`text-sm ${pipelineTone}`}>{pipelineStatus?.message || t('territorialPipelineNoRuns')}</p>

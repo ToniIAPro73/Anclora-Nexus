@@ -29,6 +29,22 @@ export function computeAgeHours(isoDate, now = new Date()) {
   return Math.round((diffMs / 3_600_000) * 10) / 10
 }
 
+export function computeNextRefreshDueAt(isoDate, freshnessHours) {
+  const parsed = parseIsoDate(isoDate)
+  if (!parsed) return null
+  const due = new Date(parsed.getTime() + Number(freshnessHours || 0) * 3_600_000)
+  return due.toISOString()
+}
+
+export function computeFreshnessState(ageHours, freshnessHours) {
+  if (ageHours === null || Number.isNaN(ageHours)) return 'unknown'
+  const threshold = Number(freshnessHours || 0)
+  if (threshold <= 0) return 'unknown'
+  if (ageHours > threshold) return 'stale'
+  if (ageHours >= threshold * 0.75) return 'expiring'
+  return 'fresh'
+}
+
 export function buildSyncPack(manifest, raw) {
   const entriesByQuery = new Map(
     (raw.entries || []).map((entry) => [normalize(entry.query), entry])
@@ -59,6 +75,7 @@ export function buildSyncPack(manifest, raw) {
     source_mode: manifest.source_mode || 'live_notebook_sync_pack',
     freshness_hours: manifest.freshness_hours || 96,
     source_refs: manifest.source_refs || [],
+    operational_contract: manifest.operational_contract || {},
     control_plane: {
       manifest_path: 'ops/notebooklm-territorial-sync-manifest.json',
       raw_path: 'ops/notebooklm-territorial-sync-raw.json',
@@ -92,9 +109,23 @@ export function validateSyncPack({ manifest, raw, pack, now = new Date() }) {
   const generatedAtValid = Boolean(parseIsoDate(pack.generated_at))
   const ageHours = computeAgeHours(pack.generated_at, now)
   const freshnessHours = Number(pack.freshness_hours || manifest.freshness_hours || 96)
+  const freshnessState = computeFreshnessState(ageHours, freshnessHours)
+  const nextRefreshDueAt = computeNextRefreshDueAt(pack.generated_at, freshnessHours)
   const freshnessOk = ageHours === null ? false : ageHours <= freshnessHours
   const sourceRefsPresent = Array.isArray(pack.source_refs) && pack.source_refs.length > 0
   const rawCoverageMatches = rawEntries.length === manifestQueries.length
+  const operationalContract = pack.operational_contract || manifest.operational_contract || {}
+  const ownerDefined = normalize(operationalContract.owner_display).length > 0
+  const scheduleDefined =
+    operationalContract.schedule &&
+    normalize(operationalContract.schedule.cadence).length > 0 &&
+    normalize(operationalContract.schedule.timezone).length > 0
+  const fallbackPolicyDefined =
+    operationalContract.fallback_policy &&
+    normalize(operationalContract.fallback_policy.primary_source).length > 0 &&
+    normalize(operationalContract.fallback_policy.fallback_source).length > 0
+  const runbookRefsDefined =
+    Array.isArray(operationalContract.runbook_refs) && operationalContract.runbook_refs.length > 0
 
   const checks = [
     {
@@ -144,6 +175,34 @@ export function validateSyncPack({ manifest, raw, pack, now = new Date() }) {
       ok: sourceRefsPresent,
       detail: `${Array.isArray(pack.source_refs) ? pack.source_refs.length : 0} referencias trazables.`,
     },
+    {
+      id: 'owner_defined',
+      ok: ownerDefined,
+      detail: ownerDefined
+        ? `Owner operativo: ${operationalContract.owner_display}`
+        : 'Falta owner operativo explícito.',
+    },
+    {
+      id: 'schedule_defined',
+      ok: scheduleDefined,
+      detail: scheduleDefined
+        ? `Cadencia=${operationalContract.schedule.cadence} / tz=${operationalContract.schedule.timezone}`
+        : 'Falta schedule operativo explícito.',
+    },
+    {
+      id: 'fallback_policy_defined',
+      ok: fallbackPolicyDefined,
+      detail: fallbackPolicyDefined
+        ? `Fallback=${operationalContract.fallback_policy.fallback_source}`
+        : 'Falta política de fallback explícita.',
+    },
+    {
+      id: 'runbook_refs_defined',
+      ok: runbookRefsDefined,
+      detail: runbookRefsDefined
+        ? `${operationalContract.runbook_refs.length} runbooks operativos declarados.`
+        : 'Faltan runbooks operativos declarados.',
+    },
   ]
 
   for (const check of checks) {
@@ -151,6 +210,10 @@ export function validateSyncPack({ manifest, raw, pack, now = new Date() }) {
       if (check.id === 'freshness_window') warnings.push(check.detail)
       else errors.push(check.detail)
     }
+  }
+
+  if (freshnessState === 'expiring') {
+    warnings.push(`El sync pack entra en ventana de refresco recomendada. Próximo vencimiento: ${nextRefreshDueAt}`)
   }
 
   const status = errors.length > 0 ? 'error' : warnings.length > 0 ? 'warning' : 'ready'
@@ -165,8 +228,11 @@ export function validateSyncPack({ manifest, raw, pack, now = new Date() }) {
     source_mode: pack.source_mode,
     freshness_hours: freshnessHours,
     age_hours: ageHours,
+    freshness_state: freshnessState,
+    next_refresh_due_at: nextRefreshDueAt,
     coverage: pack.coverage,
     source_refs: pack.source_refs,
+    operational_contract: operationalContract,
     control_plane: pack.control_plane,
     checks,
     warnings,

@@ -5,10 +5,33 @@
   "freshness_hours": 96,
   "source_refs": [
     "ops/notebooklm-territorial-sync-raw.json",
-    "public/docs/Nuevo_enfoque/SOP_NOTEBOOKLM_TERRITORIAL_SYNC_PACK.md",
-    "public/docs/Nuevo_enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md",
+    "public/docs/nuevo-enfoque/SOP_NOTEBOOKLM_TERRITORIAL_SYNC_PACK.md",
+    "public/docs/nuevo-enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md",
     "public/docs/vulnerabilidades.md"
   ],
+  "operational_contract": {
+    "owner_display": "Owner / Ops (Toni)",
+    "owner_team": "Founder Office",
+    "schedule": {
+      "cadence": "twice_weekly",
+      "recommended_days": [
+        "monday",
+        "thursday"
+      ],
+      "timezone": "Europe/Madrid"
+    },
+    "recovery_slo_hours": 24,
+    "runbook_refs": [
+      "public/docs/nuevo-enfoque/SOP_NOTEBOOKLM_TERRITORIAL_SYNC_PACK.md",
+      "public/docs/nuevo-enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md"
+    ],
+    "fallback_policy": {
+      "primary_source": "public/data/notebooklm-territorial.sync.json",
+      "fallback_source": "public/docs/vulnerabilidades.md",
+      "activation_rule": "use fallback only when sync pack status is error or the pack is unavailable",
+      "manual_edit_forbidden": true
+    }
+  },
   "queries": [
     {
       "query": "Resume las 5 vulnerabilidades u oportunidades territoriales más críticas del suroeste de Mallorca en 2026, con foco accionable para captación seller-side.",

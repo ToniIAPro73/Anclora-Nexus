@@ -1,13 +1,15 @@
 {
   "feature_id": "ANCLORA-TSCP-001.v1",
   "status": "ready",
-  "checked_at": "2026-03-10T03:05:03.703Z",
+  "checked_at": "2026-03-10T19:50:50.477Z",
   "generated_at": "2026-03-09T00:00:00Z",
   "notebook_id": "9f003773-16c5-4fb4-ab37-7b6c230ab4da",
   "notebook_name": "Inteligencia Territorial Suroeste Mallorca 2026",
   "source_mode": "live_notebook_sync_pack",
   "freshness_hours": 96,
-  "age_hours": 27.1,
+  "age_hours": 43.8,
+  "freshness_state": "fresh",
+  "next_refresh_due_at": "2026-03-13T00:00:00.000Z",
   "coverage": {
     "query_count": 4,
     "zones": [
@@ -23,10 +25,33 @@
   },
   "source_refs": [
     "ops/notebooklm-territorial-sync-raw.json",
-    "public/docs/Nuevo_enfoque/SOP_NOTEBOOKLM_TERRITORIAL_SYNC_PACK.md",
-    "public/docs/Nuevo_enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md",
+    "public/docs/nuevo-enfoque/SOP_NOTEBOOKLM_TERRITORIAL_SYNC_PACK.md",
+    "public/docs/nuevo-enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md",
     "public/docs/vulnerabilidades.md"
   ],
+  "operational_contract": {
+    "owner_display": "Owner / Ops (Toni)",
+    "owner_team": "Founder Office",
+    "schedule": {
+      "cadence": "twice_weekly",
+      "recommended_days": [
+        "monday",
+        "thursday"
+      ],
+      "timezone": "Europe/Madrid"
+    },
+    "recovery_slo_hours": 24,
+    "runbook_refs": [
+      "public/docs/nuevo-enfoque/SOP_NOTEBOOKLM_TERRITORIAL_SYNC_PACK.md",
+      "public/docs/nuevo-enfoque/NOTEBOOKLM_SYNC_PACK_RUNBOOK.md"
+    ],
+    "fallback_policy": {
+      "primary_source": "public/data/notebooklm-territorial.sync.json",
+      "fallback_source": "public/docs/vulnerabilidades.md",
+      "activation_rule": "use fallback only when sync pack status is error or the pack is unavailable",
+      "manual_edit_forbidden": true
+    }
+  },
   "control_plane": {
     "manifest_path": "ops/notebooklm-territorial-sync-manifest.json",
     "raw_path": "ops/notebooklm-territorial-sync-raw.json",
@@ -72,12 +97,32 @@
     {
       "id": "freshness_window",
       "ok": true,
-      "detail": "27.1h <= 96h"
+      "detail": "43.8h <= 96h"
     },
     {
       "id": "source_refs_present",
       "ok": true,
       "detail": "4 referencias trazables."
+    },
+    {
+      "id": "owner_defined",
+      "ok": true,
+      "detail": "Owner operativo: Owner / Ops (Toni)"
+    },
+    {
+      "id": "schedule_defined",
+      "ok": true,
+      "detail": "Cadencia=twice_weekly / tz=Europe/Madrid"
+    },
+    {
+      "id": "fallback_policy_defined",
+      "ok": true,
+      "detail": "Fallback=public/docs/vulnerabilidades.md"
+    },
+    {
+      "id": "runbook_refs_defined",
+      "ok": true,
+      "detail": "2 runbooks operativos declarados."
     },
     {
       "id": "pack_matches_inputs",

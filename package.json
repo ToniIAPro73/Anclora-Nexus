@@ -5,6 +5,7 @@
   "scripts": {
     "ops:notebooklm:build-sync-pack": "node scripts/build-notebooklm-sync-pack.mjs",
     "ops:notebooklm:validate-sync-pack": "node scripts/validate-notebooklm-sync-pack.mjs",
+    "ops:notebooklm:ops-summary": "node scripts/notebooklm-sync-ops-summary.mjs",
     "ops:statefox:capture": "node scripts/statefox-live-capture.mjs",
     "frontend:dev": "npm run dev -w frontend",
     "frontend:build": "npm run build -w frontend",
