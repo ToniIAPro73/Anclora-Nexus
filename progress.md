@@ -33,12 +33,11 @@
 ### Estado release candidate
 
 - Código y documentación del perímetro productivo: listos.
-- Gate `BL-012`: en evaluación documental y operativa.
+- Gate `BL-012`: `CONDITIONAL GO`.
 - Riesgos abiertos:
-  - confirmar en Supabase Cloud que `040`, `041`, `042` y `043` están aplicadas en el proyecto objetivo
   - ejecutar smoke test con datos reales o sandbox controlado
   - validar compliance operativo final de scraping/captura en fuentes reales
 
 ### Próximo hito
 
-- emitir decisión formal `go / conditional go / no-go` en `public/docs/Nuevo_enfoque/RELEASE_CANDIDATE_PRODUCTIVO_Q2_2026.md`
+- cerrar smoke test real y validación compliance para convertir el RC en `GO`

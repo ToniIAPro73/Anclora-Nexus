@@ -10,13 +10,16 @@ Fecha de evaluación: `2026-03-10`
 
 El perímetro `BL-001` a `BL-011` está cerrado en código, validado con tests backend, `lint` y `build` frontend, y empujado a `main`.
 
-La salida a producción real queda condicionada a tres verificaciones operativas fuera de este workspace:
+La salida a producción real queda condicionada a dos verificaciones operativas fuera de este workspace:
 
-1. Confirmar en Supabase Cloud la aplicación de migraciones `040`, `041`, `042` y `043`.
-2. Ejecutar smoke test con datos reales o sandbox controlado.
-3. Emitir validación final de compliance scraping/captura para fuentes activas.
+1. Ejecutar smoke test con datos reales o sandbox controlado.
+2. Emitir validación final de compliance scraping/captura para fuentes activas.
 
 ## Evidencia técnica
+
+### Confirmación remota
+
+- Migraciones `040`, `041`, `042` y `043` confirmadas como aplicadas en Supabase Cloud.
 
 ### Commits del tramo productivo
 
@@ -70,8 +73,6 @@ La salida a producción real queda condicionada a tres verificaciones operativas
 
 ## Riesgos residuales
 
-- `043_seller_memory_semantic_recall.sql` es bloqueante para que BL-009 y BL-010 operen completos en cloud.
-- Si `040` o `041` no están aplicadas en cloud, BL-003 y BL-004 quedan parcialmente degradados.
 - No hay evidencia en este workspace de smoke test contra datos reales post-migración.
 - Persiste deuda legacy menor en `FastAPI on_event` y modelos Pydantic antiguos; no bloquea RC.
 
@@ -84,10 +85,10 @@ La salida a producción real queda condicionada a tres verificaciones operativas
 - [x] `progress.md` actualizado
 - [x] `architecture.md` actualizado
 - [x] `sdd/features/FEATURES.md` actualizado
-- [ ] Confirmación remota de migraciones `040-043`
+- [x] Confirmación remota de migraciones `040-043`
 - [ ] Smoke test real
 - [ ] Revisión final compliance scraping/captura
 
 ## Recomendación
 
-Promocionar a staging/producción solo tras cerrar las tres casillas pendientes. Hasta entonces el estado correcto no es `GO` pleno sino `CONDITIONAL GO`.
+Promocionar a staging/producción solo tras cerrar las dos casillas pendientes. Hasta entonces el estado correcto no es `GO` pleno sino `CONDITIONAL GO`.
