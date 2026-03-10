@@ -11,6 +11,7 @@ from fastapi import APIRouter, Header, HTTPException
 
 from ...config import settings
 from ...services.finops import finops_service
+from ...services.org_context_service import resolve_legacy_org_id_http
 from ...services.llm_service import llm_service
 from ...services.supabase_service import supabase_service
 from ...skills.fsbo_scraper import run_fsbo_scraper
@@ -32,7 +33,7 @@ async def _resolve_org_id(
 ) -> str:
     # Internal cron path: shared secret instead of Supabase JWT
     if settings.CRON_SECRET and x_cron_secret == settings.CRON_SECRET:
-        return requested_org_id or supabase_service.fixed_org_id
+        return resolve_legacy_org_id_http(requested_org_id, "skills-run-cron")
 
     if not authorization:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -51,7 +52,7 @@ async def _resolve_org_id(
             .execute()
         )
         profile = response.data or {}
-        return str(profile.get("org_id") or requested_org_id or supabase_service.fixed_org_id)
+        return str(profile.get("org_id") or resolve_legacy_org_id_http(requested_org_id, "skills-run-auth"))
     except HTTPException:
         raise
     except Exception as exc:

@@ -18,7 +18,11 @@ class SupabaseService:
             or settings.SUPABASE_SERVICE_ROLE_KEY
             or settings.SUPABASE_ANON_KEY
         )
-        self.fixed_org_id = "00000000-0000-0000-0000-000000000000" # Fixed Org ID for v0
+        self.fixed_org_id = (
+            settings.LEGACY_SINGLE_TENANT_ORG_ID
+            or settings.PUBLIC_CTA_ORG_ID
+            or "00000000-0000-0000-0000-000000000000"
+        )
 
     def _generate_signature(self, data: Dict[str, Any]) -> str:
         """Generates HMAC-SHA256 signature for audit log integrity."""
@@ -124,12 +128,25 @@ class SupabaseService:
         response = self.client.table("agent_logs").select("tokens_used").eq("org_id", org_id).gte("timestamp", today).execute()
         return sum(item.get("tokens_used", 0) for item in response.data if item.get("tokens_used"))
 
-    async def get_active_leads(self, priority_min: int = 3) -> List[Dict[str, Any]]:
-        response = self.client.table("leads").select("*").eq("status", "new").gte("ai_priority", priority_min).execute()
+    async def get_active_leads(self, org_id: str, priority_min: int = 3) -> List[Dict[str, Any]]:
+        response = (
+            self.client.table("leads")
+            .select("*")
+            .eq("org_id", org_id)
+            .eq("status", "new")
+            .gte("ai_priority", priority_min)
+            .execute()
+        )
         return response.data
 
-    async def get_available_properties(self) -> List[Dict[str, Any]]:
-        response = self.client.table("properties").select("*").eq("status", "prospect").execute()
+    async def get_available_properties(self, org_id: str) -> List[Dict[str, Any]]:
+        response = (
+            self.client.table("properties")
+            .select("*")
+            .eq("org_id", org_id)
+            .eq("status", "prospect")
+            .execute()
+        )
         return response.data
 
     async def update_property_matching(self, property_id: str, data: Dict[str, Any]) -> Dict[str, Any]:

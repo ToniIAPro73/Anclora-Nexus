@@ -17,11 +17,10 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 from backend.services.llm_service import LLMService
+from backend.services.org_context_service import resolve_legacy_org_id
 from backend.services.seller_memory_service import seller_memory_service
 from backend.services.supabase_service import SupabaseService
 from backend.services.notebooklm_service import get_latest_insights
-
-DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 
 ZONA_LABELS = {
     "andratx": "Andratx",
@@ -66,7 +65,7 @@ async def run_whale_dossier(
         }
     """
     seller_id = data.get("seller_id")
-    org_id = data.get("org_id", DEFAULT_ORG_ID)
+    org_id = resolve_legacy_org_id(data.get("org_id"), "whale_dossier")
 
     if not seller_id:
         return {"status": "error", "reason": "Missing seller_id"}

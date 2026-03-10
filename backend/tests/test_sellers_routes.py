@@ -14,7 +14,10 @@ os.environ.setdefault("CLOUDFLARE_API_TOKEN", "cf-token-test")
 os.environ.setdefault("INTERNAL_AUDIT_SECRET", "test-secret")
 
 from backend.api.routes.sellers import router
-from backend.api.deps import check_budget_hard_stop
+from backend.api.deps import check_budget_hard_stop, get_org_id
+
+
+ORG_ID = "org-test-1"
 
 
 async def mock_check_budget_hard_stop():
@@ -26,6 +29,7 @@ async def mock_check_budget_hard_stop():
 app = FastAPI()
 app.include_router(router, prefix="/api/sellers")
 app.dependency_overrides[check_budget_hard_stop] = mock_check_budget_hard_stop
+app.dependency_overrides[get_org_id] = lambda: ORG_ID
 client = TestClient(app)
 
 
@@ -91,6 +95,7 @@ class TestSellersRouteContracts:
         assert response.status_code == 200
         body = response.json()
         assert body["email_contacto"] == "owner@example.com"
+        assert mock_service.update_seller.await_args.kwargs["org_id"] == ORG_ID
 
     @patch("backend.api.routes.sellers.sellers_service")
     def test_workbench_returns_payload(self, mock_service: MagicMock) -> None:
@@ -145,6 +150,7 @@ class TestSellersRouteContracts:
         assert body["snapshot"]["interactions_count"] == 0
         assert body["snapshot"]["semantic_memory_ready"] is True
         assert body["console"]["recommended_channel"] == "whatsapp"
+        assert mock_service.get_seller_workbench.await_args.kwargs["org_id"] == ORG_ID
 
     @patch("backend.api.routes.sellers.run_whale_dossier", new_callable=AsyncMock)
     def test_generate_dossier_returns_multichannel_artifacts(self, mock_skill: AsyncMock) -> None:

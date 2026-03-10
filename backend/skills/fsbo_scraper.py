@@ -30,9 +30,8 @@ from backend.services.firecrawl_service import (
     scrape_listing,
 )
 from backend.services.llm_service import LLMService
+from backend.services.org_context_service import resolve_legacy_org_id
 from backend.services.supabase_service import SupabaseService
-
-DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 FSBO_CONNECTOR = "firecrawl:idealista-fsbo"
 
 # Priority zones — scrape these by default if no zones specified
@@ -65,7 +64,7 @@ async def run_fsbo_scraper(
     Returns:
         Summary dict with zones scraped, sellers created, credits used.
     """
-    org_id = data.get("org_id", DEFAULT_ORG_ID)
+    org_id = resolve_legacy_org_id(data.get("org_id"), "fsbo_scraper")
     zonas: List[str] = data.get("zonas") or DEFAULT_ZONES
     enrich_listings: bool = bool(data.get("enrich_listings", False))
 

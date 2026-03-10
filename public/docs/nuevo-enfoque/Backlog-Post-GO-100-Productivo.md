@@ -273,6 +273,8 @@ Cerrar salud operacional real en cloud para cron, conectores, sync territorial y
 
 ## BL-next-06 - Hardening de tenant/config legacy
 
+Estado: `Closed`
+
 ### Objetivo
 
 Eliminar assumptions peligrosas de `single-tenant v0` y `org_id` por defecto en skills y seeds legacy.
@@ -295,6 +297,16 @@ Eliminar assumptions peligrosas de `single-tenant v0` y `org_id` por defecto en 
 ### Criterio de salida
 
 - no quedan rutas o skills críticas productivas dependiendo de `org_id` hardcoded cuando el contexto autenticado ya existe.
+
+### Cierre ejecutado `2026-03-11`
+
+- `/sellers` e inteligencia territorial resuelven `org_id` por dependencia en vez de UUID hardcoded
+- `org_context_service` centraliza el fallback legacy single-tenant para skills compatibles
+- `get_org_id` deja de degradar silenciosamente a `fixed_org_id` salvo `ALLOW_LEGACY_ORG_FALLBACK=true`
+- `prospection_weekly` ya no consulta `leads` y `properties` sin `org_id`
+- validación:
+  - tests backend del perímetro afectado en verde
+  - compilación Python OK
 
 ---
 

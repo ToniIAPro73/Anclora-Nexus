@@ -25,7 +25,7 @@ from ...services import sellers_service
 from ...services.seller_memory_service import seller_memory_service
 from ...services.supabase_service import SupabaseService
 from ...services.llm_service import llm_service
-from ..deps import check_budget_hard_stop
+from ..deps import check_budget_hard_stop, get_org_id
 from ...skills.whale_dossier import run_whale_dossier
 
 
@@ -41,9 +41,6 @@ class SupervisedSendRequest(BaseModel):
     transport: Optional[str] = "auto"
 
 router = APIRouter()
-
-# Default org_id for single-tenant v0
-DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 
 _db_service = None
 
@@ -66,6 +63,7 @@ async def list_sellers(
     prioridad_min: Optional[int] = Query(None, ge=1, le=5, description="Minimum priority"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    org_id: str = Depends(get_org_id),
 ):
     """
     List Nexus Sellers with optional filters.
@@ -76,7 +74,7 @@ async def list_sellers(
         db = get_db()
         sellers = await sellers_service.get_sellers(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             zona=zona,
             estado=estado,
             fuente=fuente,
@@ -90,7 +88,7 @@ async def list_sellers(
 
 
 @router.get("/stats", response_model=dict)
-async def seller_stats():
+async def seller_stats(org_id: str = Depends(get_org_id)):
     """
     Aggregated pipeline metrics for Nexus Sellers.
 
@@ -100,7 +98,7 @@ async def seller_stats():
         db = get_db()
         stats = await sellers_service.get_seller_stats(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
         )
         return stats
     except Exception as e:
@@ -115,6 +113,7 @@ async def seller_stats():
 async def create_seller(
     data: NexusSellerCreate,
     _budget=Depends(check_budget_hard_stop),
+    org_id: str = Depends(get_org_id),
 ):
     """
     Create a new Nexus Seller prospect.
@@ -130,7 +129,7 @@ async def create_seller(
         db = get_db()
         seller = await sellers_service.create_seller(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             data=data,
         )
         return seller
@@ -164,13 +163,13 @@ async def get_enums():
 # ═══════════════════════════════════════════════════════════════
 
 @router.get("/{seller_id}", response_model=dict)
-async def get_seller(seller_id: str):
+async def get_seller(seller_id: str, org_id: str = Depends(get_org_id)):
     """Get a single Nexus Seller by ID."""
     try:
         db = get_db()
         seller = await sellers_service.get_seller(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
         )
         if not seller:
@@ -186,6 +185,7 @@ async def get_seller(seller_id: str):
 async def get_seller_workbench(
     seller_id: str,
     interaction_limit: int = Query(20, ge=1, le=100),
+    org_id: str = Depends(get_org_id),
 ):
     """
     Return the seller workbench payload used by Gravity Claw:
@@ -195,7 +195,7 @@ async def get_seller_workbench(
         db = get_db()
         workbench = await sellers_service.get_seller_workbench(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
             interaction_limit=interaction_limit,
         )
@@ -209,7 +209,7 @@ async def get_seller_workbench(
 
 
 @router.get("/{seller_id}/dossier-export", response_model=dict)
-async def get_seller_dossier_export(seller_id: str):
+async def get_seller_dossier_export(seller_id: str, org_id: str = Depends(get_org_id)):
     """
     Return a normalized export/share payload for the seller dossier.
     """
@@ -217,7 +217,7 @@ async def get_seller_dossier_export(seller_id: str):
         db = get_db()
         payload = await sellers_service.build_seller_dossier_export(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
         )
         if not payload:
@@ -233,6 +233,7 @@ async def get_seller_dossier_export(seller_id: str):
 async def update_seller_estado(
     seller_id: str,
     data: EstadoUpdate,
+    org_id: str = Depends(get_org_id),
 ):
     """
     Update the contact state of a Nexus Seller.
@@ -250,7 +251,7 @@ async def update_seller_estado(
         db = get_db()
         seller = await sellers_service.update_seller_estado(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
             estado=data.estado_contacto.value,
             notas=data.notas,
@@ -268,13 +269,14 @@ async def update_seller_estado(
 async def update_seller_record(
     seller_id: str,
     data: NexusSellerUpdate,
+    org_id: str = Depends(get_org_id),
 ):
     """Update seller contact channels and general editable fields."""
     try:
         db = get_db()
         seller = await sellers_service.update_seller(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
             data=data,
         )
@@ -295,6 +297,7 @@ async def update_seller_record(
 async def generate_whale_dossier(
     seller_id: str,
     _budget=Depends(check_budget_hard_stop),
+    org_id: str = Depends(get_org_id),
 ):
     """
     Generate a hyper-personalized captation dossier for a Whale seller.
@@ -315,7 +318,7 @@ async def generate_whale_dossier(
     try:
         db = get_db()
         result = await run_whale_dossier(
-            data={"seller_id": seller_id, "org_id": DEFAULT_ORG_ID},
+            data={"seller_id": seller_id, "org_id": org_id},
             llm=llm_service,
             db=db,
         )
@@ -336,6 +339,7 @@ async def generate_whale_dossier(
 async def list_seller_interactions(
     seller_id: str,
     limit: int = Query(20, ge=1, le=100),
+    org_id: str = Depends(get_org_id),
 ):
     """
     List all interactions for a seller (most recent first).
@@ -346,7 +350,7 @@ async def list_seller_interactions(
         db = get_db()
         interactions = await sellers_service.get_interactions(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
             limit=limit,
         )
@@ -360,6 +364,7 @@ async def get_seller_memory(
     seller_id: str,
     query: str = Query("seguimiento captacion objeciones siguiente paso", min_length=3),
     limit: int = Query(5, ge=1, le=20),
+    org_id: str = Depends(get_org_id),
 ):
     """
     Retrieve explainable semantic memory matches for a seller.
@@ -368,7 +373,7 @@ async def get_seller_memory(
         db = get_db()
         payload = await seller_memory_service.search(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
             query=query,
             limit=limit,
@@ -379,7 +384,7 @@ async def get_seller_memory(
 
 
 @router.post("/{seller_id}/memory/rebuild", response_model=dict)
-async def rebuild_seller_memory(seller_id: str):
+async def rebuild_seller_memory(seller_id: str, org_id: str = Depends(get_org_id)):
     """
     Rebuild semantic memory records for a seller from historical interactions.
     """
@@ -387,7 +392,7 @@ async def rebuild_seller_memory(seller_id: str):
         db = get_db()
         payload = await seller_memory_service.rebuild_for_seller(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
         )
         return payload.model_dump()
@@ -399,6 +404,7 @@ async def rebuild_seller_memory(seller_id: str):
 async def log_seller_interaction(
     seller_id: str,
     data: InteractionCreate,
+    org_id: str = Depends(get_org_id),
 ):
     """
     Log a manual interaction with a seller.
@@ -413,7 +419,7 @@ async def log_seller_interaction(
         db = get_db()
         interaction = await sellers_service.add_interaction(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
             tipo=data.tipo,
             contenido=data.contenido,
@@ -431,6 +437,7 @@ async def build_supervised_send(
     seller_id: str,
     channel: str,
     request: Optional[SupervisedSendRequest] = None,
+    org_id: str = Depends(get_org_id),
 ):
     """
     Prepare a real supervised send via mailto or wa.me and log the launch intent.
@@ -439,7 +446,7 @@ async def build_supervised_send(
         db = get_db()
         payload = await sellers_service.build_supervised_send_payload(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
             channel=channel,
             transport=(request.transport if request else "auto") or "auto",
@@ -455,6 +462,7 @@ async def build_supervised_send(
 async def confirm_supervised_send(
     seller_id: str,
     interaction_id: str,
+    org_id: str = Depends(get_org_id),
 ):
     """
     Confirm that a human operator completed the external send action.
@@ -463,7 +471,7 @@ async def confirm_supervised_send(
         db = get_db()
         payload = await sellers_service.confirm_supervised_send(
             db=db,
-            org_id=DEFAULT_ORG_ID,
+            org_id=org_id,
             seller_id=seller_id,
             interaction_id=interaction_id,
         )

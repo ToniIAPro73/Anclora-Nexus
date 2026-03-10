@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi import Header, HTTPException, Depends
+from backend.config import settings
 from backend.services.supabase_service import supabase_service
 
 async def get_current_user(authorization: Optional[str] = Header(None)):
@@ -26,7 +27,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
 async def get_org_id(user = Depends(get_current_user)):
     """
     Returns the authenticated user's organization id from user_profiles.
-    Falls back to fixed_org_id only if profile lookup fails (legacy v0 behavior).
+    Legacy fallback is allowed only when explicitly enabled in config.
     """
     try:
         response = (
@@ -41,7 +42,9 @@ async def get_org_id(user = Depends(get_current_user)):
             return profile["org_id"]
     except Exception:
         pass
-    return supabase_service.fixed_org_id
+    if settings.ALLOW_LEGACY_ORG_FALLBACK and settings.LEGACY_SINGLE_TENANT_ORG_ID:
+        return settings.LEGACY_SINGLE_TENANT_ORG_ID
+    raise HTTPException(status_code=403, detail="ORG_SCOPE_NOT_RESOLVED")
 
 async def check_budget_hard_stop(org_id: str = Depends(get_org_id)):
     """

@@ -2,12 +2,10 @@ import json
 from datetime import datetime
 from typing import Dict, Any, List
 from backend.services.llm_service import LLMService
+from backend.services.org_context_service import resolve_legacy_org_id
 from backend.services.supabase_service import SupabaseService
 from backend.services.sellers_service import create_seller
 from backend.models.sellers import NexusSellerCreate, ZonaEnum, FuenteEnum
-
-# Default org_id for single-tenant v0
-DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 
 async def run_prospection_weekly(data: Dict[str, Any], llm: LLMService, db: SupabaseService) -> Dict[str, Any]:
     """
@@ -20,9 +18,10 @@ async def run_prospection_weekly(data: Dict[str, Any], llm: LLMService, db: Supa
     """
     
     # 1. Fetch context
+    org_id = resolve_legacy_org_id(data.get("org_id"), "prospection_weekly")
     priority_min = data.get("priority_min", 3)
-    leads = await db.get_active_leads(priority_min=priority_min)
-    properties = await db.get_available_properties()
+    leads = await db.get_active_leads(org_id=org_id, priority_min=priority_min)
+    properties = await db.get_available_properties(org_id=org_id)
     
     if not leads:
         return {"status": "skipped", "reason": "No active leads found with required priority."}
@@ -120,7 +119,7 @@ async def run_prospection_weekly(data: Dict[str, Any], llm: LLMService, db: Supa
                     },
                     prioridad=4 if price >= 2000000 else 3,
                 )
-                await create_seller(db=db, org_id=DEFAULT_ORG_ID, data=seller_data)
+                await create_seller(db=db, org_id=org_id, data=seller_data)
                 sellers_created += 1
             except Exception as e:
                 print(f"[prospection_weekly] Warning: Could not create seller for property {prop.get('id')}: {e}")

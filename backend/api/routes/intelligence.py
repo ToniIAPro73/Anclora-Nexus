@@ -258,6 +258,7 @@ async def get_territorial_insights(
     insight_type: Optional[str] = Query(None, description="Filter by type: territorial, cma, competitive, whale_audit, buyer_profile, market_signal"),
     zona: Optional[str] = Query(None, description="Filter by zone: andratx, calvia, son_ferrer, santa_ponca, paguera, portals_nous, bendinat, punta_negra, costa_den_blanes, general"),
     limit: int = Query(10, ge=1, le=50),
+    org_id: str = Depends(get_org_id),
 ):
     """
     Retrieve territorial intelligence insights cached from NotebookLM.
@@ -271,11 +272,9 @@ async def get_territorial_insights(
     """
     try:
         db = get_db()
-        # Use hardcoded org_id for v0 single-tenant
-        ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
         insights = await get_latest_insights(
             db=db,
-            org_id=ORG_ID,
+            org_id=org_id,
             insight_type=insight_type,
             zona=zona,
             limit=limit,
@@ -291,15 +290,14 @@ async def get_territorial_insights(
 
 
 @router.get("/territorial-summary")
-async def get_territorial_summary_endpoint():
+async def get_territorial_summary_endpoint(org_id: str = Depends(get_org_id)):
     """
     Retrieve the latest territorial insight per zone for the Radar Territorial
     dashboard widget. Returns a dict with zone names as keys.
     """
     try:
         db = get_db()
-        ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
-        summary = await get_territorial_summary(db=db, org_id=ORG_ID)
+        summary = await get_territorial_summary(db=db, org_id=org_id)
         return {
             "summary": summary,
             "zones_with_data": list(summary.keys()),
@@ -310,15 +308,14 @@ async def get_territorial_summary_endpoint():
 
 
 @router.get("/vulnerabilidades")
-async def get_vulnerabilidades_endpoint():
+async def get_vulnerabilidades_endpoint(org_id: str = Depends(get_org_id)):
     """
     Retrieve the most recent territorial vulnerabilities/opportunities insight.
     Corresponds to the content of public/docs/vulnerabilidades.md but served via API.
     """
     try:
         db = get_db()
-        ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
-        vuln = await get_vulnerabilidades(db=db, org_id=ORG_ID)
+        vuln = await get_vulnerabilidades(db=db, org_id=org_id)
         if not vuln:
             return {
                 "message": "No territorial vulnerability analysis available yet. "

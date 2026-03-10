@@ -11,11 +11,9 @@ from typing import Any, Dict, List, Optional
 
 from backend.models.sellers import EstadoContactoEnum, FuenteEnum, NexusSellerCreate, ZonaEnum
 from backend.services.llm_service import LLMService
+from backend.services.org_context_service import resolve_legacy_org_id
 from backend.services.sellers_service import create_seller
 from backend.services.supabase_service import SupabaseService
-
-
-DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 
 ZONE_MAP = {
     "andratx": "andratx",
@@ -116,7 +114,7 @@ async def run_seller_signal_ingest(
     db: SupabaseService,
 ) -> Dict[str, Any]:
     signals = data.get("signals") or []
-    org_id = data.get("org_id", DEFAULT_ORG_ID)
+    org_id = resolve_legacy_org_id(data.get("org_id"), "seller_signal_ingest")
     snapshot_id = data.get("snapshot_id", "manual")
 
     if not isinstance(signals, list) or not signals:

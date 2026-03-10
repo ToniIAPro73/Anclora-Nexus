@@ -84,4 +84,12 @@
 
 ### Próximo hito operativo
 
-- abrir `BL-next-06` para hardening de tenant/config legacy
+- `BL-next-06` cerrado: hardening de tenant/config legacy
+- rutas críticas seller-side e inteligencia territorial ya no usan `DEFAULT_ORG_ID` hardcoded
+- helper centralizado `org_context_service` para compatibilidad single-tenant legacy
+- `get_org_id` ya no hace fallback silencioso salvo config explícita
+- `prospection_weekly` scopeado por `org_id`
+
+### Próximo hito operativo
+
+- abrir `BL-next-07` para release gate recurrente y QA operacional

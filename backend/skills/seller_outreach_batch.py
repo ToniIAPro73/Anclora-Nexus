@@ -9,11 +9,9 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from backend.services.llm_service import LLMService
+from backend.services.org_context_service import resolve_legacy_org_id
 from backend.services.supabase_service import SupabaseService
 from backend.skills.whale_dossier import run_whale_dossier
-
-
-DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 
 
 async def run_seller_outreach_batch(
@@ -21,7 +19,7 @@ async def run_seller_outreach_batch(
     llm: LLMService,
     db: SupabaseService,
 ) -> Dict[str, Any]:
-    org_id = data.get("org_id", DEFAULT_ORG_ID)
+    org_id = resolve_legacy_org_id(data.get("org_id"), "seller_outreach_batch")
     prioridad_min = int(data.get("prioridad_min", 4))
     limit = int(data.get("limit", 5))
 

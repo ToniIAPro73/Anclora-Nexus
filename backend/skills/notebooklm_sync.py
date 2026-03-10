@@ -23,12 +23,9 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 from backend.services.llm_service import LLMService
+from backend.services.org_context_service import resolve_legacy_org_id
 from backend.services.supabase_service import SupabaseService
 from backend.services.notebooklm_service import save_insight
-
-
-# Default org_id for single-tenant v0 — Anclora Private Estates
-DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
 
 TERRITORIAL_ZONES = [
     "andratx", "calvia", "son_ferrer", "santa_ponca",
@@ -66,7 +63,7 @@ async def run_notebooklm_sync(
     query = data.get("query", "Inteligencia territorial Suroeste Mallorca")
     insight_type = data.get("insight_type", "territorial")
     zona = data.get("zona")
-    org_id = data.get("org_id", DEFAULT_ORG_ID)
+    org_id = resolve_legacy_org_id(data.get("org_id"), "notebooklm_sync")
     source_mode = data.get("source_mode", "manual")
     source_ref = data.get("source_ref")
 
