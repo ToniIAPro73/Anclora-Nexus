@@ -92,4 +92,7 @@
 
 ### Próximo hito operativo
 
-- abrir `BL-next-07` para release gate recurrente y QA operacional
+- `BL-next-07` cerrado: release gate recurrente y QA operacional
+- runner automatizado `ops:release-gate` añadido
+- acta genérica y criterio reutilizable documentados
+- backlog post-GO ejecutado hasta `BL-next-07`

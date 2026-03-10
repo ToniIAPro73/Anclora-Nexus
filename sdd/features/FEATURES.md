@@ -23,6 +23,7 @@ Bloques cerrados y empujados en `main`:
 - `ANCLORA-GCWW-001 v1.2` Gravity Claw Whale Workbench contextual
 - `ANCLORA-FCCC-001 v1.2` FinOps and Commercial Command Center productivo
 - `ANCLORA-TCH-001 v1.0` Tenant Config Hardening
+- `ANCLORA-RGQ-001 v1.0` Release Gate Operational QA
 
 Dependencias DB recientes:
 

@@ -312,6 +312,8 @@ Eliminar assumptions peligrosas de `single-tenant v0` y `org_id` por defecto en 
 
 ## BL-next-07 - Release gate recurrente y QA operacional
 
+Estado: `Closed`
+
 ### Objetivo
 
 Convertir el smoke y la validación RC en un gate repetible de release.
@@ -335,6 +337,15 @@ Convertir el smoke y la validación RC en un gate repetible de release.
 ### Criterio de salida
 
 - el proyecto tiene pipeline de validación técnica y operativa repetible antes de promoción a producción.
+
+### Cierre ejecutado `2026-03-11`
+
+- runner automatizado `npm run ops:release-gate`
+- artefacto local `ops/release-gate-latest.json` excluido de git
+- acta genérica en `ACTA_RELEASE_GATE_OPERACIONAL.md`
+- criterio recurrente `GO / CONDITIONAL GO / NO-GO` documentado
+- validación:
+  - runner ejecutado en PASS
 
 ---
 

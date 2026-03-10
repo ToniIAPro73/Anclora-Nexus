@@ -54,5 +54,6 @@ next-env.d.ts
 # local ops artifacts
 ops/statefox-live-capture.json
 ops/statefox-playwright-profile/
+ops/release-gate-latest.json
 
 credentials.json
