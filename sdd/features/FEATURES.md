@@ -4,6 +4,42 @@
 
 ---
 
+## TRAMO PRODUCTIVO Q2 2026
+
+### Release tranche BL-001 → BL-011
+
+Estado: `Implemented`
+
+Bloques cerrados y empujados en `main`:
+
+- `ANCLORA-TSCP-001 v1.1` Territorial Sync Control Plane
+- `ANCLORA-SCUI-001 v1.0` Source Connectors Unified Ingestion seller-side
+- `ANCLORA-SEWS-001 v1.1` Supervised Email & WhatsApp Send
+- `ANCLORA-STFX-002 v1.1` StateFox Telegram Bridge
+- `ANCLORA-STFX-LC-001 v1.0` StateFox Live Capture
+- `ANCLORA-SPO-001 v1.1` Source Performance Observatory
+- `ANCLORA-GAA-001 v1.1` Guardrailed Automation & Operational Alerting
+- `ANCLORA-SMSR-001 v1.0` Seller Memory Semantic Recall
+- `ANCLORA-GCWW-001 v1.2` Gravity Claw Whale Workbench contextual
+- `ANCLORA-FCCC-001 v1.1` FinOps and Commercial Command Center productivo
+
+Dependencias DB recientes:
+
+- `040_seller_contact_channels_and_supervised_send.sql`
+- `041_ingestion_entity_type_seller_signal.sql`
+- `042_operational_automation_alerts.sql`
+- `043_seller_memory_semantic_recall.sql`
+
+Resultado funcional:
+
+- seller pipeline operable end-to-end
+- intelligence territorial conectada a sellers
+- outreach HITL trazable
+- memoria semántica seller-side
+- observabilidad operativa y command center ejecutivo
+
+---
+
 ## FEATURES IMPLEMENTADAS
 
 ### 1. Intelligence v1
