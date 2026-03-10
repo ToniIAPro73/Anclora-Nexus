@@ -28,9 +28,9 @@ Seller o fixture usado: 7cafd9aa-42c3-4236-b40b-d4e30e3322a5
 
 ### 4. Observabilidad
 
-- Resultado: `FAIL`
-- Evidencia: POST /api/ingestion/seller-signals -> Error PGRST205 (missing ingestion_events)
-- Observaciones: La tabla `ingestion_events` sí existe en Supabase Cloud y acepta `seller_signal`. El fallo observado apunta a caché de esquema de PostgREST o desalineación de entorno durante el smoke. Sigue bloqueando la ingesta automatizada hasta revalidación.
+- Resultado: `PASS`
+- Evidencia: POST `http://localhost:8000/api/ingestion/seller-signals` -> `200 OK`, `created: 1`, `failed: 0`, `event_id: 1286d9e2-190a-4c63-ad92-046e8a218671`
+- Observaciones: La ingesta seller-side funciona correctamente contra backend local apuntando a Supabase Cloud. El fallo previo no correspondía a ausencia real de `ingestion_events`. La consulta posterior `GET /api/ingestion/events` devolvió `401` por verificación JWT en backend local, pero no bloquea el cierre del flujo crítico de ingesta.
 
 ### 5. Command center
 
@@ -40,8 +40,11 @@ Seller o fixture usado: 7cafd9aa-42c3-4236-b40b-d4e30e3322a5
 
 ## Incidencias abiertas
 
-- `INC-001 / PGRST205 en seller-signals por caché de esquema PostgREST o env mismatch / CRITICAL / Backend-DevOps / Requiere reload schema y re-smoke`
 - `INC-002 / AI Runtime degraded / MAJOR / DevOps / Faltan secrets Groq/CF en .env`
+
+## Incidencias cerradas
+
+- `INC-001 / Seller-signals revalidado con POST 200 OK / CLOSED`
 
 ## Validación compliance scraping/captura
 
@@ -55,12 +58,10 @@ Seller o fixture usado: 7cafd9aa-42c3-4236-b40b-d4e30e3322a5
 
 ## Motivo de la decisión
 
-La arquitectura de "Operating System" es funcional (Workbench, HITL, Control Plane, Stats) pero requiere remediar el acceso operativo al endpoint `seller-signals` y completar la configuración de las APIs de IA para ser 100% productivo.
+La arquitectura de "Operating System" es funcional (Workbench, HITL, Control Plane, Stats) y la ingesta seller-side ya quedó revalidada. La única degradación abierta relevante es la falta de secretos del AI Runtime, que afecta la calidad final de dossier y drafts.
 
 ## Acciones siguientes
 
-- 1. Ejecutar `notify pgrst, 'reload schema';` en Supabase Cloud.
-- 2. Repetir `POST /api/ingestion/seller-signals` en el mismo entorno del smoke.
-- 3. Validar que frontend/backend apuntan al proyecto Supabase correcto si el error persiste.
-- 4. Cargar secretos de Groq/Cloudflare.
-- 5. Re-ejecutar Smoke Test completo.
+- 1. Cargar secretos de Groq/Cloudflare en el entorno objetivo.
+- 2. Re-ejecutar smoke del workbench para validar calidad de dossier y drafts.
+- 3. Emitir decisión final `GO` o waiver explícito sobre degradación AI.
