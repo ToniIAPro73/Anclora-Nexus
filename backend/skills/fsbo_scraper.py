@@ -22,6 +22,8 @@ Credit cost (Firecrawl free plan: 500/month):
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from backend.models.ingestion import SellerSignalIngestionPayload
+from backend.services.ingestion_service import ingestion_service
 from backend.services.firecrawl_service import (
     IDEALISTA_ZONE_URLS,
     scrape_zone,
@@ -29,9 +31,9 @@ from backend.services.firecrawl_service import (
 )
 from backend.services.llm_service import LLMService
 from backend.services.supabase_service import SupabaseService
-from backend.skills.seller_signal_ingest import run_seller_signal_ingest
 
 DEFAULT_ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
+FSBO_CONNECTOR = "firecrawl:idealista-fsbo"
 
 # Priority zones — scrape these by default if no zones specified
 DEFAULT_ZONES = [
@@ -47,8 +49,8 @@ DEFAULT_ZONES = [
 
 async def run_fsbo_scraper(
     data: Dict[str, Any],
-    llm: LLMService,
-    db: SupabaseService,
+    llm: LLMService | None,
+    db: SupabaseService | None,
 ) -> Dict[str, Any]:
     """
     Scrape Idealista FSBO listings by zone and ingest them into nexus_sellers.
@@ -128,14 +130,13 @@ async def run_fsbo_scraper(
     # Feed all signals into seller_signal_ingest (handles dedup + DB insert)
     ingest_result = {}
     if total_signals:
-        ingest_result = await run_seller_signal_ingest(
-            data={
-                "org_id": org_id,
-                "signals": total_signals,
-                "snapshot_id": snapshot_id,
-            },
-            llm=llm,
-            db=db,
+        ingest_result = await ingestion_service.ingest_seller_signals(
+            SellerSignalIngestionPayload(
+                org_id=org_id,
+                connector_name=FSBO_CONNECTOR,
+                snapshot_id=snapshot_id,
+                signals=total_signals,
+            )
         )
 
     return {
@@ -144,10 +145,15 @@ async def run_fsbo_scraper(
         "zonas_scrapeadas": len(zone_results),
         "zone_results": zone_results,
         "total_signals_found": len(total_signals),
-        "sellers_created": ingest_result.get("sellers_created", 0),
-        "sellers_skipped_dedup": ingest_result.get("signals_skipped", 0),
+        "created": ingest_result.get("created", 0),
+        "duplicates": ingest_result.get("duplicates", 0),
+        "rejected": ingest_result.get("rejected", 0),
+        "failed": ingest_result.get("failed", 0),
+        "sellers_created": ingest_result.get("created", 0),
+        "sellers_skipped_dedup": ingest_result.get("duplicates", 0),
         "total_credits_used": total_credits,
         "enrich_listings": enrich_listings,
         "errors": errors,
+        "trace_id": ingest_result.get("trace_id"),
         "processed_at": datetime.now(timezone.utc).isoformat(),
     }

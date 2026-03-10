@@ -35,8 +35,8 @@ No incluye la feature de manual de usuario ni trabajo documental periférico.
 
 ### Estimación actual
 
-- Estado global estimado: **86%**
-- Resto para 100%: **14%**
+- Estado global estimado: **88%**
+- Resto para 100%: **12%**
 
 ### Riesgos reales que siguen abiertos
 
@@ -72,6 +72,8 @@ No se considera cerrado ningún bloque si falta cualquiera de estas piezas:
 
 ## BL-next-01 - Conector live seller-side autónomo
 
+Estado: `Closed`
+
 ### Objetivo
 
 Cerrar una fuente primaria de señales seller-side que funcione sin paso manual de operador.
@@ -98,6 +100,14 @@ Cerrar una fuente primaria de señales seller-side que funcione sin paso manual 
 ### Criterio de salida
 
 - una ejecución programada completa importa señales live y deja trazabilidad visible en observatorio y command center.
+
+### Cierre ejecutado `2026-03-10`
+
+- seller-side source runner añadido con prioridad `Firecrawl -> StateFox live capture -> snapshot fallback`
+- cron territorial migrado a resolución live-first en vez de depender directamente del snapshot seller-side
+- `fsbo_scraper` reconectado a unified ingestion con trazabilidad por `connector_name`, `trace_id` y `snapshot_id`
+- skill operativa `seller_signal_source_run` expuesta en `/api/skills/run`
+- tests backend y validación frontend en verde
 
 ---
 

@@ -18,6 +18,7 @@ from ...skills.notebooklm_sync import run_notebooklm_sync
 from ...skills.prospection_weekly import run_prospection_weekly
 from ...skills.recap_weekly import run_recap_weekly
 from ...skills.seller_outreach_batch import run_seller_outreach_batch
+from ...skills.seller_signal_source_run import run_seller_signal_source_run
 from ...skills.seller_signal_ingest import run_seller_signal_ingest
 
 
@@ -88,6 +89,7 @@ async def run_skill(
         "recap_weekly": run_recap_weekly,
         "notebooklm_sync": run_notebooklm_sync,
         "seller_signal_ingest": run_seller_signal_ingest,
+        "seller_signal_source_run": run_seller_signal_source_run,
         "seller_outreach_batch": run_seller_outreach_batch,
         "fsbo_scraper": run_fsbo_scraper,
     }

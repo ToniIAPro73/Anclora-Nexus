@@ -2,7 +2,7 @@
  * Vercel Cron Job — Territorial Pipeline
  *
  * What it does:
- *   1. Loads seller signal snapshot and ingests it into nexus_sellers
+ *   1. Resolves the best available seller-side source (live first, snapshot fallback)
  *   2. Loads territorial NotebookLM sync pack and syncs it into notebooklm_insights
  *   3. Generates dossier/email drafts for high-priority sellers
  */
@@ -74,19 +74,16 @@ export async function GET(req: NextRequest) {
   })
 
   try {
-    const snapshotPath = path.join(process.cwd(), 'public', 'data', 'seller-signals.snapshot.json')
     const notebookSyncPath = path.join(process.cwd(), 'public', 'data', 'notebooklm-territorial.sync.json')
     const notebookSyncStatusPath = path.join(process.cwd(), 'ops', 'notebooklm-territorial-sync-status.json')
     const territorialPath = path.join(process.cwd(), 'public', 'docs', 'vulnerabilidades.md')
 
-    const [signalsRaw, notebookSyncRaw, notebookSyncStatusRaw, territorialRaw] = await Promise.all([
-      readFile(snapshotPath, 'utf8'),
+    const [notebookSyncRaw, notebookSyncStatusRaw, territorialRaw] = await Promise.all([
       readFile(notebookSyncPath, 'utf8'),
       readFile(notebookSyncStatusPath, 'utf8').catch(() => ''),
       readFile(territorialPath, 'utf8'),
     ])
 
-    const signals = JSON.parse(signalsRaw)
     const notebookSyncPack = JSON.parse(notebookSyncRaw) as {
       notebook_id?: string
       notebook_name?: string
@@ -109,9 +106,10 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const ingestion = await postSkill('seller_signal_ingest', {
-      snapshot_id: 'public/data/seller-signals.snapshot.json',
-      signals,
+    const ingestion = await postSkill('seller_signal_source_run', {
+      zonas: ['andratx', 'calvia', 'santa_ponca', 'son_ferrer', 'paguera', 'portals_nous', 'costa_den_blanes'],
+      city: 'Mallorca',
+      enable_snapshot_fallback: true,
     })
 
     const notebookQueries = notebookSyncPack.queries || []
@@ -168,8 +166,8 @@ export async function GET(req: NextRequest) {
             queries_synced: 1,
           },
       stats: {
-        sellers_created: Number((ingestion as { sellers_created?: number })?.sellers_created || 0),
-        signals_received: Number((ingestion as { signals_received?: number })?.signals_received || 0),
+        sellers_created: Number((ingestion as { result?: { created?: number } })?.result?.created || 0),
+        signals_received: Number((ingestion as { result?: { signals_received?: number } })?.result?.signals_received || 0),
         queries_synced: notebookQueries.length > 0 ? notebookQueries.length : 1,
         outreach_processed: Number((outreach as { processed_count?: number })?.processed_count || 0),
       },

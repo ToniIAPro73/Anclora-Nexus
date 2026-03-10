@@ -13,7 +13,7 @@ Estado: `Implemented`
 Bloques cerrados y empujados en `main`:
 
 - `ANCLORA-TSCP-001 v1.1` Territorial Sync Control Plane
-- `ANCLORA-SCUI-001 v1.0` Source Connectors Unified Ingestion seller-side
+- `ANCLORA-SCUI-001 v1.2` Source Connectors Unified Ingestion seller-side
 - `ANCLORA-SEWS-001 v1.1` Supervised Email & WhatsApp Send
 - `ANCLORA-STFX-002 v1.1` StateFox Telegram Bridge
 - `ANCLORA-STFX-LC-001 v1.0` StateFox Live Capture
@@ -253,21 +253,21 @@ Resultado funcional:
 
 ---
 
-### 6. Source Connectors Unified Ingestion v1
+### 6. Source Connectors Unified Ingestion v1.2
 
 **ID**: ANCLORA-SCUI-001  
-**Versión**: 1.0  
+**Versión**: 1.2  
 **Status**: Implemented  
 **Fase**: Ingestion & Normalization  
 **Prioridad**: ALTA
 
-**Descripción**: Crea una capa unificada de conectores para ingestión de leads y propiedades con contrato canónico, idempotencia por `dedupe_key` y trazabilidad operativa por fuente.
+**Descripción**: Crea una capa unificada de conectores para ingestión de leads, propiedades y `seller_signals`, con contrato canónico, idempotencia por `dedupe_key`, trazabilidad operativa por fuente y resolución live-first con fallback controlado a snapshot seller-side.
 
 **Documentación**:
 - **SDD Index**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-INDEX.md`
-- **Spec Técnica**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1.md`
+- **Spec Técnica**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1_2.md`
 - **Spec Migración**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-migration.md`
-- **Test Plan**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1.md`
+- **Test Plan**: `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1_2.md`
 - **SKILL**: `.agent/skills/features/source-connectors-unified-ingestion/SKILL.md`
 - **Prompts Antigravity**: `.antigravity/prompts/features/source-connectors-unified-ingestion/`
 
@@ -415,7 +415,7 @@ Resultado funcional:
 | Lead Source Observability | ANCLORA-LSO-001 | 1.0 | Implemented | Data Quality & Attribution | INDEX.md |
 | Currency & Surface Localization | ANCLORA-CSL-001 | 1.0 | Implemented | Commercial UX & Data Quality | INDEX.md |
 | Cost Governance Foundation | ANCLORA-CGF-001 | 1.0 | Implemented | FinOps Foundation | INDEX.md |
-| Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.0 | Implemented | Ingestion & Normalization | INDEX.md |
+| Source Connectors Unified Ingestion | ANCLORA-SCUI-001 | 1.2 | Implemented | Ingestion & Normalization | INDEX.md |
 | Lead Ingestion and Routing | ANCLORA-LIR-001 | 1.0 | In Progress | Ingestion & Routing | spec-lead-ingestion-and-routing-v1.md |
 | Role Scoped Workspace Visibility | ANCLORA-RSWV-001 | 1.0 | Implemented | Access Control & Operación Comercial | role-scoped-workspace-visibility-INDEX.md |
 | Data Quality & Entity Resolution | ANCLORA-DQER-001 | 1.0 | Specification | Data Quality & Identity | INDEX.md |

@@ -13,7 +13,7 @@ from backend.services.statefox_bridge_service import import_statefox_listings
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CAPTURE_PATH = REPO_ROOT / "ops" / "statefox-live-capture.json"
-RUNBOOK_PATH = REPO_ROOT / "public" / "docs" / "Nuevo_enfoque" / "STATEFOX_LIVE_CAPTURE_RUNBOOK.md"
+RUNBOOK_PATH = REPO_ROOT / "public" / "docs" / "nuevo-enfoque" / "STATEFOX_LIVE_CAPTURE_RUNBOOK.md"
 
 
 def _capture_validation(capture: Dict[str, Any]) -> Dict[str, Any]:

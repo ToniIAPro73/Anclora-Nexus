@@ -13,9 +13,11 @@ description: "Implementación de Source Connectors Unified Ingestion v1 bajo SDD
 5) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-INDEX.md`
 6) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1.md`
 7) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1_1.md`
-8) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-migration.md`
-9) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1.md`
-10) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1_1.md`
+8) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1_2.md`
+9) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-migration.md`
+10) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1.md`
+11) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1_1.md`
+12) `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1_2.md`
 
 ## Método
 1. Congelar contrato canónico.
@@ -23,6 +25,7 @@ description: "Implementación de Source Connectors Unified Ingestion v1 bajo SDD
 3. Backend de ingestión idempotente.
 4. UI/observabilidad operativa mínima.
 5. QA de dedupe y aislamiento.
+6. Resolver prioridad live y fallback snapshot sin bypass de trazabilidad.
 
 ## Reglas clave
 - `org_id` obligatorio en todo flujo.

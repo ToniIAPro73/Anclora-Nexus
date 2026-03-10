@@ -10,6 +10,7 @@ trigger: always_on
 3) .agent/rules/anclora-nexus.md
 4) sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1.md
 5) sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1_1.md
+6) sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1_2.md
 
 ## Rules
 - Todo conector debe resolver `connector_name` de forma determinista.
@@ -18,3 +19,4 @@ trigger: always_on
 - Todo error debe persistir `error_code`, `error_message` y `trace_id`.
 - La feature incluye seller-side signals dentro del perimetro de ingestion.
 - No se permite bypass directo de ingestión si la fuente debe ser trazable.
+- El source runner seller-side debe priorizar live sobre snapshot y dejar `source_selected` + `attempts`.

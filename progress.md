@@ -42,3 +42,17 @@
 
 - proceder al despliegue final y monitorización post-release
 - abrir backlog post-GO para cerrar autonomía live, canales reales, memoria vectorial y hardening cloud
+
+### Backlog post-GO
+
+- `BL-next-01` cerrado: conector live seller-side autónomo con prioridad `Firecrawl -> StateFox live capture -> snapshot fallback`
+- cron territorial seller-side ya no depende directamente del snapshot local
+- `ANCLORA-SCUI-001` ampliada a `v1.2` con source runner live-first y fallback trazable
+- validación:
+  - `14 passed` en backend sobre source runner, FSBO, unified ingestion y StateFox live capture
+  - `npm run frontend:lint` OK
+  - `npm run frontend:build` OK
+
+### Próximo hito operativo
+
+- abrir `BL-next-02` para cerrar refresh territorial reproducible sin manualidad frágil
