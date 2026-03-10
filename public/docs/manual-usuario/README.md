@@ -4,19 +4,29 @@ Este directorio contiene el Manual de Usuario oficial de Anclora Nexus en dos fo
 
 ## 📄 Archivos Disponibles
 
-| Archivo | Formato | Tamaño | Descripción |
-|---------|---------|--------|-------------|
-| `MANUAL_USUARIO_ANCLORA_NEXUS.md` | Markdown | ~53 KB | Versión Markdown para lectura en IDE/navegador |
-| `MANUAL_USUARIO_ANCLORA_NEXUS.docx` | Word | 1.5 MB | Versión Word con logo y branding Anclora |
-| `GOOGLE_DOCS_URLS.md` | Referencia | ~2 KB | URLs de acceso a Google Docs (después del upload) |
+| Archivo | Formato | Idioma | Tamaño | Descripción |
+|---------|---------|--------|--------|-------------|
+| `MANUAL_USUARIO_ANCLORA_NEXUS.md` | Markdown | 🇪🇸 ES | ~53 KB | Versión Markdown español |
+| `MANUAL_USUARIO_ANCLORA_NEXUS.docx` | Word | 🇪🇸 ES | 1.9 MB | Versión Word español con logo, screenshots y branding |
+| `MANUAL_USUARIO_ANCLORA_NEXUS_EN.md` | Markdown | 🇬🇧 EN | ~48 KB | English Markdown version |
+| `MANUAL_USUARIO_ANCLORA_NEXUS_EN.docx` | Word | 🇬🇧 EN | 1.9 MB | English Word version with logo, screenshots and branding |
+| `GOOGLE_DOCS_URLS.md` | Referencia | Multi | ~2 KB | URLs de acceso a Google Docs (después del upload) |
+| `assets/screenshots/` | PNG | Visual | 672 KB | 17 capturas de pantalla de la aplicación |
 
 ## 🎯 Uso
 
 ### Para Usuarios Finales
 
+**Español (ES):**
 - **Leer online:** Abre `MANUAL_USUARIO_ANCLORA_NEXUS.md` en GitHub o cualquier visor markdown
 - **Descargar Word:** Descarga `MANUAL_USUARIO_ANCLORA_NEXUS.docx` para uso offline o impresión
-- **Ver en Google Docs:** Consulta `GOOGLE_DOCS_URLS.md` para el enlace directo (requiere upload previo)
+
+**English (EN):**
+- **Read online:** Open `MANUAL_USUARIO_ANCLORA_NEXUS_EN.md` in GitHub or any markdown viewer
+- **Download Word:** Download `MANUAL_USUARIO_ANCLORA_NEXUS_EN.docx` for offline use or printing
+
+**Google Docs (Both languages):**
+- Consulta `GOOGLE_DOCS_URLS.md` para enlaces directos (requiere upload previo)
 
 ### Para Desarrolladores
 
@@ -27,13 +37,27 @@ El manual se genera automáticamente mediante la feature **ANCLORA-UMG-001** (Us
 Si la aplicación ha cambiado (nuevas funcionalidades, cambios en UI, etc.), puedes regenerar el manual:
 
 ```bash
-# Desde la raíz del proyecto
+# Generar manual español (ES)
 python3 scripts/generate-user-manual.py
+
+# Traducir a inglés (EN)
+export GROQ_API_KEY=your_key_here
+python3 scripts/translate-manual.py
+
+# Generar DOCX español
+python3 scripts/convert-manual-to-docx.py --lang es
+
+# Generar DOCX inglés
+python3 scripts/convert-manual-to-docx.py --lang en
+
+# Capturar screenshots reales (requiere servidor corriendo)
+python3 scripts/capture-screenshots.py
 ```
 
-Este comando:
-1. ✅ Genera versión Markdown (`.md`)
-2. ✅ Convierte automáticamente a DOCX (`.docx`) con logo y branding Anclora
+**Flujo completo:**
+1. ✅ Genera versión Markdown español (`.md`)
+2. ✅ Traduce a inglés con LLM (Groq llama-3.3-70b)
+3. ✅ Convierte ambos a DOCX (`.docx`) con logo, screenshots y branding Anclora
 
 ### Subir a Google Docs
 
@@ -56,6 +80,13 @@ python3 scripts/upload-to-google-docs.py
 ```bash
 # Para generación local (MD + DOCX)
 pip install python-docx Pillow lxml
+
+# Para traducción ES → EN
+pip install groq
+
+# Para screenshots automáticos
+pip install playwright
+playwright install chromium
 
 # Para upload a Google Docs
 pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
@@ -114,11 +145,11 @@ La feature **ANCLORA-UMG-001** implementa:
 2. **manual-structure-builder:** Construye estructura jerárquica del manual
 3. **manual-format-exporter:** Exporta a formatos Markdown y DOCX con branding
 
-### Skills Phase 2 (📝 Especificadas, ⏳ Implementación pendiente)
-4. **screenshot-capturer:** Captura automática de pantallas con Playwright
-5. **manual-translator:** Traducción ES → EN con LLM + glossario
-6. **google-docs-converter:** Upload a Google Docs (✅ script listo)
-7. **video-tutorial-generator:** Videos tutoriales con AI voiceover
+### Skills Phase 2 (✅ Implementadas)
+4. **screenshot-capturer:** Captura automática de pantallas con Playwright (✅ demo + real)
+5. **manual-translator:** Traducción ES → EN con Groq LLM + glossario (✅ completo)
+6. **google-docs-converter:** Upload a Google Docs (✅ completo)
+7. **video-tutorial-generator:** Videos tutoriales con AI voiceover (📝 especificado, ⏳ pendiente)
 
 ### Documentación
 - `sdd/features/user-manual-generator/user-manual-generator-INDEX.md` - Índice de feature
@@ -147,9 +178,13 @@ El manual DOCX incluye:
 
 - **Versión actual:** 1.2.3
 - **Fecha de generación:** 2026-03-10
-- **Caracteres totales:** 52,446
+- **Idiomas disponibles:** 2 (Español, English)
+- **Caracteres totales ES:** 52,446
+- **Caracteres totales EN:** 48,770
 - **Páginas estimadas (DOCX):** ~30-35 páginas
+- **Screenshots incluidos:** 17 (672 KB total)
 - **Cobertura:** 100% de funcionalidades (17 módulos sidebar + 6 componentes header)
+- **Tokens usados en traducción:** 36,282 (Groq llama-3.3-70b-versatile)
 
 ## 🔐 Confidencialidad
 

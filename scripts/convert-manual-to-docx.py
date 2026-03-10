@@ -9,6 +9,7 @@ from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.style import WD_STYLE_TYPE
 from datetime import datetime
+from pathlib import Path
 import re
 import os
 
@@ -127,12 +128,56 @@ class DocxManualExporter:
 
         self.doc.add_page_break()
 
+    def add_screenshot(self, image_path: str, caption: str = None):
+        """Add screenshot to DOCX"""
+        if Path(image_path).exists():
+            try:
+                # Add image (max width 6 inches to fit page)
+                self.doc.add_picture(image_path, width=Inches(6))
+
+                # Add caption if provided
+                if caption:
+                    caption_para = self.doc.add_paragraph()
+                    caption_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = caption_para.add_run(f"Figura: {caption}")
+                    run.font.size = Pt(9)
+                    run.font.italic = True
+                    run.font.color.rgb = RGBColor(100, 100, 100)
+
+                self.doc.add_paragraph()  # Spacing
+                return True
+            except Exception as e:
+                print(f"   ⚠️  Error añadiendo screenshot {image_path}: {e}")
+                return False
+        return False
+
     def parse_markdown_to_docx(self, markdown_content: str):
         """Convierte markdown a formato DOCX"""
         lines = markdown_content.split('\n')
         in_code_block = False
         in_list = False
         list_content = []
+
+        # Screenshot mapping (relative to base_dir)
+        base_dir = "/home/dev/proyectos/anclora-nexus"
+        screenshot_map = {
+            "### 3.1 Dashboard": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/01-dashboard.png",
+            "### 3.2 Leads": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/02-leads.png",
+            "### 3.3 Properties": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/03-properties.png",
+            "### 3.4 Tasks": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/04-tasks.png",
+            "### 3.5 Team": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/05-team.png",
+            "### 4.2 Prospection operativa": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/06-prospection-unified.png",
+            "### 4.3 Seller Pipeline": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/07-sellers.png",
+            "### 4.4 Opportunity Ranking": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/08-opportunity-ranking.png",
+            "### 4.5 Intelligence": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/09-intelligence.png",
+            "### 5.1 Ingestion": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/11-ingestion.png",
+            "### 5.2 Data Quality": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/12-data-quality.png",
+            "### 5.3 Feed Orchestrator": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/13-feed-orchestrator.png",
+            "### 5.4 Automation & Alerting": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/14-automation-alerting.png",
+            "### 5.5 Command Center": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/15-command-center.png",
+            "### 5.6 Deal Margin Simulator": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/16-deal-margin-simulator.png",
+            "### 5.7 Source Observatory": f"{base_dir}/public/docs/manual-usuario/assets/screenshots/17-source-observatory.png",
+        }
 
         for line in lines:
             # Ignorar frontmatter YAML
@@ -161,11 +206,26 @@ class DocxManualExporter:
                 self.doc.add_heading(line[2:], level=1)
                 in_list = False
             elif line.startswith('## '):
-                self.doc.add_heading(line[3:], level=2)
+                heading_text = line[3:]
+                self.doc.add_heading(heading_text, level=2)
                 in_list = False
+
+                # Check if we should insert a screenshot after this heading
+                if line in screenshot_map:
+                    screenshot_path = screenshot_map[line]
+                    if Path(screenshot_path).exists():
+                        self.add_screenshot(screenshot_path, heading_text)
+
             elif line.startswith('### '):
-                self.doc.add_heading(line[4:], level=3)
+                heading_text = line[4:]
+                self.doc.add_heading(heading_text, level=3)
                 in_list = False
+
+                # Check if we should insert a screenshot after this heading
+                if line in screenshot_map:
+                    screenshot_path = screenshot_map[line]
+                    if Path(screenshot_path).exists():
+                        self.add_screenshot(screenshot_path, heading_text)
 
             # Listas
             elif line.strip().startswith('- ') or line.strip().startswith('* '):
@@ -270,15 +330,31 @@ class DocxManualExporter:
 
 
 if __name__ == "__main__":
+    import sys
+
+    # Parse language argument
+    lang = "es"  # default
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--lang" and len(sys.argv) > 2:
+            lang = sys.argv[2].lower()
+
     # Rutas
     base_dir = "/home/dev/proyectos/anclora-nexus"
-    markdown_path = f"{base_dir}/public/docs/manual-usuario/MANUAL_USUARIO_ANCLORA_NEXUS.md"
-    docx_path = f"{base_dir}/public/docs/manual-usuario/MANUAL_USUARIO_ANCLORA_NEXUS.docx"
+
+    if lang == "en":
+        markdown_path = f"{base_dir}/public/docs/manual-usuario/MANUAL_USUARIO_ANCLORA_NEXUS_EN.md"
+        docx_path = f"{base_dir}/public/docs/manual-usuario/MANUAL_USUARIO_ANCLORA_NEXUS_EN.docx"
+        print_lang = "EN (ENGLISH)"
+    else:
+        markdown_path = f"{base_dir}/public/docs/manual-usuario/MANUAL_USUARIO_ANCLORA_NEXUS.md"
+        docx_path = f"{base_dir}/public/docs/manual-usuario/MANUAL_USUARIO_ANCLORA_NEXUS.docx"
+        print_lang = "ES (ESPAÑOL)"
+
     logo_path = f"{base_dir}/public/brand/logo-nexus-1.png"
 
     # Ejecutar conversión
     print("=" * 60)
-    print("🚀 CONVERSIÓN DE MANUAL DE USUARIO A DOCX")
+    print(f"🚀 CONVERSIÓN DE MANUAL DE USUARIO A DOCX ({print_lang})")
     print("=" * 60)
 
     exporter = DocxManualExporter(markdown_path, docx_path)
@@ -287,3 +363,4 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("✨ Conversión completada!")
     print("=" * 60)
+    print(f"\n💡 Para generar otra versión: python3 {sys.argv[0]} --lang [es|en]")
