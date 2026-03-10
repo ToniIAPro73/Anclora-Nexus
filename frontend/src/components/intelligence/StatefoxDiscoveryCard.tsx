@@ -66,7 +66,7 @@ export function StatefoxDiscoveryCard() {
   const current = data || { status: 'research' }
 
   return (
-    <div className="rounded-2xl border border-soft-subtle/20 bg-navy-surface/40 p-5 mb-6">
+    <div className="surface-primary surface-copy-safe rounded-2xl border border-soft-subtle/20 bg-navy-surface/40 p-5 mb-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
@@ -95,35 +95,35 @@ export function StatefoxDiscoveryCard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-5">
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('statefoxDiscoverySurface')}</p>
           <p className="text-sm text-soft-white mt-2">{current.provider || 'Telegram Mini App'}</p>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('statefoxDiscoveryPrimaryTarget')}</p>
           <p className="text-sm text-soft-white mt-2">{t('statefoxDiscoveryRouteProperties')}</p>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('statefoxDiscoverySecondaryTarget')}</p>
           <p className="text-sm text-soft-white mt-2">
             {current.import_contract?.secondary_target ? t('statefoxDiscoveryRouteSellers') : t('statefoxDiscoveryNoSecondaryTarget')}
           </p>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('statefoxDiscoveryAutomationMode')}</p>
           <p className="text-sm text-soft-white mt-2">{current.automation?.mode || '—'}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <div className="flex items-center gap-2">
             <Waypoints className="w-4 h-4 text-gold" />
             <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('statefoxDiscoveryDecision')}</p>
           </div>
           <p className="text-sm text-soft-white mt-2">{current.decision?.reason || t('statefoxDiscoveryAdapterHypothesis')}</p>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <div className="flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-amber-300" />
             <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('statefoxDiscoveryConstraints')}</p>

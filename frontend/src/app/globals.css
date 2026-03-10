@@ -36,6 +36,16 @@
   --shadow-widget-hover: 0 8px 40px rgba(0, 0, 0, 0.35);
   --shadow-gold-glow: 0 0 20px rgba(212, 175, 55, 0.15);
   --shadow-blue-glow: 0 0 20px rgba(175, 210, 250, 0.12);
+  --shadow-surface-primary-hover:
+    0 18px 42px rgba(5, 11, 28, 0.36),
+    0 0 0 1px rgba(212, 175, 55, 0.10),
+    0 10px 28px rgba(212, 175, 55, 0.10);
+  --shadow-surface-secondary-hover:
+    0 14px 34px rgba(5, 11, 28, 0.32),
+    0 0 0 1px rgba(175, 210, 250, 0.10),
+    0 8px 20px rgba(175, 210, 250, 0.08);
+  --border-surface-primary-hover: rgba(212, 175, 55, 0.34);
+  --border-surface-secondary-hover: rgba(175, 210, 250, 0.34);
 
   @keyframes shimmer {
     0% { background-position: -200% 0; }
@@ -87,6 +97,60 @@
 }
 
 @layer components {
+  .surface-primary,
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-2xl"][class*="border"][class*="bg-navy"],
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-2xl"][class*="border"][class*="from-navy"],
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-3xl"][class*="border"][class*="bg-navy"],
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-3xl"][class*="border"][class*="from-navy"] {
+    min-width: 0;
+    transition:
+      transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 220ms ease,
+      box-shadow 220ms ease,
+      background-color 220ms ease;
+    will-change: transform, box-shadow;
+  }
+
+  .surface-primary:hover,
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-2xl"][class*="border"][class*="bg-navy"]:hover,
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-2xl"][class*="border"][class*="from-navy"]:hover,
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-3xl"][class*="border"][class*="bg-navy"]:hover,
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-3xl"][class*="border"][class*="from-navy"]:hover {
+    border-color: var(--border-surface-primary-hover);
+    box-shadow: var(--shadow-surface-primary-hover);
+    transform: translateY(-3px);
+  }
+
+  .surface-secondary,
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-xl"][class*="border"][class*="bg-navy"]:not([class*="rounded-2xl"]):not([class*="rounded-3xl"]) {
+    min-width: 0;
+    transition:
+      transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 220ms ease,
+      box-shadow 220ms ease,
+      background-color 220ms ease;
+    will-change: transform, box-shadow;
+  }
+
+  .surface-secondary:hover,
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-xl"][class*="border"][class*="bg-navy"]:not([class*="rounded-2xl"]):not([class*="rounded-3xl"]):hover {
+    border-color: var(--border-surface-secondary-hover);
+    box-shadow: var(--shadow-surface-secondary-hover);
+    transform: translateY(-2px);
+  }
+
+  .surface-copy-safe,
+  .surface-copy-safe :is(h1, h2, h3, h4, h5, h6, p, span, a, li, code),
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-2xl"][class*="border"][class*="bg-navy"] :is(h1, h2, h3, h4, h5, h6, p, span, a, li, code),
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-2xl"][class*="border"][class*="from-navy"] :is(h1, h2, h3, h4, h5, h6, p, span, a, li, code),
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-3xl"][class*="border"][class*="bg-navy"] :is(h1, h2, h3, h4, h5, h6, p, span, a, li, code),
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-3xl"][class*="border"][class*="from-navy"] :is(h1, h2, h3, h4, h5, h6, p, span, a, li, code),
+  .dashboard-shell :where(article, section, div):not([data-surface="skip"])[class*="rounded-xl"][class*="border"][class*="bg-navy"]:not([class*="rounded-2xl"]):not([class*="rounded-3xl"]) :is(h1, h2, h3, h4, h5, h6, p, span, a, li, code) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
   /* ─── Widget Card Base ─── */
   .widget-card {
     @apply relative overflow-hidden;
@@ -103,11 +167,9 @@
   }
 
   .widget-card:hover {
-    border-color: rgba(245, 245, 240, 0.12);
-    box-shadow:
-      0 8px 40px rgba(0, 0, 0, 0.35),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    transform: translateY(-2px);
+    border-color: var(--border-surface-primary-hover);
+    box-shadow: var(--shadow-surface-primary-hover);
+    transform: translateY(-3px);
   }
 
   /* ─── Gold Shimmer Border (top edge on hover) ─── */

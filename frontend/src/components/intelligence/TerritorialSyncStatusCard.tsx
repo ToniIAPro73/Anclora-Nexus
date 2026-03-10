@@ -116,7 +116,7 @@ export function TerritorialSyncStatusCard() {
           : 'text-soft-muted'
 
   return (
-    <div className={`rounded-2xl border ${styles.border} bg-navy-surface/40 p-5 mb-6`}>
+    <div className={`surface-primary surface-copy-safe rounded-2xl border ${styles.border} bg-navy-surface/40 p-5 mb-6`}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -147,25 +147,25 @@ export function TerritorialSyncStatusCard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-5">
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncNotebook')}</p>
           <p className="text-sm text-soft-white mt-2">{current.notebook_name || '—'}</p>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncGeneratedAt')}</p>
           <p className="text-sm text-soft-white mt-2">{generatedAt}</p>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncCoverage')}</p>
           <p className="text-sm text-soft-white mt-2">
             {current.coverage?.query_count || 0} {t('territorialSyncQueries')} · {(current.coverage?.zones || []).length} {t('territorialSyncZones')}
           </p>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncMode')}</p>
           <p className="text-sm text-soft-white mt-2">{current.source_mode || '—'}</p>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialPipelineLastRun')}</p>
           <p className={`text-sm mt-2 ${pipelineTone}`}>{latestRunLabel}</p>
           <p className="text-[11px] text-soft-muted mt-1">
@@ -175,15 +175,15 @@ export function TerritorialSyncStatusCard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncSourceRefs')}</p>
           <ul className="mt-2 space-y-1 text-sm text-soft-white">
             {(current.source_refs || []).slice(0, 4).map((ref) => (
-              <li key={ref} className="truncate">{ref}</li>
+              <li key={ref}>{ref}</li>
             ))}
           </ul>
         </div>
-        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+        <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncObservations')}</p>
           <ul className="mt-2 space-y-1 text-sm text-soft-white">
             {(current.errors?.length ? current.errors : current.warnings)?.slice(0, 3).map((item) => (
@@ -196,7 +196,7 @@ export function TerritorialSyncStatusCard() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4 mt-4">
+      <div className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4 mt-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialPipelineStats')}</p>
           <p className={`text-sm ${pipelineTone}`}>{pipelineStatus?.message || t('territorialPipelineNoRuns')}</p>
