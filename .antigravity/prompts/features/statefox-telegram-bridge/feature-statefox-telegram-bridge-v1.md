@@ -8,3 +8,5 @@ Condiciones:
 - preservar deep links `startapp` y URLs públicas para deduplicación
 - UI con previsualización antes de importar
 - i18n completo
+- derivación seller-side solo por señales explícitas
+- trazabilidad operativa mínima en cada importación

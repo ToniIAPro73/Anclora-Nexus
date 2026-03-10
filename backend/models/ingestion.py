@@ -95,6 +95,9 @@ class SellerSignalItem(BaseModel):
     empresa: Optional[str] = None
     website_url: Optional[str] = None
     anuncio_url: Optional[str] = None
+    email_contacto: Optional[str] = None
+    telefono_contacto: Optional[str] = None
+    whatsapp_contacto: Optional[str] = None
     direccion: Optional[str] = None
     zona: Optional[str] = None
     fuente: Optional[str] = None
