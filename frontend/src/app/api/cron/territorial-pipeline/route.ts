@@ -7,12 +7,13 @@
  *   3. Generates dossier/email drafts for high-priority sellers
  */
 
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { NextRequest, NextResponse } from 'next/server'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const CRON_SECRET = process.env.CRON_SECRET
+const PIPELINE_STATUS_PATH = path.join(process.cwd(), 'ops', 'territorial-pipeline-status.json')
 
 async function postSkill(skill: string, data: Record<string, unknown>) {
   const res = await fetch(`${BACKEND_URL}/api/skills/run`, {
@@ -47,6 +48,30 @@ export async function GET(req: NextRequest) {
   }
 
   const startedAt = new Date().toISOString()
+
+  async function persistPipelineStatus(payload: Record<string, unknown>) {
+    try {
+      await writeFile(PIPELINE_STATUS_PATH, JSON.stringify(payload, null, 2), 'utf8')
+    } catch (error) {
+      console.error('[cron/territorial-pipeline] failed to persist pipeline status:', error)
+    }
+  }
+
+  await persistPipelineStatus({
+    feature_id: 'ANCLORA-TSCP-001.pipeline.v1',
+    status: 'running',
+    message: 'Territorial pipeline started.',
+    started_at: startedAt,
+    finished_at: null,
+    last_success_at: null,
+    last_error_at: null,
+    stats: {
+      sellers_created: 0,
+      signals_received: 0,
+      queries_synced: 0,
+      outreach_processed: 0,
+    },
+  })
 
   try {
     const snapshotPath = path.join(process.cwd(), 'public', 'data', 'seller-signals.snapshot.json')
@@ -119,10 +144,15 @@ export async function GET(req: NextRequest) {
       limit: 3,
     })
 
-    return NextResponse.json({
-      ok: true,
+    const finishedAt = new Date().toISOString()
+    const successPayload = {
+      feature_id: 'ANCLORA-TSCP-001.pipeline.v1',
+      status: 'success',
+      message: 'Territorial pipeline completed successfully.',
       started_at: startedAt,
-      finished_at: new Date().toISOString(),
+      finished_at: finishedAt,
+      last_success_at: finishedAt,
+      last_error_at: null,
       notebook_source: notebookQueries.length > 0
         ? {
             mode: notebookSyncPack.source_mode || 'live_notebook_sync_pack',
@@ -137,14 +167,48 @@ export async function GET(req: NextRequest) {
             source_ref: 'public/docs/vulnerabilidades.md',
             queries_synced: 1,
           },
+      stats: {
+        sellers_created: Number((ingestion as { sellers_created?: number })?.sellers_created || 0),
+        signals_received: Number((ingestion as { signals_received?: number })?.signals_received || 0),
+        queries_synced: notebookQueries.length > 0 ? notebookQueries.length : 1,
+        outreach_processed: Number((outreach as { processed_count?: number })?.processed_count || 0),
+      },
+      ingestion,
+      notebook_sync: notebookSync,
+      outreach,
+    }
+
+    await persistPipelineStatus(successPayload)
+
+    return NextResponse.json({
+      ok: true,
+      started_at: startedAt,
+      finished_at: finishedAt,
+      notebook_source: successPayload.notebook_source,
       ingestion,
       notebook_sync: notebookSync,
       outreach,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
+    const finishedAt = new Date().toISOString()
+    await persistPipelineStatus({
+      feature_id: 'ANCLORA-TSCP-001.pipeline.v1',
+      status: 'error',
+      message,
+      started_at: startedAt,
+      finished_at: finishedAt,
+      last_success_at: null,
+      last_error_at: finishedAt,
+      stats: {
+        sellers_created: 0,
+        signals_received: 0,
+        queries_synced: 0,
+        outreach_processed: 0,
+      },
+    })
     return NextResponse.json(
-      { ok: false, error: message, started_at: startedAt, finished_at: new Date().toISOString() },
+      { ok: false, error: message, started_at: startedAt, finished_at: finishedAt },
       { status: 500 }
     )
   }

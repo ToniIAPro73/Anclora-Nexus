@@ -1,13 +1,13 @@
 {
   "feature_id": "ANCLORA-TSCP-001.v1",
   "status": "ready",
-  "checked_at": "2026-03-09T00:54:57.650Z",
+  "checked_at": "2026-03-10T03:05:03.703Z",
   "generated_at": "2026-03-09T00:00:00Z",
   "notebook_id": "9f003773-16c5-4fb4-ab37-7b6c230ab4da",
   "notebook_name": "Inteligencia Territorial Suroeste Mallorca 2026",
   "source_mode": "live_notebook_sync_pack",
   "freshness_hours": 96,
-  "age_hours": 0.9,
+  "age_hours": 27.1,
   "coverage": {
     "query_count": 4,
     "zones": [
@@ -72,7 +72,7 @@
     {
       "id": "freshness_window",
       "ok": true,
-      "detail": "0.9h <= 96h"
+      "detail": "27.1h <= 96h"
     },
     {
       "id": "source_refs_present",

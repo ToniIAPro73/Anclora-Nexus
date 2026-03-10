@@ -23,6 +23,21 @@ type SyncStatus = {
   errors?: string[]
 }
 
+type PipelineStatus = {
+  status: 'idle' | 'running' | 'success' | 'error' | string
+  message?: string
+  started_at?: string | null
+  finished_at?: string | null
+  last_success_at?: string | null
+  last_error_at?: string | null
+  stats?: {
+    sellers_created?: number
+    signals_received?: number
+    queries_synced?: number
+    outreach_processed?: number
+  }
+}
+
 function statusStyles(status: string) {
   if (status === 'ready') {
     return {
@@ -51,6 +66,7 @@ function statusStyles(status: string) {
 export function TerritorialSyncStatusCard() {
   const { t } = useI18n()
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
+  const [pipelineStatus, setPipelineStatus] = useState<PipelineStatus | null>(null)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
@@ -62,10 +78,15 @@ export function TerritorialSyncStatusCard() {
       if (!res.ok) throw new Error('sync status unavailable')
       const body = await res.json()
       setSyncStatus(body.sync_status as SyncStatus)
+      setPipelineStatus((body.pipeline_status || null) as PipelineStatus | null)
     } catch {
       setSyncStatus({
         status: 'error',
         errors: [t('territorialSyncUnavailable')],
+      })
+      setPipelineStatus({
+        status: 'error',
+        message: t('territorialPipelineUnavailable'),
       })
     } finally {
       setLoading(false)
@@ -82,6 +103,17 @@ export function TerritorialSyncStatusCard() {
   const generatedAt = current.generated_at
     ? new Date(current.generated_at).toLocaleString('es-ES')
     : '—'
+  const latestRunAt = pipelineStatus?.finished_at || pipelineStatus?.started_at
+  const latestRunLabel = latestRunAt ? new Date(latestRunAt).toLocaleString('es-ES') : '—'
+  const pipelineStats = pipelineStatus?.stats || {}
+  const pipelineTone =
+    pipelineStatus?.status === 'success'
+      ? 'text-emerald-400'
+      : pipelineStatus?.status === 'running'
+        ? 'text-amber-300'
+        : pipelineStatus?.status === 'error'
+          ? 'text-red-400'
+          : 'text-soft-muted'
 
   return (
     <div className={`rounded-2xl border ${styles.border} bg-navy-surface/40 p-5 mb-6`}>
@@ -114,7 +146,7 @@ export function TerritorialSyncStatusCard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-5">
         <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncNotebook')}</p>
           <p className="text-sm text-soft-white mt-2">{current.notebook_name || '—'}</p>
@@ -132,6 +164,13 @@ export function TerritorialSyncStatusCard() {
         <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
           <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialSyncMode')}</p>
           <p className="text-sm text-soft-white mt-2">{current.source_mode || '—'}</p>
+        </div>
+        <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4">
+          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialPipelineLastRun')}</p>
+          <p className={`text-sm mt-2 ${pipelineTone}`}>{latestRunLabel}</p>
+          <p className="text-[11px] text-soft-muted mt-1">
+            {t('status')}: {pipelineStatus?.status || 'idle'}
+          </p>
         </div>
       </div>
 
@@ -154,6 +193,31 @@ export function TerritorialSyncStatusCard() {
               <li>{t('territorialSyncHealthy')}</li>
             )}
           </ul>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-soft-subtle/20 bg-navy-darker/20 p-4 mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[11px] uppercase tracking-wide text-soft-muted">{t('territorialPipelineStats')}</p>
+          <p className={`text-sm ${pipelineTone}`}>{pipelineStatus?.message || t('territorialPipelineNoRuns')}</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
+          <div>
+            <p className="text-soft-muted text-[11px] uppercase tracking-wide">{t('territorialPipelineSignals')}</p>
+            <p className="text-soft-white mt-1">{pipelineStats.signals_received || 0}</p>
+          </div>
+          <div>
+            <p className="text-soft-muted text-[11px] uppercase tracking-wide">{t('territorialPipelineSellers')}</p>
+            <p className="text-soft-white mt-1">{pipelineStats.sellers_created || 0}</p>
+          </div>
+          <div>
+            <p className="text-soft-muted text-[11px] uppercase tracking-wide">{t('territorialPipelineQueries')}</p>
+            <p className="text-soft-white mt-1">{pipelineStats.queries_synced || 0}</p>
+          </div>
+          <div>
+            <p className="text-soft-muted text-[11px] uppercase tracking-wide">{t('territorialPipelineOutreach')}</p>
+            <p className="text-soft-white mt-1">{pipelineStats.outreach_processed || 0}</p>
+          </div>
         </div>
       </div>
     </div>

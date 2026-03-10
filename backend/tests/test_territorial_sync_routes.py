@@ -44,9 +44,23 @@ class TestTerritorialSyncRouteContract:
             "errors": [],
         }
 
-        response = client.get("/api/intelligence/territorial-sync-status")
+        with patch("backend.api.routes.intelligence.get_territorial_pipeline_status") as mock_pipeline:
+            mock_pipeline.return_value = {
+                "feature_id": "ANCLORA-TSCP-001.pipeline.v1",
+                "status": "success",
+                "finished_at": "2026-03-10T00:30:00Z",
+                "stats": {
+                    "sellers_created": 2,
+                    "signals_received": 4,
+                    "queries_synced": 4,
+                    "outreach_processed": 1,
+                },
+            }
+            response = client.get("/api/intelligence/territorial-sync-status")
 
         assert response.status_code == 200
         body = response.json()
         assert body["sync_status"]["status"] == "ready"
         assert body["sync_status"]["coverage"]["query_count"] == 4
+        assert body["pipeline_status"]["status"] == "success"
+        assert body["pipeline_status"]["stats"]["queries_synced"] == 4

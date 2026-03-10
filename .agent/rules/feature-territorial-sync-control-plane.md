@@ -9,10 +9,13 @@ trigger: always_on
 2) .agent/rules/workspace-governance.md
 3) .agent/rules/anclora-nexus.md
 4) sdd/features/territorial-sync-control-plane/territorial-sync-control-plane-spec-v1.md
+5) sdd/features/territorial-sync-control-plane/territorial-sync-control-plane-spec-v1_1.md
 
 ## Rules
 - El sync pack territorial sigue siendo la fuente principal del pipeline.
 - `vulnerabilidades.md` permanece como fallback, nunca como fuente primaria.
 - No editar manualmente `public/data/notebooklm-territorial.sync.json` ni `ops/notebooklm-territorial-sync-status.json`.
+- No editar manualmente `ops/territorial-pipeline-status.json`.
 - El cron territorial debe rechazar un pack con estado `error`.
 - Toda visibilidad de estado debe derivar de manifiesto + raw + build validado.
+- El pipeline territorial debe persistir el ultimo resultado operativo con `status`, `started_at`, `finished_at` y `stats`.

@@ -9,10 +9,12 @@ Checklist:
 4. Validar consistencia, freshness y trazabilidad.
 5. Exponer estado por API.
 6. Mostrar estado en UI.
-7. Bloquear cron si el pack entra en error.
+7. Persistir ultimo run del pipeline territorial con stats operativas.
+8. Bloquear cron si el pack entra en error.
 
 Criterio de cierre:
 - `ops/notebooklm-territorial-sync-status.json` en `ready`
+- `ops/territorial-pipeline-status.json` refleja el ultimo run conocido
 - `GET /api/intelligence/territorial-sync-status` devuelve el mismo contrato
 - `/intelligence` muestra el estado del control plane
 - el cron territorial rechaza packs inválidos

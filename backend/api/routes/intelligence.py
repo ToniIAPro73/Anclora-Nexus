@@ -20,7 +20,10 @@ from ...services.notebooklm_service import (
 )
 from ...services.ai_runtime import get_runtime_summary
 from ...services.supabase_service import SupabaseService
-from ...services.territorial_sync_service import get_territorial_sync_status
+from ...services.territorial_sync_service import (
+    get_territorial_pipeline_status,
+    get_territorial_sync_status,
+)
 from ...services.statefox_discovery_service import get_statefox_discovery
 from ...services.statefox_bridge_service import parse_statefox_raw, import_statefox_listings
 from ...services.statefox_live_capture_service import get_statefox_live_capture, import_latest_statefox_capture
@@ -341,8 +344,10 @@ async def get_territorial_sync_status_endpoint():
     """
     try:
         status = get_territorial_sync_status()
+        pipeline_status = get_territorial_pipeline_status()
         return {
             "sync_status": status,
+            "pipeline_status": pipeline_status,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:

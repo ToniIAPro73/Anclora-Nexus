@@ -16,6 +16,7 @@ from typing import Any, Dict
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SYNC_PACK_PATH = REPO_ROOT / "public" / "data" / "notebooklm-territorial.sync.json"
 SYNC_STATUS_PATH = REPO_ROOT / "ops" / "notebooklm-territorial-sync-status.json"
+PIPELINE_STATUS_PATH = REPO_ROOT / "ops" / "territorial-pipeline-status.json"
 
 
 def _read_json(path: Path) -> Dict[str, Any]:
@@ -66,5 +67,34 @@ def get_territorial_sync_status() -> Dict[str, Any]:
             "primary_source_locked": False,
             "pack_query_count": coverage.get("query_count", 0),
             "zones_covered": coverage.get("zones", []),
+        },
+    }
+
+
+def get_territorial_pipeline_status() -> Dict[str, Any]:
+    """
+    Return the latest known execution status of the territorial pipeline.
+
+    The file is written by the cron entrypoint as a lightweight operational
+    heartbeat for UI and support. If the file is missing, return a degraded
+    but actionable payload.
+    """
+
+    if PIPELINE_STATUS_PATH.exists():
+        return _read_json(PIPELINE_STATUS_PATH)
+
+    return {
+        "feature_id": "ANCLORA-TSCP-001.pipeline.v1",
+        "status": "idle",
+        "message": "No territorial pipeline execution recorded yet.",
+        "started_at": None,
+        "finished_at": None,
+        "last_success_at": None,
+        "last_error_at": None,
+        "stats": {
+            "sellers_created": 0,
+            "signals_received": 0,
+            "queries_synced": 0,
+            "outreach_processed": 0,
         },
     }

@@ -1,0 +1,15 @@
+{
+  "feature_id": "ANCLORA-TSCP-001.pipeline.v1",
+  "status": "idle",
+  "message": "No territorial pipeline execution recorded yet.",
+  "started_at": null,
+  "finished_at": null,
+  "last_success_at": null,
+  "last_error_at": null,
+  "stats": {
+    "sellers_created": 0,
+    "signals_received": 0,
+    "queries_synced": 0,
+    "outreach_processed": 0
+  }
+}
