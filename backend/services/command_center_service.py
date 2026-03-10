@@ -10,6 +10,7 @@ from backend.models.command_center import (
     KPIValue,
     OperationalAlertPreview,
     OperationalOverview,
+    PipelineOverview,
     ScopeMetadata,
     TrendPoint,
 )
@@ -88,6 +89,87 @@ class CommandCenterService:
             ],
         )
 
+    def _build_pipeline_overview(self, org_id: str) -> PipelineOverview:
+        seller_signals_processed = 0
+        if self._table_exists("ingestion_events"):
+            try:
+                events = (
+                    self.client.table("ingestion_events")
+                    .select("status,entity_type")
+                    .eq("org_id", org_id)
+                    .eq("entity_type", "seller_signal")
+                    .execute()
+                    .data
+                    or []
+                )
+                seller_signals_processed = sum(1 for item in events if str(item.get("status") or "") == "processed")
+            except Exception:
+                seller_signals_processed = 0
+
+        sellers_total = 0
+        sellers_high_priority = 0
+        sellers_converted = 0
+        if self._table_exists("nexus_sellers"):
+            try:
+                sellers = (
+                    self.client.table("nexus_sellers")
+                    .select("prioridad,estado_contacto")
+                    .eq("org_id", org_id)
+                    .execute()
+                    .data
+                    or []
+                )
+                sellers_total = len(sellers)
+                sellers_high_priority = sum(1 for item in sellers if int(item.get("prioridad") or 0) >= 4)
+                sellers_converted = sum(
+                    1 for item in sellers
+                    if str(item.get("estado_contacto") or "") == "mandato_exclusivo"
+                )
+            except Exception:
+                sellers_total = 0
+
+        supervised_sends_confirmed = 0
+        active_workbench_ready = 0
+        if self._table_exists("seller_interactions"):
+            try:
+                interactions = (
+                    self.client.table("seller_interactions")
+                    .select("seller_id,resultado,metadata")
+                    .eq("org_id", org_id)
+                    .execute()
+                    .data
+                    or []
+                )
+                supervised_sends_confirmed = sum(
+                    1 for item in interactions if str(item.get("resultado") or "") == "sent_confirmed_human"
+                )
+                ready_sellers = {
+                    str(item.get("seller_id"))
+                    for item in interactions
+                    if str(((item.get("metadata") or {}).get("artifact") or "")) in {
+                        "email_draft",
+                        "whatsapp_draft",
+                        "call_brief",
+                        "context_brief",
+                        "captation_dossier",
+                    }
+                }
+                active_workbench_ready = len(ready_sellers)
+            except Exception:
+                supervised_sends_confirmed = 0
+
+        seller_conversion_rate = round((sellers_converted / sellers_total * 100) if sellers_total > 0 else 0.0, 1)
+
+        return PipelineOverview(
+            seller_signals_processed=seller_signals_processed,
+            sellers_total=sellers_total,
+            sellers_high_priority=sellers_high_priority,
+            sellers_converted=sellers_converted,
+            seller_conversion_rate=seller_conversion_rate,
+            supervised_sends_confirmed=supervised_sends_confirmed,
+            active_workbench_ready=active_workbench_ready,
+        )
+
     async def get_snapshot(self, org_id: str, user_id: str) -> CommandCenterSnapshotResponse:
         role = await self._get_role(org_id, user_id)
         leads_total = await self._count_entities("leads", org_id, role, user_id)
@@ -104,6 +186,7 @@ class CommandCenterService:
         budget = await finops_service.get_budget_status(org_id)
         has_full_cost_visibility = not self._is_agent(role)
         operational_overview = await self._build_operational_overview(org_id=org_id, user_id=user_id)
+        pipeline_overview = self._build_pipeline_overview(org_id=org_id)
 
         return CommandCenterSnapshotResponse(
             scope=ScopeMetadata(org_id=org_id, role=role),
@@ -123,6 +206,7 @@ class CommandCenterService:
             current_usage_eur=budget.current_usage_eur if has_full_cost_visibility else None,
             cost_visibility="full" if has_full_cost_visibility else "limited",
             operational_overview=operational_overview,
+            pipeline_overview=pipeline_overview,
         )
 
     def _month_keys(self, months: int) -> List[str]:
@@ -164,6 +248,9 @@ class CommandCenterService:
         cost_map: Dict[str, float] = defaultdict(float)
         alert_map: Dict[str, int] = defaultdict(int)
         critical_alert_map: Dict[str, int] = defaultdict(int)
+        seller_signal_map: Dict[str, int] = defaultdict(int)
+        sellers_created_map: Dict[str, int] = defaultdict(int)
+        supervised_send_map: Dict[str, int] = defaultdict(int)
 
         for item in leads:
             created_at = str(item.get("created_at") or "")
@@ -205,6 +292,64 @@ class CommandCenterService:
             except Exception:
                 pass
 
+        if self._table_exists("ingestion_events"):
+            try:
+                ingestion_events = (
+                    self.client.table("ingestion_events")
+                    .select("created_at,status,entity_type")
+                    .eq("org_id", org_id)
+                    .eq("entity_type", "seller_signal")
+                    .gte("created_at", min_date)
+                    .execute()
+                    .data
+                    or []
+                )
+                for item in ingestion_events:
+                    if str(item.get("status") or "") != "processed":
+                        continue
+                    created_at = str(item.get("created_at") or "")
+                    if len(created_at) >= 7:
+                        seller_signal_map[created_at[:7]] += 1
+            except Exception:
+                pass
+
+        if self._table_exists("nexus_sellers"):
+            try:
+                sellers = (
+                    self.client.table("nexus_sellers")
+                    .select("created_at")
+                    .eq("org_id", org_id)
+                    .gte("created_at", min_date)
+                    .execute()
+                    .data
+                    or []
+                )
+                for item in sellers:
+                    created_at = str(item.get("created_at") or "")
+                    if len(created_at) >= 7:
+                        sellers_created_map[created_at[:7]] += 1
+            except Exception:
+                pass
+
+        if self._table_exists("seller_interactions"):
+            try:
+                sends = (
+                    self.client.table("seller_interactions")
+                    .select("created_at,resultado")
+                    .eq("org_id", org_id)
+                    .eq("resultado", "sent_confirmed_human")
+                    .gte("created_at", min_date)
+                    .execute()
+                    .data
+                    or []
+                )
+                for item in sends:
+                    created_at = str(item.get("created_at") or "")
+                    if len(created_at) >= 7:
+                        supervised_send_map[created_at[:7]] += 1
+            except Exception:
+                pass
+
         points = [
             TrendPoint(
                 period=key,
@@ -213,6 +358,9 @@ class CommandCenterService:
                 cost_eur=round(cost_map.get(key, 0), 2),
                 active_alerts=alert_map.get(key, 0),
                 critical_alerts=critical_alert_map.get(key, 0),
+                seller_signals_processed=seller_signal_map.get(key, 0),
+                sellers_created=sellers_created_map.get(key, 0),
+                supervised_sends_confirmed=supervised_send_map.get(key, 0),
             )
             for key in month_keys
         ]

@@ -38,6 +38,16 @@ class OperationalOverview(BaseModel):
     top_alerts: List[OperationalAlertPreview]
 
 
+class PipelineOverview(BaseModel):
+    seller_signals_processed: int
+    sellers_total: int
+    sellers_high_priority: int
+    sellers_converted: int
+    seller_conversion_rate: float
+    supervised_sends_confirmed: int
+    active_workbench_ready: int
+
+
 class CommandCenterSnapshotResponse(BaseModel):
     version: str = FEATURE_VERSION
     scope: ScopeMetadata
@@ -49,6 +59,7 @@ class CommandCenterSnapshotResponse(BaseModel):
     current_usage_eur: Optional[float] = None
     cost_visibility: str
     operational_overview: OperationalOverview
+    pipeline_overview: PipelineOverview
 
 
 class TrendPoint(BaseModel):
@@ -58,6 +69,9 @@ class TrendPoint(BaseModel):
     cost_eur: float
     active_alerts: int = 0
     critical_alerts: int = 0
+    seller_signals_processed: int = 0
+    sellers_created: int = 0
+    supervised_sends_confirmed: int = 0
 
 
 class CommandCenterTrendsResponse(BaseModel):

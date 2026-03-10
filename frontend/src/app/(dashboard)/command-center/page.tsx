@@ -127,6 +127,29 @@ export default function CommandCenterPage() {
               </article>
             </section>
 
+            <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterSellerSignals')}</p>
+                <p className="mt-2 text-3xl font-bold text-soft-white">{snapshot?.pipeline_overview.seller_signals_processed || 0}</p>
+                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterPipelineThroughput')}</p>
+              </article>
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterSellersTotal')}</p>
+                <p className="mt-2 text-3xl font-bold text-gold">{snapshot?.pipeline_overview.sellers_total || 0}</p>
+                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterHighPrioritySellers')}: {snapshot?.pipeline_overview.sellers_high_priority || 0}</p>
+              </article>
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterSellersConverted')}</p>
+                <p className="mt-2 text-3xl font-bold text-emerald-300">{snapshot?.pipeline_overview.sellers_converted || 0}</p>
+                <p className="mt-1 text-sm text-soft-muted">{snapshot?.pipeline_overview.seller_conversion_rate || 0}%</p>
+              </article>
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterSupervisedSends')}</p>
+                <p className="mt-2 text-3xl font-bold text-blue-light">{snapshot?.pipeline_overview.supervised_sends_confirmed || 0}</p>
+                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterWorkbenchReady')}: {snapshot?.pipeline_overview.active_workbench_ready || 0}</p>
+              </article>
+            </section>
+
             <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-soft-white">
@@ -205,6 +228,9 @@ export default function CommandCenterPage() {
                       <th className="px-2 py-2 text-left">{t('cost')}</th>
                       <th className="px-2 py-2 text-left">{t('commandCenterActiveAlerts')}</th>
                       <th className="px-2 py-2 text-left">{t('commandCenterCriticalAlerts')}</th>
+                      <th className="px-2 py-2 text-left">{t('commandCenterSellerSignals')}</th>
+                      <th className="px-2 py-2 text-left">{t('commandCenterSellersCreated')}</th>
+                      <th className="px-2 py-2 text-left">{t('commandCenterSupervisedSends')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -216,6 +242,9 @@ export default function CommandCenterPage() {
                         <td className="px-2 py-2 text-soft-white">{p.cost_eur.toFixed(2)} EUR</td>
                         <td className="px-2 py-2 text-soft-white">{p.active_alerts}</td>
                         <td className="px-2 py-2 text-soft-white">{p.critical_alerts}</td>
+                        <td className="px-2 py-2 text-soft-white">{p.seller_signals_processed}</td>
+                        <td className="px-2 py-2 text-soft-white">{p.sellers_created}</td>
+                        <td className="px-2 py-2 text-soft-white">{p.supervised_sends_confirmed}</td>
                       </tr>
                     ))}
                   </tbody>

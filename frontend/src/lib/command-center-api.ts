@@ -62,6 +62,16 @@ export interface OperationalOverview {
   top_alerts: OperationalAlertPreview[]
 }
 
+export interface PipelineOverview {
+  seller_signals_processed: number
+  sellers_total: number
+  sellers_high_priority: number
+  sellers_converted: number
+  seller_conversion_rate: number
+  supervised_sends_confirmed: number
+  active_workbench_ready: number
+}
+
 export interface CommandCenterSnapshotResponse {
   version: string
   scope: ScopeMeta
@@ -73,6 +83,7 @@ export interface CommandCenterSnapshotResponse {
   current_usage_eur?: number | null
   cost_visibility: 'full' | 'limited'
   operational_overview: OperationalOverview
+  pipeline_overview: PipelineOverview
 }
 
 export interface TrendPoint {
@@ -82,6 +93,9 @@ export interface TrendPoint {
   cost_eur: number
   active_alerts: number
   critical_alerts: number
+  seller_signals_processed: number
+  sellers_created: number
+  supervised_sends_confirmed: number
 }
 
 export interface CommandCenterTrendsResponse {

@@ -5,6 +5,7 @@ from backend.models.automation import AlertItem, AlertListResponse, ScopeMetadat
 from backend.models.command_center import (
     CommandCenterSnapshotResponse,
     OperationalOverview,
+    PipelineOverview,
 )
 from backend.models.source_observatory import (
     ObservatoryOverviewResponse,
@@ -33,12 +34,67 @@ def test_command_center_snapshot_includes_operational_overview() -> None:
              territorial_sync_status="ready",
              territorial_pipeline_status="warning",
              top_alerts=[],
-         ))):
+         ))), \
+         patch.object(service, "_build_pipeline_overview", return_value=PipelineOverview(
+             seller_signals_processed=9,
+             sellers_total=6,
+             sellers_high_priority=4,
+             sellers_converted=1,
+             seller_conversion_rate=16.7,
+             supervised_sends_confirmed=2,
+             active_workbench_ready=5,
+         )):
         snapshot = asyncio.run(service.get_snapshot(org_id="org-1", user_id="user-1"))
 
     assert isinstance(snapshot, CommandCenterSnapshotResponse)
     assert snapshot.operational_overview.active_alerts == 3
     assert snapshot.operational_overview.degraded_sources == 2
+    assert snapshot.pipeline_overview.seller_signals_processed == 9
+
+
+def test_build_pipeline_overview_aggregates_sellers_ingestion_and_sends() -> None:
+    store = {
+        "ingestion_events": [
+            {"org_id": "org-1", "entity_type": "seller_signal", "status": "processed"},
+            {"org_id": "org-1", "entity_type": "seller_signal", "status": "processed"},
+            {"org_id": "org-1", "entity_type": "seller_signal", "status": "failed"},
+        ],
+        "nexus_sellers": [
+            {"org_id": "org-1", "prioridad": 5, "estado_contacto": "sin_contacto"},
+            {"org_id": "org-1", "prioridad": 4, "estado_contacto": "mandato_exclusivo"},
+            {"org_id": "org-1", "prioridad": 2, "estado_contacto": "en_seguimiento"},
+        ],
+        "seller_interactions": [
+            {"org_id": "org-1", "seller_id": "seller-1", "resultado": "sent_confirmed_human", "metadata": {"artifact": "email_draft"}},
+            {"org_id": "org-1", "seller_id": "seller-2", "resultado": None, "metadata": {"artifact": "captation_dossier"}},
+        ],
+    }
+    service = CommandCenterService()
+    service.client = type(
+        "MockClient",
+        (),
+        {
+            "table": lambda _self, table_name: type(
+                "MockQuery",
+                (),
+                {
+                    "__init__": lambda self: setattr(self, "rows", list(store.get(table_name, []))),
+                    "select": lambda self, *_args, **_kwargs: self,
+                    "eq": lambda self, key, value: (setattr(self, "rows", [row for row in self.rows if row.get(key) == value]) or self),
+                    "execute": lambda self: type("Resp", (), {"data": self.rows})(),
+                    "limit": lambda self, _value: self,
+                },
+            )()
+        },
+    )()
+
+    overview = service._build_pipeline_overview("org-1")
+
+    assert overview.seller_signals_processed == 2
+    assert overview.sellers_total == 3
+    assert overview.sellers_high_priority == 2
+    assert overview.sellers_converted == 1
+    assert overview.supervised_sends_confirmed == 1
 
 
 def test_build_operational_overview_aggregates_alerts_and_observatory() -> None:

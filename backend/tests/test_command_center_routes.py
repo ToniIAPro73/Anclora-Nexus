@@ -69,6 +69,15 @@ class TestCommandCenterRoutes:
                     "territorial_pipeline_status": "warning",
                     "top_alerts": [],
                 },
+                "pipeline_overview": {
+                    "seller_signals_processed": 8,
+                    "sellers_total": 5,
+                    "sellers_high_priority": 3,
+                    "sellers_converted": 1,
+                    "seller_conversion_rate": 20.0,
+                    "supervised_sends_confirmed": 2,
+                    "active_workbench_ready": 4,
+                },
             }
         )
         resp = client.get("/api/command-center/snapshot")
@@ -77,6 +86,7 @@ class TestCommandCenterRoutes:
         assert body["scope"]["org_id"] == ORG_ID
         assert body["budget_status"] == "ok"
         assert body["operational_overview"]["active_alerts"] == 3
+        assert body["pipeline_overview"]["sellers_total"] == 5
 
     @patch("backend.api.routes.command_center.command_center_service")
     def test_trends(self, mock_svc: MagicMock) -> None:
@@ -86,8 +96,8 @@ class TestCommandCenterRoutes:
                 "scope": {"org_id": ORG_ID, "role": "manager"},
                 "months": 6,
                 "points": [
-                    {"period": "2025-09", "leads_created": 3, "tasks_completed": 2, "cost_eur": 120.5, "active_alerts": 1, "critical_alerts": 0},
-                    {"period": "2025-10", "leads_created": 4, "tasks_completed": 3, "cost_eur": 95.0, "active_alerts": 2, "critical_alerts": 1},
+                    {"period": "2025-09", "leads_created": 3, "tasks_completed": 2, "cost_eur": 120.5, "active_alerts": 1, "critical_alerts": 0, "seller_signals_processed": 2, "sellers_created": 1, "supervised_sends_confirmed": 0},
+                    {"period": "2025-10", "leads_created": 4, "tasks_completed": 3, "cost_eur": 95.0, "active_alerts": 2, "critical_alerts": 1, "seller_signals_processed": 5, "sellers_created": 2, "supervised_sends_confirmed": 1},
                 ],
             }
         )
@@ -95,3 +105,4 @@ class TestCommandCenterRoutes:
         assert resp.status_code == 200
         assert len(resp.json()["points"]) == 2
         assert resp.json()["points"][1]["critical_alerts"] == 1
+        assert resp.json()["points"][1]["seller_signals_processed"] == 5

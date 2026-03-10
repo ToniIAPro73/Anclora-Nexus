@@ -9,6 +9,7 @@ trigger: always_on
 2) .agent/rules/workspace-governance.md
 3) .agent/rules/anclora-nexus.md
 4) sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-spec-v1.md
+5) sdd/features/finops-and-commercial-command-center/finops-and-commercial-command-center-spec-v1_1.md
 
 ## Immutable Rules
 - Strict scope by org_id and role on every operation.
@@ -22,3 +23,4 @@ trigger: always_on
 - Enforce i18n discipline and avoid hardcoded UI strings.
 - Treat the command center as the operational consolidation layer across cost, alerts and source health.
 - Prefer read-time aggregation from existing services before adding persistence.
+- Surface throughput and value signals from the productive seller pipeline, not just infrastructure health.

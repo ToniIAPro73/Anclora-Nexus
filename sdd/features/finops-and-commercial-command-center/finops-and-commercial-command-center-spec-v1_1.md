@@ -15,6 +15,8 @@ Turn the command center into the executive consolidation layer for cost, convers
   - degraded/stale source counts
   - territorial sync and territorial pipeline status
   - monthly alert trends
+  - pipeline overview for seller-side acquisition
+  - monthly throughput trends for seller signals, sellers created and supervised sends
 - Excludes:
   - new persistence
   - separate alert-delivery channels
@@ -25,12 +27,15 @@ Turn the command center into the executive consolidation layer for cost, convers
 
 ## 4. Backend Changes
 - Extend `/snapshot` with `operational_overview`.
-- Extend `/trends` with `active_alerts` and `critical_alerts`.
+- Extend `/snapshot` with `pipeline_overview`.
+- Extend `/trends` with `active_alerts`, `critical_alerts`, `seller_signals_processed`, `sellers_created` and `supervised_sends_confirmed`.
 
 ## 5. Frontend Changes
 - Surface operational blocks and top alerts in `/command-center`.
+- Surface seller-side throughput and conversion blocks in `/command-center`.
 - Preserve cost visibility restrictions by role.
 
 ## 6. Acceptance
 - Management sees active alerts, degraded sources and territorial health in one place.
+- Management also sees seller pipeline throughput and confirmed outreach without opening technical consoles.
 - Existing command-center routes remain compatible and role-safe.

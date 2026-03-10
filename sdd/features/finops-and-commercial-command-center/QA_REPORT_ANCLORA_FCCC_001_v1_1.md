@@ -2,7 +2,7 @@
 
 ## Resultado
 
-- `PYTHONPATH=/home/dev/proyectos/anclora-nexus .venv/bin/pytest -q backend/tests/test_command_center_routes.py backend/tests/test_command_center_service.py`: OK (`6 passed`)
+- `PYTHONPATH=/home/dev/proyectos/anclora-nexus .venv/bin/pytest -q backend/tests/test_command_center_routes.py backend/tests/test_command_center_service.py`: OK (`7 passed`)
 - `npm run frontend:lint`: OK
 - `npm run frontend:build`: OK
 
@@ -10,6 +10,7 @@
 
 - consolidación operativa en snapshot
 - tendencias con alertas
+- throughput y conversión seller-side en snapshot y trends
 - command center ejecutivo accionable
 
 ## Notas
