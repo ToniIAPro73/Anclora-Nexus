@@ -4,15 +4,11 @@ Fecha de evaluación: `2026-03-10`
 
 ## Decisión
 
-`CONDITIONAL GO`
+`GO`
 
 ## Motivo
 
-El perímetro `BL-001` a `BL-011` está cerrado en código, validado con tests backend, `lint` y `build` frontend, y empujado a `main`.
-
-La salida a producción real queda condicionada a una verificación operativa fuera de este workspace:
-
-1. Completar la validación del AI Runtime con secretos reales o aceptar waiver explícito por degradación de contenido.
+El perímetro `BL-001` a `BL-011` está cerrado en código, validado con tests backend, `lint` y `build` frontend, y ya cuenta con acta de smoke test con resultado `GO`.
 
 Runbook de smoke test:
 - `public/docs/Nuevo_enfoque/SMOKE_TEST_RC_PRODUCTIVO_Q2_2026.md`
@@ -26,6 +22,7 @@ Runbook de smoke test:
 
 - Migraciones `040`, `041`, `042` y `043` confirmadas como aplicadas en Supabase Cloud.
 - `POST /api/ingestion/seller-signals` revalidado con `200 OK` contra backend local apuntando a Supabase Cloud.
+- AI Runtime revalidado en el smoke final con contenido comercial correcto y mitigación operativa vía Groq.
 
 ### Commits del tramo productivo
 
@@ -79,9 +76,8 @@ Runbook de smoke test:
 
 ## Riesgos residuales
 
-- El sistema sigue degradado en generación AI mientras falten secretos Groq/Cloudflare en el entorno objetivo.
-- El fallo `PGRST205` observado en `seller-signals` no apunta ya a migración ausente sino a posible caché de esquema PostgREST o desalineación de entorno.
 - Persiste deuda legacy menor en `FastAPI on_event` y modelos Pydantic antiguos; no bloquea RC.
+- Conviene restaurar Cloudflare como proveedor balanceado, pero no bloquea producción mientras Groq cubra el runtime.
 
 ## Checklist de salida
 
@@ -95,8 +91,9 @@ Runbook de smoke test:
 - [x] Confirmación remota de migraciones `040-043`
 - [x] Smoke test de ingestión seller-side revalidado
 - [x] Revisión final compliance scraping/captura
-- [ ] Validación AI Runtime o waiver explícito
+- [x] Validación AI Runtime o mitigación explícita
+- [x] Acta de smoke test con resultado `GO`
 
 ## Recomendación
 
-Promocionar a producción solo tras cerrar la validación del AI Runtime o aceptar formalmente su degradación temporal. Hasta entonces el estado correcto sigue siendo `CONDITIONAL GO`.
+Promocionar a producción. El RC queda aprobado como `GO`, con recomendación de monitorizar cuotas de Groq y restaurar Cloudflare cuando proceda.

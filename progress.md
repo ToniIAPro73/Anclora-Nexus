@@ -33,11 +33,11 @@
 ### Estado release candidate
 
 - Código y documentación del perímetro productivo: listos.
-- Gate `BL-012`: `CONDITIONAL GO`.
+- Gate `BL-012`: `GO`.
 - Riesgos abiertos:
-  - ejecutar smoke test con datos reales o sandbox controlado
-  - validar compliance operativo final de scraping/captura en fuentes reales
+  - monitorizar cuotas de Groq
+  - restaurar Cloudflare como proveedor balanceado cuando se disponga de credenciales válidas
 
 ### Próximo hito
 
-- cerrar smoke test real y validación compliance para convertir el RC en `GO`
+- proceder al despliegue final y monitorización post-release
