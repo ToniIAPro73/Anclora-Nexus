@@ -15,6 +15,9 @@ La salida a producción real queda condicionada a dos verificaciones operativas 
 1. Ejecutar smoke test con datos reales o sandbox controlado.
 2. Emitir validación final de compliance scraping/captura para fuentes activas.
 
+Runbook de smoke test:
+- `public/docs/Nuevo_enfoque/SMOKE_TEST_RC_PRODUCTIVO_Q2_2026.md`
+
 ## Evidencia técnica
 
 ### Confirmación remota
