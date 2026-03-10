@@ -80,6 +80,7 @@ Runbook de smoke test:
 ## Riesgos residuales
 
 - No hay evidencia en este workspace de smoke test contra datos reales post-migración.
+- El fallo `PGRST205` observado en `seller-signals` no apunta ya a migración ausente sino a posible caché de esquema PostgREST o desalineación de entorno.
 - Persiste deuda legacy menor en `FastAPI on_event` y modelos Pydantic antiguos; no bloquea RC.
 
 ## Checklist de salida
