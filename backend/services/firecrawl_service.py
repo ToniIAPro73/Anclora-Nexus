@@ -86,10 +86,10 @@ LISTING_EXTRACT_SCHEMA = {
 def _get_client():
     """Lazy-load Firecrawl client to avoid import errors if SDK not installed."""
     try:
-        from firecrawl import Firecrawl  # type: ignore
+        from firecrawl.v1 import V1FirecrawlApp  # type: ignore
         if not FIRECRAWL_API_KEY:
             raise ValueError("FIRECRAWL_API_KEY not set in environment")
-        return Firecrawl(api_key=FIRECRAWL_API_KEY)
+        return V1FirecrawlApp(api_key=FIRECRAWL_API_KEY)
     except ImportError as exc:
         raise RuntimeError("firecrawl-py not installed. Run: pip install firecrawl-py") from exc
 
@@ -161,18 +161,25 @@ async def scrape_zone(zona: str) -> Dict[str, Any]:
 
     app = _get_client()
 
-    result = app.scrape(
+    from firecrawl.v1 import V1JsonConfig  # type: ignore
+
+    result = app.scrape_url(
         url,
-        formats=["extract"],
-        extract={"schema": SEARCH_EXTRACT_SCHEMA},
+        formats=["json"],
+        json_options=V1JsonConfig(
+            schema=SEARCH_EXTRACT_SCHEMA,
+            prompt="Extract all property listings from this Idealista search results page. Each listing should have its URL, price, area, bedrooms, bathrooms, property type, location, and days published.",
+        ),
+        proxy="stealth",
     )
 
     listings = []
-    if isinstance(result, dict):
-        extracted = result.get("extract") or {}
-        listings = extracted.get("listings") or []
-    elif hasattr(result, "extract") and result.extract:
-        listings = result.extract.get("listings") or []
+    if hasattr(result, "json") and result.json:
+        data = result.json if isinstance(result.json, dict) else {}
+        listings = data.get("listings") or []
+    elif isinstance(result, dict):
+        data = result.get("json") or result.get("extract") or {}
+        listings = data.get("listings") or []
 
     signals = [
         _normalise_listing_to_signal(listing, zona=zona)
@@ -202,17 +209,23 @@ async def scrape_listing(url: str, zona: str) -> Optional[Dict[str, Any]]:
 
     app = _get_client()
 
-    result = app.scrape(
+    from firecrawl.v1 import V1JsonConfig  # type: ignore
+
+    result = app.scrape_url(
         url,
-        formats=["extract"],
-        extract={"schema": LISTING_EXTRACT_SCHEMA},
+        formats=["json"],
+        json_options=V1JsonConfig(
+            schema=LISTING_EXTRACT_SCHEMA,
+            prompt="Extract owner contact info, property details, price, location and features from this Idealista listing page.",
+        ),
+        proxy="stealth",
     )
 
     raw = {}
-    if isinstance(result, dict):
-        raw = result.get("extract") or {}
-    elif hasattr(result, "extract") and result.extract:
-        raw = result.extract or {}
+    if hasattr(result, "json") and result.json:
+        raw = result.json if isinstance(result.json, dict) else {}
+    elif isinstance(result, dict):
+        raw = result.get("json") or result.get("extract") or {}
 
     if not raw:
         return None
