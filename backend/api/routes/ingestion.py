@@ -1,6 +1,10 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Depends
-from backend.models.ingestion import LeadIngestionPayload, PropertyIngestionPayload
+from backend.models.ingestion import (
+    LeadIngestionPayload,
+    PropertyIngestionPayload,
+    SellerSignalIngestionPayload,
+)
 from backend.services.ingestion_service import ingestion_service
 from backend.api.deps import get_org_id
 
@@ -30,13 +34,39 @@ async def ingest_property(payload: PropertyIngestionPayload):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/seller-signals", response_model=Dict[str, Any])
+async def ingest_seller_signals(payload: SellerSignalIngestionPayload):
+    """
+    Ingest seller-side signals into the unified ingestion perimeter and route them
+    into Nexus Sellers using the canonical connector contract.
+    """
+    try:
+        result = await ingestion_service.ingest_seller_signals(payload)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/events", response_model=List[Dict[str, Any]])
-async def get_events(limit: int = 50, org_id: str = Depends(get_org_id)):
+async def get_events(
+    limit: int = 50,
+    status: Optional[str] = None,
+    entity_type: Optional[str] = None,
+    connector_name: Optional[str] = None,
+    trace_id: Optional[str] = None,
+    org_id: str = Depends(get_org_id),
+):
     """
     Get ingestion events for an organization.
     """
     try:
-        events = await ingestion_service.get_events(org_id, limit=limit)
+        events = await ingestion_service.get_events(
+            org_id,
+            limit=limit,
+            status=status,
+            entity_type=entity_type,
+            connector_name=connector_name,
+            trace_id=trace_id,
+        )
         return events
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,6 +1,14 @@
 # QA Report: ANCLORA-SCUI-001
 
-## Result: 🟢 GO
+## Result
+`PASS WITH ENVIRONMENT LIMITATION`
 
-Verified environment, data ingestion, idempotency, and full i18n coverage.
-All tests passed with zero P0/P1 blockers.
+## Coverage reviewed
+- app FastAPI monta rutas de ingestion
+- servicio alineado con schema SQL de `029`
+- seller-side signals incluidos en perimeter de ingestion
+- filtros operativos de eventos
+
+## Limitaciones
+- no se ejecuto `pytest` en este entorno
+- no se validaron credenciales reales de Supabase

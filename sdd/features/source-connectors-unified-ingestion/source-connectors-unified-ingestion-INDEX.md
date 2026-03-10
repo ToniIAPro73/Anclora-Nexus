@@ -10,8 +10,12 @@ Unificar la ingestión de fuentes externas (portales, social, CTA, imports) bajo
 
 ## Documentos
 1. `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1.md`
-2. `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-migration.md`
-3. `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1.md`
+2. `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-v1_1.md`
+3. `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-spec-migration.md`
+4. `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1.md`
+5. `sdd/features/source-connectors-unified-ingestion/source-connectors-unified-ingestion-test-plan-v1_1.md`
+6. `sdd/features/source-connectors-unified-ingestion/QA_REPORT_ANCLORA_SCUI_001.md`
+7. `sdd/features/source-connectors-unified-ingestion/GATE_FINAL_ANCLORA_SCUI_001.md`
 
 ## Alcance v1
 - Conectores normalizados para propiedades y leads.

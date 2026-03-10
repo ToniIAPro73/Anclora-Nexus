@@ -9,3 +9,4 @@ Orden:
 Reglas:
 - 1 prompt = 1 commit
 - cada agente para al terminar su alcance
+- la implementacion debe respetar el schema SQL real y no inventar estados alternativos

@@ -24,18 +24,23 @@ export function IngestionEventList({ events, loading, onViewDetails }: Props) {
 
   const getStatusColor = (status: IngestionStatus) => {
     switch (status) {
-      case 'success': return 'bg-green-400/10 text-green-400 border-green-400/20'
-      case 'duplicate': return 'bg-blue-400/10 text-blue-400 border-blue-400/20'
-      case 'error': return 'bg-red-400/10 text-red-400 border-red-400/20'
+      case 'processed': return 'bg-green-400/10 text-green-400 border-green-400/20'
+      case 'validated': return 'bg-blue-400/10 text-blue-400 border-blue-400/20'
+      case 'received': return 'bg-amber-400/10 text-amber-300 border-amber-400/20'
+      case 'rejected':
+      case 'failed':
+        return 'bg-red-400/10 text-red-400 border-red-400/20'
       default: return 'bg-soft-white/5 text-soft-muted border-soft-subtle'
     }
   }
 
   const getStatusLabel = (status: IngestionStatus) => {
     switch (status) {
-      case 'success': return t('ingested')
-      case 'duplicate': return t('duplicate')
-      case 'error': return t('failed')
+      case 'processed': return t('ingested')
+      case 'validated': return 'validated'
+      case 'received': return 'received'
+      case 'rejected': return t('rejected')
+      case 'failed': return t('failed')
       default: return status
     }
   }
@@ -55,9 +60,11 @@ export function IngestionEventList({ events, loading, onViewDetails }: Props) {
             className="bg-navy-surface/70 border border-soft-subtle text-soft-white text-xs rounded-lg px-3 py-1.5 focus:border-blue-light/50 outline-none transition-all cursor-pointer"
           >
             <option value="all">{t('allStatuses')}</option>
-            <option value="success">{t('ingested')}</option>
-            <option value="duplicate">{t('duplicate')}</option>
-            <option value="error">{t('failed')}</option>
+            <option value="processed">{t('ingested')}</option>
+            <option value="validated">validated</option>
+            <option value="received">received</option>
+            <option value="rejected">{t('rejected')}</option>
+            <option value="failed">{t('failed')}</option>
           </select>
 
           <select 
@@ -68,6 +75,7 @@ export function IngestionEventList({ events, loading, onViewDetails }: Props) {
             <option value="all">{t('viewAll')}</option>
             <option value="lead">{t('lead')}</option>
             <option value="property">{t('properties')}</option>
+            <option value="seller_signal">seller_signal</option>
           </select>
         </div>
       </div>

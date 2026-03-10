@@ -9,6 +9,8 @@ TAREAS:
 2) Validación de contrato canónico.
 3) Dedupe por `dedupe_key`.
 4) Logging de estado y errores.
+5) Alinear implementación con el schema SQL real (`received/validated/processed/rejected/failed`).
+6) Exponer seller-side signals vía ingestion.
 
 ALCANCE:
 - `backend/*`

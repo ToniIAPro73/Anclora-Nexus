@@ -29,6 +29,7 @@ app.add_middleware(
 # ═══════════════════════════════════════════════════════════════
 
 from .routes.intelligence import router as intelligence_router
+from .routes.ingestion import router as ingestion_router
 from .routes.prospection import router as prospection_router
 from .routes.sellers import router as sellers_router
 from .routes.skills import router as skills_router
@@ -44,6 +45,9 @@ app.include_router(sellers_router, prefix="/api/sellers", tags=["Sellers"])
 
 # Include operational skill runner routes used by frontend cron jobs
 app.include_router(skills_router, prefix="/api", tags=["Skills"])
+
+# Include unified ingestion routes
+app.include_router(ingestion_router, prefix="/api", tags=["Ingestion"])
 
 # ═══════════════════════════════════════════════════════════════
 # HEALTH CHECK
@@ -73,6 +77,7 @@ async def root():
             "territorial_insights": "/api/intelligence/territorial-insights",
             "runtime_profile": "/api/intelligence/runtime-profile",
             "skills": "/api/skills/run",
+            "ingestion": "/api/ingestion/events",
             "sellers": "/api/sellers/",
             "sellers_stats": "/api/sellers/stats",
             "docs": "/docs",

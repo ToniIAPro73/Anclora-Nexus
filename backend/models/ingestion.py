@@ -1,16 +1,19 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, EmailStr, Field
 
 class EntityType(str, Enum):
     LEAD = "lead"
     PROPERTY = "property"
+    SELLER_SIGNAL = "seller_signal"
 
 class IngestionStatus(str, Enum):
-    SUCCESS = "success"
-    DUPLICATE = "duplicate"
-    ERROR = "error"
+    RECEIVED = "received"
+    VALIDATED = "validated"
+    PROCESSED = "processed"
+    REJECTED = "rejected"
+    FAILED = "failed"
 
 class LeadSourceSystem(str, Enum):
     MANUAL = "manual"
@@ -47,6 +50,8 @@ class PropertySourcePortal(str, Enum):
 class LeadIngestionPayload(BaseModel):
     org_id: str
     external_id: str
+    connector_name: Optional[str] = None
+    trace_id: Optional[str] = None
     source_system: LeadSourceSystem
     source_channel: LeadSourceChannel
     source_detail: Optional[str] = None
@@ -65,6 +70,8 @@ class LeadIngestionPayload(BaseModel):
 class PropertyIngestionPayload(BaseModel):
     org_id: str
     external_id: str
+    connector_name: Optional[str] = None
+    trace_id: Optional[str] = None
     source_system: PropertySourceSystem
     source_portal: PropertySourcePortal
     captured_at: datetime = Field(default_factory=datetime.utcnow)
@@ -82,6 +89,33 @@ class PropertyIngestionPayload(BaseModel):
     description: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
+class SellerSignalItem(BaseModel):
+    external_id: Optional[str] = None
+    nombre_propietario: Optional[str] = None
+    empresa: Optional[str] = None
+    website_url: Optional[str] = None
+    anuncio_url: Optional[str] = None
+    direccion: Optional[str] = None
+    zona: Optional[str] = None
+    fuente: Optional[str] = None
+    precio_publicado: Optional[float] = None
+    precio_estimado: Optional[float] = None
+    superficie_m2: Optional[float] = None
+    tipo_propiedad: Optional[str] = None
+    dias_en_mercado: Optional[int] = None
+    prioridad: Optional[int] = None
+    notas: Optional[str] = None
+    senales_motivacion: List[str] = Field(default_factory=list)
+    datos_extraidos: Dict[str, Any] = Field(default_factory=dict)
+
+class SellerSignalIngestionPayload(BaseModel):
+    org_id: str
+    connector_name: str
+    trace_id: Optional[str] = None
+    snapshot_id: Optional[str] = None
+    captured_at: datetime = Field(default_factory=datetime.utcnow)
+    signals: List[SellerSignalItem] = Field(default_factory=list)
+
 class IngestionEvent(BaseModel):
     id: Optional[str] = None
     org_id: str
@@ -89,8 +123,12 @@ class IngestionEvent(BaseModel):
     external_id: str
     connector_name: str
     status: IngestionStatus
-    message: Optional[str] = None
+    error_code: Optional[str] = None
+    error_message: Optional[str] = None
     payload: Dict[str, Any]
     error_detail: Optional[Dict[str, Any]] = None
-    processed_at: datetime = Field(default_factory=datetime.utcnow)
+    trace_id: Optional[str] = None
+    processed_entity_id: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    processed_at: Optional[datetime] = None
     dedupe_key: str

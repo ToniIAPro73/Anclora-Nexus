@@ -1,7 +1,7 @@
 import { api } from './api'
 
-export type EntityType = 'lead' | 'property'
-export type IngestionStatus = 'success' | 'duplicate' | 'error'
+export type EntityType = 'lead' | 'property' | 'seller_signal'
+export type IngestionStatus = 'received' | 'validated' | 'processed' | 'rejected' | 'failed'
 
 export interface IngestionEvent {
   id: string
@@ -10,10 +10,14 @@ export interface IngestionEvent {
   external_id: string
   connector_name: string
   status: IngestionStatus
-  message?: string
+  error_code?: string
+  error_message?: string
   payload: Record<string, unknown>
   error_detail?: Record<string, unknown>
-  processed_at: string
+  trace_id?: string
+  processed_entity_id?: string
+  created_at?: string
+  processed_at?: string
   dedupe_key: string
 }
 

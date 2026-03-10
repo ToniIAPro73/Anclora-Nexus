@@ -31,13 +31,13 @@ export function IngestionEventDetail({ event, onClose }: Props) {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Error detail if exists */}
-          {event.status === 'error' && (
+          {(event.status === 'failed' || event.status === 'rejected') && (
             <div className="p-4 rounded-2xl border border-red-400/20 bg-red-400/5 text-red-200">
               <div className="flex items-center gap-2 mb-2 font-semibold text-red-400">
                 <AlertTriangle className="w-5 h-5" />
                 <span>{t('errorDetails')}</span>
               </div>
-              <p className="text-sm font-medium">{event.message}</p>
+              <p className="text-sm font-medium">{event.error_message || event.error_code}</p>
               {event.error_detail && (
                 <pre className="mt-3 p-3 rounded-xl bg-navy-darker border border-red-400/10 text-[11px] font-mono overflow-x-auto">
                   {JSON.stringify(event.error_detail, null, 2)}
