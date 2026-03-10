@@ -13,6 +13,7 @@ from ...config import settings
 from ...services.finops import finops_service
 from ...services.llm_service import llm_service
 from ...services.supabase_service import supabase_service
+from ...skills.fsbo_scraper import run_fsbo_scraper
 from ...skills.notebooklm_sync import run_notebooklm_sync
 from ...skills.prospection_weekly import run_prospection_weekly
 from ...skills.recap_weekly import run_recap_weekly
@@ -88,6 +89,7 @@ async def run_skill(
         "notebooklm_sync": run_notebooklm_sync,
         "seller_signal_ingest": run_seller_signal_ingest,
         "seller_outreach_batch": run_seller_outreach_batch,
+        "fsbo_scraper": run_fsbo_scraper,
     }
 
     runner = skill_map.get(skill_name)
