@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
 from .supabase_service import SupabaseService
+from .seller_memory_service import seller_memory_service
 from ..models.sellers import (
     NexusSellerCreate,
     NexusSellerUpdate,
@@ -357,10 +358,19 @@ async def get_seller_workbench(
         if not latest_artifacts["context_brief"] and artifact == "context_brief":
             latest_artifacts["context_brief"] = item
 
+    memory = await seller_memory_service.search(
+        db=db,
+        org_id=org_id,
+        seller_id=seller_id,
+        query="seguimiento captacion objeciones siguiente paso",
+        limit=5,
+    )
+
     return {
         "seller": seller,
         "interactions": interactions,
         "latest_artifacts": latest_artifacts,
+        "memory": memory.model_dump(),
         "snapshot": {
             "has_argumentario": bool(seller.get("argumentario")),
             "has_email_draft": latest_artifacts["email_draft"] is not None,
@@ -368,6 +378,8 @@ async def get_seller_workbench(
             "has_call_brief": latest_artifacts["call_brief"] is not None,
             "has_context_brief": latest_artifacts["context_brief"] is not None,
             "interactions_count": len(interactions),
+            "semantic_memory_count": memory.total_records,
+            "semantic_memory_ready": memory.status == "ready",
         },
     }
 

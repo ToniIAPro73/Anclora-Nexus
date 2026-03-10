@@ -22,6 +22,7 @@ from ...models.sellers import (
     FuenteEnum,
 )
 from ...services import sellers_service
+from ...services.seller_memory_service import seller_memory_service
 from ...services.supabase_service import SupabaseService
 from ...services.llm_service import llm_service
 from ..deps import check_budget_hard_stop
@@ -348,6 +349,46 @@ async def list_seller_interactions(
         return interactions
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error listing interactions: {str(e)}")
+
+
+@router.get("/{seller_id}/memory", response_model=dict)
+async def get_seller_memory(
+    seller_id: str,
+    query: str = Query("seguimiento captacion objeciones siguiente paso", min_length=3),
+    limit: int = Query(5, ge=1, le=20),
+):
+    """
+    Retrieve explainable semantic memory matches for a seller.
+    """
+    try:
+        db = get_db()
+        payload = await seller_memory_service.search(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+            query=query,
+            limit=limit,
+        )
+        return payload.model_dump()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving seller memory: {str(e)}")
+
+
+@router.post("/{seller_id}/memory/rebuild", response_model=dict)
+async def rebuild_seller_memory(seller_id: str):
+    """
+    Rebuild semantic memory records for a seller from historical interactions.
+    """
+    try:
+        db = get_db()
+        payload = await seller_memory_service.rebuild_for_seller(
+            db=db,
+            org_id=DEFAULT_ORG_ID,
+            seller_id=seller_id,
+        )
+        return payload.model_dump()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error rebuilding seller memory: {str(e)}")
 
 
 @router.post("/{seller_id}/interactions", response_model=dict, status_code=201)

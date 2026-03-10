@@ -54,6 +54,19 @@ class TestSellersRouteRegistration:
         ]
         assert len(matching) == 1
 
+    def test_memory_routes_exist(self) -> None:
+        routes = [r for r in app.routes if hasattr(r, "methods")]
+        get_matches = [
+            r for r in routes
+            if hasattr(r, "path") and r.path == "/api/sellers/{seller_id}/memory" and "GET" in r.methods
+        ]
+        post_matches = [
+            r for r in routes
+            if hasattr(r, "path") and r.path == "/api/sellers/{seller_id}/memory/rebuild" and "POST" in r.methods
+        ]
+        assert len(get_matches) == 1
+        assert len(post_matches) == 1
+
 
 class TestSellersRouteContracts:
     @patch("backend.api.routes.sellers.sellers_service")
@@ -99,6 +112,17 @@ class TestSellersRouteContracts:
                 "has_call_brief": False,
                 "has_context_brief": False,
                 "interactions_count": 0,
+                "semantic_memory_count": 1,
+                "semantic_memory_ready": True,
+            },
+            "memory": {
+                "version": "ANCLORA-SMSR-001.v1",
+                "seller_id": seller_id,
+                "status": "ready",
+                "query": "seguimiento",
+                "total_records": 1,
+                "matches": [],
+                "retrieval_summary": "nota",
             },
         })
 
@@ -108,6 +132,7 @@ class TestSellersRouteContracts:
         body = response.json()
         assert body["seller"]["id"] == seller_id
         assert body["snapshot"]["interactions_count"] == 0
+        assert body["snapshot"]["semantic_memory_ready"] is True
 
     @patch("backend.api.routes.sellers.run_whale_dossier", new_callable=AsyncMock)
     def test_generate_dossier_returns_multichannel_artifacts(self, mock_skill: AsyncMock) -> None:
@@ -196,3 +221,41 @@ class TestSellersRouteContracts:
         body = response.json()
         assert body["estado"] == "realizado"
         assert body["resultado"] == "sent_confirmed_human"
+
+    @patch("backend.api.routes.sellers.seller_memory_service")
+    def test_get_memory_returns_semantic_matches(self, mock_memory: MagicMock) -> None:
+        seller_id = str(uuid4())
+        mock_memory.search = AsyncMock(return_value=type("MemoryResponse", (), {
+            "model_dump": lambda self: {
+                "version": "ANCLORA-SMSR-001.v1",
+                "seller_id": seller_id,
+                "status": "ready",
+                "query": "objeciones",
+                "total_records": 2,
+                "matches": [],
+                "retrieval_summary": "followup",
+            }
+        })())
+
+        response = client.get(f"/api/sellers/{seller_id}/memory?query=objeciones")
+
+        assert response.status_code == 200
+        assert response.json()["status"] == "ready"
+
+    @patch("backend.api.routes.sellers.seller_memory_service")
+    def test_rebuild_memory_returns_sync_counts(self, mock_memory: MagicMock) -> None:
+        seller_id = str(uuid4())
+        mock_memory.rebuild_for_seller = AsyncMock(return_value=type("RebuildResponse", (), {
+            "model_dump": lambda self: {
+                "version": "ANCLORA-SMSR-001.v1",
+                "seller_id": seller_id,
+                "status": "ready",
+                "indexed_records": 4,
+                "created_records": 2,
+            }
+        })())
+
+        response = client.post(f"/api/sellers/{seller_id}/memory/rebuild")
+
+        assert response.status_code == 200
+        assert response.json()["created_records"] == 2

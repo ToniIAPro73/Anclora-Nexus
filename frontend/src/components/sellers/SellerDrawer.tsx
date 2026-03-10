@@ -49,6 +49,28 @@ interface WorkbenchPayload {
     call_brief?: Interaction | null
     context_brief?: Interaction | null
   }
+  memory: {
+    version: string
+    seller_id: string
+    status: string
+    query: string
+    total_records: number
+    retrieval_summary: string
+    matches: Array<{
+      score: number
+      matched_keywords: string[]
+      reasons: Array<{ type: string; value: string }>
+      record: {
+        id: string
+        memory_kind: string
+        source_type: string
+        source_artifact?: string | null
+        summary: string
+        redacted_content: string
+        source_created_at: string
+      }
+    }>
+  }
   snapshot: {
     has_argumentario: boolean
     has_email_draft: boolean
@@ -56,6 +78,8 @@ interface WorkbenchPayload {
     has_call_brief: boolean
     has_context_brief: boolean
     interactions_count: number
+    semantic_memory_count: number
+    semantic_memory_ready: boolean
   }
 }
 
@@ -145,6 +169,8 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
   const [savingContact, setSavingContact] = useState(false)
   const [dispatchingChannel, setDispatchingChannel] = useState<'email' | 'whatsapp' | null>(null)
   const [pendingSend, setPendingSend] = useState<Partial<Record<'email' | 'whatsapp', SupervisedSendPayload>>>({})
+  const [memoryQuery, setMemoryQuery] = useState('seguimiento captacion objeciones siguiente paso')
+  const [loadingMemory, setLoadingMemory] = useState(false)
 
   const loadWorkbench = useCallback(async () => {
     if (!sellerId) return
@@ -155,6 +181,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
       if (!res.ok) throw new Error(`${t('error')} ${res.status}`)
       const data = (await res.json()) as WorkbenchPayload
       setWorkbench(data)
+      setMemoryQuery(data.memory?.query || 'seguimiento captacion objeciones siguiente paso')
       setEmailContacto(data.seller.email_contacto || '')
       setTelefonoContacto(data.seller.telefono_contacto || '')
       setWhatsappContacto(data.seller.whatsapp_contacto || '')
@@ -170,6 +197,55 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
       void loadWorkbench()
     }
   }, [open, sellerId, loadWorkbench])
+
+  const refreshMemory = async () => {
+    if (!sellerId) return
+    setLoadingMemory(true)
+    setError(null)
+    try {
+      const res = await fetch(
+        buildBackendUrl(`/api/sellers/${sellerId}/memory?query=${encodeURIComponent(memoryQuery)}&limit=5`)
+      )
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+      const payload = await res.json()
+      setWorkbench((current) => current ? {
+        ...current,
+        memory: payload,
+        snapshot: {
+          ...current.snapshot,
+          semantic_memory_count: payload.total_records,
+          semantic_memory_ready: payload.status === 'ready',
+        },
+      } : current)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorLoadingInteractions'))
+    } finally {
+      setLoadingMemory(false)
+    }
+  }
+
+  const rebuildMemory = async () => {
+    if (!sellerId) return
+    setLoadingMemory(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/memory/rebuild`), {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+      await refreshMemory()
+      setSuccess(t('sellerMemoryRebuilt'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errorRebuildingSellerMemory'))
+    } finally {
+      setLoadingMemory(false)
+    }
+  }
 
   const generateWorkbench = async () => {
     if (!sellerId) return
@@ -487,6 +563,9 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
                   <span className="rounded-full border border-soft-subtle/40 bg-navy-surface/40 px-3 py-1 text-xs text-soft-muted">
                     {t('priority')}: P{workbench.seller.prioridad ?? 0}
                   </span>
+                  <span className="rounded-full border border-soft-subtle/40 bg-navy-surface/40 px-3 py-1 text-xs text-soft-muted">
+                    {t('semanticMemory')}: {workbench.snapshot.semantic_memory_count}
+                  </span>
                 </div>
               )}
             </div>
@@ -533,6 +612,81 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
         </section>
 
         <div className="mb-6 grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-soft-subtle/30 bg-navy-surface/35 p-5 md:col-span-2">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-soft-white">{t('semanticMemory')}</h3>
+                <p className="mt-1 text-xs text-soft-muted">
+                  {workbench?.memory?.retrieval_summary || t('sellerMemoryEmpty')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={rebuildMemory}
+                disabled={loadingMemory}
+                className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-xs text-soft-white hover:border-gold/40 transition-colors disabled:opacity-50"
+              >
+                {loadingMemory ? t('loading') : t('rebuildSellerMemory')}
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2 md:flex-row">
+                <input
+                  value={memoryQuery}
+                  onChange={(e) => setMemoryQuery(e.target.value)}
+                  placeholder={t('sellerMemoryQueryPlaceholder')}
+                  className="flex-1 rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={refreshMemory}
+                  disabled={loadingMemory || !memoryQuery.trim()}
+                  className="rounded-lg border border-gold/40 bg-gold px-4 py-2 text-sm font-semibold text-navy-deep transition-opacity disabled:opacity-50"
+                >
+                  {t('searchSellerMemory')}
+                </button>
+              </div>
+              {workbench?.memory?.status === 'migration_missing' ? (
+                <p className="text-xs text-amber-200">{t('sellerMemoryMigrationMissing')}</p>
+              ) : !workbench?.memory?.matches?.length ? (
+                <p className="text-sm text-soft-muted">{t('sellerMemoryEmpty')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {workbench.memory.matches.map((match) => (
+                    <div key={match.record.id} className="rounded-xl border border-soft-subtle/30 bg-navy-deep/30 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-soft-white">{match.record.summary}</p>
+                          <p className="mt-1 text-xs text-soft-muted">
+                            {(match.record.source_artifact || match.record.source_type)} · {formatDate(match.record.source_created_at)}
+                          </p>
+                        </div>
+                        <span className="rounded-full border border-gold/30 bg-gold/10 px-2 py-1 text-[11px] text-gold">
+                          Score: {match.score}
+                        </span>
+                      </div>
+                      <p className="mt-3 whitespace-pre-wrap text-sm text-soft-white">{match.record.redacted_content}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {match.matched_keywords.map((keyword) => (
+                          <span key={keyword} className="rounded-full border border-blue-light/30 bg-blue-light/10 px-2 py-1 text-[11px] text-blue-light">
+                            {keyword}
+                          </span>
+                        ))}
+                        {match.reasons.map((reason, index) => (
+                          <span
+                            key={`${reason.type}-${index}`}
+                            className="rounded-full border border-soft-subtle/30 bg-navy-surface/40 px-2 py-1 text-[11px] text-soft-muted"
+                          >
+                            {reason.type}: {reason.value}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
           <ArtifactCard
             title={t('contextBrief')}
             icon={StickyNote}
