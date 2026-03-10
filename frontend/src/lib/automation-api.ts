@@ -72,11 +72,16 @@ export interface ExecutionListResponse {
 export interface AlertItem {
   id: string
   org_id: string
-  rule_id: string
+  rule_id?: string | null
+  alert_scope: string
+  severity: 'warning' | 'critical'
   alert_type: string
   message: string
+  dedupe_key?: string | null
+  metadata_json: Record<string, unknown>
   is_active: boolean
   created_at: string
+  updated_at?: string | null
   resolved_at?: string | null
 }
 

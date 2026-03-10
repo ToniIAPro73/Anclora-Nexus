@@ -57,7 +57,7 @@ class TestAutomationRoutes:
     def test_list_rules(self, mock_svc: MagicMock) -> None:
         mock_svc.list_rules = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1",
+                "version": "ANCLORA-GAA-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "items": [],
                 "total": 0,
@@ -107,7 +107,7 @@ class TestAutomationRoutes:
         rule_id = str(uuid4())
         mock_svc.dry_run = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1",
+                "version": "ANCLORA-GAA-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "manager"},
                 "rule_id": rule_id,
                 "decision": "allow",
@@ -128,7 +128,7 @@ class TestAutomationRoutes:
         execution_id = str(uuid4())
         mock_svc.execute = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1",
+                "version": "ANCLORA-GAA-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "rule_id": rule_id,
                 "execution_id": execution_id,
@@ -150,7 +150,7 @@ class TestAutomationRoutes:
     def test_list_executions(self, mock_svc: MagicMock) -> None:
         mock_svc.list_executions = AsyncMock(
             return_value={
-                "version": "ANCLORA-GAA-001.v1",
+                "version": "ANCLORA-GAA-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
                 "items": [],
                 "total": 0,
@@ -159,6 +159,38 @@ class TestAutomationRoutes:
         resp = client.get("/api/automation/executions")
         assert resp.status_code == 200
         assert "items" in resp.json()
+
+    @patch("backend.api.routes.automation.automation_service")
+    def test_list_alerts_includes_operational_metadata(self, mock_svc: MagicMock) -> None:
+        mock_svc.list_alerts = AsyncMock(
+            return_value={
+                "version": "ANCLORA-GAA-001.v1_1",
+                "scope": {"org_id": ORG_ID, "role": "owner"},
+                "items": [
+                    {
+                        "id": str(uuid4()),
+                        "org_id": ORG_ID,
+                        "rule_id": None,
+                        "alert_scope": "territorial_pipeline",
+                        "severity": "critical",
+                        "alert_type": "territorial_pipeline_missing",
+                        "message": "Territorial pipeline has not recorded any successful run yet.",
+                        "dedupe_key": "territorial-pipeline:missing-success",
+                        "metadata_json": {"status": "idle"},
+                        "is_active": True,
+                        "created_at": "2026-03-10T10:00:00Z",
+                        "updated_at": "2026-03-10T10:00:00Z",
+                        "resolved_at": None,
+                    }
+                ],
+                "total": 1,
+            }
+        )
+        resp = client.get("/api/automation/alerts")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["items"][0]["alert_scope"] == "territorial_pipeline"
+        assert body["items"][0]["severity"] == "critical"
 
     @patch("backend.api.routes.automation.automation_service")
     def test_ack_alert_not_found(self, mock_svc: MagicMock) -> None:

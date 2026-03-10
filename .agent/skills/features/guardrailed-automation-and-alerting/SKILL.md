@@ -15,6 +15,8 @@ description: Implements Guardrailed Automation and Alerting v1 following SDD gov
 - Keep rollouts reversible and migration-safe.
 - Produce complete prompt set A/B/C/D and Gate Final.
 - Document QA result and gate decision before release status.
+- Use existing operational sources first: territorial sync, territorial pipeline and source observatory.
+- Surface alert scope, severity and actionable metadata in the UI.
 
 ## Stop Rules
 - Do not introduce out-of-scope integrations.

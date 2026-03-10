@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from fastapi import HTTPException, status
 
 from backend.models.automation import (
+    AlertItem,
     AlertListResponse,
     AutomationExecutionStatus,
     AutomationRuleStatus,
@@ -20,8 +21,14 @@ from backend.models.automation import (
     ScopeMetadata,
 )
 from backend.models.membership import UserRole
+from backend.models.source_observatory import SourceScorecard
 from backend.services.finops import finops_service
+from backend.services.source_observatory_service import source_observatory_service
 from backend.services.supabase_service import supabase_service
+from backend.services.territorial_sync_service import (
+    get_territorial_pipeline_status,
+    get_territorial_sync_status,
+)
 
 
 class AutomationService:
@@ -37,6 +44,14 @@ class AutomationService:
             return True
         except Exception:
             return False
+
+    def _parse_timestamp(self, raw: Optional[str]) -> Optional[datetime]:
+        if not raw:
+            return None
+        try:
+            return datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+        except Exception:
+            return None
 
     async def _get_role(self, org_id: str, user_id: str) -> str:
         try:
@@ -215,6 +230,23 @@ class AutomationService:
             guardrails=evaluation["guardrails"],
         )
 
+    def _build_guardrail_alert_payload(self, org_id: str, rule_id: str, reasons: List[str]) -> Dict[str, Any]:
+        now = self._now()
+        dedupe_reasons = "-".join(sorted(reasons)) if reasons else "blocked"
+        return {
+            "org_id": org_id,
+            "rule_id": rule_id,
+            "alert_scope": "rule",
+            "severity": "warning",
+            "alert_type": "guardrail_block",
+            "message": ",".join(reasons) if reasons else "blocked",
+            "dedupe_key": f"guardrail-block:{rule_id}:{dedupe_reasons}",
+            "metadata_json": {"reasons": reasons},
+            "is_active": True,
+            "created_at": now,
+            "updated_at": now,
+        }
+
     async def execute(self, org_id: str, user_id: str, rule_id: str, payload: ExecuteRequest) -> Optional[ExecuteResponse]:
         role = await self._get_role(org_id, user_id)
         self._assert_can_write(role)
@@ -252,14 +284,7 @@ class AutomationService:
 
         if evaluation["decision"] == "blocked" and self._table_exists("automation_alerts"):
             self.client.table("automation_alerts").insert(
-                {
-                    "org_id": org_id,
-                    "rule_id": rule_id,
-                    "alert_type": "guardrail_block",
-                    "message": ",".join(evaluation["reasons"]) if evaluation["reasons"] else "blocked",
-                    "is_active": True,
-                    "created_at": self._now(),
-                }
+                self._build_guardrail_alert_payload(org_id=org_id, rule_id=rule_id, reasons=evaluation["reasons"])
             ).execute()
 
         try:
@@ -316,10 +341,212 @@ class AutomationService:
             total=result.count or len(result.data or []),
         )
 
+    def _build_operational_alert_candidates(
+        self,
+        *,
+        sync_status: Dict[str, Any],
+        pipeline_status: Dict[str, Any],
+        observatory_items: List[SourceScorecard],
+    ) -> List[Dict[str, Any]]:
+        candidates: List[Dict[str, Any]] = []
+
+        sync_state = str(sync_status.get("status") or "").lower()
+        if sync_state in {"warning", "error"}:
+            candidates.append(
+                {
+                    "alert_scope": "territorial_sync",
+                    "severity": "critical" if sync_state == "error" else "warning",
+                    "alert_type": "territorial_sync_degraded",
+                    "message": "NotebookLM territorial sync pack degraded.",
+                    "dedupe_key": f"territorial-sync:{sync_state}",
+                    "metadata_json": {
+                        "status": sync_state,
+                        "generated_at": sync_status.get("generated_at"),
+                        "warnings": sync_status.get("warnings") or [],
+                        "errors": sync_status.get("errors") or [],
+                    },
+                }
+            )
+
+        pipeline_state = str(pipeline_status.get("status") or "").lower()
+        last_success_at = self._parse_timestamp(pipeline_status.get("last_success_at"))
+        freshness_hours = None
+        if last_success_at is not None:
+            freshness_hours = round((datetime.now(timezone.utc) - last_success_at).total_seconds() / 3600, 2)
+
+        if pipeline_state in {"error", "failed"}:
+            candidates.append(
+                {
+                    "alert_scope": "territorial_pipeline",
+                    "severity": "critical",
+                    "alert_type": "territorial_pipeline_failed",
+                    "message": "Territorial pipeline failed on latest run.",
+                    "dedupe_key": f"territorial-pipeline:{pipeline_state}",
+                    "metadata_json": {
+                        "status": pipeline_state,
+                        "last_error_at": pipeline_status.get("last_error_at"),
+                        "message": pipeline_status.get("message"),
+                    },
+                }
+            )
+        elif pipeline_state == "idle" and not pipeline_status.get("last_success_at"):
+            candidates.append(
+                {
+                    "alert_scope": "territorial_pipeline",
+                    "severity": "warning",
+                    "alert_type": "territorial_pipeline_missing",
+                    "message": "Territorial pipeline has not recorded any successful run yet.",
+                    "dedupe_key": "territorial-pipeline:missing-success",
+                    "metadata_json": {"status": pipeline_state},
+                }
+            )
+        elif freshness_hours is not None and freshness_hours >= 72:
+            candidates.append(
+                {
+                    "alert_scope": "territorial_pipeline",
+                    "severity": "critical" if freshness_hours >= 168 else "warning",
+                    "alert_type": "territorial_pipeline_stale",
+                    "message": "Territorial pipeline heartbeat is stale.",
+                    "dedupe_key": f"territorial-pipeline:stale:{'critical' if freshness_hours >= 168 else 'warning'}",
+                    "metadata_json": {
+                        "freshness_hours": freshness_hours,
+                        "last_success_at": pipeline_status.get("last_success_at"),
+                    },
+                }
+            )
+
+        for item in observatory_items:
+            if item.operational_status not in {"warning", "critical"}:
+                continue
+            candidates.append(
+                {
+                    "alert_scope": "source_connector",
+                    "severity": "critical" if item.operational_status == "critical" else "warning",
+                    "alert_type": "source_connector_degraded",
+                    "message": f"Source connector {item.source_key} is {item.operational_status}.",
+                    "dedupe_key": f"source-connector:{item.source_key}:{item.operational_status}",
+                    "metadata_json": {
+                        "source_key": item.source_key,
+                        "success_rate_pct": item.success_rate_pct,
+                        "freshness_hours": item.freshness_hours,
+                        "created_entities": item.created_entities,
+                        "failed_events": item.failed_events,
+                        "rejected_events": item.rejected_events,
+                    },
+                }
+            )
+
+        return candidates
+
+    def _list_active_alerts_by_scope(self, org_id: str, scopes: List[str]) -> List[Dict[str, Any]]:
+        if not self._table_exists("automation_alerts") or not scopes:
+            return []
+        try:
+            return (
+                self.client.table("automation_alerts")
+                .select("*")
+                .eq("org_id", org_id)
+                .eq("is_active", True)
+                .in_("alert_scope", scopes)
+                .execute()
+                .data
+                or []
+            )
+        except Exception:
+            return []
+
+    def _resolve_alert(self, org_id: str, alert_id: str) -> None:
+        try:
+            (
+                self.client.table("automation_alerts")
+                .update({"is_active": False, "resolved_at": self._now(), "updated_at": self._now()})
+                .eq("org_id", org_id)
+                .eq("id", alert_id)
+                .execute()
+            )
+        except Exception:
+            pass
+
+    def _activate_or_refresh_alert(self, org_id: str, payload: Dict[str, Any], existing_by_dedupe: Dict[str, Dict[str, Any]]) -> None:
+        dedupe_key = payload.get("dedupe_key")
+        now = self._now()
+        if dedupe_key and dedupe_key in existing_by_dedupe:
+            existing = existing_by_dedupe[dedupe_key]
+            try:
+                (
+                    self.client.table("automation_alerts")
+                    .update(
+                        {
+                            "message": payload["message"],
+                            "severity": payload["severity"],
+                            "metadata_json": payload.get("metadata_json") or {},
+                            "updated_at": now,
+                            "is_active": True,
+                            "resolved_at": None,
+                        }
+                    )
+                    .eq("org_id", org_id)
+                    .eq("id", existing["id"])
+                    .execute()
+                )
+            except Exception:
+                pass
+            return
+
+        row = {
+            "org_id": org_id,
+            "rule_id": payload.get("rule_id"),
+            "alert_scope": payload["alert_scope"],
+            "severity": payload["severity"],
+            "alert_type": payload["alert_type"],
+            "message": payload["message"],
+            "dedupe_key": dedupe_key,
+            "metadata_json": payload.get("metadata_json") or {},
+            "is_active": True,
+            "created_at": now,
+            "updated_at": now,
+            "resolved_at": None,
+        }
+        try:
+            self.client.table("automation_alerts").insert(row).execute()
+        except Exception:
+            pass
+
+    async def reconcile_operational_alerts(self, org_id: str, user_id: str) -> None:
+        if not self._table_exists("automation_alerts"):
+            return
+        sync_status = get_territorial_sync_status()
+        pipeline_status = get_territorial_pipeline_status()
+        observatory = await source_observatory_service.get_overview(org_id=org_id, user_id=user_id)
+        candidates = self._build_operational_alert_candidates(
+            sync_status=sync_status,
+            pipeline_status=pipeline_status,
+            observatory_items=observatory.items,
+        )
+        active_operational = self._list_active_alerts_by_scope(
+            org_id,
+            scopes=["territorial_sync", "territorial_pipeline", "source_connector"],
+        )
+        existing_by_dedupe = {
+            str(item.get("dedupe_key")): item for item in active_operational if item.get("dedupe_key")
+        }
+        candidate_dedupes = {
+            str(item["dedupe_key"]) for item in candidates if item.get("dedupe_key")
+        }
+
+        for alert in active_operational:
+            dedupe_key = alert.get("dedupe_key")
+            if dedupe_key and dedupe_key not in candidate_dedupes:
+                self._resolve_alert(org_id, str(alert["id"]))
+
+        for candidate in candidates:
+            self._activate_or_refresh_alert(org_id, candidate, existing_by_dedupe)
+
     async def list_alerts(self, org_id: str, user_id: str) -> AlertListResponse:
         role = await self._get_role(org_id, user_id)
         if not self._table_exists("automation_alerts"):
             return AlertListResponse(scope=ScopeMetadata(org_id=org_id, role=role), items=[], total=0)
+        await self.reconcile_operational_alerts(org_id=org_id, user_id=user_id)
         result = (
             self.client.table("automation_alerts")
             .select("*", count="exact")
@@ -328,10 +555,11 @@ class AutomationService:
             .order("created_at", desc=True)
             .execute()
         )
+        items = [AlertItem(**item) for item in (result.data or [])]
         return AlertListResponse(
             scope=ScopeMetadata(org_id=org_id, role=role),
-            items=result.data or [],
-            total=result.count or len(result.data or []),
+            items=items,
+            total=result.count or len(items),
         )
 
     async def acknowledge_alert(self, org_id: str, user_id: str, alert_id: str) -> bool:
@@ -341,7 +569,7 @@ class AutomationService:
             return False
         result = (
             self.client.table("automation_alerts")
-            .update({"is_active": False, "resolved_at": self._now()})
+            .update({"is_active": False, "resolved_at": self._now(), "updated_at": self._now()})
             .eq("org_id", org_id)
             .eq("id", alert_id)
             .execute()

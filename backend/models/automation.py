@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
-FEATURE_VERSION = "ANCLORA-GAA-001.v1"
+FEATURE_VERSION = "ANCLORA-GAA-001.v1_1"
 
 
 class AutomationRuleStatus(str, Enum):
@@ -121,11 +121,16 @@ class ExecutionLogResponse(BaseModel):
 class AlertItem(BaseModel):
     id: str
     org_id: str
-    rule_id: str
+    rule_id: Optional[str]
+    alert_scope: str = "rule"
+    severity: str = "warning"
     alert_type: str
     message: str
+    dedupe_key: Optional[str] = None
+    metadata_json: Dict[str, Any] = Field(default_factory=dict)
     is_active: bool
     created_at: datetime
+    updated_at: Optional[datetime] = None
     resolved_at: Optional[datetime]
 
 

@@ -20,3 +20,6 @@ trigger: always_on
 - Prefer additive schema changes and reversible rollout.
 - Keep API contracts explicit and versioned.
 - Enforce i18n discipline and avoid hardcoded UI strings.
+- Operational alerts must be deduplicated and self-explanatory.
+- Alerting must prefer real system health signals over synthetic placeholders.
+- Guardrail-block alerts and operational alerts may coexist but must remain distinguishable by scope.

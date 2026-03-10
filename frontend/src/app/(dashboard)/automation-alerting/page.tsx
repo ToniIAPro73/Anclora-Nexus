@@ -117,7 +117,31 @@ export default function AutomationAlertingPage() {
         {loading ? (
           <section className="h-64 rounded-2xl border border-soft-subtle bg-navy-surface/30 animate-pulse" />
         ) : (
-          <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <>
+            <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('automationAlertsTitle')}</p>
+                <p className="mt-2 text-2xl font-semibold text-soft-white">{alerts.length}</p>
+                <p className="mt-1 text-xs text-soft-muted">{t('automationOperationalVisibility')}</p>
+              </article>
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('automationCriticalAlerts')}</p>
+                <p className="mt-2 text-2xl font-semibold text-red-300">{alerts.filter((a) => a.severity === 'critical').length}</p>
+                <p className="mt-1 text-xs text-soft-muted">{t('automationScopeOperational')}</p>
+              </article>
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('automationRulesTitle')}</p>
+                <p className="mt-2 text-2xl font-semibold text-soft-white">{rules.length}</p>
+                <p className="mt-1 text-xs text-soft-muted">{t('automationExecutionsTitle')}: {executions.length}</p>
+              </article>
+              <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('automationGuardrailBlocks')}</p>
+                <p className="mt-2 text-2xl font-semibold text-amber-200">{alerts.filter((a) => a.alert_scope === 'rule').length}</p>
+                <p className="mt-1 text-xs text-soft-muted">{t('automationScopeRules')}</p>
+              </article>
+            </section>
+
+            <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
               <header className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-soft-white">{t('automationRulesTitle')}</h2>
@@ -185,9 +209,45 @@ export default function AutomationAlertingPage() {
               </header>
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
                 {alerts.length === 0 ? <p className="text-sm text-soft-muted">{t('automationNoAlerts')}</p> : alerts.slice(0, 8).map((a) => (
-                  <div key={a.id} className="rounded-xl border border-red-500/30 bg-red-500/10 p-3">
-                    <p className="text-sm font-semibold text-red-200"><AlertTriangle className="mr-1 inline h-4 w-4" />{a.alert_type}</p>
-                    <p className="mt-1 text-xs text-red-100">{a.message}</p>
+                  (() => {
+                    const sourceKey = typeof a.metadata_json?.['source_key'] === 'string' ? String(a.metadata_json['source_key']) : null
+                    const freshnessHours = a.metadata_json?.['freshness_hours']
+                    return (
+                      <div
+                        key={a.id}
+                        className={`rounded-xl p-3 ${
+                          a.severity === 'critical'
+                            ? 'border border-red-500/30 bg-red-500/10'
+                            : 'border border-amber-500/30 bg-amber-500/10'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className={`text-sm font-semibold ${a.severity === 'critical' ? 'text-red-200' : 'text-amber-100'}`}>
+                            <AlertTriangle className="mr-1 inline h-4 w-4" />
+                            {a.alert_type}
+                          </p>
+                          <span className={`rounded-full px-2 py-1 text-[11px] ${
+                            a.severity === 'critical'
+                              ? 'border border-red-500/30 bg-red-500/10 text-red-200'
+                              : 'border border-amber-500/30 bg-amber-500/10 text-amber-100'
+                          }`}>
+                            {a.severity === 'critical' ? t('automationSeverityCritical') : t('automationSeverityWarning')}
+                          </span>
+                        </div>
+                        <p className={`mt-1 text-xs ${a.severity === 'critical' ? 'text-red-100' : 'text-amber-50'}`}>{a.message}</p>
+                        <p className="mt-2 text-xs text-soft-muted">
+                          {t('automationAlertScope')}: {a.alert_scope} · {t('lastUpdate')}: {new Date(a.updated_at || a.created_at).toLocaleString()}
+                        </p>
+                        {sourceKey && (
+                          <p className="mt-1 text-xs text-soft-muted">
+                            {t('source')}: {sourceKey}
+                          </p>
+                        )}
+                        {freshnessHours != null && (
+                          <p className="mt-1 text-xs text-soft-muted">
+                            {t('automationFreshness')}: {String(freshnessHours)}h
+                          </p>
+                        )}
                     <button
                       type="button"
                       className="btn-action !mt-2 !h-8 !px-3 !rounded-lg !text-xs !font-semibold"
@@ -199,11 +259,14 @@ export default function AutomationAlertingPage() {
                     >
                       {t('automationAcknowledge')}
                     </button>
-                  </div>
+                      </div>
+                    )
+                  })()
                 ))}
               </div>
             </article>
-          </section>
+            </section>
+          </>
         )}
       </div>
     </div>
