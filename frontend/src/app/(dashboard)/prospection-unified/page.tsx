@@ -176,7 +176,7 @@ export default function ProspectionUnifiedPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-soft-white">Prospeccion operativa</h1>
+                <h1 className="page-title">Prospeccion operativa</h1>
                 <p className="mt-1 text-sm text-soft-muted">Cola de trabajo priorizada para ejecutar captacion, contacto y cierre.</p>
               </div>
             </div>

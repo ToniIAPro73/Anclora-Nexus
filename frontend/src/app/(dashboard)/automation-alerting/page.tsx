@@ -76,9 +76,9 @@ export default function AutomationAlertingPage() {
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               </Link>
-              <h1 className="text-4xl font-bold text-soft-white tracking-tight">{t('automationMenu')}</h1>
+              <h1 className="page-title">{t('automationMenu')}</h1>
             </div>
-            <p className="text-soft-muted">{t('automationSubtitle')}</p>
+            <p className="page-subtitle">{t('automationSubtitle')}</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -149,7 +149,7 @@ export default function AutomationAlertingPage() {
               </header>
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
                 {rules.length === 0 ? <p className="text-sm text-soft-muted">{t('automationNoRules')}</p> : rules.map((r) => (
-                  <div key={r.id} className="rounded-xl border border-soft-subtle/60 bg-navy-deep/30 p-3">
+                  <div key={r.id} className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/60 bg-navy-deep/30 p-3">
                     <p className="text-sm font-semibold text-soft-white line-clamp-1">{r.name}</p>
                     <p className="mt-1 text-xs text-soft-muted">{r.event_type} · {r.channel}</p>
                     <div className="mt-3 flex gap-2">
@@ -193,7 +193,7 @@ export default function AutomationAlertingPage() {
               </header>
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
                 {executions.length === 0 ? <p className="text-sm text-soft-muted">{t('automationNoExecutions')}</p> : executions.slice(0, 8).map((e) => (
-                  <div key={e.id} className="rounded-xl border border-soft-subtle/60 bg-navy-deep/30 p-3">
+                  <div key={e.id} className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/60 bg-navy-deep/30 p-3">
                     <p className="text-xs text-soft-muted">{e.trace_id}</p>
                     <p className="mt-1 text-sm text-soft-white">{e.status}</p>
                     <p className="mt-1 text-xs text-gold">{(e.reasons || []).join(', ') || t('automationNoReasons')}</p>
@@ -215,18 +215,18 @@ export default function AutomationAlertingPage() {
                     return (
                       <div
                         key={a.id}
-                        className={`rounded-xl p-3 ${
+                        className={`surface-secondary surface-copy-safe rounded-xl p-3 ${
                           a.severity === 'critical'
                             ? 'border border-red-500/30 bg-red-500/10'
                             : 'border border-amber-500/30 bg-amber-500/10'
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <p className={`text-sm font-semibold ${a.severity === 'critical' ? 'text-red-200' : 'text-amber-100'}`}>
+                        <div className="flex min-w-0 items-start justify-between gap-3">
+                          <p className={`min-w-0 flex-1 text-sm font-semibold ${a.severity === 'critical' ? 'text-red-200' : 'text-amber-100'}`}>
                             <AlertTriangle className="mr-1 inline h-4 w-4" />
                             {a.alert_type}
                           </p>
-                          <span className={`rounded-full px-2 py-1 text-[11px] ${
+                          <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-1 text-[11px] ${
                             a.severity === 'critical'
                               ? 'border border-red-500/30 bg-red-500/10 text-red-200'
                               : 'border border-amber-500/30 bg-amber-500/10 text-amber-100'
@@ -234,17 +234,17 @@ export default function AutomationAlertingPage() {
                             {a.severity === 'critical' ? t('automationSeverityCritical') : t('automationSeverityWarning')}
                           </span>
                         </div>
-                        <p className={`mt-1 text-xs ${a.severity === 'critical' ? 'text-red-100' : 'text-amber-50'}`}>{a.message}</p>
-                        <p className="mt-2 text-xs text-soft-muted">
+                        <p className={`mt-1 min-w-0 text-xs ${a.severity === 'critical' ? 'text-red-100' : 'text-amber-50'}`}>{a.message}</p>
+                        <p className="mt-2 min-w-0 text-xs text-soft-muted">
                           {t('automationAlertScope')}: {a.alert_scope} · {t('lastUpdate')}: {new Date(a.updated_at || a.created_at).toLocaleString()}
                         </p>
                         {sourceKey && (
-                          <p className="mt-1 text-xs text-soft-muted">
+                          <p className="mt-1 min-w-0 text-xs text-soft-muted">
                             {t('source')}: {sourceKey}
                           </p>
                         )}
                         {freshnessHours != null && (
-                          <p className="mt-1 text-xs text-soft-muted">
+                          <p className="mt-1 min-w-0 text-xs text-soft-muted">
                             {t('automationFreshness')}: {String(freshnessHours)}h
                           </p>
                         )}

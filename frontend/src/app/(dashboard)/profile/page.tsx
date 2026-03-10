@@ -241,7 +241,7 @@ export default function ProfilePage() {
 
             <div className="flex-1 text-center md:text-left space-y-4">
               <div className="space-y-1">
-                <h1 className="text-4xl md:text-5xl font-bold text-soft-white tracking-tight">{userNameString}</h1>
+                <h1 className="page-title">{userNameString}</h1>
                 <p className="text-lg text-soft-muted font-medium flex items-center justify-center md:justify-start gap-2">
                   <Briefcase className="w-4 h-4 text-blue-light/60" />
                   {profile?.job_title || t('luxuryEstateConsultant')} @ {org?.name || 'Anclora Private Estates'}

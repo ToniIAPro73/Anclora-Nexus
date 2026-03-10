@@ -127,7 +127,7 @@ export default function PropertiesPage() {
               <ArrowLeft className="w-5 h-5 text-soft-white" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-soft-white">{t('properties')}</h1>
+              <h1 className="page-title">{t('properties')}</h1>
               <p className="text-sm text-soft-muted mt-1">{t('propertyManagement')}</p>
             </div>
           </div>

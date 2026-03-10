@@ -62,7 +62,7 @@ export default function SourceObservatoryPage() {
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               </Link>
-              <h1 className="text-4xl font-bold text-soft-white tracking-tight">{t('sourceObservatoryMenu')}</h1>
+              <h1 className="page-title">{t('sourceObservatoryMenu')}</h1>
             </div>
             <p className="text-soft-muted">{t('sourceObservatorySubtitle')}</p>
           </div>

@@ -57,7 +57,7 @@ export default function TasksPage() {
               <ArrowLeft className="w-5 h-5 text-soft-white" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-soft-white">{t('tasks')}</h1>
+              <h1 className="page-title">{t('tasks')}</h1>
               <p className="text-sm text-soft-muted mt-1">{t('taskManagement')}</p>
             </div>
           </div>

@@ -58,7 +58,7 @@ export default function OpportunityRankingPage() {
               >
                 <ArrowLeft className="w-4 h-4" />
               </Link>
-              <h1 className="text-4xl font-bold text-soft-white tracking-tight">{t('opportunityRankingTitle')}</h1>
+              <h1 className="page-title">{t('opportunityRankingTitle')}</h1>
             </div>
             <p className="text-soft-muted">{t('opportunityRankingSubtitle')}</p>
           </div>

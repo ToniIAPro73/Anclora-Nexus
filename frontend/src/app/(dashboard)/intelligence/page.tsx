@@ -34,7 +34,7 @@ export default function IntelligencePage() {
             </Link>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-soft-white">
+                <h1 className="page-title">
                   {t('intelligenceControlCenter')}
                 </h1>
                 <div className="px-2 py-0.5 rounded-full bg-gold/10 border border-gold/30 flex items-center gap-1">

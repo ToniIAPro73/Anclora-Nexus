@@ -53,7 +53,7 @@ export default function SettingsPage() {
       <div className="max-w-[1440px] mx-auto space-y-8 pb-20">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-soft-subtle/30">
           <div>
-          <h1 className="text-4xl font-bold text-soft-white tracking-tight flex items-center gap-4">
+          <h1 className="page-title flex items-center gap-4">
             <div className="p-3 bg-gold/10 rounded-2xl border border-gold/20">
               <Settings className="w-8 h-8 text-gold" />
             </div>

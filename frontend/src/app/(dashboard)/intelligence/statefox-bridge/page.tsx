@@ -174,7 +174,7 @@ export default function StatefoxBridgePage() {
             <ArrowLeft className="w-5 h-5 text-soft-white" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-soft-white">{t('statefoxBridgeTitle')}</h1>
+            <h1 className="page-title">{t('statefoxBridgeTitle')}</h1>
             <p className="text-sm text-soft-muted mt-1">{t('statefoxBridgeSubtitle')}</p>
           </div>
         </div>

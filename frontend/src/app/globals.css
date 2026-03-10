@@ -151,6 +151,16 @@
     word-break: break-word;
   }
 
+  .page-title {
+    @apply text-3xl font-bold text-soft-white tracking-tight;
+    line-height: 1.1;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-soft-muted;
+    max-width: 72ch;
+  }
+
   /* ─── Widget Card Base ─── */
   .widget-card {
     @apply relative overflow-hidden;

@@ -48,7 +48,7 @@ export default function IngestionPage() {
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             </Link>
-            <h1 className="text-4xl font-bold text-soft-white tracking-tight">
+            <h1 className="page-title">
               {t('ingestionTitle')}
             </h1>
           </div>

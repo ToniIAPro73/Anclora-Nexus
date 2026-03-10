@@ -234,7 +234,7 @@ export default function SellersPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-soft-white">{t('sellersTitle')}</h1>
+                <h1 className="page-title">{t('sellersTitle')}</h1>
                 <p className="mt-1 text-sm text-soft-muted">
                   {t('sellersSubtitle')}
                 </p>
