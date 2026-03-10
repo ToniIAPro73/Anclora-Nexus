@@ -41,3 +41,4 @@
 ### Próximo hito
 
 - proceder al despliegue final y monitorización post-release
+- abrir backlog post-GO para cerrar autonomía live, canales reales, memoria vectorial y hardening cloud

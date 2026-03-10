@@ -100,6 +100,11 @@ Evaluación realizada contrastando esta guía con el código real del repositori
 6. **Limpiar UI/documentación residual hardcoded o desalineada**: importante para confianza operativa, aunque no es el principal cuello de botella.
 7. **Ejecutar una pasada completa de QA reproducible**: backend tests, frontend build, smoke tests sobre cron y rutas críticas en entorno preparado.
 
+### Backlog post-GO recomendado
+
+Backlog formal para el tramo `GO -> 100% productivo`:
+`public/docs/nuevo-enfoque/Backlog-Post-GO-100-Productivo.md`
+
 ### Plan de Ejecución 30 / 60 / 90 Días
 
 Backlog ejecutable asociado:
