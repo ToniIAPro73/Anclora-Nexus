@@ -17,6 +17,200 @@ Ir de "cero a uno" consume la mayor cantidad de tiempo y tokens. La filosofía d
 
 ---
 
+## Estado Actual del Plan (Actualizado al 2026-03-10)
+
+Evaluación realizada contrastando esta guía con el código real del repositorio, migraciones Supabase, rutas FastAPI, páginas Next.js, skills operativas, artefactos `ops/` y cobertura de tests disponible en el workspace.
+
+### Resumen Ejecutivo
+
+| Fase | Estado estimado | Lectura ejecutiva |
+|------|-----------------|-------------------|
+| Fase 1. Inicialización y arquitectura core | **82%** | La base brownfield, memoria persistente del proyecto y arquitectura operativa ya existen. Falta endurecer la disciplina universal `PLANNING -> EXECUTION -> VERIFICATION` en todos los flujos. |
+| Fase 2. Capa de inteligencia territorial | **74%** | Ya existe caché operacional de NotebookLM, sync pack validable, endpoints API, control-plane y visualización territorial. Sigue dependiendo de puente externo/manual para la consulta live del notebook. |
+| Fase 3. Motor de adquisición de vendedores | **69%** | El modelo seller-side, la ingesta, el scraping FSBO y la importación StateFox están implementados. Falta cerrar conectores live verificables y automatización continua sin depender de snapshots/manualidad. |
+| Fase 4. Gravity Claw outreach | **63%** | Ya hay dossier, drafts multicanal, memoria de interacciones, export y supervised send. No existe aún memoria vectorial real ni integración nativa de envío Gmail/WhatsApp con trazabilidad completa. |
+| Fase 5. Dashboard y orquestación continua | **76%** | Hay páginas de sellers/intelligence, cron territorial y paneles conectados. Faltan pulir zonas todavía hardcoded, observabilidad end-to-end y validación de despliegue cloud estable. |
+
+### Desarrollo Global Estimado
+
+**Avance global del plan AntiGravity: 73%**
+
+### Evidencia principal encontrada en el repo
+
+- La memoria fundacional existe: `brain.md`, `soul.md`, `CLAUDE.md`, `architecture.md`, `progress.md`, `findings.md`.
+- La inteligencia territorial ya tiene soporte persistente en `notebooklm_insights` y runtime en:
+  - `supabase/migrations/036_notebooklm_intelligence_cache.sql`
+  - `backend/services/notebooklm_service.py`
+  - `backend/api/routes/intelligence.py`
+  - `frontend/src/components/widgets/RadarTerritorial.tsx`
+- El control-plane territorial ya está operable y validable:
+  - `scripts/build-notebooklm-sync-pack.mjs`
+  - `scripts/validate-notebooklm-sync-pack.mjs`
+  - `ops/notebooklm-territorial-sync-status.json`
+- El motor seller-side ya tiene persistencia y skills dedicadas:
+  - `supabase/migrations/037_nexus_sellers.sql`
+  - `supabase/migrations/038_seller_interactions.sql`
+  - `backend/skills/seller_signal_ingest.py`
+  - `backend/skills/fsbo_scraper.py`
+  - `backend/skills/seller_outreach_batch.py`
+  - `backend/skills/whale_dossier.py`
+- La orquestación continua ya está bosquejada y parcialmente integrada:
+  - `backend/api/routes/skills.py`
+  - `frontend/src/app/api/cron/territorial-pipeline/route.ts`
+  - `frontend/src/app/api/cron/weekly/route.ts`
+- Hay puente StateFox para captación/importación:
+  - `scripts/statefox-live-capture.mjs`
+  - `backend/services/statefox_bridge_service.py`
+  - `frontend/src/app/(dashboard)/intelligence/statefox-bridge/page.tsx`
+
+### Qué falta por fase para considerarla "cerrada"
+
+#### Fase 1
+- Aplicar un patrón homogéneo y verificable de `task_boundary` en todos los skills/rutas críticas, no solo a nivel documental.
+- Actualizar documentación técnica que ya ha quedado desalineada del código real (por ejemplo, arquitectura/migraciones/features activas).
+- Consolidar definitivamente el entrypoint backend y eliminar ambigüedades heredadas entre rutas/paquetes legacy.
+
+#### Fase 2
+- Sustituir la dependencia operativa de snapshots/manualidad de NotebookLM por un proceso reproducible estable con runbook, ventana de frescura y responsabilidad operativa clara.
+- Ampliar cobertura territorial real del sync pack a todas las zonas objetivo prioritarias.
+- Cerrar el flujo CMA/insight automático por nueva propiedad o zona caliente, no solo consumo pasivo del caché.
+
+#### Fase 3
+- Verificar en entorno real el scraping live de Firecrawl/Idealista y su coste/rate-limit.
+- Automatizar ingestion live desde StateFox y otras fuentes sin depender de pegado manual o capturas locales.
+- Endurecer enriquecimiento de contacto, deduplicación avanzada y controles legales/compliance por fuente.
+
+#### Fase 4
+- Implementar memoria semántica real (pgvector/Pinecone o equivalente) para reanudación contextual de conversaciones.
+- Crear el cuaderno privado por seller Whale y conectar ese flujo con el dossier de captación.
+- Integrar supervised send con clientes/canales reales y feedback de entrega/apertura/resultado.
+
+#### Fase 5
+- Sustituir bloques hardcoded aún presentes en la UI seller/intelligence por datos backend vivos.
+- Añadir observabilidad operacional: salud de cron, último run, errores, latencia y cobertura de ingestión.
+- Verificar despliegue productivo completo de cron cloud y de la cadena 1 -> 5 con datos reales.
+
+### Orden de relevancia para llegar al 100% productivo
+
+1. **Cerrar el pipeline territorial y seller-side end-to-end con fuentes reales**: scraping/importación live, persistencia, scoring, dossier y drafts sobre datos de mercado frescos.
+2. **Eliminar dependencias manuales críticas de NotebookLM/StateFox**: hoy el sistema funciona, pero no es todavía autónomo ni plenamente reproducible.
+3. **Conectar el outreach a canales reales con modo supervisado**: el valor comercial no se captura del todo mientras los drafts no se conviertan en envíos trazables.
+4. **Añadir memoria semántica por seller y contexto histórico accionable**: esto es lo que convierte el workbench actual en un verdadero Gravity Claw.
+5. **Completar observabilidad y operación cloud**: cron fiable, estados, alertas, reintentos y métricas operativas.
+6. **Limpiar UI/documentación residual hardcoded o desalineada**: importante para confianza operativa, aunque no es el principal cuello de botella.
+7. **Ejecutar una pasada completa de QA reproducible**: backend tests, frontend build, smoke tests sobre cron y rutas críticas en entorno preparado.
+
+### Plan de Ejecución 30 / 60 / 90 Días
+
+Backlog ejecutable asociado:
+`public/docs/Nuevo_enfoque/Backlog-Entrega-Productiva-30-60-90.md`
+
+#### Horizonte 0-30 días: pasar de "parcialmente operativo" a "operación verificable"
+
+**Objetivo:** cerrar el circuito mínimo de producción con datos reales y eliminar los puntos más frágiles del sistema.
+
+**Entregables obligatorios**
+- Pipeline territorial ejecutable de punta a punta en cloud:
+  - ingestión seller-side,
+  - sync de inteligencia territorial,
+  - batch de outreach supervisado.
+- Runbook operativo único para:
+  - refresco NotebookLM,
+  - importación StateFox,
+  - ejecución cron,
+  - recuperación ante fallo.
+- Sustitución de los bloques territoriales hardcoded del frontend sellers por consumo de backend real.
+- Smoke test manual reproducible de la cadena:
+  - fuente -> seller -> insight -> dossier -> draft -> supervised send.
+
+**Trabajo técnico**
+1. Endurecer `frontend/src/app/api/cron/territorial-pipeline/route.ts` como flujo oficial de orquestación.
+2. Habilitar un origen live prioritario y uno fallback:
+   - prioritario: Firecrawl o StateFox importado con contrato estable,
+   - fallback: snapshot versionado.
+3. Añadir status operativo visible en dashboard:
+   - última ejecución,
+   - estado,
+   - errores,
+   - volumen de sellers creados,
+   - volumen de insights sincronizados.
+4. Conectar `send-supervised` a mailto / wa.me de forma consistente para uso diario.
+5. Preparar entorno QA reproducible con dependencias backend instalables y comando de test documentado.
+
+**Criterio de salida**
+- Toni puede ejecutar el pipeline completo una vez al día sin tocar código ni depender de inspección manual del repo.
+
+#### Horizonte 31-60 días: pasar de "operación verificable" a "operación escalable"
+
+**Objetivo:** reducir intervención manual y elevar calidad comercial del outreach.
+
+**Entregables obligatorios**
+- Integración live estable de al menos una fuente externa de sellers.
+- Cobertura territorial ampliada a todas las zonas prioritarias.
+- Dossier y drafts con contexto por seller más rico y reutilizable.
+- Panel operacional con métricas de rendimiento comercial y de sistema.
+
+**Trabajo técnico**
+1. Automatizar captura/importación StateFox o consolidar Firecrawl como fuente primaria verificable.
+2. Añadir enriquecimiento de contacto:
+   - email,
+   - teléfono,
+   - WhatsApp,
+   - señales de motivación normalizadas.
+3. Introducir scoring más robusto:
+   - peso por zona,
+   - tiempo en mercado,
+   - precio,
+   - fuente,
+   - señales de urgencia.
+4. Implementar memoria histórica útil por seller:
+   - mínimo v1 sin vector si hace falta,
+   - idealmente ya con store semántico real.
+5. Sustituir contenido mock residual en notificaciones y paneles secundarios.
+
+**Criterio de salida**
+- El sistema genera y prioriza oportunidades con una calidad suficientemente alta como para sostener un flujo semanal continuo de contacto comercial.
+
+#### Horizonte 61-90 días: pasar de "escalable" a "100% productivo"
+
+**Objetivo:** convertir Anclora Nexus en un sistema autónomo, observable y defendible en producción real.
+
+**Entregables obligatorios**
+- Memoria semántica real por seller y conversación.
+- Outreach supervisado integrado con trazabilidad de envío/resultado.
+- Observabilidad completa de pipelines y costes.
+- QA técnica y operativa formal con criterios de aceptación cerrados.
+
+**Trabajo técnico**
+1. Implementar pgvector/Pinecone o equivalente para memoria contextual real.
+2. Crear cuaderno privado o equivalente de inteligencia por Whale seller y conectarlo al workbench.
+3. Integrar canal de correo real con borrador o envío supervisado trazable.
+4. Añadir alertado operativo:
+   - cron caído,
+   - sync territorial caducado,
+   - scraping sin cobertura,
+   - hard stop finops.
+5. Ejecutar hardening final:
+   - tests backend,
+   - build frontend,
+   - pruebas de regresión,
+   - prueba de datos reales,
+   - revisión legal/compliance de scraping y tratamiento de datos.
+
+**Criterio de salida**
+- La aplicación opera con autonomía diaria, datos frescos, outreach accionable y trazabilidad suficiente para considerarse un sistema productivo real.
+
+### Backlog priorizado inmediato
+
+1. Reemplazar oportunidades territoriales hardcoded de sellers por datos backend.
+2. Formalizar el cron territorial como pipeline oficial desplegado.
+3. Cerrar una integración live verificable de captación seller-side.
+4. Conectar supervised send a canales reales utilizables por Toni.
+5. Preparar entorno de test backend reproducible y ejecutar QA mínima.
+6. Diseñar la memoria semántica v1 para sellers Whale.
+
+---
+
 ## Fase 1: Inicialización y Arquitectura Core (Framework BLAST)
 
 Utilizaremos el framework **BLAST** (Blueprint, Link, Architect, Stylize, Trigger) con una arquitectura de 3 capas (Arquitectura, Navegación, Herramientas).
