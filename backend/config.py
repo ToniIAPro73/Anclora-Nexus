@@ -1,3 +1,4 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
@@ -44,6 +45,9 @@ class Settings(BaseSettings):
     # LangGraph Settings
     MAX_ITERATIONS: int = 10
     
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=str(Path(__file__).resolve().parent.parent / ".env"),
+        extra="ignore"
+    )
 
 settings = Settings()

@@ -1,4 +1,5 @@
 import json
+import traceback
 from typing import Any
 
 import httpx
@@ -19,13 +20,17 @@ class LLMService:
         try:
             return await self._invoke_task("summarize", text)
         except Exception as exc:
+            print(f"DEBUG: summarize failed: {exc}")
+            traceback.print_exc()
             return f"Summary unavailable ({exc})"
 
     async def generate_copy(self, context: str) -> str:
         """Copywriting path optimized for persuasive and polished output."""
         try:
             return await self._invoke_task("generate_copy", context)
-        except Exception:
+        except Exception as exc:
+            print(f"DEBUG: generate_copy failed: {exc}")
+            traceback.print_exc()
             return (
                 "Copy generation unavailable. "
                 "This is a placeholder luxury summary for the properties found."
@@ -35,7 +40,9 @@ class LLMService:
         """Structured analysis path with deterministic fallback."""
         try:
             return await self._invoke_task("analyze", data)
-        except Exception:
+        except Exception as exc:
+            print(f"DEBUG: analyze failed: {exc}")
+            traceback.print_exc()
             if "cruzar estos LEADS" in data:
                 return '{"matchings": []}'
             return "Analysis failed due to AI runtime unavailability."
