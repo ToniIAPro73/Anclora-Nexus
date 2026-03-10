@@ -4,6 +4,9 @@ Fecha objetivo: `2026-03-10`
 
 Objetivo: validar en entorno real o sandbox controlado que el perímetro `BL-001` a `BL-011` funciona end-to-end con datos frescos, sin depender de logs técnicos.
 
+Plantilla de acta:
+- `public/docs/Nuevo_enfoque/ACTA_SMOKE_TEST_RC_PRODUCTIVO_Q2_2026.md`
+
 ## Versión corta (15-20 min)
 
 Usa esta versión si solo necesitas decidir rápido si el RC puede pasar de `CONDITIONAL GO` a `GO`.
