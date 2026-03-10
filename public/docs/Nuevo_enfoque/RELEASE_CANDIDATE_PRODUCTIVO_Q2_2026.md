@@ -17,6 +17,7 @@ La salida a producción real queda condicionada a dos verificaciones operativas 
 
 Runbook de smoke test:
 - `public/docs/Nuevo_enfoque/SMOKE_TEST_RC_PRODUCTIVO_Q2_2026.md`
+  - incluye versión corta `15-20 min`
 
 ## Evidencia técnica
 

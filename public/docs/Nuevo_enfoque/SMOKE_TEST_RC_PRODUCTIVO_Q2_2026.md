@@ -4,6 +4,80 @@ Fecha objetivo: `2026-03-10`
 
 Objetivo: validar en entorno real o sandbox controlado que el perímetro `BL-001` a `BL-011` funciona end-to-end con datos frescos, sin depender de logs técnicos.
 
+## Versión corta (15-20 min)
+
+Usa esta versión si solo necesitas decidir rápido si el RC puede pasar de `CONDITIONAL GO` a `GO`.
+
+### Check 1. Sellers e inteligencia territorial
+
+- [ ] Abrir `/sellers`
+- [ ] Confirmar que carga sellers reales
+- [ ] Confirmar que el bloque territorial muestra oportunidades no vacías
+
+PASS:
+- la pantalla carga sin error
+- hay datos territoriales y sellers visibles
+
+### Check 2. Workbench contextual
+
+- [ ] Abrir un seller P4/P5
+- [ ] Generar dossier si no existe
+- [ ] Confirmar que el drawer muestra:
+  - consola comercial
+  - canal recomendado
+  - siguiente paso
+  - memoria semántica o estado `ready`
+
+PASS:
+- el drawer sigue usable
+- la consola no queda vacía
+
+### Check 3. HITL real
+
+- [ ] Verificar `email_contacto` o `whatsapp_contacto`
+- [ ] Lanzar un `send-supervised`
+- [ ] Confirmar la apertura del cliente real
+- [ ] Marcar el envío como confirmado
+
+PASS:
+- el payload abre `mailto:` o `wa.me`
+- queda interacción `sent_confirmed_human`
+
+### Check 4. Observabilidad
+
+- [ ] Abrir `/source-observatory`
+- [ ] Confirmar que la fuente usada refleja actividad reciente
+- [ ] Abrir `/automation-alerting`
+- [ ] Confirmar que no aparece una alerta crítica no explicada
+
+PASS:
+- actividad visible
+- sin alertas críticas inesperadas
+
+### Check 5. Command center
+
+- [ ] Abrir `/command-center`
+- [ ] Confirmar métricas de:
+  - seller signals
+  - sellers creados / convertidos
+  - envíos supervisados confirmados
+  - estado territorial
+
+PASS:
+- dirección puede leer el estado del sistema sin abrir logs
+
+### Decisión rápida
+
+- `GO`:
+  - los 5 checks en PASS
+  - sin objeción abierta de compliance
+
+- `CONDITIONAL GO`:
+  - 1 check menor con workaround documentado
+
+- `NO-GO`:
+  - falla `Check 2`, `Check 3`, `Check 4` o `Check 5`
+
 ## Regla de ejecución
 
 - Ejecutar en este orden.
