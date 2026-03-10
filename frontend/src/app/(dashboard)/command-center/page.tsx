@@ -60,7 +60,7 @@ export default function CommandCenterPage() {
               </Link>
               <h1 className="page-title">{t('commandCenterMenu')}</h1>
             </div>
-            <p className="text-soft-muted">{t('commandCenterSubtitle')}</p>
+            <p className="page-subtitle">{t('commandCenterSubtitle')}</p>
           </div>
           <button
             type="button"
@@ -84,40 +84,40 @@ export default function CommandCenterPage() {
           <>
             <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterCommercialKpis')}</p>
-                <p className="mt-2 text-3xl font-bold text-gold">{snapshot?.commercial_kpis?.length || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterKpiBlocks')}</p>
+                <p className="kpi-label">{t('commandCenterCommercialKpis')}</p>
+                <p className="kpi-value text-gold">{snapshot?.commercial_kpis?.length || 0}</p>
+                <p className="kpi-meta">{t('commandCenterKpiBlocks')}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterProductivityKpis')}</p>
-                <p className="mt-2 text-3xl font-bold text-gold">{snapshot?.productivity_kpis?.length || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterOperationalSignals')}</p>
+                <p className="kpi-label">{t('commandCenterProductivityKpis')}</p>
+                <p className="kpi-value text-gold">{snapshot?.productivity_kpis?.length || 0}</p>
+                <p className="kpi-meta">{t('commandCenterOperationalSignals')}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('budgetStatus')}</p>
-                <p className="mt-2 text-3xl font-bold text-gold">{snapshot?.budget_status || '-'}</p>
-                <p className="mt-1 text-sm text-soft-muted">{snapshot?.cost_visibility === 'full' ? t('commandCenterCostVisibilityFull') : t('commandCenterCostVisibilityLimited')}</p>
+                <p className="kpi-label">{t('budgetStatus')}</p>
+                <p className="kpi-value text-gold">{snapshot?.budget_status || '-'}</p>
+                <p className="kpi-meta">{snapshot?.cost_visibility === 'full' ? t('commandCenterCostVisibilityFull') : t('commandCenterCostVisibilityLimited')}</p>
               </article>
             </section>
 
             <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterActiveAlerts')}</p>
-                <p className="mt-2 text-3xl font-bold text-soft-white">{snapshot?.operational_overview.active_alerts || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterOperationalSignals')}</p>
+                <p className="kpi-label">{t('commandCenterActiveAlerts')}</p>
+                <p className="kpi-value text-soft-white">{snapshot?.operational_overview.active_alerts || 0}</p>
+                <p className="kpi-meta">{t('commandCenterOperationalSignals')}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterCriticalAlerts')}</p>
-                <p className="mt-2 text-3xl font-bold text-red-300">{snapshot?.operational_overview.critical_alerts || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterNeedsAction')}</p>
+                <p className="kpi-label">{t('commandCenterCriticalAlerts')}</p>
+                <p className="kpi-value text-red-300">{snapshot?.operational_overview.critical_alerts || 0}</p>
+                <p className="kpi-meta">{t('commandCenterNeedsAction')}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterDegradedSources')}</p>
-                <p className="mt-2 text-3xl font-bold text-amber-200">{snapshot?.operational_overview.degraded_sources || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterStaleSources')}: {snapshot?.operational_overview.stale_sources || 0}</p>
+                <p className="kpi-label">{t('commandCenterDegradedSources')}</p>
+                <p className="kpi-value text-amber-200">{snapshot?.operational_overview.degraded_sources || 0}</p>
+                <p className="kpi-meta">{t('commandCenterStaleSources')}: {snapshot?.operational_overview.stale_sources || 0}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterTerritorialHealth')}</p>
+                <p className="kpi-label">{t('commandCenterTerritorialHealth')}</p>
                 <p className="mt-2 text-sm font-semibold text-soft-white">
                   Sync: {snapshot?.operational_overview.territorial_sync_status || '-'}
                 </p>
@@ -129,30 +129,30 @@ export default function CommandCenterPage() {
 
             <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterSellerSignals')}</p>
-                <p className="mt-2 text-3xl font-bold text-soft-white">{snapshot?.pipeline_overview.seller_signals_processed || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterPipelineThroughput')}</p>
+                <p className="kpi-label">{t('commandCenterSellerSignals')}</p>
+                <p className="kpi-value text-soft-white">{snapshot?.pipeline_overview.seller_signals_processed || 0}</p>
+                <p className="kpi-meta">{t('commandCenterPipelineThroughput')}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterSellersTotal')}</p>
-                <p className="mt-2 text-3xl font-bold text-gold">{snapshot?.pipeline_overview.sellers_total || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterHighPrioritySellers')}: {snapshot?.pipeline_overview.sellers_high_priority || 0}</p>
+                <p className="kpi-label">{t('commandCenterSellersTotal')}</p>
+                <p className="kpi-value text-gold">{snapshot?.pipeline_overview.sellers_total || 0}</p>
+                <p className="kpi-meta">{t('commandCenterHighPrioritySellers')}: {snapshot?.pipeline_overview.sellers_high_priority || 0}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterSellersConverted')}</p>
-                <p className="mt-2 text-3xl font-bold text-emerald-300">{snapshot?.pipeline_overview.sellers_converted || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{snapshot?.pipeline_overview.seller_conversion_rate || 0}%</p>
+                <p className="kpi-label">{t('commandCenterSellersConverted')}</p>
+                <p className="kpi-value text-emerald-300">{snapshot?.pipeline_overview.sellers_converted || 0}</p>
+                <p className="kpi-meta">{snapshot?.pipeline_overview.seller_conversion_rate || 0}%</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/40 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('commandCenterSupervisedSends')}</p>
-                <p className="mt-2 text-3xl font-bold text-blue-light">{snapshot?.pipeline_overview.supervised_sends_confirmed || 0}</p>
-                <p className="mt-1 text-sm text-soft-muted">{t('commandCenterWorkbenchReady')}: {snapshot?.pipeline_overview.active_workbench_ready || 0}</p>
+                <p className="kpi-label">{t('commandCenterSupervisedSends')}</p>
+                <p className="kpi-value text-blue-light">{snapshot?.pipeline_overview.supervised_sends_confirmed || 0}</p>
+                <p className="kpi-meta">{t('commandCenterWorkbenchReady')}: {snapshot?.pipeline_overview.active_workbench_ready || 0}</p>
               </article>
             </section>
 
             <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-soft-white">
+                <h2 className="mb-3 section-title flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-gold" />
                   {t('commandCenterCommercialKpis')}
                 </h2>
@@ -160,14 +160,14 @@ export default function CommandCenterPage() {
                   {(snapshot?.commercial_kpis || []).map((k) => (
                     <div key={k.label} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
                       <p className="text-xs text-soft-muted">{t(k.label)}</p>
-                      <p className="text-lg font-semibold text-soft-white">{formatKpi(k.value, k.unit)}</p>
+                      <p className="section-title">{formatKpi(k.value, k.unit)}</p>
                     </div>
                   ))}
                 </div>
               </article>
 
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-soft-white">
+                <h2 className="mb-3 section-title flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-gold" />
                   {t('commandCenterProductivityKpis')}
                 </h2>
@@ -175,7 +175,7 @@ export default function CommandCenterPage() {
                   {(snapshot?.productivity_kpis || []).map((k) => (
                     <div key={k.label} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
                       <p className="text-xs text-soft-muted">{t(k.label)}</p>
-                      <p className="text-lg font-semibold text-soft-white">{formatKpi(k.value, k.unit)}</p>
+                      <p className="section-title">{formatKpi(k.value, k.unit)}</p>
                     </div>
                   ))}
                 </div>
@@ -183,7 +183,7 @@ export default function CommandCenterPage() {
             </section>
 
             <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-soft-white">
+              <h2 className="mb-3 section-title flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-gold" />
                 {t('commandCenterOperationalSignals')}
               </h2>
@@ -214,14 +214,14 @@ export default function CommandCenterPage() {
             </section>
 
             <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-soft-white">
+              <h2 className="mb-3 section-title flex items-center gap-2">
                 <Wallet className="h-4 w-4 text-gold" />
                 {t('commandCenterTrends')}
               </h2>
               <div className="overflow-auto">
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="text-soft-muted">
+                    <tr className="page-subtitle">
                       <th className="px-2 py-2 text-left">{t('date')}</th>
                       <th className="px-2 py-2 text-left">{t('commandCenterLeadsCreated')}</th>
                       <th className="px-2 py-2 text-left">{t('commandCenterTasksCompleted')}</th>

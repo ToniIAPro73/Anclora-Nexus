@@ -177,7 +177,7 @@ export default function ProspectionUnifiedPage() {
               </Link>
               <div>
                 <h1 className="page-title">Prospeccion operativa</h1>
-                <p className="mt-1 text-sm text-soft-muted">Cola de trabajo priorizada para ejecutar captacion, contacto y cierre.</p>
+                <p className="page-subtitle">Cola de trabajo priorizada para ejecutar captacion, contacto y cierre.</p>
               </div>
             </div>
 
@@ -229,18 +229,18 @@ export default function ProspectionUnifiedPage() {
 
         <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">Propiedades</p>
-            <p className="mt-2 text-3xl font-bold text-gold">{workspace?.totals.properties ?? 0}</p>
+            <p className="kpi-label">Propiedades</p>
+            <p className="kpi-value text-gold">{workspace?.totals.properties ?? 0}</p>
             <p className="mt-1 text-xs text-soft-muted">Activas en pipeline</p>
           </article>
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">Buyers</p>
-            <p className="mt-2 text-3xl font-bold text-gold">{workspace?.totals.buyers ?? 0}</p>
+            <p className="kpi-label">Buyers</p>
+            <p className="kpi-value text-gold">{workspace?.totals.buyers ?? 0}</p>
             <p className="mt-1 text-xs text-soft-muted">Con demanda cualificada</p>
           </article>
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">Matches</p>
-            <p className="mt-2 text-3xl font-bold text-gold">{workspace?.totals.matches ?? 0}</p>
+            <p className="kpi-label">Matches</p>
+            <p className="kpi-value text-gold">{workspace?.totals.matches ?? 0}</p>
             <p className="mt-1 text-xs text-soft-muted">Para ejecutar hoy</p>
           </article>
         </section>
@@ -255,7 +255,7 @@ export default function ProspectionUnifiedPage() {
           <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
             <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
               <header className="mb-3 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-soft-white">
+                <h2 className="section-title flex items-center gap-2">
                   <Zap className="h-4 w-4 text-gold" />
                   Cola de cierre (hoy)
                 </h2>
@@ -305,7 +305,7 @@ export default function ProspectionUnifiedPage() {
 
             <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
               <header className="mb-3 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-soft-white">
+                <h2 className="section-title flex items-center gap-2">
                   <Home className="h-4 w-4 text-gold" />
                   Captacion prioritaria
                 </h2>
@@ -355,7 +355,7 @@ export default function ProspectionUnifiedPage() {
 
             <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
               <header className="mb-3 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-soft-white">
+                <h2 className="section-title flex items-center gap-2">
                   <Users className="h-4 w-4 text-gold" />
                   Seguimiento de buyers
                 </h2>

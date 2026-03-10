@@ -64,7 +64,7 @@ export default function SourceObservatoryPage() {
               </Link>
               <h1 className="page-title">{t('sourceObservatoryMenu')}</h1>
             </div>
-            <p className="text-soft-muted">{t('sourceObservatorySubtitle')}</p>
+            <p className="page-subtitle">{t('sourceObservatorySubtitle')}</p>
           </div>
           <button
             type="button"
@@ -89,22 +89,22 @@ export default function SourceObservatoryPage() {
             {summary && (
               <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('sourceObservatoryHealthy')}</p>
+                  <p className="kpi-label">{t('sourceObservatoryHealthy')}</p>
                   <p className="mt-2 text-2xl font-semibold text-emerald-300">{summary.healthy_sources}</p>
                   <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatorySources')}: {summary.total_sources}</p>
                 </article>
                 <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('sourceObservatoryDegraded')}</p>
+                  <p className="kpi-label">{t('sourceObservatoryDegraded')}</p>
                   <p className="mt-2 text-2xl font-semibold text-amber-200">{summary.warning_sources + summary.critical_sources}</p>
                   <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryStale')}: {summary.stale_sources}</p>
                 </article>
                 <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('sourceObservatoryCreated')}</p>
+                  <p className="kpi-label">{t('sourceObservatoryCreated')}</p>
                   <p className="mt-2 text-2xl font-semibold text-soft-white">{summary.total_created_entities}</p>
                   <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryEvents')}: {summary.total_events}</p>
                 </article>
                 <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('sourceObservatoryFailures')}</p>
+                  <p className="kpi-label">{t('sourceObservatoryFailures')}</p>
                   <p className="mt-2 text-2xl font-semibold text-red-300">{summary.total_failures}</p>
                   <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryActionability')}</p>
                 </article>
@@ -112,7 +112,7 @@ export default function SourceObservatoryPage() {
             )}
 
             <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-              <h2 className="mb-3 text-lg font-semibold text-soft-white">{t('sourceObservatoryScorecards')}</h2>
+              <h2 className="mb-3 section-title">{t('sourceObservatoryScorecards')}</h2>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {overview.slice(0, 9).map((item) => (
                   <article key={item.source_key} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
@@ -139,7 +139,7 @@ export default function SourceObservatoryPage() {
 
             <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                <h2 className="mb-3 text-lg font-semibold text-soft-white">{t('sourceObservatoryRanking')}</h2>
+                <h2 className="mb-3 section-title">{t('sourceObservatoryRanking')}</h2>
                 <div className="space-y-2">
                   {ranking.slice(0, 8).map((row, idx) => (
                     <div key={row.source_key} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
@@ -151,7 +151,7 @@ export default function SourceObservatoryPage() {
                 </div>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-soft-white">
+                <h2 className="mb-3 section-title flex items-center gap-2">
                   <LineChart className="h-4 w-4 text-gold" />
                   {t('sourceObservatoryTrends')}
                 </h2>

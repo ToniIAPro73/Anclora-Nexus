@@ -120,22 +120,22 @@ export default function AutomationAlertingPage() {
           <>
             <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('automationAlertsTitle')}</p>
+                <p className="kpi-label">{t('automationAlertsTitle')}</p>
                 <p className="mt-2 text-2xl font-semibold text-soft-white">{alerts.length}</p>
                 <p className="mt-1 text-xs text-soft-muted">{t('automationOperationalVisibility')}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('automationCriticalAlerts')}</p>
+                <p className="kpi-label">{t('automationCriticalAlerts')}</p>
                 <p className="mt-2 text-2xl font-semibold text-red-300">{alerts.filter((a) => a.severity === 'critical').length}</p>
                 <p className="mt-1 text-xs text-soft-muted">{t('automationScopeOperational')}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('automationRulesTitle')}</p>
+                <p className="kpi-label">{t('automationRulesTitle')}</p>
                 <p className="mt-2 text-2xl font-semibold text-soft-white">{rules.length}</p>
                 <p className="mt-1 text-xs text-soft-muted">{t('automationExecutionsTitle')}: {executions.length}</p>
               </article>
               <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('automationGuardrailBlocks')}</p>
+                <p className="kpi-label">{t('automationGuardrailBlocks')}</p>
                 <p className="mt-2 text-2xl font-semibold text-amber-200">{alerts.filter((a) => a.alert_scope === 'rule').length}</p>
                 <p className="mt-1 text-xs text-soft-muted">{t('automationScopeRules')}</p>
               </article>
@@ -144,7 +144,7 @@ export default function AutomationAlertingPage() {
             <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
               <header className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-soft-white">{t('automationRulesTitle')}</h2>
+                <h2 className="section-title">{t('automationRulesTitle')}</h2>
                 <span className="text-sm text-soft-muted">{rules.length}</span>
               </header>
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
@@ -188,7 +188,7 @@ export default function AutomationAlertingPage() {
 
             <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
               <header className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-soft-white">{t('automationExecutionsTitle')}</h2>
+                <h2 className="section-title">{t('automationExecutionsTitle')}</h2>
                 <span className="text-sm text-soft-muted">{executions.length}</span>
               </header>
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
@@ -204,7 +204,7 @@ export default function AutomationAlertingPage() {
 
             <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
               <header className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-soft-white">{t('automationAlertsTitle')}</h2>
+                <h2 className="section-title">{t('automationAlertsTitle')}</h2>
                 <span className="text-sm text-soft-muted">{alerts.length}</span>
               </header>
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">

@@ -150,7 +150,7 @@ export default function FeedOrchestratorPage() {
               </Link>
               <h1 className="page-title">{t('feedOrchestratorTitle')}</h1>
             </div>
-            <p className="text-soft-muted">
+            <p className="page-subtitle">
               {t('feedOrchestratorSubtitle')}
             </p>
           </div>
@@ -177,27 +177,27 @@ export default function FeedOrchestratorPage() {
 
         <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('feedChannels')}</p>
-            <p className="mt-2 text-3xl font-bold text-gold">{workspace?.totals.channels ?? 0}</p>
+            <p className="kpi-label">{t('feedChannels')}</p>
+            <p className="kpi-value text-gold">{workspace?.totals.channels ?? 0}</p>
           </article>
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('feedCandidates')}</p>
-            <p className="mt-2 text-3xl font-bold text-gold">{workspace?.totals.candidates ?? 0}</p>
+            <p className="kpi-label">{t('feedCandidates')}</p>
+            <p className="kpi-value text-gold">{workspace?.totals.candidates ?? 0}</p>
           </article>
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('feedReadyToPublish')}</p>
-            <p className="mt-2 text-3xl font-bold text-emerald-300">{workspace?.totals.ready ?? 0}</p>
+            <p className="kpi-label">{t('feedReadyToPublish')}</p>
+            <p className="kpi-value text-emerald-300">{workspace?.totals.ready ?? 0}</p>
           </article>
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('feedValidationErrors')}</p>
-            <p className="mt-2 text-3xl font-bold text-red-300">{workspace?.totals.errors ?? 0}</p>
+            <p className="kpi-label">{t('feedValidationErrors')}</p>
+            <p className="kpi-value text-red-300">{workspace?.totals.errors ?? 0}</p>
           </article>
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
           <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
             <header className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold text-soft-white">{t('feedChannels')}</h2>
+              <h2 className="section-title">{t('feedChannels')}</h2>
               <div className="flex items-center gap-2">
                 <label className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle/60 px-2 py-1 text-xs text-soft-muted">
                   <input
@@ -267,7 +267,7 @@ export default function FeedOrchestratorPage() {
           <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 lg:col-span-2 min-h-0 overflow-hidden">
             <header className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-soft-white">
+                <h2 className="section-title">
                   {selectedSummary ? CHANNEL_LABELS[selectedSummary.channel] : t('feedChannel')}
                 </h2>
                 <p className="text-xs text-soft-muted">{t('feedValidationAndPublishing')}</p>
@@ -326,10 +326,10 @@ export default function FeedOrchestratorPage() {
                 <h3 className="text-sm font-semibold text-soft-white mb-2">{t('feedValidationSummary')}</h3>
                 {validation ? (
                   <div className="space-y-2 text-sm">
-                    <p className="text-soft-muted">{t('feedCandidates')}: <span className="text-soft-white">{validation.total_candidates}</span></p>
-                    <p className="text-soft-muted">{t('feedReadyToPublish')}: <span className="text-emerald-300">{validation.ready_to_publish}</span></p>
-                    <p className="text-soft-muted">{t('feedWarnings')}: <span className="text-amber-300">{validation.warnings}</span></p>
-                    <p className="text-soft-muted">{t('feedValidationErrors')}: <span className="text-red-300">{validation.errors}</span></p>
+                    <p className="page-subtitle">{t('feedCandidates')}: <span className="text-soft-white">{validation.total_candidates}</span></p>
+                    <p className="page-subtitle">{t('feedReadyToPublish')}: <span className="text-emerald-300">{validation.ready_to_publish}</span></p>
+                    <p className="page-subtitle">{t('feedWarnings')}: <span className="text-amber-300">{validation.warnings}</span></p>
+                    <p className="page-subtitle">{t('feedValidationErrors')}: <span className="text-red-300">{validation.errors}</span></p>
                   </div>
                 ) : (
                   <p className="text-sm text-soft-muted">{t('feedValidationHint')}</p>
@@ -398,7 +398,7 @@ export default function FeedOrchestratorPage() {
                           ) : (
                             <span className="inline-flex items-center gap-1 text-amber-300"><RotateCcw className="w-3 h-3" /> {t('feedWarning')}</span>
                           )}
-                          <span className="text-soft-muted">{issue.property_id.slice(0, 8)}</span>
+                          <span className="text-xs text-soft-muted">{issue.property_id.slice(0, 8)}</span>
                         </div>
                       </div>
                     ))
@@ -411,7 +411,7 @@ export default function FeedOrchestratorPage() {
 
         <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0 overflow-hidden">
           <header className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-soft-white">{t('feedRunsHistory')}</h2>
+            <h2 className="section-title">{t('feedRunsHistory')}</h2>
             <span className="text-xs text-soft-muted">{runs.length} {t('feedRecords')}</span>
           </header>
           <div className="max-h-[240px] overflow-auto pr-1 custom-scrollbar">
