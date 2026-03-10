@@ -9,3 +9,4 @@ Checklist:
 4. Abrir cliente real (`mailto` o `wa.me`).
 5. Pedir confirmación explícita de envío.
 6. Marcar interacción como realizada y actualizar estado comercial si aplica.
+7. Garantizar encoding seguro de URLs y canales persistidos.

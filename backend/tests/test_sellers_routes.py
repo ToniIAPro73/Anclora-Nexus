@@ -57,6 +57,29 @@ class TestSellersRouteRegistration:
 
 class TestSellersRouteContracts:
     @patch("backend.api.routes.sellers.sellers_service")
+    def test_patch_seller_updates_contact_channels(self, mock_service: MagicMock) -> None:
+        seller_id = str(uuid4())
+        mock_service.update_seller = AsyncMock(return_value={
+            "id": seller_id,
+            "email_contacto": "owner@example.com",
+            "telefono_contacto": "+34600111222",
+            "whatsapp_contacto": "+34600111222",
+        })
+
+        response = client.patch(
+            f"/api/sellers/{seller_id}",
+            json={
+                "email_contacto": "owner@example.com",
+                "telefono_contacto": "+34600111222",
+                "whatsapp_contacto": "+34600111222",
+            },
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["email_contacto"] == "owner@example.com"
+
+    @patch("backend.api.routes.sellers.sellers_service")
     def test_workbench_returns_payload(self, mock_service: MagicMock) -> None:
         seller_id = str(uuid4())
         mock_service.get_seller_workbench = AsyncMock(return_value={
@@ -154,3 +177,22 @@ class TestSellersRouteContracts:
         body = response.json()
         assert body["channel"] == "email"
         assert body["target"] == "owner@example.com"
+
+    @patch("backend.api.routes.sellers.sellers_service")
+    def test_confirm_supervised_send_returns_updated_interaction(self, mock_service: MagicMock) -> None:
+        seller_id = str(uuid4())
+        interaction_id = str(uuid4())
+        mock_service.confirm_supervised_send = AsyncMock(return_value={
+            "id": interaction_id,
+            "seller_id": seller_id,
+            "estado": "realizado",
+            "resultado": "sent_confirmed_human",
+            "metadata": {"confirmed_at": "2026-03-10T00:00:00Z"},
+        })
+
+        response = client.post(f"/api/sellers/{seller_id}/interactions/{interaction_id}/confirm-send")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["estado"] == "realizado"
+        assert body["resultado"] == "sent_confirmed_human"

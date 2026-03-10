@@ -8,6 +8,7 @@ All queries enforce org_id isolation (single-tenant v0).
 from datetime import datetime, timezone
 import re
 from typing import Any, Dict, List, Optional
+from urllib.parse import quote
 
 from .supabase_service import SupabaseService
 from ..models.sellers import (
@@ -479,8 +480,11 @@ async def build_supervised_send_payload(
             raise ValueError("Seller email_contacto is required for supervised email send")
         subject = sections.get("email_subject", "").strip() or "Seguimiento de propiedad"
         body = sections.get("email_body", "").strip()
-        launch_url = f"mailto:{target}?subject={subject}&body={body}"
-        launch_url = launch_url.replace(" ", "%20").replace("\n", "%0A")
+        launch_url = (
+            f"mailto:{quote(str(target))}"
+            f"?subject={quote(subject)}"
+            f"&body={quote(body)}"
+        )
     else:
         target = _extract_whatsapp(seller)
         if not target:
@@ -488,7 +492,7 @@ async def build_supervised_send_payload(
         digits = re.sub(r"\D", "", str(target))
         body = sections.get("whatsapp_body", "").strip()
         subject = ""
-        launch_url = f"https://wa.me/{digits}?text={body}".replace(" ", "%20").replace("\n", "%0A")
+        launch_url = f"https://wa.me/{digits}?text={quote(body)}"
 
     interaction = await add_interaction(
         db=db,
