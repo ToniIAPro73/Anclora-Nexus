@@ -55,3 +55,4 @@ next-env.d.ts
 ops/statefox-live-capture.json
 ops/statefox-playwright-profile/
 
+credentials.json

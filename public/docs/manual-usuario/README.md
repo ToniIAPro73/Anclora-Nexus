@@ -7,7 +7,8 @@ Este directorio contiene el Manual de Usuario oficial de Anclora Nexus en dos fo
 | Archivo | Formato | Tamaño | Descripción |
 |---------|---------|--------|-------------|
 | `MANUAL_USUARIO_ANCLORA_NEXUS.md` | Markdown | ~53 KB | Versión Markdown para lectura en IDE/navegador |
-| `MANUAL_USUARIO_ANCLORA_NEXUS.docx` | Word | ~59 KB | Versión Word con branding Anclora (portada, estilos, TOC) |
+| `MANUAL_USUARIO_ANCLORA_NEXUS.docx` | Word | 1.5 MB | Versión Word con logo y branding Anclora |
+| `GOOGLE_DOCS_URLS.md` | Referencia | ~2 KB | URLs de acceso a Google Docs (después del upload) |
 
 ## 🎯 Uso
 
@@ -15,6 +16,7 @@ Este directorio contiene el Manual de Usuario oficial de Anclora Nexus en dos fo
 
 - **Leer online:** Abre `MANUAL_USUARIO_ANCLORA_NEXUS.md` en GitHub o cualquier visor markdown
 - **Descargar Word:** Descarga `MANUAL_USUARIO_ANCLORA_NEXUS.docx` para uso offline o impresión
+- **Ver en Google Docs:** Consulta `GOOGLE_DOCS_URLS.md` para el enlace directo (requiere upload previo)
 
 ### Para Desarrolladores
 
@@ -31,12 +33,32 @@ python3 scripts/generate-user-manual.py
 
 Este comando:
 1. ✅ Genera versión Markdown (`.md`)
-2. ✅ Convierte automáticamente a DOCX (`.docx`) con branding Anclora
+2. ✅ Convierte automáticamente a DOCX (`.docx`) con logo y branding Anclora
+
+### Subir a Google Docs
+
+Para crear/actualizar la versión en Google Docs:
+
+```bash
+python3 scripts/upload-to-google-docs.py
+```
+
+**Primera vez:**
+- Requiere configurar credenciales de Google Drive API
+- Consulta: [`GOOGLE_DOCS_SETUP.md`](./GOOGLE_DOCS_SETUP.md) para guía paso a paso
+
+**Ejecuciones posteriores:**
+- Usa credenciales guardadas (automático)
+- Actualiza el documento existente
 
 ### Requisitos
 
 ```bash
+# Para generación local (MD + DOCX)
 pip install python-docx Pillow lxml
+
+# Para upload a Google Docs
+pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
 
 ## 📋 Contenido del Manual
@@ -87,14 +109,21 @@ El manual cubre **100% de la aplicación**:
 
 La feature **ANCLORA-UMG-001** implementa:
 
-### Skills (3 skills)
+### Skills Phase 1 (✅ Implementadas)
 1. **manual-content-analyzer:** Analiza código (Sidebar, Header, páginas) para extraer funcionalidades
 2. **manual-structure-builder:** Construye estructura jerárquica del manual
 3. **manual-format-exporter:** Exporta a formatos Markdown y DOCX con branding
 
+### Skills Phase 2 (📝 Especificadas, ⏳ Implementación pendiente)
+4. **screenshot-capturer:** Captura automática de pantallas con Playwright
+5. **manual-translator:** Traducción ES → EN con LLM + glossario
+6. **google-docs-converter:** Upload a Google Docs (✅ script listo)
+7. **video-tutorial-generator:** Videos tutoriales con AI voiceover
+
 ### Documentación
 - `sdd/features/user-manual-generator/user-manual-generator-INDEX.md` - Índice de feature
 - `sdd/features/user-manual-generator/user-manual-generator-spec-v1.md` - Especificación técnica completa
+- `sdd/features/user-manual-generator/PHASE2_IMPLEMENTATION_PLAN.md` - Plan Phase 2
 - `sdd/features/user-manual-generator/rules/user-manual-rules.md` - Reglas de generación
 - `sdd/features/user-manual-generator/prompts/user-manual-prompt.md` - Prompts para AntiGravity
 - `sdd/features/user-manual-generator/test-plan-v1.md` - Plan de testing
