@@ -12,6 +12,7 @@ Desde `/sellers`, el usuario debe poder:
 - obtener un resumen de contexto reutilizable
 - registrar interacciones manuales
 - consultar historial reciente
+- visualizar oportunidades territoriales activas derivadas del backend real
 
 ## Reglas
 
@@ -20,3 +21,4 @@ Desde `/sellers`, el usuario debe poder:
 - No crear envio automatico a canales externos.
 - Mantener compatibilidad con el endpoint existente `generate-dossier`.
 - Añadir docs de feature completas: spec, index, test-plan, QA, gate, rule, skill.
+- No dejar insights comerciales hardcoded en `/sellers`.

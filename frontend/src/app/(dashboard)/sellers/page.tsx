@@ -36,6 +36,75 @@ const ESTADO_OPTIONS = [
   { value: 'descartado', label: 'Descartado' },
 ]
 
+interface ZoneInsight {
+  zona: string
+  response: string
+  metadata: Record<string, unknown>
+  created_at: string
+}
+
+interface TerritorialSummary {
+  summary: Record<string, ZoneInsight>
+  zones_with_data: string[]
+  timestamp: string
+}
+
+type OpportunityCard = {
+  urgencia: string
+  label: string
+  zona: string
+  nota: string
+}
+
+const TERRITORIAL_ZONE_LABELS: Record<string, string> = {
+  andratx: 'Andratx',
+  calvia: 'Calvià',
+  son_ferrer: 'Son Ferrer',
+  santa_ponca: 'Santa Ponça',
+  paguera: 'Paguera',
+  portals_nous: 'Portals Nous',
+  bendinat: 'Bendinat',
+  punta_negra: 'Punta Negra',
+  costa_den_blanes: "Costa d'en Blanes",
+  port_adriano: 'Port Adriano',
+  palma: 'Palma',
+  general: 'General',
+}
+
+function urgencyEmoji(value: string) {
+  const normalized = value.toUpperCase()
+  if (normalized === 'NOW' || normalized === 'CRITICA') return '🔴'
+  if (normalized.includes('Q2') || normalized.includes('Q3')) return '🟡'
+  return '🟢'
+}
+
+function normalizeOpportunity(summary: TerritorialSummary | null): OpportunityCard[] {
+  return Object.entries(summary?.summary || {})
+    .filter(([zona]) => zona !== 'general')
+    .map(([zona, insight]) => ({
+      urgencia: String(insight.metadata?.urgencia || 'ongoing'),
+      label: String(
+        insight.metadata?.señal
+        || insight.metadata?.signal
+        || insight.metadata?.accion
+        || TERRITORIAL_ZONE_LABELS[zona]
+        || zona
+      ),
+      zona: TERRITORIAL_ZONE_LABELS[zona] || zona,
+      nota: insight.response.replace(/\s+/g, ' ').trim().slice(0, 160),
+    }))
+    .sort((a, b) => {
+      const rank = (value: string) => {
+        const normalized = value.toUpperCase()
+        if (normalized === 'NOW' || normalized === 'CRITICA') return 0
+        if (normalized.includes('Q2') || normalized.includes('Q3')) return 1
+        return 2
+      }
+      return rank(a.urgencia) - rank(b.urgencia)
+    })
+    .slice(0, 5)
+}
+
 // ─────────────────────────────────────────────────────────────
 // Stat Card
 // ─────────────────────────────────────────────────────────────
@@ -84,6 +153,7 @@ export default function SellersPage() {
   const { t } = useI18n()
   const [sellers, setSellers] = useState<NexusSeller[]>([])
   const [stats, setStats] = useState<Record<string, unknown>>({})
+  const [territorialSummary, setTerritorialSummary] = useState<TerritorialSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedSeller, setSelectedSeller] = useState<NexusSeller | null>(null)
@@ -103,20 +173,24 @@ export default function SellersPage() {
       if (prioridadMin) params.set('prioridad_min', String(prioridadMin))
       params.set('limit', '100')
 
-      const [sellersRes, statsRes] = await Promise.all([
+      const [sellersRes, statsRes, territorialRes] = await Promise.all([
         fetch(buildBackendUrl(`/api/sellers/?${params}`)),
         fetch(buildBackendUrl('/api/sellers/stats')),
+        fetch(buildBackendUrl('/api/intelligence/territorial-summary')),
       ])
 
       if (!sellersRes.ok) throw new Error(`${t('error')} ${sellersRes.status}`)
       const sellersData = await sellersRes.json()
       const statsData = statsRes.ok ? await statsRes.json() : {}
+      const territorialData = territorialRes.ok ? await territorialRes.json() : null
 
       setSellers(sellersData)
       setStats(statsData)
+      setTerritorialSummary(territorialData)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('unknownError'))
       setSellers([])
+      setTerritorialSummary(null)
     } finally {
       setLoading(false)
     }
@@ -144,6 +218,7 @@ export default function SellersPage() {
   const whales = (stats.whales as number) || 0
   const mandatos = ((stats.por_estado as Record<string, number>)?.mandato_exclusivo) || 0
   const tasaMandatos = (stats.tasa_mandatos as number) || 0
+  const opportunities = normalizeOpportunity(territorialSummary)
 
   return (
     <div className="min-h-screen bg-navy text-soft-white">
@@ -294,18 +369,12 @@ export default function SellersPage() {
             {t('territorialInsightsSource')}
           </p>
           <div className="grid md:grid-cols-2 gap-3 text-sm">
-            {[
-              { urgencia: '🔴', label: t('territorialOpportunity1Title'), zona: 'Punta Negra / Costa d\'en Blanes', nota: t('territorialOpportunity1Note') },
-              { urgencia: '🔴', label: t('territorialOpportunity2Title'), zona: 'Calvià / Andratx', nota: t('territorialOpportunity2Note') },
-              { urgencia: '🟡', label: t('territorialOpportunity3Title'), zona: 'Son Ferrer / Costa d\'en Blanes', nota: t('territorialOpportunity3Note') },
-              { urgencia: '🟡', label: t('territorialOpportunity4Title'), zona: 'Puerto Portals / Puerto Andratx', nota: t('territorialOpportunity4Note') },
-              { urgencia: '🟢', label: t('territorialOpportunity5Title'), zona: 'Paguera / Santa Ponça / Andratx', nota: t('territorialOpportunity5Note') },
-            ].map((o) => (
+            {opportunities.map((o) => (
               <div
-                key={o.label}
+                key={`${o.zona}-${o.label}`}
                 className="flex gap-3 rounded-lg border border-soft-subtle/20 bg-navy-surface/30 p-3"
               >
-                <span className="text-lg leading-none mt-0.5">{o.urgencia}</span>
+                <span className="text-lg leading-none mt-0.5">{urgencyEmoji(o.urgencia)}</span>
                 <div className="space-y-0.5">
                   <p className="font-medium text-soft-white text-xs">{o.label}</p>
                   <p className="text-xs text-gold/70">{o.zona}</p>
@@ -313,6 +382,11 @@ export default function SellersPage() {
                 </div>
               </div>
             ))}
+            {!opportunities.length && (
+              <div className="rounded-lg border border-soft-subtle/20 bg-navy-surface/30 p-3 text-xs text-soft-muted">
+                {t('territorialSyncUnavailable')}
+              </div>
+            )}
           </div>
         </div>
 

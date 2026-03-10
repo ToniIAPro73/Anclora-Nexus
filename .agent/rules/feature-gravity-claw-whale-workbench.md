@@ -9,6 +9,7 @@ trigger: always_on
 2) .agent/rules/workspace-governance.md
 3) .agent/rules/anclora-nexus.md
 4) sdd/features/gravity-claw-whale-workbench/gravity-claw-whale-workbench-spec-v1.md
+5) sdd/features/gravity-claw-whale-workbench/gravity-claw-whale-workbench-spec-v1_1.md
 
 ## Immutable Rules
 - No envio automatico real a canales externos sin HITL.
@@ -21,3 +22,4 @@ trigger: always_on
 - Tipificar artefactos con `metadata.artifact`.
 - Mantener el drawer como workbench operativa unica.
 - Priorizar claridad comercial sobre complejidad de UX.
+- Las oportunidades territoriales mostradas en `/sellers` deben derivarse de backend vivo, no de bloques hardcoded.
