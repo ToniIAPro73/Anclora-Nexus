@@ -126,10 +126,10 @@ def get_task_runtime_routes() -> Dict[str, TaskRuntimeRoute]:
             fallback_model=settings.GROQ_MODEL_FALLBACK,
             temperature=0.1,
         )
-        generate_copy = _build_groq_route(
+        generate_copy = _build_cloudflare_route(
             task="generate_copy",
-            model=settings.GROQ_MODEL_PRIMARY,
-            fallback_model=settings.GROQ_MODEL_FALLBACK,
+            model=settings.CLOUDFLARE_MODEL_PRIMARY,
+            fallback_model=settings.CLOUDFLARE_MODEL_FALLBACK,
             temperature=0.6,
         )
     return {
