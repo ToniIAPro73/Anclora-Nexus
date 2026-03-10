@@ -30,6 +30,27 @@ export interface SourceScorecard {
   error_events: number
   success_rate_pct: number
   lead_count: number
+  property_count: number
+  seller_count: number
+  processed_events: number
+  rejected_events: number
+  failed_events: number
+  created_entities: number
+  freshness_hours: number | null
+  latest_event_at: string | null
+  operational_status: string
+  entity_types: string[]
+}
+
+export interface ObservatorySummary {
+  total_sources: number
+  healthy_sources: number
+  warning_sources: number
+  critical_sources: number
+  stale_sources: number
+  total_events: number
+  total_created_entities: number
+  total_failures: number
 }
 
 export interface RankingItem {
@@ -37,6 +58,9 @@ export interface RankingItem {
   score: number
   success_rate_pct: number
   lead_count: number
+  created_entities: number
+  freshness_hours: number | null
+  operational_status: string
 }
 
 export interface TrendPoint {
@@ -44,9 +68,12 @@ export interface TrendPoint {
   source_key: string
   events: number
   success_rate_pct: number
+  processed_events: number
+  failed_events: number
+  created_entities: number
 }
 
-export async function getSourceOverview(): Promise<{ version: string; scope: { org_id: string; role: string }; items: SourceScorecard[]; total: number }> {
+export async function getSourceOverview(): Promise<{ version: string; scope: { org_id: string; role: string }; summary: ObservatorySummary; items: SourceScorecard[]; total: number }> {
   return apiRequest('/api/source-observatory/overview')
 }
 

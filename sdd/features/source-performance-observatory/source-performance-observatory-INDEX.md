@@ -12,10 +12,14 @@ Measure source and channel performance quality to optimize acquisition mix and r
 
 ## Artifacts
 - Spec: sdd/features/source-performance-observatory/source-performance-observatory-spec-v1.md
+- Spec v1.1: sdd/features/source-performance-observatory/source-performance-observatory-spec-v1_1.md
 - Migration: sdd/features/source-performance-observatory/source-performance-observatory-spec-migration.md
 - Test plan: sdd/features/source-performance-observatory/source-performance-observatory-test-plan-v1.md
+- Test plan v1.1: sdd/features/source-performance-observatory/source-performance-observatory-test-plan-v1_1.md
 - QA Report: sdd/features/source-performance-observatory/QA_REPORT_ANCLORA_SPO_001.md
+- QA Report v1.1: sdd/features/source-performance-observatory/QA_REPORT_ANCLORA_SPO_001_v1_1.md
 - Gate Final: sdd/features/source-performance-observatory/GATE_FINAL_ANCLORA_SPO_001.md
+- Gate Final v1.1: sdd/features/source-performance-observatory/GATE_FINAL_ANCLORA_SPO_001_v1_1.md
 - Rules: .agent/rules/feature-source-performance-observatory.md
 - Skill: .agent/skills/features/source-performance-observatory/SKILL.md
 - Prompts: .antigravity/prompts/features/source-performance-observatory/
@@ -27,3 +31,4 @@ Measure source and channel performance quality to optimize acquisition mix and r
 - Backend operativo: `/api/source-observatory/overview`, `/ranking`, `/trends`.
 - Frontend operativo: `/source-observatory` + integración en sidebar.
 - Agent A: migración DB no requerida en v1.
+- v1.1: observabilidad operativa ampliada sin nueva migración.

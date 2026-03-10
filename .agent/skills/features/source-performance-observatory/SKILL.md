@@ -15,6 +15,8 @@ description: Implements Source Performance Observatory v1 following SDD governan
 - Keep rollouts reversible and migration-safe.
 - Produce complete prompt set A/B/C/D and Gate Final.
 - Document QA result and gate decision before release status.
+- Favor read-time aggregation from `ingestion_events`, `leads`, `properties` and `nexus_sellers` before introducing new persistence.
+- Surface degradation and staleness explicitly so operators can act without SQL.
 
 ## Stop Rules
 - Do not introduce out-of-scope integrations.

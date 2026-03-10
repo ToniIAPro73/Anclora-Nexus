@@ -20,3 +20,5 @@ trigger: always_on
 - Prefer additive schema changes and reversible rollout.
 - Keep API contracts explicit and versioned.
 - Enforce i18n discipline and avoid hardcoded UI strings.
+- Prioritize metrics that are operationally actionable: freshness, failures, created entities and degraded sources.
+- Support both unified-ingestion statuses (`processed`, `rejected`, `failed`) and legacy fallback statuses (`success`, `error`) when aggregating history.

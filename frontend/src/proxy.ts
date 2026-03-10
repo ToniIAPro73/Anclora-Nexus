@@ -2,14 +2,13 @@ import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   let res = NextResponse.next({
     request: {
       headers: req.headers,
     },
   })
 
-  // Create the supabase client
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -80,7 +79,6 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // Harden access: authenticated users must have an ACTIVE org membership.
   if (session && !isLoginPage) {
     const {
       data: { user },
@@ -108,7 +106,6 @@ export async function middleware(req: NextRequest) {
 
   return res
 }
-
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|brand).*)'],

@@ -6,3 +6,4 @@ Implement source-performance-observatory following SDD.
 - Deliver contracts and tests.
 - Enforce org-safe and role-safe behavior.
 - Complete QA and final gate artifacts.
+- Prioritize freshness, failures, created entities and source degradation over vanity metrics.

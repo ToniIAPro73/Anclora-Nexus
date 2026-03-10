@@ -52,8 +52,18 @@ class TestSourceObservatoryRoutes:
     def test_overview(self, mock_svc: MagicMock) -> None:
         mock_svc.get_overview = AsyncMock(
             return_value={
-                "version": "ANCLORA-SPO-001.v1",
+                "version": "ANCLORA-SPO-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "owner"},
+                "summary": {
+                    "total_sources": 1,
+                    "healthy_sources": 1,
+                    "warning_sources": 0,
+                    "critical_sources": 0,
+                    "stale_sources": 0,
+                    "total_events": 20,
+                    "total_created_entities": 14,
+                    "total_failures": 2,
+                },
                 "items": [
                     {
                         "source_key": "cta_web:website",
@@ -63,6 +73,16 @@ class TestSourceObservatoryRoutes:
                         "error_events": 2,
                         "success_rate_pct": 80.0,
                         "lead_count": 14,
+                        "property_count": 0,
+                        "seller_count": 0,
+                        "processed_events": 16,
+                        "rejected_events": 1,
+                        "failed_events": 1,
+                        "created_entities": 14,
+                        "freshness_hours": 4.0,
+                        "latest_event_at": "2026-03-10T10:00:00+00:00",
+                        "operational_status": "healthy",
+                        "entity_types": ["lead"],
                     }
                 ],
                 "total": 1,
@@ -76,10 +96,18 @@ class TestSourceObservatoryRoutes:
     def test_ranking(self, mock_svc: MagicMock) -> None:
         mock_svc.get_ranking = AsyncMock(
             return_value={
-                "version": "ANCLORA-SPO-001.v1",
+                "version": "ANCLORA-SPO-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "manager"},
                 "items": [
-                    {"source_key": "cta_web:website", "score": 84.2, "success_rate_pct": 80.0, "lead_count": 14}
+                    {
+                        "source_key": "cta_web:website",
+                        "score": 84.2,
+                        "success_rate_pct": 80.0,
+                        "lead_count": 14,
+                        "created_entities": 14,
+                        "freshness_hours": 4.0,
+                        "operational_status": "healthy",
+                    }
                 ],
                 "total": 1,
             }
@@ -92,11 +120,19 @@ class TestSourceObservatoryRoutes:
     def test_trends(self, mock_svc: MagicMock) -> None:
         mock_svc.get_trends = AsyncMock(
             return_value={
-                "version": "ANCLORA-SPO-001.v1",
+                "version": "ANCLORA-SPO-001.v1_1",
                 "scope": {"org_id": ORG_ID, "role": "agent"},
                 "months": 6,
                 "points": [
-                    {"period": "2026-01", "source_key": "cta_web:website", "events": 10, "success_rate_pct": 90.0}
+                    {
+                        "period": "2026-01",
+                        "source_key": "cta_web:website",
+                        "events": 10,
+                        "success_rate_pct": 90.0,
+                        "processed_events": 9,
+                        "failed_events": 1,
+                        "created_entities": 8,
+                    }
                 ],
             }
         )

@@ -9,6 +9,7 @@ import {
   getSourceOverview,
   getSourceRanking,
   getSourceTrends,
+  type ObservatorySummary,
   type RankingItem,
   type SourceScorecard,
   type TrendPoint,
@@ -18,6 +19,7 @@ export default function SourceObservatoryPage() {
   const { t } = useI18n()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [summary, setSummary] = useState<ObservatorySummary | null>(null)
   const [overview, setOverview] = useState<SourceScorecard[]>([])
   const [ranking, setRanking] = useState<RankingItem[]>([])
   const [trends, setTrends] = useState<TrendPoint[]>([])
@@ -27,6 +29,7 @@ export default function SourceObservatoryPage() {
     setError(null)
     try {
       const [o, r, tr] = await Promise.all([getSourceOverview(), getSourceRanking(), getSourceTrends(6)])
+      setSummary(o.summary || null)
       setOverview(o.items || [])
       setRanking(r.items || [])
       setTrends(tr.points || [])
@@ -36,6 +39,12 @@ export default function SourceObservatoryPage() {
       setLoading(false)
     }
   }, [t])
+
+  const statusLabel = (status: string) => {
+    if (status === 'healthy') return t('sourceObservatoryStatus_healthy')
+    if (status === 'critical') return t('sourceObservatoryStatus_critical')
+    return t('sourceObservatoryStatus_warning')
+  }
 
   useEffect(() => {
     void load()
@@ -77,15 +86,52 @@ export default function SourceObservatoryPage() {
           </section>
         ) : (
           <>
+            {summary && (
+              <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('sourceObservatoryHealthy')}</p>
+                  <p className="mt-2 text-2xl font-semibold text-emerald-300">{summary.healthy_sources}</p>
+                  <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatorySources')}: {summary.total_sources}</p>
+                </article>
+                <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('sourceObservatoryDegraded')}</p>
+                  <p className="mt-2 text-2xl font-semibold text-amber-200">{summary.warning_sources + summary.critical_sources}</p>
+                  <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryStale')}: {summary.stale_sources}</p>
+                </article>
+                <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('sourceObservatoryCreated')}</p>
+                  <p className="mt-2 text-2xl font-semibold text-soft-white">{summary.total_created_entities}</p>
+                  <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryEvents')}: {summary.total_events}</p>
+                </article>
+                <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-soft-muted">{t('sourceObservatoryFailures')}</p>
+                  <p className="mt-2 text-2xl font-semibold text-red-300">{summary.total_failures}</p>
+                  <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryActionability')}</p>
+                </article>
+              </section>
+            )}
+
             <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
               <h2 className="mb-3 text-lg font-semibold text-soft-white">{t('sourceObservatoryScorecards')}</h2>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {overview.slice(0, 9).map((item) => (
                   <article key={item.source_key} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
-                    <p className="text-sm font-semibold text-soft-white">{item.source_key}</p>
-                    <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatorySuccessRate')}: {item.success_rate_pct.toFixed(2)}%</p>
-                    <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryLeads')}: {item.lead_count}</p>
-                    <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryEvents')}: {item.total_events}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm font-semibold text-soft-white">{item.source_key}</p>
+                      <span className={`rounded-full px-2 py-1 text-[11px] ${
+                        item.operational_status === 'healthy'
+                          ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                          : item.operational_status === 'critical'
+                            ? 'border border-red-500/20 bg-red-500/10 text-red-300'
+                            : 'border border-amber-500/20 bg-amber-500/10 text-amber-200'
+                      }`}>
+                        {statusLabel(item.operational_status)}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs text-soft-muted">{t('sourceObservatorySuccessRate')}: {item.success_rate_pct.toFixed(2)}%</p>
+                    <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryEvents')}: {item.total_events} · {t('sourceObservatoryCreated')}: {item.created_entities}</p>
+                    <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryCoverage')}: {t('sourceObservatoryLeads')} {item.lead_count} · {t('sourceObservatoryProperties')} {item.property_count} · {t('sourceObservatorySellers')} {item.seller_count}</p>
+                    <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryFreshness')}: {item.freshness_hours == null ? t('sourceObservatoryNoRuns') : `${item.freshness_hours}h`}</p>
                   </article>
                 ))}
               </div>
@@ -99,6 +145,7 @@ export default function SourceObservatoryPage() {
                     <div key={row.source_key} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
                       <p className="text-sm font-semibold text-soft-white">#{idx + 1} {row.source_key}</p>
                       <p className="text-xs text-gold">Score {row.score.toFixed(2)}</p>
+                      <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryCreated')}: {row.created_entities} · {t('sourceObservatoryFreshness')}: {row.freshness_hours == null ? t('sourceObservatoryNoRuns') : `${row.freshness_hours}h`}</p>
                     </div>
                   ))}
                 </div>
@@ -113,6 +160,7 @@ export default function SourceObservatoryPage() {
                     <div key={`${p.period}-${p.source_key}`} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
                       <p className="text-sm text-soft-white">{p.period} · {p.source_key}</p>
                       <p className="text-xs text-soft-muted">{t('sourceObservatoryEvents')}: {p.events} · {t('sourceObservatorySuccessRate')}: {p.success_rate_pct.toFixed(2)}%</p>
+                      <p className="mt-1 text-xs text-soft-muted">{t('sourceObservatoryProcessed')}: {p.processed_events} · {t('sourceObservatoryFailures')}: {p.failed_events} · {t('sourceObservatoryCreated')}: {p.created_entities}</p>
                     </div>
                   ))}
                 </div>
