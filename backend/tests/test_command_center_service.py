@@ -66,6 +66,7 @@ def test_build_pipeline_overview_aggregates_sellers_ingestion_and_sends() -> Non
         ],
         "seller_interactions": [
             {"org_id": "org-1", "seller_id": "seller-1", "resultado": "sent_confirmed_human", "metadata": {"artifact": "email_draft"}},
+            {"org_id": "org-1", "seller_id": "seller-3", "resultado": "sent_native_supervised", "metadata": {"artifact": "supervised_send_email"}},
             {"org_id": "org-1", "seller_id": "seller-2", "resultado": None, "metadata": {"artifact": "captation_dossier"}},
         ],
     }
@@ -94,7 +95,7 @@ def test_build_pipeline_overview_aggregates_sellers_ingestion_and_sends() -> Non
     assert overview.sellers_total == 3
     assert overview.sellers_high_priority == 2
     assert overview.sellers_converted == 1
-    assert overview.supervised_sends_confirmed == 1
+    assert overview.supervised_sends_confirmed == 2
 
 
 def test_build_operational_overview_aggregates_alerts_and_observatory() -> None:

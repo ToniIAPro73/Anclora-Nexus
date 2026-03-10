@@ -91,6 +91,9 @@ interface WorkbenchPayload {
     semantic_memory_ready: boolean
     recommended_channel: string
     readiness: string
+    email_native_available?: boolean
+    latest_email_delivery?: Interaction | null
+    latest_whatsapp_delivery?: Interaction | null
   }
 }
 
@@ -123,8 +126,15 @@ interface SupervisedSendPayload {
   target: string
   subject?: string
   body: string
-  launch_url: string
+  launch_url: string | null
   status: string
+  transport?: string
+  delivery?: {
+    provider?: string
+    message_id?: string
+    from_email?: string
+    reply_to?: string
+  } | null
 }
 
 type InteractionType = 'llamada' | 'email' | 'whatsapp' | 'reunion' | 'nota'
@@ -462,7 +472,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     }
   }
 
-  const launchSupervisedSend = async (channel: 'email' | 'whatsapp') => {
+  const launchSupervisedSend = async (channel: 'email' | 'whatsapp', transport: 'auto' | 'mailto' | 'native_email' = 'auto') => {
     if (!sellerId) return
     setDispatchingChannel(channel)
     setError(null)
@@ -470,14 +480,23 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     try {
       const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/send-supervised/${channel}`), {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transport }),
       })
       if (!res.ok) {
         throw new Error(await res.text())
       }
       const payload = (await res.json()) as SupervisedSendPayload
-      setPendingSend((prev) => ({ ...prev, [channel]: payload }))
-      window.open(payload.launch_url, '_blank', 'noopener,noreferrer')
-      setSuccess(channel === 'email' ? t('emailClientOpened') : t('whatsappOpened'))
+      if (payload.status === 'ready_for_human_send' && payload.launch_url) {
+        setPendingSend((prev) => ({ ...prev, [channel]: payload }))
+        window.open(payload.launch_url, '_blank', 'noopener,noreferrer')
+        setSuccess(channel === 'email' ? t('emailClientOpened') : t('whatsappOpened'))
+      } else if (channel === 'email' && payload.status === 'sent_natively') {
+        setPendingSend((prev) => ({ ...prev, email: undefined }))
+        setSuccess(t('nativeEmailSent'))
+      } else {
+        setSuccess(t('supervisedSendReady'))
+      }
       await loadWorkbench()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errorPreparingSupervisedSend'))
@@ -515,6 +534,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
   const callBrief = workbench?.latest_artifacts.call_brief
   const contextBrief = workbench?.latest_artifacts.context_brief
   const dossier = workbench?.latest_artifacts.dossier
+  const latestEmailDelivery = workbench?.snapshot?.latest_email_delivery
 
   const emailSubject = String(emailDraft?.metadata?.subject || '')
   const emailBody = emailDraft?.contenido || ''
@@ -773,13 +793,22 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             icon={Mail}
             content={emailBody}
             subtitle={emailSubject ? `${t('subject')}: ${emailSubject}` : undefined}
-            meta={emailDraft?.created_at ? formatDate(emailDraft.created_at) : undefined}
+            meta={[
+              emailDraft?.created_at ? formatDate(emailDraft.created_at) : undefined,
+              latestEmailDelivery?.resultado ? `${t('result')}: ${latestEmailDelivery.resultado}` : undefined,
+            ].filter(Boolean).join(' · ') || undefined}
             onCopy={() => copyText(`${emailSubject}\n\n${emailBody}`.trim())}
             copyLabel={t('copyEmail')}
             actionHref={emailBody ? emailHref : undefined}
             actionLabel={t('openEmailClient')}
-            primaryAction={() => launchSupervisedSend('email')}
-            primaryActionLabel={dispatchingChannel === 'email' ? t('preparingSend') : t('sendSupervisedEmail')}
+            primaryAction={() => launchSupervisedSend('email', workbench?.snapshot?.email_native_available ? 'native_email' : 'mailto')}
+            primaryActionLabel={
+              dispatchingChannel === 'email'
+                ? t('preparingSend')
+                : workbench?.snapshot?.email_native_available
+                  ? t('sendNativeEmail')
+                  : t('sendSupervisedEmail')
+            }
             secondaryAction={pendingSend.email ? () => confirmSend('email') : undefined}
             secondaryActionLabel={pendingSend.email ? t('confirmEmailSent') : undefined}
           />
@@ -792,7 +821,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             copyLabel={t('copyWhatsApp')}
             actionHref={whatsappBody ? whatsappHref : undefined}
             actionLabel={t('openWhatsApp')}
-            primaryAction={() => launchSupervisedSend('whatsapp')}
+            primaryAction={() => launchSupervisedSend('whatsapp', 'auto')}
             primaryActionLabel={dispatchingChannel === 'whatsapp' ? t('preparingSend') : t('sendSupervisedWhatsApp')}
             secondaryAction={pendingSend.whatsapp ? () => confirmSend('whatsapp') : undefined}
             secondaryActionLabel={pendingSend.whatsapp ? t('confirmWhatsAppSent') : undefined}

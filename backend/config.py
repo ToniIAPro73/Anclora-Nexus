@@ -37,6 +37,17 @@ class Settings(BaseSettings):
 
     INTERNAL_AUDIT_SECRET: Optional[str] = None
 
+    # Native email transport (BL-next-03)
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: Optional[str] = None
+    SMTP_FROM_NAME: str = "Anclora Nexus"
+    SMTP_REPLY_TO: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    SMTP_USE_SSL: bool = False
+
     # Legacy compatibility - deprecated
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None

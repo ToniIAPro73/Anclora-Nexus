@@ -141,7 +141,9 @@ class CommandCenterService:
                     or []
                 )
                 supervised_sends_confirmed = sum(
-                    1 for item in interactions if str(item.get("resultado") or "") == "sent_confirmed_human"
+                    1
+                    for item in interactions
+                    if str(item.get("resultado") or "") in {"sent_confirmed_human", "sent_native_supervised"}
                 )
                 ready_sellers = {
                     str(item.get("seller_id"))
@@ -337,13 +339,14 @@ class CommandCenterService:
                     self.client.table("seller_interactions")
                     .select("created_at,resultado")
                     .eq("org_id", org_id)
-                    .eq("resultado", "sent_confirmed_human")
                     .gte("created_at", min_date)
                     .execute()
                     .data
                     or []
                 )
                 for item in sends:
+                    if str(item.get("resultado") or "") not in {"sent_confirmed_human", "sent_native_supervised"}:
+                        continue
                     created_at = str(item.get("created_at") or "")
                     if len(created_at) >= 7:
                         supervised_send_map[created_at[:7]] += 1

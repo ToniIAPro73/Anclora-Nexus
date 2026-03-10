@@ -10,6 +10,7 @@ trigger: always_on
 3) .agent/rules/anclora-nexus.md
 4) sdd/features/supervised-email-whatsapp-send/supervised-email-whatsapp-send-spec-v1.md
 5) sdd/features/supervised-email-whatsapp-send/supervised-email-whatsapp-send-spec-v1_1.md
+6) sdd/features/supervised-email-whatsapp-send/supervised-email-whatsapp-send-spec-v1_2.md
 
 ## Rules
 - Todo envío debe ser HITL: el sistema prepara y abre el cliente real, la persona confirma el envío.
@@ -17,3 +18,6 @@ trigger: always_on
 - Mail y WhatsApp deben quedar auditados como interacción programada y luego confirmada.
 - El seller debe tener canales de contacto persistidos antes del envío.
 - Las URLs `mailto:` y `wa.me` se generan en backend con encoding seguro.
+- El email puede usar transporte nativo SMTP si está configurado y el disparo lo inicia explícitamente una persona.
+- El transporte usado (`mailto`, `wa_me`, `native_email`) debe quedar persistido en metadata.
+- El workbench debe exponer si el email nativo está disponible y el último resultado de envío email.

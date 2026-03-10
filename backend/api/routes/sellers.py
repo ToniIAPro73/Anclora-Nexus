@@ -36,6 +36,10 @@ class InteractionCreate(BaseModel):
     resultado: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
+
+class SupervisedSendRequest(BaseModel):
+    transport: Optional[str] = "auto"
+
 router = APIRouter()
 
 # Default org_id for single-tenant v0
@@ -426,6 +430,7 @@ async def log_seller_interaction(
 async def build_supervised_send(
     seller_id: str,
     channel: str,
+    request: Optional[SupervisedSendRequest] = None,
 ):
     """
     Prepare a real supervised send via mailto or wa.me and log the launch intent.
@@ -437,6 +442,7 @@ async def build_supervised_send(
             org_id=DEFAULT_ORG_ID,
             seller_id=seller_id,
             channel=channel,
+            transport=(request.transport if request else "auto") or "auto",
         )
         return payload
     except ValueError as e:

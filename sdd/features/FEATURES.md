@@ -14,7 +14,7 @@ Bloques cerrados y empujados en `main`:
 
 - `ANCLORA-TSCP-001 v1.2` Territorial Sync Control Plane
 - `ANCLORA-SCUI-001 v1.2` Source Connectors Unified Ingestion seller-side
-- `ANCLORA-SEWS-001 v1.1` Supervised Email & WhatsApp Send
+- `ANCLORA-SEWS-001 v1.2` Supervised Email & WhatsApp Send
 - `ANCLORA-STFX-002 v1.1` StateFox Telegram Bridge
 - `ANCLORA-STFX-LC-001 v1.0` StateFox Live Capture
 - `ANCLORA-SPO-001 v1.1` Source Performance Observatory

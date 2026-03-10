@@ -35,8 +35,8 @@ No incluye la feature de manual de usuario ni trabajo documental periférico.
 
 ### Estimación actual
 
-- Estado global estimado: **90%**
-- Resto para 100%: **10%**
+- Estado global estimado: **92%**
+- Resto para 100%: **8%**
 
 ### Riesgos reales que siguen abiertos
 
@@ -152,6 +152,8 @@ Reducir la dependencia operativa de NotebookLM a un proceso reproducible, con ve
 
 ## BL-next-03 - Email nativo trazable
 
+Estado: `Closed`
+
 ### Objetivo
 
 Convertir el supervised send actual en canal real de email con trazabilidad operativa.
@@ -175,6 +177,14 @@ Convertir el supervised send actual en canal real de email con trazabilidad oper
 ### Criterio de salida
 
 - Toni puede lanzar y confirmar emails reales desde el flujo supervisado y ver el resultado asociado al seller.
+
+### Cierre ejecutado `2026-03-10`
+
+- transporte `native_email` por SMTP añadido con fallback a `mailto`
+- `send-supervised/email` soporta `transport=auto|mailto|native_email`
+- el workbench expone disponibilidad de email nativo y último delivery email
+- command center cuenta también `sent_native_supervised`
+- tests backend y validación frontend en verde
 
 ---
 

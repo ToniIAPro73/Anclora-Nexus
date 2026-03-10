@@ -61,7 +61,13 @@
   - `3 passed` en backend sobre servicio y rutas territoriales
   - `npm run frontend:lint` OK
   - `npm run frontend:build` OK
+- `BL-next-03` cerrado: email nativo trazable con SMTP opcional y fallback `mailto`
+- `ANCLORA-SEWS-001` ampliada a `v1.2` con `transport=native_email`, metadata de delivery y feedback visible en workbench
+- validación:
+  - `21 passed` en backend sobre sellers y command center
+  - `npm run frontend:lint` OK
+  - `npm run frontend:build` OK
 
 ### Próximo hito operativo
 
-- abrir `BL-next-03` para conectar email nativo trazable
+- abrir `BL-next-04` para memoria vectorial real de sellers

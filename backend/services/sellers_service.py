@@ -10,6 +10,7 @@ import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
+from .email_delivery_service import get_email_transport_summary, send_email_native
 from .supabase_service import SupabaseService
 from .seller_memory_service import seller_memory_service
 from ..models.sellers import (
@@ -116,6 +117,15 @@ def _build_workbench_console(
             for match in memory_matches[:3]
         ],
     }
+
+
+def _latest_supervised_delivery(interactions: List[Dict[str, Any]], channel: str) -> Optional[Dict[str, Any]]:
+    artifact = f"supervised_send_{channel}"
+    for item in interactions:
+        metadata = item.get("metadata") or {}
+        if str(metadata.get("artifact") or "") == artifact:
+            return item
+    return None
 
 
 async def create_seller(
@@ -466,6 +476,9 @@ async def get_seller_workbench(
         interactions=interactions,
         memory_payload=memory_payload,
     )
+    email_transport = get_email_transport_summary()
+    latest_email_delivery = _latest_supervised_delivery(interactions, "email")
+    latest_whatsapp_delivery = _latest_supervised_delivery(interactions, "whatsapp")
 
     return {
         "seller": seller,
@@ -484,6 +497,9 @@ async def get_seller_workbench(
             "semantic_memory_ready": memory.status == "ready",
             "recommended_channel": console["recommended_channel"],
             "readiness": console["readiness"],
+            "email_native_available": bool(email_transport["native_email_enabled"]),
+            "latest_email_delivery": latest_email_delivery,
+            "latest_whatsapp_delivery": latest_whatsapp_delivery,
         },
     }
 
@@ -576,6 +592,7 @@ async def build_supervised_send_payload(
     org_id: str,
     seller_id: str,
     channel: str,
+    transport: str = "auto",
 ) -> Dict[str, Any]:
     """
     Build a HITL delivery payload and register the intent as a scheduled interaction.
@@ -590,12 +607,70 @@ async def build_supervised_send_payload(
     seller = export_payload["seller"]
     sections = export_payload["sections"]
 
+    resolved_transport = transport
+
     if channel == "email":
         target = _extract_email(seller)
         if not target:
             raise ValueError("Seller email_contacto is required for supervised email send")
         subject = sections.get("email_subject", "").strip() or "Seguimiento de propiedad"
         body = sections.get("email_body", "").strip()
+        email_transport = get_email_transport_summary()
+        if transport == "auto":
+            resolved_transport = "native_email" if email_transport["native_email_enabled"] else "mailto"
+
+        if resolved_transport == "native_email":
+            delivery = send_email_native(
+                to_email=str(target),
+                subject=subject,
+                body=body,
+            )
+            interaction = await add_interaction(
+                db=db,
+                org_id=org_id,
+                seller_id=seller_id,
+                tipo=channel,
+                contenido=body,
+                estado="realizado",
+                resultado="sent_native_supervised",
+                metadata={
+                    "artifact": "supervised_send_email",
+                    "target": target,
+                    "subject": subject,
+                    "transport": "native_email",
+                    "delivery_provider": delivery.get("provider"),
+                    "provider_message_id": delivery.get("message_id"),
+                    "from_email": delivery.get("from_email"),
+                    "reply_to": delivery.get("reply_to"),
+                    "sent_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+
+            seller = await get_seller(db=db, org_id=org_id, seller_id=seller_id)
+            if seller and seller.get("estado_contacto") == EstadoContactoEnum.sin_contacto.value:
+                await update_seller_estado(
+                    db=db,
+                    org_id=org_id,
+                    seller_id=seller_id,
+                    estado=EstadoContactoEnum.primer_contacto.value,
+                )
+
+            return {
+                "channel": channel,
+                "seller_id": seller_id,
+                "interaction_id": interaction.get("id"),
+                "target": target,
+                "subject": subject,
+                "body": body,
+                "launch_url": None,
+                "status": "sent_natively",
+                "transport": "native_email",
+                "delivery": delivery,
+            }
+
+        if resolved_transport != "mailto":
+            raise ValueError("email transport must be auto, native_email or mailto")
+
         launch_url = (
             f"mailto:{quote(str(target))}"
             f"?subject={quote(subject)}"
@@ -608,6 +683,7 @@ async def build_supervised_send_payload(
         digits = re.sub(r"\D", "", str(target))
         body = sections.get("whatsapp_body", "").strip()
         subject = ""
+        resolved_transport = "wa_me"
         launch_url = f"https://wa.me/{digits}?text={quote(body)}"
 
     interaction = await add_interaction(
@@ -623,6 +699,7 @@ async def build_supervised_send_payload(
             "target": target,
             "subject": subject,
             "launch_url": launch_url,
+            "transport": resolved_transport,
         },
     )
 
@@ -635,6 +712,8 @@ async def build_supervised_send_payload(
         "body": body,
         "launch_url": launch_url,
         "status": "ready_for_human_send",
+        "transport": resolved_transport,
+        "delivery": None,
     }
 
 

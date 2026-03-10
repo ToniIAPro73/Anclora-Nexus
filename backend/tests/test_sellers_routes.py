@@ -216,6 +216,32 @@ class TestSellersRouteContracts:
         assert body["target"] == "owner@example.com"
 
     @patch("backend.api.routes.sellers.sellers_service")
+    def test_supervised_send_supports_native_email_transport(self, mock_service: MagicMock) -> None:
+        seller_id = str(uuid4())
+        mock_service.build_supervised_send_payload = AsyncMock(return_value={
+            "channel": "email",
+            "seller_id": seller_id,
+            "interaction_id": str(uuid4()),
+            "target": "owner@example.com",
+            "subject": "Subject",
+            "body": "Body",
+            "launch_url": None,
+            "status": "sent_natively",
+            "transport": "native_email",
+            "delivery": {"provider": "smtp", "message_id": "<id@test>"},
+        })
+
+        response = client.post(
+            f"/api/sellers/{seller_id}/send-supervised/email",
+            json={"transport": "native_email"},
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "sent_natively"
+        assert body["transport"] == "native_email"
+
+    @patch("backend.api.routes.sellers.sellers_service")
     def test_confirm_supervised_send_returns_updated_interaction(self, mock_service: MagicMock) -> None:
         seller_id = str(uuid4())
         interaction_id = str(uuid4())
