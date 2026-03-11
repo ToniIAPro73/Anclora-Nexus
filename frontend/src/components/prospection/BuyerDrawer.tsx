@@ -110,6 +110,8 @@ export function BuyerDrawer({ buyerId, open, onClose }: BuyerDrawerProps) {
   const whatsappDraft = workbench?.latest_artifacts.whatsapp_draft
   const buyerBrief = workbench?.latest_artifacts.buyer_brief
   const buyer = workbench?.buyer
+  const sourceTypeLabel = buyer ? t(`buyersSourceType_${buyer.source_type}` as never) : '—'
+  const sourcePlatformLabel = buyer ? t(`buyersSourcePlatform_${buyer.source_platform}` as never) : '—'
 
   const emailSubject = useMemo(
     () => String((emailDraft?.metadata?.subject as string | undefined) || ''),
@@ -170,6 +172,17 @@ export function BuyerDrawer({ buyerId, open, onClose }: BuyerDrawerProps) {
               <div className="surface-secondary rounded-xl border border-soft-subtle/20 bg-navy-deep/20 p-3">
                 <p className="kpi-label">{t('buyersMemoryHighlights')}</p>
                 <p className="kpi-value text-gold">{workbench?.snapshot.semantic_memory_count ?? 0}</p>
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="surface-secondary rounded-xl border border-soft-subtle/20 bg-navy-deep/20 p-3">
+                <p className="kpi-label">{t('buyersSourceOriginLabel')}</p>
+                <p className="text-sm text-soft-white mt-1">{sourceTypeLabel}</p>
+              </div>
+              <div className="surface-secondary rounded-xl border border-soft-subtle/20 bg-navy-deep/20 p-3">
+                <p className="kpi-label">{t('buyersSourceChannelLabel')}</p>
+                <p className="text-sm text-soft-white mt-1">{sourcePlatformLabel}</p>
               </div>
             </div>
 
