@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.buyer_memory_records (
     summary TEXT NOT NULL,
     redacted_content TEXT NOT NULL,
     semantic_payload JSONB NOT NULL DEFAULT '{}'::jsonb,
-    keywords TEXT NOT NULL DEFAULT ARRAY[]::TEXT[],
+    keywords TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
     salience_score INTEGER NOT NULL DEFAULT 50 CHECK (salience_score >= 0 AND salience_score <= 100),
     embedding DOUBLE PRECISION[],
     embedding_dimensions INTEGER,
@@ -29,6 +29,31 @@ CREATE INDEX IF NOT EXISTS idx_buyer_memory_records_buyer_created
 
 CREATE INDEX IF NOT EXISTS idx_buyer_memory_records_kind
     ON public.buyer_memory_records (org_id, buyer_id, memory_kind, source_created_at DESC);
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'buyer_memory_records'
+          AND column_name = 'keywords'
+          AND data_type = 'text'
+    ) THEN
+        ALTER TABLE public.buyer_memory_records
+            ALTER COLUMN keywords DROP DEFAULT;
+
+        ALTER TABLE public.buyer_memory_records
+            ALTER COLUMN keywords TYPE TEXT[]
+            USING CASE
+                WHEN keywords IS NULL OR btrim(keywords) = '' THEN ARRAY[]::TEXT[]
+                ELSE ARRAY[keywords]
+            END;
+
+        ALTER TABLE public.buyer_memory_records
+            ALTER COLUMN keywords SET DEFAULT ARRAY[]::TEXT[];
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_buyer_memory_records_keywords
     ON public.buyer_memory_records USING GIN (keywords);
