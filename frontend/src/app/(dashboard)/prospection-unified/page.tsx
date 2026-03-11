@@ -5,7 +5,9 @@ import Link from 'next/link'
 import { ArrowLeft, CheckCircle2, Clock3, Filter, Home, RefreshCw, Users, Zap } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { useCurrency } from '@/lib/currency'
+import { BuyerIntakePanel } from '@/components/prospection/BuyerIntakePanel'
 import {
   getProspectionWorkspace,
   updateBuyer,
@@ -227,6 +229,11 @@ export default function ProspectionUnifiedPage() {
           </section>
         ) : null}
 
+        <BuyerIntakePanel
+          sourceSummary={workspace?.buyer_source_summary}
+          onCreated={loadWorkspace}
+        />
+
         <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
             <p className="kpi-label">Propiedades</p>
@@ -253,7 +260,7 @@ export default function ProspectionUnifiedPage() {
           </section>
         ) : (
           <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-            <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
+            <article className="surface-primary surface-copy-safe rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
               <header className="mb-3 flex items-center justify-between">
                 <h2 className="section-title flex items-center gap-2">
                   <Zap className="h-4 w-4 text-gold" />
@@ -370,12 +377,25 @@ export default function ProspectionUnifiedPage() {
                     const busyKey = `buyer-${b.id}`
                     const nextStatus = nextInFlow(b.status, BUYER_FLOW)
                     return (
-                      <div key={b.id} className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
+                      <div key={b.id} className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-semibold text-soft-white line-clamp-1">{b.full_name || b.email || 'Buyer sin nombre'}</p>
                           <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${p.cls}`}>{p.label}</span>
                         </div>
                         <p className="mt-1 text-xs text-soft-muted line-clamp-1">{b.email || b.phone || 'Sin contacto'}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                          <span className="rounded-full border border-gold/20 bg-gold/10 px-2 py-0.5 text-gold">
+                            {t(`buyersSourceType_${b.source_type}` as TranslationKey)}
+                          </span>
+                          <span className="rounded-full border border-soft-subtle/20 bg-white/5 px-2 py-0.5 text-soft-muted">
+                            {t(`buyersSourcePlatform_${b.source_platform}` as TranslationKey)}
+                          </span>
+                          {b.referral_partner_name ? (
+                            <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-emerald-200">
+                              {b.referral_partner_name}
+                            </span>
+                          ) : null}
+                        </div>
                         <div className="mt-2 flex items-center justify-between text-xs">
                           <span className="text-gold">
                             {b.budget_min != null && b.budget_max != null
@@ -384,8 +404,22 @@ export default function ProspectionUnifiedPage() {
                           </span>
                           <span className="text-emerald-300 inline-flex items-center gap-1">
                             <CheckCircle2 className="h-3 w-3" />
-                            Accionable
+                            {t('buyersActionable')}
                           </span>
+                        </div>
+                        <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+                          <div className="rounded-lg border border-soft-subtle/20 bg-navy-surface/20 px-2 py-1">
+                            <p className="text-soft-muted">{t('buyersIntentScore')}</p>
+                            <p className="text-soft-white mt-1">{b.intent_score ?? '—'}</p>
+                          </div>
+                          <div className="rounded-lg border border-soft-subtle/20 bg-navy-surface/20 px-2 py-1">
+                            <p className="text-soft-muted">{t('buyersTrustScore')}</p>
+                            <p className="text-soft-white mt-1">{b.trust_score ?? '—'}</p>
+                          </div>
+                          <div className="rounded-lg border border-soft-subtle/20 bg-navy-surface/20 px-2 py-1">
+                            <p className="text-soft-muted">{t('buyersCapacityScore')}</p>
+                            <p className="text-soft-white mt-1">{b.capacity_score ?? '—'}</p>
+                          </div>
                         </div>
                         <div className="mt-3">
                           <button

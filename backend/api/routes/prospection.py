@@ -259,6 +259,8 @@ async def create_buyer(
 async def list_buyers(
     org_id: str = Depends(get_org_id),
     buyer_status: Optional[str] = Query(None, alias="status"),
+    source_type: Optional[str] = Query(None, description="Filter by buyer source type"),
+    source_platform: Optional[str] = Query(None, description="Filter by buyer source platform"),
     min_budget: Optional[float] = Query(None, ge=0),
     max_budget: Optional[float] = Query(None, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -268,6 +270,8 @@ async def list_buyers(
     return await prospection_service.list_buyers(
         org_id=org_id,
         status=buyer_status,
+        source_type=source_type,
+        source_platform=source_platform,
         min_budget=min_budget,
         max_budget=max_budget,
         limit=limit,

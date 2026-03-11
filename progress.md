@@ -112,3 +112,16 @@
 - `7 passed` en backend sobre servicio y rutas de intelligence packs
 - `npm run frontend:lint` OK
 - `npm run frontend:build` OK
+
+### ANCLORA-NBUY-001 cerrada
+
+- buyer intake v1 sobre `prospection` con `partner_referral`, `crm_reactivation` y `web_inbound`
+- `buyer_profiles` extendido con fuente, partner network, scores e `intelligence_pack_id`
+- panel `Nexus Buyers` añadido a `/prospection-unified`
+- resumen por fuente buyer-side añadido al workspace operativo
+
+### Validación ejecutada
+
+- `31 passed` en backend sobre rutas de prospection y servicio buyer-side
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK

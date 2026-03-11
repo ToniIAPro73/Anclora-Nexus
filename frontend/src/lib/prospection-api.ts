@@ -42,6 +42,19 @@ export interface BuyerProfile {
   preferred_types: string[]
   purchase_horizon: string | null
   motivation_score: number | null
+  source_type: 'partner_referral' | 'crm_reactivation' | 'web_inbound' | 'paid_lead' | 'manual' | 'portal_signal'
+  source_platform: 'exp_agent' | 'external_agent' | 'crm' | 'web' | 'meta' | 'google' | 'whatsapp' | 'email' | 'idealista' | 'manual' | 'other'
+  referral_partner_name: string | null
+  referral_partner_contact: string | null
+  referral_partner_type: 'exp_agent' | 'external_agent' | 'broker' | 'partner' | 'family_office' | 'relocation' | null
+  referral_terms: string | null
+  buyer_intro_status: 'new' | 'introduced' | 'qualified' | 'viewing' | 'closed'
+  trust_score: number | null
+  intent_score: number | null
+  capacity_score: number | null
+  intelligence_pack_id: string | null
+  source_details: Record<string, unknown> | null
+  last_partner_touch_at: string | null
   status: 'active' | 'inactive' | 'closed'
   notes: string | null
   created_at: string
@@ -103,6 +116,13 @@ export interface ProspectionWorkspaceResponse {
     properties: number
     buyers: number
     matches: number
+  }
+  buyer_source_summary?: {
+    by_source_type: Record<string, number>
+    by_source_platform: Record<string, number>
+    partner_referrals: number
+    crm_reactivation: number
+    web_inbound: number
   }
 }
 
@@ -239,6 +259,8 @@ export async function rescoreProperty(propertyId: string): Promise<ProspectedPro
 
 export async function listBuyers(params?: {
   status?: string
+  source_type?: string
+  source_platform?: string
   min_budget?: number
   max_budget?: number
   limit?: number
@@ -246,6 +268,8 @@ export async function listBuyers(params?: {
 }): Promise<PaginatedResponse<BuyerProfile>> {
   const query = new URLSearchParams()
   if (params?.status) query.set('status', params.status)
+  if (params?.source_type) query.set('source_type', params.source_type)
+  if (params?.source_platform) query.set('source_platform', params.source_platform)
   if (params?.min_budget !== undefined) query.set('min_budget', String(params.min_budget))
   if (params?.max_budget !== undefined) query.set('max_budget', String(params.max_budget))
   if (params?.limit) query.set('limit', String(params.limit))
@@ -264,6 +288,19 @@ export async function createBuyer(data: {
   preferred_types?: string[]
   purchase_horizon?: string
   motivation_score?: number
+  source_type?: string
+  source_platform?: string
+  referral_partner_name?: string
+  referral_partner_contact?: string
+  referral_partner_type?: string
+  referral_terms?: string
+  buyer_intro_status?: string
+  trust_score?: number
+  intent_score?: number
+  capacity_score?: number
+  intelligence_pack_id?: string
+  source_details?: Record<string, unknown>
+  last_partner_touch_at?: string
   notes?: string
 }): Promise<BuyerProfile> {
   return apiRequest('/api/prospection/buyers', {

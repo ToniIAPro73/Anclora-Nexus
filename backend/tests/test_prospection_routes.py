@@ -130,6 +130,16 @@ class TestBuyerEndpoints:
         resp = client.post("/api/prospection/buyers", json={"full_name": "Buyer", "budget_min": 1000000, "budget_max": 3000000})
         assert resp.status_code == 201
 
+    @patch("backend.api.routes.prospection.prospection_service")
+    def test_list_buyers_with_source_filters(self, mock_svc: MagicMock) -> None:
+        mock_svc.list_buyers = AsyncMock(return_value={"items": [], "total": 0, "limit": 50, "offset": 0})
+        resp = client.get("/api/prospection/buyers?source_type=partner_referral&source_platform=exp_agent")
+        assert resp.status_code == 200
+        mock_svc.list_buyers.assert_awaited_once()
+        _, kwargs = mock_svc.list_buyers.await_args
+        assert kwargs["source_type"] == "partner_referral"
+        assert kwargs["source_platform"] == "exp_agent"
+
     def test_create_buyer_invalid_budget(self) -> None:
         resp = client.post("/api/prospection/buyers", json={"budget_min": 5000000, "budget_max": 1000000})
         assert resp.status_code == 422

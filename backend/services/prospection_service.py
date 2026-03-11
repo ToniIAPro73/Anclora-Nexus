@@ -109,6 +109,112 @@ class ProspectionService:
     def _normalize_property_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return [self._normalize_property_record(i) for i in items]
 
+    def _normalize_buyer_record(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        now_iso = datetime.utcnow().isoformat()
+        normalized = dict(row)
+        normalized["preferred_zones"] = normalized.get("preferred_zones") or []
+        normalized["preferred_types"] = normalized.get("preferred_types") or []
+        normalized["required_features"] = normalized.get("required_features") or {}
+        normalized["source_details"] = normalized.get("source_details") or {}
+        normalized["source_type"] = normalized.get("source_type") or "manual"
+        normalized["source_platform"] = normalized.get("source_platform") or "manual"
+        normalized["buyer_intro_status"] = normalized.get("buyer_intro_status") or "new"
+        normalized["status"] = normalized.get("status") or "active"
+        normalized["created_at"] = normalized.get("created_at") or now_iso
+        normalized["updated_at"] = normalized.get("updated_at") or now_iso
+        return normalized
+
+    def _normalize_buyer_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        return [self._normalize_buyer_record(i) for i in items]
+
+    def _score_buyer_intake(self, record: Dict[str, Any]) -> Dict[str, float]:
+        source_type = str(record.get("source_type") or "manual")
+        source_platform = str(record.get("source_platform") or "manual")
+        horizon = str(record.get("purchase_horizon") or "").lower()
+        budget_max = float(record.get("budget_max") or 0)
+        budget_min = float(record.get("budget_min") or 0)
+        preferred_zones = record.get("preferred_zones") or []
+        partner_name = str(record.get("referral_partner_name") or "").strip()
+
+        source_intent = {
+            "partner_referral": 86.0,
+            "crm_reactivation": 72.0,
+            "web_inbound": 68.0,
+            "paid_lead": 58.0,
+            "portal_signal": 48.0,
+            "manual": 52.0,
+        }.get(source_type, 50.0)
+        platform_trust = {
+            "exp_agent": 92.0,
+            "external_agent": 82.0,
+            "crm": 74.0,
+            "web": 66.0,
+            "email": 60.0,
+            "whatsapp": 62.0,
+            "meta": 56.0,
+            "google": 58.0,
+            "idealista": 45.0,
+            "manual": 54.0,
+            "other": 50.0,
+        }.get(source_platform, 50.0)
+        horizon_intent = {
+            "immediate": 95.0,
+            "0_3m": 84.0,
+            "3_6m": 74.0,
+            "6_12m": 60.0,
+            "12m_plus": 42.0,
+        }.get(horizon, 56.0)
+
+        budget_anchor = max(budget_max, budget_min)
+        if budget_anchor >= 4_000_000:
+            capacity = 95.0
+        elif budget_anchor >= 2_500_000:
+            capacity = 86.0
+        elif budget_anchor >= 1_500_000:
+            capacity = 76.0
+        elif budget_anchor >= 750_000:
+            capacity = 64.0
+        elif budget_anchor > 0:
+            capacity = 52.0
+        else:
+            capacity = 40.0
+
+        if source_type == "partner_referral":
+            capacity = min(100.0, capacity + 6.0)
+        if partner_name:
+            platform_trust = min(100.0, platform_trust + 4.0)
+        if preferred_zones:
+            source_intent = min(100.0, source_intent + min(len(preferred_zones) * 2.0, 6.0))
+
+        intent_score = round((source_intent * 0.55) + (horizon_intent * 0.45), 2)
+        trust_score = round(platform_trust, 2)
+        capacity_score = round(capacity, 2)
+        motivation_score = round((intent_score * 0.50) + (trust_score * 0.20) + (capacity_score * 0.30), 2)
+        return {
+            "intent_score": intent_score,
+            "trust_score": trust_score,
+            "capacity_score": capacity_score,
+            "motivation_score": motivation_score,
+        }
+
+    def _coerce_buyer_payload(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        for field in (
+            "budget_min",
+            "budget_max",
+            "motivation_score",
+            "trust_score",
+            "intent_score",
+            "capacity_score",
+        ):
+            if field in record and record[field] is not None:
+                record[field] = float(record[field])
+
+        for field in ("source_type", "source_platform", "referral_partner_type", "buyer_intro_status", "status"):
+            if field in record and record[field] is not None:
+                value = record[field]
+                record[field] = str(value.value) if hasattr(value, "value") else str(value)
+        return record
+
     # ─────────────────────────────────────────────────────────────────────
     # PROPERTIES
     # ─────────────────────────────────────────────────────────────────────
@@ -422,21 +528,23 @@ class ProspectionService:
             "org_id": org_id,
             **data.model_dump(exclude_none=True),
         }
-
-        # Convert Decimal fields
-        for field in ("budget_min", "budget_max", "motivation_score"):
-            if field in record and record[field] is not None:
-                record[field] = float(record[field])
+        record = self._coerce_buyer_payload(record)
+        computed_scores = self._score_buyer_intake(record)
+        for key, value in computed_scores.items():
+            if record.get(key) is None:
+                record[key] = value
 
         response = supabase_service.client.table("buyer_profiles").insert(
             record
         ).execute()
-        return response.data[0]
+        return self._normalize_buyer_record(response.data[0])
 
     async def list_buyers(
         self,
         org_id: str,
         status: Optional[str] = None,
+        source_type: Optional[str] = None,
+        source_platform: Optional[str] = None,
         min_budget: Optional[float] = None,
         max_budget: Optional[float] = None,
         limit: int = 50,
@@ -452,6 +560,10 @@ class ProspectionService:
 
         if status:
             query = query.eq("status", status)
+        if source_type and self._table_has_column("buyer_profiles", "source_type"):
+            query = query.eq("source_type", source_type)
+        if source_platform and self._table_has_column("buyer_profiles", "source_platform"):
+            query = query.eq("source_platform", source_platform)
         if min_budget is not None:
             query = query.gte("budget_max", min_budget)
         if max_budget is not None:
@@ -461,7 +573,7 @@ class ProspectionService:
         response = query.execute()
 
         return {
-            "items": response.data,
+            "items": self._normalize_buyer_items(response.data or []),
             "total": response.count or len(response.data),
             "limit": limit,
             "offset": offset,
@@ -483,10 +595,7 @@ class ProspectionService:
     ) -> Optional[Dict[str, Any]]:
         """Update a buyer profile."""
         update_data: Dict[str, Any] = data.model_dump(exclude_none=True)
-
-        for field in ("budget_min", "budget_max", "motivation_score"):
-            if field in update_data and update_data[field] is not None:
-                update_data[field] = float(update_data[field])
+        update_data = self._coerce_buyer_payload(update_data)
 
         response = (
             supabase_service.client.table("buyer_profiles")
@@ -495,7 +604,7 @@ class ProspectionService:
             .eq("org_id", org_id)
             .execute()
         )
-        return response.data[0] if response.data else None
+        return self._normalize_buyer_record(response.data[0]) if response.data else None
 
     # ─────────────────────────────────────────────────────────────────────
     # MATCHES
@@ -901,6 +1010,13 @@ class ProspectionService:
         # Buyers block
         buyer_items: List[Dict[str, Any]] = []
         buyer_total = 0
+        buyer_source_summary: Dict[str, Any] = {
+            "by_source_type": {},
+            "by_source_platform": {},
+            "partner_referrals": 0,
+            "crm_reactivation": 0,
+            "web_inbound": 0,
+        }
         if buyers_table_exists:
             buyer_query = (
                 supabase_service.client.table("buyer_profiles")
@@ -949,8 +1065,25 @@ class ProspectionService:
             else:
                 buyer_query = buyer_query.order("created_at", desc=True)
             buyer_resp = buyer_query.execute()
-            buyer_items = buyer_resp.data or []
+            buyer_items = self._normalize_buyer_items(buyer_resp.data or [])
             buyer_total = buyer_resp.count or len(buyer_items)
+            summary_query = (
+                supabase_service.client.table("buyer_profiles")
+                .select("source_type,source_platform")
+                .eq("org_id", org_id)
+                .limit(5000)
+            )
+            if buyer_status:
+                summary_query = summary_query.eq("status", buyer_status)
+            summary_rows = summary_query.execute().data or []
+            for row in summary_rows:
+                source_type = str(row.get("source_type") or "manual")
+                source_platform = str(row.get("source_platform") or "manual")
+                buyer_source_summary["by_source_type"][source_type] = buyer_source_summary["by_source_type"].get(source_type, 0) + 1
+                buyer_source_summary["by_source_platform"][source_platform] = buyer_source_summary["by_source_platform"].get(source_platform, 0) + 1
+            buyer_source_summary["partner_referrals"] = buyer_source_summary["by_source_type"].get("partner_referral", 0)
+            buyer_source_summary["crm_reactivation"] = buyer_source_summary["by_source_type"].get("crm_reactivation", 0)
+            buyer_source_summary["web_inbound"] = buyer_source_summary["by_source_type"].get("web_inbound", 0)
 
         return {
             "scope": {
@@ -962,6 +1095,7 @@ class ProspectionService:
             "buyers": {"items": buyer_items, "total": buyer_total, "limit": limit, "offset": offset},
             "matches": {"items": match_items, "total": match_total, "limit": limit, "offset": offset},
             "totals": {"properties": prop_total, "buyers": buyer_total, "matches": match_total},
+            "buyer_source_summary": buyer_source_summary,
         }
 
     async def create_workspace_followup_task(

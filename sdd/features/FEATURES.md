@@ -45,6 +45,7 @@ Resultado funcional:
 Estado: `Implemented`
 
 - `ANCLORA-MTIP-001 v1.0` Multi-Tenant Intelligence Packs
+- `ANCLORA-NBUY-001 v1.0` Nexus Buyers
 
 Resultado funcional:
 
@@ -52,6 +53,8 @@ Resultado funcional:
 - activación de pack territorial/comercial por `org_id`
 - endpoints territoriales capaces de resolver el pack activo o uno explícito
 - pantalla `Intelligence` preparada para convivir con Suroeste, Tramuntana u otros packs por tenant
+- buyer intake v1 por referrals, CRM reactivation y web inbound
+- buyer profiles enriquecidos con fuente, referral, scores e intelligence pack opcional
 
 ---
 

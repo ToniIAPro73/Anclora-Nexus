@@ -31,6 +31,46 @@ class BuyerStatus(str, Enum):
     CLOSED = "closed"
 
 
+class BuyerSourceType(str, Enum):
+    PARTNER_REFERRAL = "partner_referral"
+    CRM_REACTIVATION = "crm_reactivation"
+    WEB_INBOUND = "web_inbound"
+    PAID_LEAD = "paid_lead"
+    MANUAL = "manual"
+    PORTAL_SIGNAL = "portal_signal"
+
+
+class BuyerSourcePlatform(str, Enum):
+    EXP_AGENT = "exp_agent"
+    EXTERNAL_AGENT = "external_agent"
+    CRM = "crm"
+    WEB = "web"
+    META = "meta"
+    GOOGLE = "google"
+    WHATSAPP = "whatsapp"
+    EMAIL = "email"
+    IDEALISTA = "idealista"
+    MANUAL = "manual"
+    OTHER = "other"
+
+
+class BuyerReferralPartnerType(str, Enum):
+    EXP_AGENT = "exp_agent"
+    EXTERNAL_AGENT = "external_agent"
+    BROKER = "broker"
+    PARTNER = "partner"
+    FAMILY_OFFICE = "family_office"
+    RELOCATION = "relocation"
+
+
+class BuyerIntroStatus(str, Enum):
+    NEW = "new"
+    INTRODUCED = "introduced"
+    QUALIFIED = "qualified"
+    VIEWING = "viewing"
+    CLOSED = "closed"
+
+
 class MatchStatus(str, Enum):
     CANDIDATE = "candidate"
     CONTACTED = "contacted"
@@ -258,6 +298,19 @@ class BuyerCreate(BaseModel):
     required_features: Dict[str, Any] = Field(default_factory=dict)
     purchase_horizon: Optional[str] = None
     motivation_score: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    source_type: BuyerSourceType = BuyerSourceType.MANUAL
+    source_platform: BuyerSourcePlatform = BuyerSourcePlatform.MANUAL
+    referral_partner_name: Optional[str] = None
+    referral_partner_contact: Optional[str] = None
+    referral_partner_type: Optional[BuyerReferralPartnerType] = None
+    referral_terms: Optional[str] = None
+    buyer_intro_status: BuyerIntroStatus = BuyerIntroStatus.NEW
+    trust_score: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    intent_score: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    capacity_score: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    intelligence_pack_id: Optional[UUID] = None
+    source_details: Dict[str, Any] = Field(default_factory=dict)
+    last_partner_touch_at: Optional[datetime] = None
     status: BuyerStatus = BuyerStatus.ACTIVE
     notes: Optional[str] = None
 
@@ -287,6 +340,19 @@ class BuyerUpdate(BaseModel):
     required_features: Optional[Dict[str, Any]] = None
     purchase_horizon: Optional[str] = None
     motivation_score: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    source_type: Optional[BuyerSourceType] = None
+    source_platform: Optional[BuyerSourcePlatform] = None
+    referral_partner_name: Optional[str] = None
+    referral_partner_contact: Optional[str] = None
+    referral_partner_type: Optional[BuyerReferralPartnerType] = None
+    referral_terms: Optional[str] = None
+    buyer_intro_status: Optional[BuyerIntroStatus] = None
+    trust_score: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    intent_score: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    capacity_score: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    intelligence_pack_id: Optional[UUID] = None
+    source_details: Optional[Dict[str, Any]] = None
+    last_partner_touch_at: Optional[datetime] = None
     status: Optional[BuyerStatus] = None
     notes: Optional[str] = None
 
@@ -306,6 +372,19 @@ class BuyerResponse(BaseModel):
     required_features: Dict[str, Any] = Field(default_factory=dict)
     purchase_horizon: Optional[str] = None
     motivation_score: Optional[Decimal] = None
+    source_type: str
+    source_platform: str
+    referral_partner_name: Optional[str] = None
+    referral_partner_contact: Optional[str] = None
+    referral_partner_type: Optional[str] = None
+    referral_terms: Optional[str] = None
+    buyer_intro_status: str
+    trust_score: Optional[Decimal] = None
+    intent_score: Optional[Decimal] = None
+    capacity_score: Optional[Decimal] = None
+    intelligence_pack_id: Optional[UUID] = None
+    source_details: Dict[str, Any] = Field(default_factory=dict)
+    last_partner_touch_at: Optional[datetime] = None
     status: str
     notes: Optional[str] = None
     created_at: datetime
