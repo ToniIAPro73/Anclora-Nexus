@@ -421,6 +421,12 @@ export default function ProspectionUnifiedPage() {
                             <p className="text-soft-white mt-1">{b.capacity_score ?? '—'}</p>
                           </div>
                         </div>
+                        {b.memory_preview?.length ? (
+                          <div className="mt-2 rounded-lg border border-soft-subtle/20 bg-navy-surface/20 px-2 py-2">
+                            <p className="text-soft-muted text-[11px] uppercase tracking-wide">{t('buyersMemoryHighlights')}</p>
+                            <p className="text-soft-white text-xs mt-1 line-clamp-2">{b.memory_preview[0]}</p>
+                          </div>
+                        ) : null}
                         <div className="mt-3">
                           <button
                             type="button"

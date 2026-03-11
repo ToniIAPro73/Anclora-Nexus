@@ -46,6 +46,7 @@ Estado: `Implemented`
 
 - `ANCLORA-MTIP-001 v1.0` Multi-Tenant Intelligence Packs
 - `ANCLORA-NBUY-001 v1.0` Nexus Buyers
+- `ANCLORA-BMCR-001 v1.0` Buyer Memory Contextual Recall
 
 Resultado funcional:
 
@@ -55,6 +56,7 @@ Resultado funcional:
 - pantalla `Intelligence` preparada para convivir con Suroeste, Tramuntana u otros packs por tenant
 - buyer intake v1 por referrals, CRM reactivation y web inbound
 - buyer profiles enriquecidos con fuente, referral, scores e intelligence pack opcional
+- buyer memory contextual derivada de perfil, matches y actividad
 
 ---
 

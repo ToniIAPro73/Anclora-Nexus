@@ -46,6 +46,8 @@ class TestRouteRegistration:
         ("POST", "/api/prospection/buyers"),
         ("GET", "/api/prospection/buyers"),
         ("PATCH", "/api/prospection/buyers/{buyer_id}"),
+        ("GET", "/api/prospection/buyers/{buyer_id}/memory"),
+        ("POST", "/api/prospection/buyers/{buyer_id}/memory/rebuild"),
         ("POST", "/api/prospection/matches/recompute"),
         ("GET", "/api/prospection/matches"),
         ("PATCH", "/api/prospection/matches/{match_id}"),

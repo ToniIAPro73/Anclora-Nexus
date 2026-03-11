@@ -21,6 +21,7 @@ from backend.models.prospection import (
 from backend.services.scoring_service import scoring_service
 from backend.services.origin_editability_policy import sanitize_payload
 from backend.services.supabase_service import supabase_service
+from backend.services.buyer_memory_service import buyer_memory_service
 
 
 class ProspectionService:
@@ -1084,6 +1085,15 @@ class ProspectionService:
             buyer_source_summary["partner_referrals"] = buyer_source_summary["by_source_type"].get("partner_referral", 0)
             buyer_source_summary["crm_reactivation"] = buyer_source_summary["by_source_type"].get("crm_reactivation", 0)
             buyer_source_summary["web_inbound"] = buyer_source_summary["by_source_type"].get("web_inbound", 0)
+            preview_map = await buyer_memory_service.get_preview_map(
+                db=supabase_service,
+                org_id=org_id,
+                buyer_ids=[str(item.get("id")) for item in buyer_items if item.get("id")],
+            )
+            for item in buyer_items:
+                preview = preview_map.get(str(item.get("id")), {})
+                item["memory_preview"] = preview.get("memory_preview", [])
+                item["memory_status"] = preview.get("memory_status", "empty")
 
         return {
             "scope": {

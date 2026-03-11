@@ -13,6 +13,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from backend.api.deps import get_org_id, check_budget_hard_stop, get_current_user
 from backend.api.middleware import verify_org_membership
+from backend.services.buyer_memory_service import buyer_memory_service
+from backend.services.supabase_service import SupabaseService
 from backend.models.prospection import (
     ActivityCreate,
     ActivityList,
@@ -33,6 +35,16 @@ from backend.models.prospection import (
 from backend.services.prospection_service import prospection_service
 
 router = APIRouter()
+
+
+_db_service = None
+
+
+def get_db() -> SupabaseService:
+    global _db_service
+    if _db_service is None:
+        _db_service = SupabaseService()
+    return _db_service
 
 
 @router.get("/workspace")
@@ -295,6 +307,38 @@ async def update_buyer(
             detail=f"Buyer {buyer_id} not found",
         )
     return result
+
+
+@router.get("/buyers/{buyer_id}/memory")
+async def get_buyer_memory(
+    buyer_id: UUID,
+    query: Optional[str] = Query(None),
+    limit: int = Query(5, ge=1, le=20),
+    org_id: str = Depends(get_org_id),
+) -> dict:
+    db = get_db()
+    payload = await buyer_memory_service.search(
+        db=db,
+        org_id=org_id,
+        buyer_id=str(buyer_id),
+        query=query or "",
+        limit=limit,
+    )
+    return payload.model_dump()
+
+
+@router.post("/buyers/{buyer_id}/memory/rebuild")
+async def rebuild_buyer_memory(
+    buyer_id: UUID,
+    org_id: str = Depends(get_org_id),
+) -> dict:
+    db = get_db()
+    payload = await buyer_memory_service.rebuild_for_buyer(
+        db=db,
+        org_id=org_id,
+        buyer_id=str(buyer_id),
+    )
+    return payload.model_dump()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

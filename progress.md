@@ -125,3 +125,16 @@
 - `31 passed` en backend sobre rutas de prospection y servicio buyer-side
 - `npm run frontend:lint` OK
 - `npm run frontend:build` OK
+
+### ANCLORA-BMCR-001 cerrada
+
+- buyer memory contextual añadida con derivación desde perfil, matches y actividad
+- preview de memoria visible en la cola de buyers de `/prospection-unified`
+- rutas de `search` y `rebuild` disponibles por buyer
+- smoke test corto de `ANCLORA-NBUY-001` documentado
+
+### Validación ejecutada
+
+- `pytest` buyer memory + prospection OK
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK

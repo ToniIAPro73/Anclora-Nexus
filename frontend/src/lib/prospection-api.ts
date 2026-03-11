@@ -55,6 +55,8 @@ export interface BuyerProfile {
   intelligence_pack_id: string | null
   source_details: Record<string, unknown> | null
   last_partner_touch_at: string | null
+  memory_preview?: string[]
+  memory_status?: 'ready' | 'empty' | 'migration_missing' | string
   status: 'active' | 'inactive' | 'closed'
   notes: string | null
   created_at: string
