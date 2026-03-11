@@ -2,6 +2,7 @@
 import { ChatConsole } from '@/components/intelligence/ChatConsole'
 import { DecisionConsole } from '@/components/intelligence/DecisionConsole'
 import { QueryPlanPanel } from '@/components/intelligence/QueryPlanPanel'
+import { IntelligencePacksCard } from '@/components/intelligence/IntelligencePacksCard'
 import { TerritorialSyncStatusCard } from '@/components/intelligence/TerritorialSyncStatusCard'
 import { StatefoxDiscoveryCard } from '@/components/intelligence/StatefoxDiscoveryCard'
 import { useStore } from '@/lib/store'
@@ -61,6 +62,7 @@ export default function IntelligencePage() {
           </div>
         </div>
 
+        <IntelligencePacksCard />
         <TerritorialSyncStatusCard />
         <StatefoxDiscoveryCard />
 

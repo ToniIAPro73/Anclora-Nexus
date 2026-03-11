@@ -95,6 +95,7 @@ async def get_latest_insights(
     org_id: str,
     insight_type: Optional[str] = None,
     zona: Optional[str] = None,
+    notebook_id: Optional[str] = None,
     limit: int = 10,
 ) -> list[dict]:
     """
@@ -124,6 +125,9 @@ async def get_latest_insights(
     if zona:
         query = query.eq("zona", zona)
 
+    if notebook_id:
+        query = query.eq("notebook_id", notebook_id)
+
     result = query.execute()
     return result.data or []
 
@@ -131,6 +135,7 @@ async def get_latest_insights(
 async def get_territorial_summary(
     db: SupabaseService,
     org_id: str,
+    notebook_id: Optional[str] = None,
 ) -> dict:
     """
     Retrieve the latest territorial insight per zone for the Radar Territorial
@@ -144,10 +149,10 @@ async def get_territorial_summary(
         .select("zona, response, created_at, metadata")
         .eq("org_id", str(org_id))
         .eq("insight_type", "territorial")
-        .order("created_at", desc=True)
-        .limit(50)
-        .execute()
     )
+    if notebook_id:
+        result = result.eq("notebook_id", notebook_id)
+    result = result.order("created_at", desc=True).limit(50).execute()
 
     # Keep only the most recent insight per zone
     summary: dict = {}
@@ -162,6 +167,7 @@ async def get_territorial_summary(
 async def get_vulnerabilidades(
     db: SupabaseService,
     org_id: str,
+    notebook_id: Optional[str] = None,
 ) -> Optional[dict]:
     """
     Retrieve the most recent territorial vulnerabilities/opportunities insight.
@@ -173,10 +179,10 @@ async def get_vulnerabilidades(
         .eq("org_id", str(org_id))
         .eq("insight_type", "territorial")
         .eq("zona", "general")
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
     )
+    if notebook_id:
+        result = result.eq("notebook_id", notebook_id)
+    result = result.order("created_at", desc=True).limit(1).execute()
 
     data = result.data or []
     return data[0] if data else None

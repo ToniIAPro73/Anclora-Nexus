@@ -18,6 +18,13 @@ from ...services.notebooklm_service import (
     get_vulnerabilidades,
     save_insight,
 )
+from ...services.intelligence_packs_service import (
+    create_intelligence_pack,
+    get_active_intelligence_pack,
+    get_intelligence_pack,
+    list_intelligence_packs,
+    update_intelligence_pack,
+)
 from ...services.ai_runtime import get_runtime_summary
 from ...services.supabase_service import SupabaseService
 from ...services.territorial_sync_service import (
@@ -70,6 +77,34 @@ class StatefoxParseRequest(BaseModel):
 class StatefoxLiveCaptureImportRequest(BaseModel):
     zone: Optional[str] = None
     city: Optional[str] = "Mallorca"
+
+
+class IntelligencePackCreateRequest(BaseModel):
+    pack_label: str
+    notebook_id: str
+    notebook_name: str
+    pack_key: Optional[str] = None
+    market_scope: str = "seller"
+    zone_scope: List[str] = []
+    language_code: str = "es"
+    source_mode: str = "notebooklm_manual"
+    status: str = "active"
+    is_default: bool = False
+    metadata: Dict[str, Any] = {}
+
+
+class IntelligencePackUpdateRequest(BaseModel):
+    pack_label: Optional[str] = None
+    notebook_id: Optional[str] = None
+    notebook_name: Optional[str] = None
+    market_scope: Optional[str] = None
+    zone_scope: Optional[List[str]] = None
+    language_code: Optional[str] = None
+    source_mode: Optional[str] = None
+    status: Optional[str] = None
+    is_default: Optional[bool] = None
+    metadata: Optional[Dict[str, Any]] = None
+    last_synced_at: Optional[str] = None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -253,10 +288,22 @@ def get_db() -> SupabaseService:
     return _db_service
 
 
+async def _resolve_pack(
+    db: SupabaseService,
+    org_id: str,
+    pack_id: Optional[str],
+) -> dict[str, Any]:
+    pack = await (get_intelligence_pack(db=db, org_id=org_id, pack_id=pack_id) if pack_id else get_active_intelligence_pack(db=db, org_id=org_id))
+    if not pack:
+        raise HTTPException(status_code=404, detail="Intelligence pack not found")
+    return pack
+
+
 @router.get("/territorial-insights")
 async def get_territorial_insights(
     insight_type: Optional[str] = Query(None, description="Filter by type: territorial, cma, competitive, whale_audit, buyer_profile, market_signal"),
     zona: Optional[str] = Query(None, description="Filter by zone: andratx, calvia, son_ferrer, santa_ponca, paguera, portals_nous, bendinat, punta_negra, costa_den_blanes, general"),
+    pack_id: Optional[str] = Query(None, description="Optional intelligence pack id"),
     limit: int = Query(10, ge=1, le=50),
     org_id: str = Depends(get_org_id),
 ):
@@ -272,17 +319,20 @@ async def get_territorial_insights(
     """
     try:
         db = get_db()
+        active_pack = await _resolve_pack(db=db, org_id=org_id, pack_id=pack_id)
         insights = await get_latest_insights(
             db=db,
             org_id=org_id,
             insight_type=insight_type,
             zona=zona,
+            notebook_id=active_pack.get("notebook_id"),
             limit=limit,
         )
         return {
             "insights": insights,
             "count": len(insights),
-            "notebook": NOTEBOOK_NAME,
+            "notebook": active_pack.get("notebook_name") or NOTEBOOK_NAME,
+            "pack": active_pack,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
@@ -290,17 +340,22 @@ async def get_territorial_insights(
 
 
 @router.get("/territorial-summary")
-async def get_territorial_summary_endpoint(org_id: str = Depends(get_org_id)):
+async def get_territorial_summary_endpoint(
+    pack_id: Optional[str] = Query(None, description="Optional intelligence pack id"),
+    org_id: str = Depends(get_org_id),
+):
     """
     Retrieve the latest territorial insight per zone for the Radar Territorial
     dashboard widget. Returns a dict with zone names as keys.
     """
     try:
         db = get_db()
-        summary = await get_territorial_summary(db=db, org_id=org_id)
+        active_pack = await _resolve_pack(db=db, org_id=org_id, pack_id=pack_id)
+        summary = await get_territorial_summary(db=db, org_id=org_id, notebook_id=active_pack.get("notebook_id"))
         return {
             "summary": summary,
             "zones_with_data": list(summary.keys()),
+            "pack": active_pack,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
@@ -308,22 +363,28 @@ async def get_territorial_summary_endpoint(org_id: str = Depends(get_org_id)):
 
 
 @router.get("/vulnerabilidades")
-async def get_vulnerabilidades_endpoint(org_id: str = Depends(get_org_id)):
+async def get_vulnerabilidades_endpoint(
+    pack_id: Optional[str] = Query(None, description="Optional intelligence pack id"),
+    org_id: str = Depends(get_org_id),
+):
     """
     Retrieve the most recent territorial vulnerabilities/opportunities insight.
     Corresponds to the content of public/docs/vulnerabilidades.md but served via API.
     """
     try:
         db = get_db()
-        vuln = await get_vulnerabilidades(db=db, org_id=org_id)
+        active_pack = await _resolve_pack(db=db, org_id=org_id, pack_id=pack_id)
+        vuln = await get_vulnerabilidades(db=db, org_id=org_id, notebook_id=active_pack.get("notebook_id"))
         if not vuln:
             return {
                 "message": "No territorial vulnerability analysis available yet. "
                            "Run NotebookLM sync to generate insights.",
+                "pack": active_pack,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         return {
             "insight": vuln,
+            "pack": active_pack,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
@@ -349,6 +410,64 @@ async def get_territorial_sync_status_endpoint():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving territorial sync status: {str(e)}")
+
+
+@router.get("/packs")
+async def get_intelligence_packs_endpoint(org_id: str = Depends(get_org_id)):
+    try:
+        db = get_db()
+        items = await list_intelligence_packs(db=db, org_id=org_id)
+        active_pack = await get_active_intelligence_pack(db=db, org_id=org_id)
+        return {
+            "items": items,
+            "active_pack": active_pack,
+            "count": len(items),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving intelligence packs: {str(e)}")
+
+
+@router.post("/packs")
+async def create_intelligence_pack_endpoint(
+    payload: IntelligencePackCreateRequest,
+    org_id: str = Depends(get_org_id),
+):
+    try:
+        db = get_db()
+        pack = await create_intelligence_pack(db=db, org_id=org_id, payload=payload.model_dump())
+        return {
+            "item": pack,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating intelligence pack: {str(e)}")
+
+
+@router.patch("/packs/{pack_id}")
+async def update_intelligence_pack_endpoint(
+    pack_id: str,
+    payload: IntelligencePackUpdateRequest,
+    org_id: str = Depends(get_org_id),
+):
+    try:
+        db = get_db()
+        pack = await update_intelligence_pack(
+            db=db,
+            org_id=org_id,
+            pack_id=pack_id,
+            payload=payload.model_dump(exclude_unset=True),
+        )
+        if not pack:
+            raise HTTPException(status_code=404, detail="Intelligence pack not found")
+        return {
+            "item": pack,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating intelligence pack: {str(e)}")
 
 
 @router.get("/statefox-discovery")

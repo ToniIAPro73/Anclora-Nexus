@@ -96,3 +96,19 @@
 - runner automatizado `ops:release-gate` añadido
 - acta genérica y criterio reutilizable documentados
 - backlog post-GO ejecutado hasta `BL-next-07`
+
+## 2026-03-11
+
+### ANCLORA-MTIP-001 cerrada
+
+- catálogo `intelligence_packs` por tenant añadido
+- fallback legacy del pack Suroeste preservado para tenants sin catálogo persistido
+- endpoints territoriales aceptan `pack_id` opcional y resuelven pack activo por `org_id`
+- nueva card en `/intelligence` para visualizar, crear y activar packs
+- textos añadidos a i18n y UI alineada con contratos `page-title` + `surface-*`
+
+### Validación ejecutada
+
+- `7 passed` en backend sobre servicio y rutas de intelligence packs
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK

@@ -40,6 +40,19 @@ Resultado funcional:
 - memoria semántica seller-side
 - observabilidad operativa y command center ejecutivo
 
+### Expansión post-GO
+
+Estado: `Implemented`
+
+- `ANCLORA-MTIP-001 v1.0` Multi-Tenant Intelligence Packs
+
+Resultado funcional:
+
+- catálogo de packs de inteligencia por tenant
+- activación de pack territorial/comercial por `org_id`
+- endpoints territoriales capaces de resolver el pack activo o uno explícito
+- pantalla `Intelligence` preparada para convivir con Suroeste, Tramuntana u otros packs por tenant
+
 ---
 
 ## FEATURES IMPLEMENTADAS
