@@ -52,6 +52,29 @@ def _is_placeholder_copy(text: str) -> bool:
     return candidate.startswith("copy generation unavailable.")
 
 
+def _property_display_name(row: Dict[str, Any]) -> str:
+    title = _safe_str(row.get("title"))
+    if title:
+        return title
+
+    address = _safe_str(row.get("address"))
+    if address:
+        return address
+
+    zone = _safe_str(row.get("zone"))
+    city = _safe_str(row.get("city"))
+    property_type = _safe_str(row.get("property_type")).replace("_", " ")
+
+    location = " · ".join([part for part in (zone, city) if part])
+    if location and property_type:
+        return f"{property_type.title()} · {location}"
+    if location:
+        return location
+    if property_type:
+        return property_type.title()
+    return "Sin título"
+
+
 async def add_interaction(
     *,
     db: SupabaseService,
@@ -126,14 +149,30 @@ async def _get_matches(db: SupabaseService, org_id: str, buyer_id: str, limit: i
             try:
                 rows = (
                     db.client.table(table)
-                    .select("id,title,zone,address")
+                    .select("*")
+                    .eq("org_id", str(org_id))
                     .in_("id", property_ids)
                     .execute()
                 ).data or []
                 for row in rows:
-                    property_map[str(row.get("id"))] = str(row.get("title") or row.get("zone") or row.get("address") or "property")
+                    property_map[str(row.get("id"))] = _property_display_name(row)
             except Exception:
                 continue
+        if len(property_map) < len(property_ids):
+            for table in ("properties", "prospected_properties"):
+                try:
+                    rows = (
+                        db.client.table(table)
+                        .select("*")
+                        .in_("id", property_ids)
+                        .execute()
+                    ).data or []
+                    for row in rows:
+                        row_id = str(row.get("id") or "")
+                        if row_id and row_id not in property_map:
+                            property_map[row_id] = _property_display_name(row)
+                except Exception:
+                    continue
     for item in matches:
         item["property_title"] = property_map.get(str(item.get("property_id")), item.get("property_title"))
     return matches

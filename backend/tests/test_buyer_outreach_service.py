@@ -104,3 +104,27 @@ def test_build_supervised_send_payload_whatsapp() -> None:
     assert payload["channel"] == "whatsapp"
     assert payload["status"] == "ready_for_human_send"
     assert "wa.me" in payload["launch_url"]
+
+
+def test_generate_buyer_outreach_uses_human_property_fallback_when_title_missing() -> None:
+    store = {
+        "buyer_profiles": [{"id": "buyer-1", "org_id": "org-1", "full_name": "Hans Mueller", "email": "buyer@example.com", "phone": "+34600111222", "preferred_zones": ["andratx"], "source_type": "partner_referral", "source_platform": "exp_agent"}],
+        "property_buyer_matches": [{"id": "match-1", "org_id": "org-1", "buyer_id": "buyer-1", "property_id": "prop-1", "match_status": "candidate", "match_score": 88}],
+        "properties": [{"id": "prop-1", "org_id": "org-1", "title": None, "zone": "Port d'Andratx", "city": "Mallorca", "property_type": "villa", "address": None}],
+        "prospected_properties": [],
+        "buyer_interactions": [],
+    }
+    db = _MockDb(store)
+
+    with patch("backend.services.buyer_outreach_service.buyer_memory_service.search", new_callable=AsyncMock) as mock_memory, \
+         patch("backend.services.buyer_outreach_service.llm_service.summarize", new_callable=AsyncMock) as mock_summarize, \
+         patch("backend.services.buyer_outreach_service.llm_service.generate_copy", new_callable=AsyncMock) as mock_copy:
+        mock_memory.return_value = type("Resp", (), {"model_dump": lambda self: {"matches": [], "total_records": 0}})()
+        mock_summarize.return_value = "Brief"
+        mock_copy.side_effect = RuntimeError("no ai")
+
+        result = asyncio.run(bos.generate_buyer_outreach(db=db, org_id="org-1", buyer_id="buyer-1"))
+
+    assert "Port d'Andratx" in result["email_subject"]
+    assert "prop-1" not in result["email_subject"]
+    assert "Port d'Andratx" in result["whatsapp_body"]
