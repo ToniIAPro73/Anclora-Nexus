@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/i18n'
 import type { TranslationKey } from '@/lib/i18n'
 import { useCurrency } from '@/lib/currency'
 import { BuyerIntakePanel } from '@/components/prospection/BuyerIntakePanel'
+import { BuyerDrawer } from '@/components/prospection/BuyerDrawer'
 import {
   getProspectionWorkspace,
   updateBuyer,
@@ -99,6 +100,7 @@ export default function ProspectionUnifiedPage() {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
   const [actionBusy, setActionBusy] = useState<Record<string, boolean>>({})
   const [actionMessage, setActionMessage] = useState<string | null>(null)
+  const [selectedBuyerId, setSelectedBuyerId] = useState<string | null>(null)
 
   const loadWorkspace = useCallback(async () => {
     setLoading(true)
@@ -377,7 +379,11 @@ export default function ProspectionUnifiedPage() {
                     const busyKey = `buyer-${b.id}`
                     const nextStatus = nextInFlow(b.status, BUYER_FLOW)
                     return (
-                      <div key={b.id} className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
+                      <div
+                        key={b.id}
+                        className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 cursor-pointer"
+                        onClick={() => setSelectedBuyerId(b.id)}
+                      >
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-semibold text-soft-white line-clamp-1">{b.full_name || b.email || 'Buyer sin nombre'}</p>
                           <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${p.cls}`}>{p.label}</span>
@@ -430,14 +436,17 @@ export default function ProspectionUnifiedPage() {
                         <div className="mt-3">
                           <button
                             type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              void runAction(
+                                busyKey,
+                                async () => {
+                                  await updateBuyer(b.id, { status: nextStatus })
+                                },
+                                `Buyer movido a ${nextStatus}.`,
+                              )
+                            }}
                             disabled={Boolean(actionBusy[busyKey])}
-                            onClick={() => void runAction(
-                              busyKey,
-                              async () => {
-                                await updateBuyer(b.id, { status: nextStatus })
-                              },
-                              `Buyer movido a ${nextStatus}.`,
-                            )}
                             className="btn-action w-full !h-8 !px-3 !rounded-lg !text-xs !font-semibold disabled:opacity-50"
                           >
                             {actionBusy[busyKey] ? 'Actualizando...' : `Mover a ${nextStatus}`}
@@ -458,6 +467,12 @@ export default function ProspectionUnifiedPage() {
             Esta vista esta orientada a ejecucion diaria (quien contactar, que priorizar y que cerrar hoy).
           </div>
         </section>
+
+        <BuyerDrawer
+          buyerId={selectedBuyerId}
+          open={Boolean(selectedBuyerId)}
+          onClose={() => setSelectedBuyerId(null)}
+        />
       </motion.div>
     </div>
   )

@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from backend.api.deps import get_org_id, check_budget_hard_stop, get_current_user
 from backend.api.middleware import verify_org_membership
 from backend.services.buyer_memory_service import buyer_memory_service
+from backend.services.buyer_outreach_service import buyer_outreach_service
 from backend.services.supabase_service import SupabaseService
 from backend.models.prospection import (
     ActivityCreate,
@@ -339,6 +340,116 @@ async def rebuild_buyer_memory(
         buyer_id=str(buyer_id),
     )
     return payload.model_dump()
+
+
+@router.get("/buyers/{buyer_id}/workbench")
+async def get_buyer_workbench(
+    buyer_id: UUID,
+    interaction_limit: int = Query(20, ge=1, le=100),
+    org_id: str = Depends(get_org_id),
+) -> dict:
+    db = get_db()
+    payload = await buyer_outreach_service.get_buyer_workbench(
+        db=db,
+        org_id=org_id,
+        buyer_id=str(buyer_id),
+        interaction_limit=interaction_limit,
+    )
+    if not payload:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Buyer not found")
+    return payload
+
+
+@router.post("/buyers/{buyer_id}/generate-outreach")
+async def generate_buyer_outreach(
+    buyer_id: UUID,
+    org_id: str = Depends(get_org_id),
+    _budget=Depends(check_budget_hard_stop),
+) -> dict:
+    db = get_db()
+    try:
+        return await buyer_outreach_service.generate_buyer_outreach(
+            db=db,
+            org_id=org_id,
+            buyer_id=str(buyer_id),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+
+
+@router.get("/buyers/{buyer_id}/interactions")
+async def list_buyer_interactions(
+    buyer_id: UUID,
+    limit: int = Query(50, ge=1, le=200),
+    org_id: str = Depends(get_org_id),
+) -> list[dict]:
+    db = get_db()
+    return await buyer_outreach_service.get_interactions(
+        db=db,
+        org_id=org_id,
+        buyer_id=str(buyer_id),
+        limit=limit,
+    )
+
+
+@router.post("/buyers/{buyer_id}/interactions", status_code=status.HTTP_201_CREATED)
+async def log_buyer_interaction(
+    buyer_id: UUID,
+    payload: dict,
+    org_id: str = Depends(get_org_id),
+) -> dict:
+    db = get_db()
+    tipo = str(payload.get("tipo") or "note")
+    if tipo not in {"call", "email", "whatsapp", "note", "buyer_brief", "email_draft", "whatsapp_draft"}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="invalid interaction tipo")
+    return await buyer_outreach_service.add_interaction(
+        db=db,
+        org_id=org_id,
+        buyer_id=str(buyer_id),
+        tipo=tipo,
+        contenido=str(payload.get("contenido") or ""),
+        estado=str(payload.get("estado") or "realizado"),
+        resultado=payload.get("resultado"),
+        metadata=payload.get("metadata") or {},
+    )
+
+
+@router.post("/buyers/{buyer_id}/send-supervised/{channel}")
+async def send_buyer_supervised(
+    buyer_id: UUID,
+    channel: str,
+    payload: Optional[dict] = None,
+    org_id: str = Depends(get_org_id),
+) -> dict:
+    db = get_db()
+    try:
+        return await buyer_outreach_service.build_supervised_send_payload(
+            db=db,
+            org_id=org_id,
+            buyer_id=str(buyer_id),
+            channel=channel,
+            transport=str((payload or {}).get("transport") or "auto"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+
+@router.post("/buyers/{buyer_id}/interactions/{interaction_id}/confirm-send")
+async def confirm_buyer_supervised_send(
+    buyer_id: UUID,
+    interaction_id: UUID,
+    org_id: str = Depends(get_org_id),
+) -> dict:
+    db = get_db()
+    payload = await buyer_outreach_service.confirm_supervised_send(
+        db=db,
+        org_id=org_id,
+        buyer_id=str(buyer_id),
+        interaction_id=str(interaction_id),
+    )
+    if not payload:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Interaction not found")
+    return payload
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

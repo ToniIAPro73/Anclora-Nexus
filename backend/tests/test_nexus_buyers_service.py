@@ -17,6 +17,11 @@ class _MockQuery:
         self.rows = [row for row in self.rows if row.get(key) == value]
         return self
 
+    def in_(self, key, values):
+        value_set = {str(value) for value in values}
+        self.rows = [row for row in self.rows if str(row.get(key)) in value_set]
+        return self
+
     def order(self, key, desc=False):
         self.rows = sorted(self.rows, key=lambda row: row.get(key) or "", reverse=desc)
         return self

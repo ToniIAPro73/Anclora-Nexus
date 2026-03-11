@@ -177,6 +177,84 @@ export interface OpportunityRankingResponse {
   }
 }
 
+export interface BuyerWorkbenchInteraction {
+  id: string
+  tipo: string
+  contenido: string
+  estado: string
+  resultado?: string | null
+  metadata?: Record<string, unknown>
+  created_at: string
+}
+
+export interface BuyerWorkbenchPayload {
+  buyer: BuyerProfile
+  matches: PropertyBuyerMatch[]
+  activities: MatchActivity[]
+  interactions: BuyerWorkbenchInteraction[]
+  latest_artifacts: {
+    buyer_brief?: BuyerWorkbenchInteraction | null
+    email_draft?: BuyerWorkbenchInteraction | null
+    whatsapp_draft?: BuyerWorkbenchInteraction | null
+  }
+  memory: {
+    version: string
+    buyer_id: string
+    status: string
+    query: string
+    total_records: number
+    vector_ready_records?: number
+    retrieval_mode?: string
+    retrieval_summary: string
+    matches: Array<{
+      score: number
+      matched_keywords: string[]
+      reasons: Array<{ type: string; value: string }>
+      record: {
+        id: string
+        memory_kind: string
+        source_type: string
+        source_artifact?: string | null
+        summary: string
+        redacted_content: string
+        source_created_at: string
+      }
+    }>
+  }
+  console: {
+    readiness: string
+    recommended_channel: string
+    next_action: string
+    reasons: string[]
+    last_touch_at?: string | null
+    memory_highlights: Array<{ summary: string; score: number }>
+  }
+  snapshot: {
+    interactions_count: number
+    matches_count: number
+    semantic_memory_count: number
+    semantic_memory_ready: boolean
+    recommended_channel: string
+    readiness: string
+    email_native_available: boolean
+    latest_email_delivery?: BuyerWorkbenchInteraction | null
+    latest_whatsapp_delivery?: BuyerWorkbenchInteraction | null
+  }
+}
+
+export interface BuyerSupervisedSendPayload {
+  channel: 'email' | 'whatsapp'
+  buyer_id: string
+  interaction_id: string
+  target: string
+  subject: string
+  body: string
+  launch_url: string | null
+  status: 'ready_for_human_send' | 'sent_natively'
+  transport: string
+  delivery?: Record<string, unknown> | null
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -418,6 +496,39 @@ export async function createWorkspaceFollowupTask(data: {
   return apiRequest('/api/prospection/workspace/actions/followup-task', {
     method: 'POST',
     body: JSON.stringify(data),
+  })
+}
+
+export async function getBuyerWorkbench(buyerId: string, interactionLimit = 20): Promise<BuyerWorkbenchPayload> {
+  return apiRequest(`/api/prospection/buyers/${buyerId}/workbench?interaction_limit=${interactionLimit}`)
+}
+
+export async function generateBuyerOutreach(buyerId: string): Promise<{
+  buyer_id: string
+  brief: string
+  email_subject: string
+  email_body: string
+  whatsapp_body: string
+}> {
+  return apiRequest(`/api/prospection/buyers/${buyerId}/generate-outreach`, {
+    method: 'POST',
+  })
+}
+
+export async function sendBuyerSupervised(
+  buyerId: string,
+  channel: 'email' | 'whatsapp',
+  transport: 'auto' | 'mailto' | 'native_email' = 'auto',
+): Promise<BuyerSupervisedSendPayload> {
+  return apiRequest(`/api/prospection/buyers/${buyerId}/send-supervised/${channel}`, {
+    method: 'POST',
+    body: JSON.stringify({ transport }),
+  })
+}
+
+export async function confirmBuyerSupervisedSend(buyerId: string, interactionId: string): Promise<BuyerWorkbenchInteraction> {
+  return apiRequest(`/api/prospection/buyers/${buyerId}/interactions/${interactionId}/confirm-send`, {
+    method: 'POST',
   })
 }
 

@@ -632,3 +632,4 @@ Resultado funcional:
 - .agent/rules/feature-ai-runtime-provider-profiles.md
 - .agent/skills/features/ai-runtime-provider-profiles/SKILL.md
 - .antigravity/prompts/features/ai-runtime-provider-profiles/
+- `ANCLORA-NBOS-001` Nexus Buyers Outreach Supervised

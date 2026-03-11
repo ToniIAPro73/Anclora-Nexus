@@ -138,3 +138,4 @@
 - `pytest` buyer memory + prospection OK
 - `npm run frontend:lint` OK
 - `npm run frontend:build` OK
+- 2026-03-11: `ANCLORA-NBOS-001` buyer-side workbench y supervised outreach abiertos en Prospección Operativa.
