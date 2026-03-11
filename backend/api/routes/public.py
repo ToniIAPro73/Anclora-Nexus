@@ -1,9 +1,29 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from typing import Any, Dict
 from backend.agents.graph import agent_executor
 from backend.config import settings
+from backend.models.partner_admissions import PublicPartnerAdmissionCreate
+from backend.services.partner_admission_service import partner_admission_service
 
 router = APIRouter()
+
+
+@router.post("/partner-admissions", status_code=status.HTTP_201_CREATED)
+async def create_public_partner_admission(data: PublicPartnerAdmissionCreate):
+    try:
+        result = await partner_admission_service.create_public_admission(
+            settings.PUBLIC_CTA_ORG_ID,
+            data,
+        )
+        return {
+            "status": "submitted",
+            "admission_id": result.get("id"),
+            "message": "Partner admission submitted",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/cta/lead")
 async def public_cta_lead_capture(data: Dict[str, Any]):

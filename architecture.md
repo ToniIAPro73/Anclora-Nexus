@@ -124,7 +124,9 @@ La entrada privada del ecosistema queda repartida asi:
    - superficies publicas iniciales para `Partner` y `Data Lab`
 
 3. `Synergi`
-   - reservado para admision y workspace colaborativo de partners en bloques posteriores
+   - admision publica operativa en `/private-area/partner`
+   - cola interna de revision en `/partner-admissions`
+   - workspace colaborativo aun pendiente de bloque posterior
 
 4. `Data Lab`
    - reservado para acceso analitico controlado apoyado en `intelligence_packs`

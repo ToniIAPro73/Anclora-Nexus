@@ -174,3 +174,17 @@
 - `npm run lint` en `Anclora-Private-Estates` OK
 - `npm run test` en `Anclora-Private-Estates` OK
 - `npm run build` en `Anclora-Private-Estates` OK
+
+### ANCLORA-SPA-001 cerrada
+
+- `Synergi` ya admite solicitudes reales desde `/private-area/partner`
+- nueva tabla `partner_admissions` con aislamiento por `org_id`
+- nueva cola interna `/partner-admissions` para revisar, aceptar y rechazar applicants
+- la decision puede preparar comunicacion por `smtp` o fallback `mailto`
+- categoria `eco` incluida desde el alta inicial
+
+### Validación ejecutada
+
+- `8 passed` en backend sobre servicio y rutas de `partner_admissions`
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK

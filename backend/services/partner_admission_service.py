@@ -1,0 +1,197 @@
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+from urllib.parse import quote
+
+from backend.models.partner_admissions import PartnerAdmissionReview, PublicPartnerAdmissionCreate
+from backend.services.email_delivery_service import get_email_transport_summary, send_email_native
+from backend.services.supabase_service import supabase_service
+
+
+class PartnerAdmissionService:
+    def _normalize_text_list(self, value: Any) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",") if item.strip()]
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        return []
+
+    async def create_public_admission(self, org_id: str, payload: PublicPartnerAdmissionCreate) -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat()
+        data = payload.model_dump()
+        record = {
+            **data,
+            "org_id": org_id,
+            "coverage_areas": self._normalize_text_list(data.get("coverage_areas")),
+            "languages": self._normalize_text_list(data.get("languages")),
+            "status": "submitted",
+            "created_at": now,
+            "updated_at": now,
+        }
+        response = supabase_service.client.table("partner_admissions").insert(record).execute()
+        return response.data[0]
+
+    async def list_admissions(
+        self,
+        *,
+        org_id: str,
+        status: Optional[str] = None,
+        service_category: Optional[str] = None,
+        query: Optional[str] = None,
+        limit: int = 25,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        base_query = (
+            supabase_service.client.table("partner_admissions")
+            .select("*")
+            .eq("org_id", org_id)
+            .order("created_at", desc=True)
+        )
+        if status:
+            base_query = base_query.eq("status", status)
+        if service_category:
+            base_query = base_query.eq("service_category", service_category)
+        response = base_query.execute()
+        rows = response.data or []
+
+        if query:
+            needle = query.lower().strip()
+            rows = [
+                row
+                for row in rows
+                if needle in " ".join(
+                    [
+                        str(row.get("full_name") or ""),
+                        str(row.get("email") or ""),
+                        str(row.get("company_name") or ""),
+                        str(row.get("service_summary") or ""),
+                    ]
+                ).lower()
+            ]
+
+        total = len(rows)
+        return {
+            "items": rows[offset : offset + limit],
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+        }
+
+    async def get_summary(self, org_id: str) -> Dict[str, Any]:
+        response = (
+            supabase_service.client.table("partner_admissions")
+            .select("status,service_category,sustainability_focus")
+            .eq("org_id", org_id)
+            .execute()
+        )
+        rows = response.data or []
+        summary = {
+            "total": len(rows),
+            "submitted": 0,
+            "under_review": 0,
+            "accepted": 0,
+            "rejected": 0,
+            "eco_focus": 0,
+            "by_category": {},
+        }
+        for row in rows:
+            status = str(row.get("status") or "submitted")
+            category = str(row.get("service_category") or "other")
+            summary[status] = int(summary.get(status, 0)) + 1
+            summary["by_category"][category] = int(summary["by_category"].get(category, 0)) + 1
+            if bool(row.get("sustainability_focus")):
+                summary["eco_focus"] += 1
+        return summary
+
+    def _build_notification(self, full_name: str, status: str, review_notes: Optional[str]) -> Dict[str, str]:
+        if status == "accepted":
+            subject = "Anclora Synergi · Partner admission approved"
+            body = (
+                f"Hola {full_name},\n\n"
+                "Tu solicitud para entrar en la red Synergi de Anclora ha sido aprobada.\n"
+                "En el siguiente bloque recibirás el acceso operativo al workspace de partner.\n\n"
+                f"Notas: {review_notes or 'Sin observaciones adicionales.'}\n\n"
+                "Equipo Anclora"
+            )
+        else:
+            subject = "Anclora Synergi · Partner admission reviewed"
+            body = (
+                f"Hola {full_name},\n\n"
+                "Hemos revisado tu solicitud para la red Synergi de Anclora y por ahora no avanzará a la siguiente fase.\n"
+                f"Notas: {review_notes or 'Gracias por tu interés en Anclora.'}\n\n"
+                "Equipo Anclora"
+            )
+        return {"subject": subject, "body": body}
+
+    async def review_admission(
+        self,
+        *,
+        org_id: str,
+        admission_id: str,
+        reviewer_user_id: str,
+        payload: PartnerAdmissionReview,
+    ) -> Optional[Dict[str, Any]]:
+        current = (
+            supabase_service.client.table("partner_admissions")
+            .select("*")
+            .eq("org_id", org_id)
+            .eq("id", admission_id)
+            .limit(1)
+            .execute()
+        )
+        row = current.data[0] if current.data else None
+        if not row:
+            return None
+
+        now = datetime.now(timezone.utc).isoformat()
+        update_payload: Dict[str, Any] = {
+            "status": payload.status.value,
+            "review_notes": payload.review_notes,
+            "reviewed_by_user_id": reviewer_user_id,
+            "reviewed_at": now,
+            "updated_at": now,
+        }
+
+        notification = None
+        if payload.notify_applicant and row.get("email"):
+            mail = self._build_notification(
+                full_name=str(row.get("full_name") or "partner"),
+                status=payload.status.value,
+                review_notes=payload.review_notes,
+            )
+            transport = get_email_transport_summary()
+            if transport["native_email_enabled"]:
+                delivery = send_email_native(
+                    to_email=str(row["email"]),
+                    subject=mail["subject"],
+                    body=mail["body"],
+                )
+                update_payload["decision_email_sent_at"] = now
+                notification = {
+                    "transport": "smtp",
+                    "delivery": delivery,
+                }
+            else:
+                notification = {
+                    "transport": "mailto",
+                    "launch_url": f"mailto:{quote(str(row['email']))}?subject={quote(mail['subject'])}&body={quote(mail['body'])}",
+                }
+
+        updated = (
+            supabase_service.client.table("partner_admissions")
+            .update(update_payload)
+            .eq("org_id", org_id)
+            .eq("id", admission_id)
+            .execute()
+        )
+        result = updated.data[0] if updated.data else None
+        if result is None:
+            return None
+        result["notification"] = notification
+        return result
+
+
+partner_admission_service = PartnerAdmissionService()

@@ -30,6 +30,8 @@ app.add_middleware(
 
 from .routes.intelligence import router as intelligence_router
 from .routes.ingestion import router as ingestion_router
+from .routes.partners import router as partners_router
+from .routes.public import router as public_router
 from .routes.prospection import router as prospection_router
 from .routes.sellers import router as sellers_router
 from .routes.skills import router as skills_router
@@ -40,6 +42,9 @@ app.include_router(intelligence_router, prefix="/api/intelligence", tags=["Intel
 # Include Prospection & Buyer Matching routes
 app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospection"])
 
+# Include partner admission routes
+app.include_router(partners_router, prefix="/api/partners", tags=["Partners"])
+
 # Include Nexus Sellers — Motor de Adquisición de Vendedores
 app.include_router(sellers_router, prefix="/api/sellers", tags=["Sellers"])
 
@@ -48,6 +53,9 @@ app.include_router(skills_router, prefix="/api", tags=["Skills"])
 
 # Include unified ingestion routes
 app.include_router(ingestion_router, prefix="/api", tags=["Ingestion"])
+
+# Include public capture routes
+app.include_router(public_router, prefix="/api/public", tags=["Public"])
 
 # ═══════════════════════════════════════════════════════════════
 # HEALTH CHECK
