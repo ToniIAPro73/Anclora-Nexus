@@ -99,6 +99,19 @@
 
 ## 2026-03-11
 
+### Arquitectura de ecosistema formalizada
+
+- creado documento marco `Arquitectura-Ecosistema-Anclora-Group.md`
+- Anclora queda modelada como ecosistema con seis planos:
+  - `Private Estates`
+  - `Nexus`
+  - `Synergi`
+  - `Data Lab`
+  - `Content Generator AI`
+  - `Advisor AI`
+- `Advisor AI` queda posicionado como herramienta interna de facturación, alertas fiscales y soporte administrativo del autónomo, no como prioridad pública de marca
+- `Content Generator AI` queda reconocido como capa prioritaria de autoridad y distribución multicanal
+
 ### ANCLORA-MTIP-001 cerrada
 
 - catálogo `intelligence_packs` por tenant añadido

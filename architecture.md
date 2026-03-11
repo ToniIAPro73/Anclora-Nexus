@@ -1,6 +1,9 @@
 # Arquitectura de Anclora Nexus
 
-Estado actualizado a `2026-03-10` tras cierre de `BL-001` a `BL-011`.
+Documento marco de ecosistema:
+- `public/docs/nuevo-enfoque/Arquitectura-Ecosistema-Anclora-Group.md`
+
+Estado actualizado a `2026-03-11` tras cierre de `BL-001` a `BL-011`, backlog post-GO, `ANCLORA-MTIP-001` y primer bloque buyer-side.
 
 ## 1. Perímetro productivo actual
 
