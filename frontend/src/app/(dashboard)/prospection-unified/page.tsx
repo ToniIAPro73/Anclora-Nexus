@@ -393,9 +393,11 @@ export default function ProspectionUnifiedPage() {
                           <span className="rounded-full border border-gold/20 bg-gold/10 px-2 py-0.5 text-gold">
                             {t(`buyersSourceType_${b.source_type}` as TranslationKey)}
                           </span>
-                          <span className="rounded-full border border-soft-subtle/20 bg-white/5 px-2 py-0.5 text-soft-muted">
-                            {t(`buyersSourcePlatform_${b.source_platform}` as TranslationKey)}
-                          </span>
+                          {b.source_platform !== b.source_type ? (
+                            <span className="rounded-full border border-soft-subtle/20 bg-white/5 px-2 py-0.5 text-soft-muted">
+                              {t(`buyersSourcePlatform_${b.source_platform}` as TranslationKey)}
+                            </span>
+                          ) : null}
                           {b.referral_partner_name ? (
                             <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-emerald-200">
                               {b.referral_partner_name}
