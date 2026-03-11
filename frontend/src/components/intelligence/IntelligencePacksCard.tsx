@@ -4,8 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { BookOpen, Globe2, Layers3, Plus, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import type { Language, TranslationKey } from '@/lib/i18n'
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { authFetch } from '@/lib/auth-fetch'
 
 const LOCALE_BY_LANGUAGE: Record<Language, string> = {
   es: 'es-ES',
@@ -63,7 +62,7 @@ export function IntelligencePacksCard() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/api/intelligence/packs`, { cache: 'no-store' })
+      const res = await authFetch('/api/intelligence/packs', { cache: 'no-store' })
       if (!res.ok) throw new Error(t('intelligencePacksLoadingError'))
       const body = (await res.json()) as IntelligencePacksResponse
       setPacks(body.items || [])
@@ -83,7 +82,7 @@ export function IntelligencePacksCard() {
     setSaving(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/api/intelligence/packs/${packId}`, {
+      const res = await authFetch(`/api/intelligence/packs/${packId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_default: true, status: 'active' }),
@@ -101,7 +100,7 @@ export function IntelligencePacksCard() {
     setSaving(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/api/intelligence/packs`, {
+      const res = await authFetch('/api/intelligence/packs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

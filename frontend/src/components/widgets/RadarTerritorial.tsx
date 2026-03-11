@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Map, TrendingUp, AlertCircle, Clock, Leaf, ExternalLink, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { authFetch } from '@/lib/auth-fetch'
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -142,7 +141,7 @@ export function RadarTerritorial() {
     setLoading(true)
     setError(false)
     try {
-      const res = await fetch(`${API_BASE}/api/intelligence/territorial-summary`)
+      const res = await authFetch('/api/intelligence/territorial-summary')
       if (!res.ok) throw new Error()
       setData(await res.json())
     } catch {

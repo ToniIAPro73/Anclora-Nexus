@@ -4,8 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle, CheckCircle2, Clock3, Database, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import type { TranslationKey } from '@/lib/i18n'
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { authFetch } from '@/lib/auth-fetch'
 
 type SyncStatus = {
   status: 'ready' | 'warning' | 'error' | string
@@ -97,7 +96,7 @@ export function TerritorialSyncStatusCard() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/api/intelligence/territorial-sync-status`, {
+      const res = await authFetch('/api/intelligence/territorial-sync-status', {
         cache: 'no-store',
       })
       if (!res.ok) throw new Error('sync status unavailable')

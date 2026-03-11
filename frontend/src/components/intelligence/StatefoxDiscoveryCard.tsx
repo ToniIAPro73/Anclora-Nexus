@@ -5,8 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Bot, ArrowRight, Compass, RefreshCw, ShieldAlert, Waypoints } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import type { TranslationKey } from '@/lib/i18n'
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { authFetch } from '@/lib/auth-fetch'
 
 type StatefoxDiscovery = {
   status: 'discovery_ready' | 'blocked' | 'research' | string
@@ -46,7 +45,7 @@ export function StatefoxDiscoveryCard() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/api/intelligence/statefox-discovery`, {
+      const res = await authFetch('/api/intelligence/statefox-discovery', {
         cache: 'no-store',
       })
       if (!res.ok) throw new Error('unavailable')

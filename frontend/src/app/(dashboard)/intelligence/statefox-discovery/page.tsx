@@ -4,8 +4,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft, Bot, Compass, Download, ExternalLink, MapPinned, Waypoints } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { authFetch } from '@/lib/auth-fetch'
 
 type DiscoveryPayload = {
   status: string
@@ -38,7 +37,7 @@ export default function StatefoxDiscoveryPage() {
   const [data, setData] = useState<DiscoveryPayload | null>(null)
 
   const load = useCallback(async () => {
-    const res = await fetch(`${API_BASE}/api/intelligence/statefox-discovery`, { cache: 'no-store' })
+    const res = await authFetch('/api/intelligence/statefox-discovery', { cache: 'no-store' })
     if (!res.ok) throw new Error('unavailable')
     const body = await res.json()
     setData(body.discovery as DiscoveryPayload)

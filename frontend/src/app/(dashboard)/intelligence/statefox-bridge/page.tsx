@@ -4,8 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Bot, ExternalLink, Link2, MapPinned, RefreshCw, Upload } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
-import supabase from '@/lib/supabase'
-import { buildBackendUrl } from '@/lib/backend-url'
+import { authFetch } from '@/lib/auth-fetch'
 
 type ParsedListing = {
   title: string
@@ -73,7 +72,7 @@ export default function StatefoxBridgePage() {
   const loadLiveCapture = async () => {
     setLoadingLiveCapture(true)
     try {
-      const res = await fetch(buildBackendUrl('/api/intelligence/statefox-bridge/live-capture'), {
+      const res = await authFetch('/api/intelligence/statefox-bridge/live-capture', {
         cache: 'no-store',
       })
       const body = await res.json()
@@ -98,7 +97,7 @@ export default function StatefoxBridgePage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(buildBackendUrl('/api/intelligence/statefox-bridge/parse'), {
+      const res = await authFetch('/api/intelligence/statefox-bridge/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ raw_text: rawText, zone: zone || undefined, city: city || undefined }),
@@ -117,13 +116,9 @@ export default function StatefoxBridgePage() {
     setImporting(true)
     setError(null)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch(buildBackendUrl('/api/intelligence/statefox-bridge/import'), {
+      const res = await authFetch('/api/intelligence/statefox-bridge/import', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token || ''}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ raw_text: rawText, zone: zone || undefined, city: city || undefined }),
       })
       const body = await res.json()
@@ -140,13 +135,9 @@ export default function StatefoxBridgePage() {
     setImporting(true)
     setError(null)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch(buildBackendUrl('/api/intelligence/statefox-bridge/live-capture/import'), {
+      const res = await authFetch('/api/intelligence/statefox-bridge/live-capture/import', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token || ''}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ zone: zone || undefined, city: city || undefined }),
       })
       const body = await res.json()

@@ -6,7 +6,7 @@ import { ArrowLeft, UserSearch, TrendingUp, MapPin, Users, Target, Filter, Refre
 import { SellersTable, NexusSeller, EstadoContacto } from '@/components/sellers/SellersTable'
 import { SellerDrawer } from '@/components/sellers/SellerDrawer'
 import { useI18n } from '@/lib/i18n'
-import { buildBackendUrl } from '@/lib/backend-url'
+import { authFetch } from '@/lib/auth-fetch'
 
 // ─────────────────────────────────────────────────────────────
 // Config
@@ -174,9 +174,9 @@ export default function SellersPage() {
       params.set('limit', '100')
 
       const [sellersRes, statsRes, territorialRes] = await Promise.all([
-        fetch(buildBackendUrl(`/api/sellers/?${params}`)),
-        fetch(buildBackendUrl('/api/sellers/stats')),
-        fetch(buildBackendUrl('/api/intelligence/territorial-summary')),
+        authFetch(`/api/sellers/?${params}`),
+        authFetch('/api/sellers/stats'),
+        authFetch('/api/intelligence/territorial-summary'),
       ])
 
       if (!sellersRes.ok) throw new Error(`${t('error')} ${sellersRes.status}`)
@@ -202,7 +202,7 @@ export default function SellersPage() {
 
   const handleEstadoChange = async (sellerId: string, newEstado: EstadoContacto) => {
     try {
-      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/estado`), {
+      const res = await authFetch(`/api/sellers/${sellerId}/estado`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado_contacto: newEstado }),

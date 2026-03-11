@@ -16,7 +16,7 @@ import {
 import jsPDF from 'jspdf'
 import { useI18n } from '@/lib/i18n'
 import type { TranslationKey } from '@/lib/i18n'
-import { buildBackendUrl } from '@/lib/backend-url'
+import { authFetch } from '@/lib/auth-fetch'
 
 interface Interaction {
   id: string
@@ -205,7 +205,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/workbench?interaction_limit=30`))
+      const res = await authFetch(`/api/sellers/${sellerId}/workbench?interaction_limit=30`)
       if (!res.ok) throw new Error(`${t('error')} ${res.status}`)
       const data = (await res.json()) as WorkbenchPayload
       setWorkbench(data)
@@ -231,9 +231,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setLoadingMemory(true)
     setError(null)
     try {
-      const res = await fetch(
-        buildBackendUrl(`/api/sellers/${sellerId}/memory?query=${encodeURIComponent(memoryQuery)}&limit=5`)
-      )
+      const res = await authFetch(`/api/sellers/${sellerId}/memory?query=${encodeURIComponent(memoryQuery)}&limit=5`)
       if (!res.ok) {
         throw new Error(await res.text())
       }
@@ -260,7 +258,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setError(null)
     setSuccess(null)
     try {
-      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/memory/rebuild`), {
+      const res = await authFetch(`/api/sellers/${sellerId}/memory/rebuild`, {
         method: 'POST',
       })
       if (!res.ok) {
@@ -281,7 +279,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setError(null)
     setSuccess(null)
     try {
-      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/generate-dossier`), {
+      const res = await authFetch(`/api/sellers/${sellerId}/generate-dossier`, {
         method: 'POST',
       })
       if (!res.ok) {
@@ -303,7 +301,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setError(null)
     setSuccess(null)
     try {
-      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/interactions`), {
+      const res = await authFetch(`/api/sellers/${sellerId}/interactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -334,7 +332,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setError(null)
     setSuccess(null)
     try {
-      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}`), {
+      const res = await authFetch(`/api/sellers/${sellerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -365,7 +363,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     if (!sellerId) {
       throw new Error('Missing sellerId')
     }
-    const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/dossier-export`))
+    const res = await authFetch(`/api/sellers/${sellerId}/dossier-export`)
     if (!res.ok) {
       throw new Error(`Export ${res.status}`)
     }
@@ -480,7 +478,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setError(null)
     setSuccess(null)
     try {
-      const res = await fetch(buildBackendUrl(`/api/sellers/${sellerId}/send-supervised/${channel}`), {
+      const res = await authFetch(`/api/sellers/${sellerId}/send-supervised/${channel}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transport }),
@@ -514,10 +512,9 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
     setError(null)
     setSuccess(null)
     try {
-      const res = await fetch(
-        buildBackendUrl(`/api/sellers/${sellerId}/interactions/${payload.interaction_id}/confirm-send`),
-        { method: 'POST' }
-      )
+      const res = await authFetch(`/api/sellers/${sellerId}/interactions/${payload.interaction_id}/confirm-send`, {
+        method: 'POST',
+      })
       if (!res.ok) {
         throw new Error(await res.text())
       }
