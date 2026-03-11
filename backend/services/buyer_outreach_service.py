@@ -45,6 +45,13 @@ def _match_summary(match: Dict[str, Any]) -> str:
     return f"{title} · {match.get('match_status') or 'candidate'} · score {match.get('match_score') or 0}"
 
 
+def _is_placeholder_copy(text: str) -> bool:
+    candidate = _safe_str(text).lower()
+    if not candidate:
+        return True
+    return candidate.startswith("copy generation unavailable.")
+
+
 async def add_interaction(
     *,
     db: SupabaseService,
@@ -231,7 +238,7 @@ def _fallback_brief(buyer: Dict[str, Any], matches: List[Dict[str, Any]], memory
 
 def _fallback_email_subject(buyer: Dict[str, Any], matches: List[Dict[str, Any]]) -> str:
     first_name = (_safe_str(buyer.get("full_name")).split(" ") or ["Buyer"])[0]
-    property_hint = _safe_str(matches[0].get("property_title")) if matches else "propiedades en tu zona"
+    property_hint = _match_summary(matches[0]) if matches else "propiedades en tu zona"
     return f"{first_name}, seleccioné una oportunidad en {property_hint}"
 
 
@@ -248,7 +255,7 @@ def _fallback_email_body(buyer: Dict[str, Any], matches: List[Dict[str, Any]]) -
 
 def _fallback_whatsapp_body(buyer: Dict[str, Any], matches: List[Dict[str, Any]]) -> str:
     first_name = (_safe_str(buyer.get("full_name")).split(" ") or ["Hola"])[0]
-    property_hint = _safe_str(matches[0].get("property_title")) if matches else "una oportunidad alineada con tu búsqueda"
+    property_hint = _match_summary(matches[0]) if matches else "una oportunidad alineada con tu búsqueda"
     return f"Hola {first_name}, he revisado tu búsqueda y tengo {property_hint}. Si quieres, te paso contexto y vemos siguiente paso hoy."
 
 
@@ -303,7 +310,7 @@ async def generate_buyer_outreach(
         whatsapp_candidate = await llm_service.generate_copy(
             f"Write a short WhatsApp follow-up in Spanish for this buyer.\nBuyer: {buyer}\nBrief: {brief_context}\nMatches: {matches[:1]}"
         )
-        if whatsapp_candidate:
+        if whatsapp_candidate and not _is_placeholder_copy(whatsapp_candidate):
             whatsapp_body = whatsapp_candidate.strip()
     except Exception:
         pass
