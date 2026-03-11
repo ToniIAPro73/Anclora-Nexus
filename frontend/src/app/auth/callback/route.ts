@@ -1,13 +1,14 @@
 import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { normalizeNextPath } from '@/lib/private-area-access'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type')
-  const next = searchParams.get('next') ?? (type === 'recovery' ? '/login?mode=reset' : '/dashboard')
+  const next = normalizeNextPath(searchParams.get('next'), type === 'recovery' ? '/login?mode=reset' : '/dashboard')
 
   if (code) {
     const cookieStore = await cookies()

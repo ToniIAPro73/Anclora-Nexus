@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { normalizeNextPath } from '@/lib/private-area-access'
 
 export async function proxy(req: NextRequest) {
   let res = NextResponse.next({
@@ -62,12 +63,13 @@ export async function proxy(req: NextRequest) {
   const isLoginPage = req.nextUrl.pathname.startsWith('/login')
   const isAuthCallback = req.nextUrl.pathname.startsWith('/auth/callback')
   const isInvitePage = req.nextUrl.pathname.startsWith('/invite/')
+  const isPrivateAreaPublic = req.nextUrl.pathname === '/private-area' || req.nextUrl.pathname.startsWith('/private-area/')
   const isRecoveryFlow =
     req.nextUrl.searchParams.has('code') ||
     req.nextUrl.searchParams.get('mode') === 'reset' ||
     req.nextUrl.searchParams.get('type') === 'recovery'
 
-  if (isAuthCallback || isInvitePage) {
+  if (isAuthCallback || isInvitePage || isPrivateAreaPublic) {
     return res
   }
 
@@ -76,7 +78,8 @@ export async function proxy(req: NextRequest) {
   }
 
   if (session && isLoginPage && !isRecoveryFlow) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+    const next = normalizeNextPath(req.nextUrl.searchParams.get('next'), '/dashboard')
+    return NextResponse.redirect(new URL(next, req.url))
   }
 
   if (session && !isLoginPage) {

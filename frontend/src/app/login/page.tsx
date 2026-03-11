@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { BrandLogo } from '@/components/brand/BrandLogo'
+import { normalizeNextPath, type PrivatePortalKey } from '@/lib/private-area-access'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -31,6 +32,17 @@ export default function LoginPage() {
     return params.get('mode') === 'reset' ? 'reset' : 'login'
   })
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [nextPath] = useState(() => {
+    if (typeof window === 'undefined') return '/dashboard'
+    const params = new URLSearchParams(window.location.search)
+    return normalizeNextPath(params.get('next'), '/dashboard')
+  })
+  const [portalKey] = useState<PrivatePortalKey | null>(() => {
+    if (typeof window === 'undefined') return null
+    const params = new URLSearchParams(window.location.search)
+    const portal = params.get('portal')
+    return portal === 'agent' || portal === 'partner' || portal === 'data_lab' ? portal : null
+  })
   const particles: Particle[] = [...Array(12)].map((_, i) => ({
     id: i,
     x: (i * 97) % 1000,
@@ -149,7 +161,7 @@ export default function LoginPage() {
       setMessage(mode === 'login' ? 'Acceso correcto' : 'Cuenta creada. Si tu invitación era válida, ya puedes iniciar sesión.')
       setIsError(false)
       if (mode === 'login') {
-        router.replace('/dashboard')
+        router.replace(nextPath)
         router.refresh()
       } else {
         setMode('login')
@@ -192,7 +204,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${appUrl}/auth/callback`,
+        redirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent(nextPath)}`,
       },
     })
     if (error) {
@@ -240,6 +252,11 @@ export default function LoginPage() {
             </div>
             <h1 className="font-display text-2xl text-soft-white mb-1">Anclora Nexus</h1>
             <p className="text-[10px] uppercase tracking-[0.2em] text-soft-muted">Private Estate Intelligence</p>
+            {portalKey ? (
+              <div className="mt-3 rounded-full border border-gold/25 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
+                {portalKey === 'agent' ? 'Portal de Agente' : portalKey === 'partner' ? 'Portal de Partner' : 'Anclora Data Lab'}
+              </div>
+            ) : null}
             <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent mt-3" />
           </div>
 

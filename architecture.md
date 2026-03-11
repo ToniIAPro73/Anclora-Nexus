@@ -5,6 +5,8 @@ Documento marco de ecosistema:
 
 Estado actualizado a `2026-03-11` tras cierre de `BL-001` a `BL-011`, backlog post-GO, `ANCLORA-MTIP-001` y primer bloque buyer-side.
 
+Actualizado a `2026-03-12` con `ANCLORA-PAA-001`, capa de acceso privado comun entre `Private Estates` y `Nexus`.
+
 ## 1. Perímetro productivo actual
 
 El sistema ya opera sobre tres planos conectados:
@@ -107,3 +109,26 @@ Artefactos clave:
 - La salida a producción real depende de verificar en Supabase Cloud las migraciones `040-043`.
 - Sigue faltando smoke test formal con datos reales controlados.
 - Hay warnings legacy fuera de este bloque en FastAPI `on_event` y modelos Pydantic antiguos.
+
+## 6. Acceso privado del ecosistema
+
+La entrada privada del ecosistema queda repartida asi:
+
+1. `Anclora Private Estates`
+   - puerta publica de marca
+   - `Area Privada` como gateway externo
+
+2. `Anclora Nexus`
+   - login y workspace del `Portal de Agente`
+   - gateway publico `/private-area`
+   - superficies publicas iniciales para `Partner` y `Data Lab`
+
+3. `Synergi`
+   - reservado para admision y workspace colaborativo de partners en bloques posteriores
+
+4. `Data Lab`
+   - reservado para acceso analitico controlado apoyado en `intelligence_packs`
+
+La regla actual es:
+- `agent` usa auth de Nexus y membership activa
+- `partner` y `data_lab` quedan expuestos como portales publicos o de acceso controlado, sin mezclarse con el dashboard interno

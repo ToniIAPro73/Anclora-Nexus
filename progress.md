@@ -152,3 +152,25 @@
 - `npm run frontend:lint` OK
 - `npm run frontend:build` OK
 - 2026-03-11: `ANCLORA-NBOS-001` buyer-side workbench y supervised outreach abiertos en Prospección Operativa.
+
+## 2026-03-12
+
+### ANCLORA-PAA-001 cerrada
+
+- `Anclora Private Estates` y `Anclora Nexus` quedan alineados bajo una arquitectura comun de acceso privado.
+- `Area Privada` ya distingue correctamente:
+  - `Portal de Agente`
+  - `Portal de Partner`
+  - `Anclora Data Lab`
+- `Nexus` expone `/private-area`, `/private-area/partner` y `/private-area/data-lab` como capa publica coordinada.
+- `login`, `proxy` y `auth/callback` preservan `next` saneado.
+- `Partner` y `Data Lab` dejan de depender de un modal ambiguo en la web publica.
+
+### Validacion ejecutada
+
+- `npx vitest run frontend/tests/private-area/test_private_area_access.ts` OK
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK
+- `npm run lint` en `Anclora-Private-Estates` OK
+- `npm run test` en `Anclora-Private-Estates` OK
+- `npm run build` en `Anclora-Private-Estates` OK
