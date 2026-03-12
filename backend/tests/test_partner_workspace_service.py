@@ -136,6 +136,7 @@ def test_get_workspace_by_token_returns_opportunities(monkeypatch) -> None:
     assert result["partner_name"] == "Partner Test"
     assert result["workspace_status"] == "active"
     assert len(result["opportunities"]) == 1
+    assert len(result["anclora_priorities"]) >= 1
 
 
 def test_create_opportunity_from_token(monkeypatch) -> None:

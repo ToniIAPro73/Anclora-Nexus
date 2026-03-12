@@ -276,7 +276,7 @@ export function DataLabPortalClient() {
                   </div>
                   <textarea className="ui-textarea min-h-24" placeholder={t('privateAreaDataLabFieldNotes')} value={form.notes} onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} />
                   {requestError ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{requestError}</p> : null}
-                  <button type="submit" disabled={requestLoading} className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110 disabled:opacity-70">
+                  <button type="submit" disabled={requestLoading} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
                     {requestLoading ? t('loading') : t('privateAreaDataLabPrimaryCta')}
                   </button>
                 </form>

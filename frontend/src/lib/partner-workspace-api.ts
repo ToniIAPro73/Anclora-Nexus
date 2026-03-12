@@ -48,6 +48,12 @@ export interface PartnerWorkspaceSharedOpportunity {
   created_at: string
 }
 
+export interface PartnerWorkspacePriority {
+  title: string
+  description: string
+  emphasis: string
+}
+
 export interface PartnerWorkspacePayload {
   id: string
   admission_id: string
@@ -72,6 +78,7 @@ export interface PartnerWorkspacePayload {
   resources: PartnerWorkspaceResource[]
   opportunities: PartnerWorkspaceOpportunity[]
   shared_opportunities: PartnerWorkspaceSharedOpportunity[]
+  anclora_priorities: PartnerWorkspacePriority[]
   activity: PartnerWorkspaceActivity[]
   last_seen_at: string | null
 }

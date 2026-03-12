@@ -257,3 +257,15 @@
 - `7 passed` en backend sobre servicios y rutas de `partner_network`
 - `npm run frontend:lint` OK
 - `npm run frontend:build` OK
+
+### ANCLORA-SPW-004 cerrada
+
+- `Synergi Workspace` ya muestra prioridades sugeridas por Anclora derivadas desde preferencias y shared opportunities
+- `Partner` y `Data Lab` dejan de sentirse como pantallas públicas de Nexus y pasan a usar una capa premium externa
+- cada portal premium mantiene la misma familia visual `Private Estates`, pero con acentuación propia
+
+### Validación ejecutada
+
+- `9 passed` en backend sobre `partner_workspace`
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK

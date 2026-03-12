@@ -127,6 +127,7 @@ La entrada privada del ecosistema queda repartida asi:
    - workspace colaborativo controlado por token en `/private-area/partner/workspace`
    - workspace v2 con perfil operativo y actividad trazable
    - workspace v3 con oportunidades compartidas y respuesta estructurada del partner
+   - workspace v4 con prioridades sugeridas por Anclora
    - consola interna de red partner en `/partner-network`
    - consola interna v2 con explotacion de preferencias, respuesta y engagement del partner
 
@@ -137,3 +138,4 @@ La entrada privada del ecosistema queda repartida asi:
 La regla actual es:
 - `agent` usa auth de Nexus y membership activa
 - `partner` y `data_lab` quedan expuestos como portales publicos o de acceso controlado, sin mezclarse con el dashboard interno
+- `partner` y `data_lab` usan una gramática visual premium externa basada en `Private Estates`, no la del dashboard de Nexus

@@ -404,6 +404,129 @@
     box-shadow: 0 10px 24px rgba(4, 8, 20, 0.14);
   }
 
+  .private-estates-theme {
+    background:
+      radial-gradient(circle at top right, rgba(212, 175, 55, 0.18), transparent 28%),
+      radial-gradient(circle at top left, rgba(12, 102, 109, 0.28), transparent 38%),
+      linear-gradient(180deg, #08212a 0%, #0c3a43 48%, #07252f 100%);
+  }
+
+  .private-estates-theme-partner {
+    background:
+      radial-gradient(circle at top right, rgba(212, 175, 55, 0.2), transparent 26%),
+      radial-gradient(circle at top left, rgba(18, 96, 86, 0.24), transparent 38%),
+      linear-gradient(180deg, #08212a 0%, #0d3b41 48%, #07252f 100%);
+  }
+
+  .private-estates-theme-data-lab {
+    background:
+      radial-gradient(circle at top right, rgba(120, 198, 214, 0.16), transparent 28%),
+      radial-gradient(circle at top left, rgba(23, 118, 138, 0.22), transparent 38%),
+      linear-gradient(180deg, #071b24 0%, #0a3340 48%, #06252e 100%);
+  }
+
+  .private-estates-panel {
+    background: linear-gradient(180deg, rgba(6, 47, 57, 0.94) 0%, rgba(8, 59, 68, 0.9) 100%);
+    box-shadow:
+      0 40px 90px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(252, 246, 186, 0.08);
+  }
+
+  .private-estates-title {
+    color: #f7f1e7;
+    font-size: clamp(2.4rem, 4vw, 4rem);
+    line-height: 1.04;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .private-estates-subtitle {
+    color: rgba(232, 238, 230, 0.82);
+    max-width: 52rem;
+    line-height: 1.7;
+  }
+
+  .private-estates-theme .surface-primary {
+    background: linear-gradient(180deg, rgba(8, 54, 63, 0.92) 0%, rgba(6, 43, 52, 0.88) 100%) !important;
+    border-color: rgba(212, 175, 55, 0.18) !important;
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.18);
+  }
+
+  .private-estates-theme .surface-secondary {
+    background: linear-gradient(180deg, rgba(9, 63, 72, 0.66) 0%, rgba(6, 46, 55, 0.62) 100%) !important;
+    border-color: rgba(212, 175, 55, 0.12) !important;
+  }
+
+  .private-estates-theme .ui-input,
+  .private-estates-theme .ui-textarea,
+  .private-estates-theme .ui-select {
+    background: rgba(10, 63, 72, 0.36);
+    border-color: rgba(212, 175, 55, 0.16);
+    color: #f7f1e7;
+  }
+
+  .private-estates-theme .ui-input::placeholder,
+  .private-estates-theme .ui-textarea::placeholder {
+    color: rgba(222, 231, 222, 0.44);
+  }
+
+  .private-estates-theme .ui-input:focus,
+  .private-estates-theme .ui-textarea:focus,
+  .private-estates-theme .ui-select:focus {
+    border-color: rgba(252, 246, 186, 0.72);
+    box-shadow:
+      0 0 0 1px rgba(252, 246, 186, 0.48),
+      0 18px 45px rgba(0, 0, 0, 0.16);
+  }
+
+  .private-estates-theme .ui-checkbox-row {
+    background: rgba(10, 63, 72, 0.28);
+    border-color: rgba(212, 175, 55, 0.12);
+  }
+
+  .private-estates-theme .ui-checkbox {
+    border-color: rgba(212, 175, 55, 0.45);
+  }
+
+  .btn-private-estates {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 175, 55, 0.55);
+    background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 50%, #fbf5b7 55%, #aa771c 100%);
+    color: #08212a;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+    box-shadow: 0 14px 32px rgba(212, 175, 55, 0.18);
+  }
+
+  .btn-private-estates:hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+    box-shadow: 0 18px 38px rgba(212, 175, 55, 0.22);
+  }
+
+  .private-estates-theme-data-lab .surface-primary,
+  .private-estates-theme-data-lab .surface-secondary {
+    border-color: rgba(120, 198, 214, 0.18) !important;
+  }
+
+  .private-estates-theme-data-lab .ui-input,
+  .private-estates-theme-data-lab .ui-textarea,
+  .private-estates-theme-data-lab .ui-select,
+  .private-estates-theme-data-lab .ui-checkbox-row {
+    border-color: rgba(120, 198, 214, 0.18);
+  }
+
+  .private-estates-theme-data-lab .btn-private-estates {
+    border-color: rgba(120, 198, 214, 0.38);
+    box-shadow: 0 14px 32px rgba(71, 157, 187, 0.16);
+  }
+
   /* ─── Widget Card Base ─── */
   .widget-card {
     @apply relative overflow-hidden;

@@ -67,6 +67,8 @@ export default function PrivateAreaPartnerPage() {
       eyebrow={t('privateAreaPartnerEyebrow')}
       title={t('privateAreaPartnerTitle')}
       subtitle={t('privateAreaPartnerSubtitle')}
+      theme="premium"
+      premiumVariant="partner"
     >
       <div className="grid gap-5 xl:grid-cols-[1.3fr_1fr]">
         <Card className="surface-primary border-soft-subtle/15 bg-navy-deep/50">
@@ -135,7 +137,7 @@ export default function PrivateAreaPartnerPage() {
                   <textarea className={`${textareaClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldSustainabilityNotes')} value={form.sustainability_notes} onChange={(e) => setForm((prev) => ({ ...prev, sustainability_notes: e.target.value }))} />
                 ) : null}
                 {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
-                <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110 disabled:opacity-70">
+                <button type="submit" disabled={loading} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
                   {loading ? t('privateAreaPartnerSubmitting') : t('privateAreaPartnerPrimaryCta')}
                 </button>
               </form>

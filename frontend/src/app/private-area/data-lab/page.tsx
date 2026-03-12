@@ -12,6 +12,8 @@ export default function PrivateAreaDataLabPage() {
       eyebrow={t('privateAreaDataLabEyebrow')}
       title={t('privateAreaDataLabTitle')}
       subtitle={t('privateAreaDataLabSubtitle')}
+      theme="premium"
+      premiumVariant="data-lab"
     >
       <DataLabPortalClient />
     </PrivateAreaShell>

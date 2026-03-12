@@ -101,6 +101,12 @@ class PartnerWorkspaceSharedOpportunityResponse(BaseModel):
     created_at: datetime
 
 
+class PartnerWorkspacePriorityResponse(BaseModel):
+    title: str
+    description: str
+    emphasis: str = "gold"
+
+
 class PartnerWorkspaceResponse(BaseModel):
     id: UUID
     admission_id: UUID
@@ -125,5 +131,6 @@ class PartnerWorkspaceResponse(BaseModel):
     resources: List[PartnerWorkspaceResource] = Field(default_factory=list)
     opportunities: List[PartnerWorkspaceOpportunityResponse] = Field(default_factory=list)
     shared_opportunities: List[PartnerWorkspaceSharedOpportunityResponse] = Field(default_factory=list)
+    anclora_priorities: List[PartnerWorkspacePriorityResponse] = Field(default_factory=list)
     activity: List[PartnerWorkspaceActivityResponse] = Field(default_factory=list)
     last_seen_at: Optional[datetime] = None

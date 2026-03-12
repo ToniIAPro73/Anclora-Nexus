@@ -157,6 +157,8 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
       eyebrow={t('partnerWorkspaceEyebrow')}
       title={t('partnerWorkspaceTitle')}
       subtitle={t('partnerWorkspaceSubtitle')}
+      theme="premium"
+      premiumVariant="partner"
     >
       {loading ? <p className="text-sm text-soft-muted">{t('loading')}</p> : null}
       {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
@@ -225,6 +227,32 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
 
             <Card className="surface-primary border-soft-subtle/15 bg-navy-deep/50">
               <CardHeader>
+                <CardTitle className="text-soft-white">{t('partnerWorkspaceAncloraPrioritiesTitle')}</CardTitle>
+                <CardDescription className="text-soft-muted">{t('partnerWorkspaceAncloraPrioritiesSubtitle')}</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3 md:grid-cols-3">
+                {workspace.anclora_priorities.map((item) => (
+                  <div
+                    key={`${item.title}-${item.description}`}
+                    className={`surface-secondary rounded-2xl border p-4 ${
+                      item.emphasis === 'emerald'
+                        ? 'border-emerald-400/20 bg-emerald-950/15'
+                        : item.emphasis === 'blue'
+                          ? 'border-blue-light/20 bg-blue-light/10'
+                          : item.emphasis === 'teal'
+                            ? 'border-cyan-400/20 bg-cyan-950/15'
+                            : 'border-soft-subtle/15 bg-navy-darker/40'
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-soft-white">{item.title}</p>
+                    <p className="mt-3 text-sm leading-6 text-soft-muted">{item.description}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="surface-primary border-soft-subtle/15 bg-navy-deep/50">
+              <CardHeader>
                 <CardTitle className="text-soft-white">{t('partnerWorkspaceProfileTitle')}</CardTitle>
                 <CardDescription className="text-soft-muted">{t('partnerWorkspaceProfileSubtitle')}</CardDescription>
               </CardHeader>
@@ -264,7 +292,7 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
                     </div>
                   </div>
                   <textarea className={`${textareaClassName} min-h-24`} placeholder={t('partnerWorkspaceFieldProfileNotes')} value={profileForm.profile_notes} onChange={(e) => setProfileForm((prev) => ({ ...prev, profile_notes: e.target.value }))} />
-                  <button type="submit" disabled={profileSaving} className="inline-flex w-full items-center justify-center rounded-full border border-blue-light/30 bg-blue-light/10 px-5 py-3 text-sm font-semibold text-blue-light transition hover:brightness-110 disabled:opacity-70">
+                  <button type="submit" disabled={profileSaving} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
                     {profileSaving ? t('loading') : t('partnerWorkspaceSaveProfile')}
                   </button>
                 </form>
@@ -426,7 +454,7 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
                     <input className={inputClassName} placeholder={t('partnerWorkspaceFieldBudget')} value={form.budget_range} onChange={(e) => setForm((prev) => ({ ...prev, budget_range: e.target.value }))} />
                   </div>
                   <textarea className={`${textareaClassName} min-h-24`} placeholder={t('partnerWorkspaceFieldNextStep')} value={form.next_step} onChange={(e) => setForm((prev) => ({ ...prev, next_step: e.target.value }))} />
-                  <button type="submit" disabled={submitting} className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110 disabled:opacity-70">
+                  <button type="submit" disabled={submitting} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
                     <Send className="mr-2 h-4 w-4" />
                     {submitting ? t('loading') : t('partnerWorkspaceSubmitAction')}
                   </button>

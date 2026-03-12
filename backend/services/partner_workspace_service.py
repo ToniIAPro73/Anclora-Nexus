@@ -159,6 +159,7 @@ class PartnerWorkspaceService:
         activity: Optional[List[Dict[str, Any]]] = None,
         shared_opportunities: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
+        priorities = self._build_anclora_priorities(workspace, admission, shared_opportunities or [])
         return {
             "id": workspace.get("id"),
             "admission_id": workspace.get("admission_id"),
@@ -183,9 +184,71 @@ class PartnerWorkspaceService:
             "resources": workspace.get("resources") or [],
             "opportunities": opportunities or [],
             "shared_opportunities": shared_opportunities or [],
+            "anclora_priorities": priorities,
             "activity": activity or [],
             "last_seen_at": workspace.get("last_seen_at"),
         }
+
+    def _build_anclora_priorities(
+        self,
+        workspace: Dict[str, Any],
+        admission: Dict[str, Any],
+        shared_opportunities: List[Dict[str, Any]],
+    ) -> list[dict[str, str]]:
+        priorities: list[dict[str, str]] = []
+        preferred_types = self._normalize_text_list(workspace.get("preferred_opportunity_types"))
+        priority_zones = self._normalize_text_list(workspace.get("priority_zones"))
+        pending_shared = [item for item in shared_opportunities if str(item.get("status") or "shared") == "shared"]
+        interested_shared = [item for item in shared_opportunities if str(item.get("status") or "") == "interested"]
+        category = str(admission.get("service_category") or "other")
+
+        if pending_shared:
+            priorities.append(
+                {
+                    "title": "Responder oportunidades compartidas",
+                    "description": f"Tienes {len(pending_shared)} opportunity(s) pendientes de respuesta desde Anclora. Prioriza confirmar encaje o declinar rápido para mantener ritmo operativo.",
+                    "emphasis": "gold",
+                }
+            )
+        if preferred_types:
+            priorities.append(
+                {
+                    "title": "Foco recomendado de colaboración",
+                    "description": f"Anclora priorizará compartirte {preferred_types[0].replace('_', ' ')} como primer encaje operativo.",
+                    "emphasis": "blue",
+                }
+            )
+        if priority_zones:
+            priorities.append(
+                {
+                    "title": "Microzonas prioritarias",
+                    "description": f"Tu prioridad declarada actual es {', '.join(priority_zones[:2])}. Mantén estas zonas actualizadas para mejorar la calidad de matching.",
+                    "emphasis": "teal",
+                }
+            )
+        if interested_shared:
+            priorities.append(
+                {
+                    "title": "Convertir interés en siguiente paso",
+                    "description": f"Ya marcaste {len(interested_shared)} opportunity(s) como interesantes. Usa el workspace para devolver contexto, timing y propuesta de activación.",
+                    "emphasis": "emerald",
+                }
+            )
+        if not priorities:
+            default_copy = {
+                "real_estate": "Completa tus preferencias para que Anclora pueda activarte en buyer-side, seller-side o coinversión con mejor precisión.",
+                "professional": "Completa tus prioridades para que Anclora identifique mejor cuándo activarte en soporte legal, fiscal u operativo.",
+                "luxury": "Completa tus preferencias para que Anclora pueda conectarte con oportunidades premium y servicios de alto valor.",
+                "eco": "Completa tus prioridades para que Anclora pueda activarte en iniciativas eco, eficiencia, sostenibilidad e impacto local.",
+            }
+            priorities.append(
+                {
+                    "title": "Definir prioridad operativa",
+                    "description": default_copy.get(category, "Completa tu perfil operativo para que Anclora entienda mejor cómo activar la relación."),
+                    "emphasis": "gold",
+                }
+            )
+        return priorities[:3]
 
     async def ensure_workspace_for_accepted_admission(self, org_id: str, admission: Dict[str, Any]) -> Dict[str, Any]:
         existing = self._get_workspace_by_admission_id(org_id, str(admission["id"]))

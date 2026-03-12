@@ -40,6 +40,8 @@ export function DataLabWorkspaceClient({ token }: { token: string }) {
       eyebrow={t('dataLabWorkspaceEyebrow')}
       title={t('dataLabWorkspaceTitle')}
       subtitle={t('dataLabWorkspaceSubtitle')}
+      theme="premium"
+      premiumVariant="data-lab"
     >
       {loading ? <p className="text-sm text-soft-muted">{t('loading')}</p> : null}
       {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
@@ -136,7 +138,7 @@ export function DataLabWorkspaceClient({ token }: { token: string }) {
                     <p className="mt-3 text-sm leading-6 text-soft-muted">{resource.description}</p>
                   </div>
                 ))}
-                <a href="mailto:datalab@anclora.com?subject=Ampliacion%20Anclora%20Data%20Lab" className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110">
+                <a href="mailto:datalab@anclora.com?subject=Ampliacion%20Anclora%20Data%20Lab" className="btn-private-estates px-5 py-3 text-sm">
                   <ArrowUpRight className="h-4 w-4" />
                   {t('dataLabWorkspaceRequestExpansion')}
                 </a>

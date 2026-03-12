@@ -642,3 +642,4 @@ Resultado funcional:
 - `ANCLORA-NBOS-001` Nexus Buyers Outreach Supervised
 - `ANCLORA-SPW-003` Synergi Shared Opportunities
 - `ANCLORA-BPNM-002` Buyer Partner Network Management v2
+- `ANCLORA-SPW-004` Synergi Partner Workspace v4
