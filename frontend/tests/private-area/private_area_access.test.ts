@@ -26,4 +26,9 @@ describe('private area access helpers', () => {
   it('builds the public Private Estates fallback href', () => {
     expect(getPrivateEstatesPublicHref()).toBe('https://anclora-private-estates.vercel.app/')
   })
+
+  it('preserves a supported language when building the Private Estates href', () => {
+    expect(getPrivateEstatesPublicHref('en')).toBe('https://anclora-private-estates.vercel.app/?lang=en')
+    expect(getPrivateEstatesPublicHref('de')).toBe('https://anclora-private-estates.vercel.app/?lang=de')
+  })
 })

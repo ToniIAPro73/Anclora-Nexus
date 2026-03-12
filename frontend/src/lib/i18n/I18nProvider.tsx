@@ -1,6 +1,5 @@
 'use client'
 import { createContext, useContext, useState, ReactNode } from 'react'
-import { useEffect } from 'react'
 import { translations, Language, TranslationKey } from './translations'
 
 interface I18nContextType {
@@ -12,21 +11,29 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  // Keep SSR and first client render equal to avoid hydration mismatch.
-  const [language, setLanguageState] = useState<Language>('es')
-
-  useEffect(() => {
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'es'
+    const params = new URLSearchParams(window.location.search)
+    const langFromUrl = params.get('lang') as Language | null
+    if (langFromUrl && langFromUrl in translations) {
+      return langFromUrl
+    }
     const savedLang = localStorage.getItem('anclora-language') as Language | null
     if (savedLang && savedLang in translations) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLanguageState(savedLang)
+      return savedLang
     }
-  }, [])
+    return 'es'
+  })
 
   const setLanguage = (lang: Language) => {
     const safeLang: Language = (lang in translations ? lang : 'es') as Language
     setLanguageState(safeLang)
     localStorage.setItem('anclora-language', safeLang)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      url.searchParams.set('lang', safeLang)
+      window.history.replaceState({}, '', url.toString())
+    }
   }
 
   const t = (key: TranslationKey): string => {

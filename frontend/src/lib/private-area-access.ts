@@ -59,10 +59,20 @@ export function buildPortalLoginHref(portalKey: PrivatePortalKey): string {
   return `/login?portal=${portalKey}&next=${encodeURIComponent(nextPath)}`
 }
 
-export function getPrivateEstatesPublicHref(): string {
+export function normalizeLanguageParam(raw: string | null | undefined): 'es' | 'en' | 'de' | 'fr' | null {
+  const value = String(raw || '').trim().toLowerCase()
+  if (value === 'es' || value === 'en' || value === 'de' || value === 'fr') return value
+  return null
+}
+
+export function getPrivateEstatesPublicHref(language?: string | null): string {
   const raw = (process.env.NEXT_PUBLIC_PRIVATE_ESTATES_URL || DEFAULT_PRIVATE_ESTATES_PUBLIC_URL).trim()
-  if (!raw) return DEFAULT_PRIVATE_ESTATES_PUBLIC_URL
-  return raw.endsWith('/') ? raw : `${raw}/`
+  const base = raw ? (raw.endsWith('/') ? raw : `${raw}/`) : DEFAULT_PRIVATE_ESTATES_PUBLIC_URL
+  const normalizedLanguage = normalizeLanguageParam(language)
+  if (!normalizedLanguage) return base
+  const url = new URL(base)
+  url.searchParams.set('lang', normalizedLanguage)
+  return url.toString()
 }
 
 export function resolvePortalEntryHref(portalKey: PrivatePortalKey, isAuthenticated: boolean): string {

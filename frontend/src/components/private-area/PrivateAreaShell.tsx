@@ -25,9 +25,9 @@ export function PrivateAreaShell({
   premiumVariant = 'default',
   backHref,
 }: PrivateAreaShellProps) {
-  const { t } = useI18n()
+  const { t, language, setLanguage } = useI18n()
   const premium = theme === 'premium'
-  const resolvedBackHref = backHref || (premium ? getPrivateEstatesPublicHref() : '/login')
+  const resolvedBackHref = backHref || (premium ? getPrivateEstatesPublicHref(language) : '/login')
   const premiumVariantClass =
     premium && premiumVariant === 'partner'
       ? 'private-estates-theme-partner'
@@ -47,6 +47,24 @@ export function PrivateAreaShell({
             {t('privateAreaBackToLogin')}
           </Link>
           <div className="flex items-center gap-3">
+            {premium ? (
+              <div className="flex items-center rounded-full border border-[#D4AF37]/22 bg-[rgba(6,33,42,0.44)] p-1">
+                {(['es', 'en', 'de'] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => setLanguage(lang)}
+                    className={`rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
+                      language === lang
+                        ? 'bg-[linear-gradient(135deg,#BF953F_0%,#FCF6BA_45%,#B38728_50%,#FBF5B7_55%,#AA771C_100%)] text-[#08212a]'
+                        : 'text-[#E5DAC0] hover:text-[#FCF6BA]'
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <BrandLogo size={40} src="/brand/logo-nexus.png" />
             <div className="text-right">
               <p className={`text-[11px] uppercase tracking-[0.28em] ${premium ? 'text-[#D4AF37]' : 'text-gold/80'}`}>{eyebrow}</p>
