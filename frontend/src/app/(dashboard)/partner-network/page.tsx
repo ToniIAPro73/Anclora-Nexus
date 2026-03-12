@@ -13,8 +13,8 @@ import {
   type PartnerRelationshipStatus,
 } from '@/lib/partner-network-api'
 
-const inputClassName =
-  'w-full rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 px-4 py-3 text-sm text-soft-white placeholder:text-soft-muted focus:border-gold/40 focus:outline-none'
+const inputClassName = 'ui-input'
+const textareaClassName = 'ui-textarea'
 
 export default function PartnerNetworkPage() {
   const { t } = useI18n()
@@ -279,7 +279,7 @@ export default function PartnerNetworkPage() {
                   </label>
                 </div>
 
-                <textarea className={`${inputClassName} min-h-36`} value={draft.strategic_notes} onChange={(e) => setDraft((prev) => ({ ...prev, strategic_notes: e.target.value }))} placeholder={t('partnerNetworkStrategicNotes')} />
+                <textarea className={`${textareaClassName} min-h-36`} value={draft.strategic_notes} onChange={(e) => setDraft((prev) => ({ ...prev, strategic_notes: e.target.value }))} placeholder={t('partnerNetworkStrategicNotes')} />
 
                 <button type="button" disabled={saving} onClick={() => void save()} className="btn-action">
                   <Sparkles className="h-4 w-4" />

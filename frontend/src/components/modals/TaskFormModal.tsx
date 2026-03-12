@@ -79,7 +79,7 @@ export default function TaskFormModal({ isOpen, onClose, editTask }: TaskFormMod
                   required
                   value={formData.title || ''}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                  className="ui-input"
                   placeholder="Descripción de la tarea"
                 />
               </div>
@@ -93,7 +93,7 @@ export default function TaskFormModal({ isOpen, onClose, editTask }: TaskFormMod
                     type="text"
                     value={formData.due_time || ''}
                     onChange={(e) => setFormData({ ...formData, due_time: e.target.value })}
-                    className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50"
+                    className="ui-input pl-10"
                     placeholder="ej. Mañana 10:00"
                   />
                 </div>

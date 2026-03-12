@@ -13,8 +13,8 @@ import {
   type PartnerServiceCategory,
 } from '@/lib/partner-admissions-api'
 
-const inputClassName =
-  'w-full rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 px-4 py-3 text-sm text-soft-white placeholder:text-soft-muted focus:border-gold/40 focus:outline-none'
+const inputClassName = 'ui-input'
+const textareaClassName = 'ui-textarea'
 
 export default function PartnerAdmissionsPage() {
   const { t } = useI18n()
@@ -246,7 +246,7 @@ export default function PartnerAdmissionsPage() {
                   <label className="kpi-label" htmlFor="partner-review-notes">{t('partnerAdmissionsReviewNotes')}</label>
                   <textarea
                     id="partner-review-notes"
-                    className={`${inputClassName} mt-3 min-h-32`}
+                    className={`${textareaClassName} mt-3 min-h-32`}
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
                   />

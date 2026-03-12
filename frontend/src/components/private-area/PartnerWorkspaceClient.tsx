@@ -12,8 +12,8 @@ import {
   type PartnerWorkspacePayload,
 } from '@/lib/partner-workspace-api'
 
-const inputClassName =
-  'w-full rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 px-4 py-3 text-sm text-soft-white placeholder:text-soft-muted focus:border-gold/40 focus:outline-none'
+const inputClassName = 'ui-input'
+const textareaClassName = 'ui-textarea'
 
 export function PartnerWorkspaceClient({ token }: { token: string }) {
   const { t } = useI18n()
@@ -239,12 +239,12 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
                       <option key={item} value={item}>{t(`partnerWorkspaceOpportunityType_${item}` as never)}</option>
                     ))}
                   </select>
-                  <textarea className={`${inputClassName} min-h-28`} placeholder={t('partnerWorkspaceFieldSummary')} value={form.summary} onChange={(e) => setForm((prev) => ({ ...prev, summary: e.target.value }))} />
+                  <textarea className={`${textareaClassName} min-h-28`} placeholder={t('partnerWorkspaceFieldSummary')} value={form.summary} onChange={(e) => setForm((prev) => ({ ...prev, summary: e.target.value }))} />
                   <div className="grid gap-3 md:grid-cols-2">
                     <input className={inputClassName} placeholder={t('partnerWorkspaceFieldZone')} value={form.target_zone} onChange={(e) => setForm((prev) => ({ ...prev, target_zone: e.target.value }))} />
                     <input className={inputClassName} placeholder={t('partnerWorkspaceFieldBudget')} value={form.budget_range} onChange={(e) => setForm((prev) => ({ ...prev, budget_range: e.target.value }))} />
                   </div>
-                  <textarea className={`${inputClassName} min-h-24`} placeholder={t('partnerWorkspaceFieldNextStep')} value={form.next_step} onChange={(e) => setForm((prev) => ({ ...prev, next_step: e.target.value }))} />
+                  <textarea className={`${textareaClassName} min-h-24`} placeholder={t('partnerWorkspaceFieldNextStep')} value={form.next_step} onChange={(e) => setForm((prev) => ({ ...prev, next_step: e.target.value }))} />
                   <button type="submit" disabled={submitting} className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110 disabled:opacity-70">
                     <Send className="mr-2 h-4 w-4" />
                     {submitting ? t('loading') : t('partnerWorkspaceSubmitAction')}

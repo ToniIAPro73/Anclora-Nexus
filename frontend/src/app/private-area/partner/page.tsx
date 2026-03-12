@@ -7,8 +7,8 @@ import { PrivateAreaShell } from '@/components/private-area/PrivateAreaShell'
 import { useI18n } from '@/lib/i18n'
 import { createPublicPartnerAdmission, type PartnerServiceCategory } from '@/lib/partner-admissions-api'
 
-const inputClassName =
-  'w-full rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 px-4 py-3 text-sm text-soft-white placeholder:text-soft-muted focus:border-gold/40 focus:outline-none'
+const inputClassName = 'ui-input'
+const textareaClassName = 'ui-textarea'
 
 export default function PrivateAreaPartnerPage() {
   const { t } = useI18n()
@@ -118,8 +118,8 @@ export default function PrivateAreaPartnerPage() {
                     <option key={item} value={item}>{t(`partnerAdmissionsCategory_${item}`)}</option>
                   ))}
                 </select>
-                <textarea className={`${inputClassName} min-h-28`} placeholder={t('privateAreaPartnerFieldSummary')} value={form.service_summary} onChange={(e) => setForm((prev) => ({ ...prev, service_summary: e.target.value }))} />
-                <textarea className={`${inputClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldPitch')} value={form.collaboration_pitch} onChange={(e) => setForm((prev) => ({ ...prev, collaboration_pitch: e.target.value }))} />
+                <textarea className={`${textareaClassName} min-h-28`} placeholder={t('privateAreaPartnerFieldSummary')} value={form.service_summary} onChange={(e) => setForm((prev) => ({ ...prev, service_summary: e.target.value }))} />
+                <textarea className={`${textareaClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldPitch')} value={form.collaboration_pitch} onChange={(e) => setForm((prev) => ({ ...prev, collaboration_pitch: e.target.value }))} />
                 <div className="grid gap-3 md:grid-cols-2">
                   <input className={inputClassName} placeholder={t('privateAreaPartnerFieldCoverage')} value={form.coverage_areas} onChange={(e) => setForm((prev) => ({ ...prev, coverage_areas: e.target.value }))} />
                   <input className={inputClassName} placeholder={t('privateAreaPartnerFieldLanguages')} value={form.languages} onChange={(e) => setForm((prev) => ({ ...prev, languages: e.target.value }))} />
@@ -132,7 +132,7 @@ export default function PrivateAreaPartnerPage() {
                   {t('privateAreaPartnerFieldSustainability')}
                 </label>
                 {form.sustainability_focus ? (
-                  <textarea className={`${inputClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldSustainabilityNotes')} value={form.sustainability_notes} onChange={(e) => setForm((prev) => ({ ...prev, sustainability_notes: e.target.value }))} />
+                  <textarea className={`${textareaClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldSustainabilityNotes')} value={form.sustainability_notes} onChange={(e) => setForm((prev) => ({ ...prev, sustainability_notes: e.target.value }))} />
                 ) : null}
                 {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
                 <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110 disabled:opacity-70">

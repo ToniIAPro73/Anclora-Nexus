@@ -38,7 +38,7 @@ type IntelligencePacksResponse = {
 }
 
 function inputClassName() {
-  return 'w-full rounded-xl border border-soft-subtle/30 bg-navy-deep/40 px-3 py-2 text-sm text-soft-white outline-none transition-colors focus:border-gold/40'
+  return 'ui-input'
 }
 
 export function IntelligencePacksCard() {

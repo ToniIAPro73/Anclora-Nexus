@@ -184,7 +184,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                     value={formData.title || ''}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     disabled={isLocked('title')}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ui-input disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder={t('propertyFormTitlePlaceholder')}
                   />
                 </div>
@@ -200,7 +200,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       value={formData.address || ''}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       disabled={isLocked('address')}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ui-input pl-10 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder={t('propertyFormAddressPlaceholder')}
                     />
                   </div>
@@ -220,7 +220,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                         setFormData({ ...formData, price: formatted })
                       }}
                       disabled={isLocked('price')}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ui-input pl-10 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="ej. 4500000"
                     />
                   </div>
@@ -237,7 +237,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       setFormData({ ...formData, built_area_m2: toStoredArea(parsed) })
                     }}
                     disabled={isLocked('built_area_m2')}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ui-input disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -252,7 +252,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       setFormData({ ...formData, useful_area_m2: toStoredArea(parsed) })
                     }}
                     disabled={isLocked('useful_area_m2')}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ui-input disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -267,7 +267,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                       setFormData({ ...formData, plot_area_m2: toStoredArea(parsed) })
                     }}
                     disabled={isLocked('plot_area_m2')}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ui-input disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -336,7 +336,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                         value={formData.match_score || 0}
                         onChange={(e) => setFormData({ ...formData, match_score: Number(e.target.value) })}
                         disabled={isScoreLocked}
-                        className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50"
+                        className="ui-input pl-10 disabled:opacity-50"
                       />
                     </div>
                     {(formData.source_system || 'manual') === 'pbm' && (

@@ -122,14 +122,14 @@ export default function DealMarginSimulatorPage() {
             {t('dealMarginAssumptions')}
           </h2>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-            <input value={dealValue} onChange={(e) => setDealValue(e.target.value)} className="rounded-xl border border-soft-subtle bg-navy-deep/30 px-3 py-2 text-sm text-soft-white" placeholder={t('dealMarginDealValue')} />
-            <input value={acquisitionCost} onChange={(e) => setAcquisitionCost(e.target.value)} className="rounded-xl border border-soft-subtle bg-navy-deep/30 px-3 py-2 text-sm text-soft-white" placeholder={t('dealMarginAcquisitionCost')} />
-            <input value={closingCost} onChange={(e) => setClosingCost(e.target.value)} className="rounded-xl border border-soft-subtle bg-navy-deep/30 px-3 py-2 text-sm text-soft-white" placeholder={t('dealMarginClosingCost')} />
-            <input value={renovationCost} onChange={(e) => setRenovationCost(e.target.value)} className="rounded-xl border border-soft-subtle bg-navy-deep/30 px-3 py-2 text-sm text-soft-white" placeholder={t('dealMarginRenovationCost')} />
-            <input value={holdingCost} onChange={(e) => setHoldingCost(e.target.value)} className="rounded-xl border border-soft-subtle bg-navy-deep/30 px-3 py-2 text-sm text-soft-white" placeholder={t('dealMarginHoldingCost')} />
-            <input value={taxCost} onChange={(e) => setTaxCost(e.target.value)} className="rounded-xl border border-soft-subtle bg-navy-deep/30 px-3 py-2 text-sm text-soft-white" placeholder={t('dealMarginTaxCost')} />
-            <input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} className="rounded-xl border border-soft-subtle bg-navy-deep/30 px-3 py-2 text-sm text-soft-white" placeholder={t('dealMarginCommissionRate')} />
-            <input value={confidence} onChange={(e) => setConfidence(e.target.value)} className="rounded-xl border border-soft-subtle bg-navy-deep/30 px-3 py-2 text-sm text-soft-white" placeholder={t('dealMarginConfidence')} />
+            <input value={dealValue} onChange={(e) => setDealValue(e.target.value)} className="ui-input" placeholder={t('dealMarginDealValue')} />
+            <input value={acquisitionCost} onChange={(e) => setAcquisitionCost(e.target.value)} className="ui-input" placeholder={t('dealMarginAcquisitionCost')} />
+            <input value={closingCost} onChange={(e) => setClosingCost(e.target.value)} className="ui-input" placeholder={t('dealMarginClosingCost')} />
+            <input value={renovationCost} onChange={(e) => setRenovationCost(e.target.value)} className="ui-input" placeholder={t('dealMarginRenovationCost')} />
+            <input value={holdingCost} onChange={(e) => setHoldingCost(e.target.value)} className="ui-input" placeholder={t('dealMarginHoldingCost')} />
+            <input value={taxCost} onChange={(e) => setTaxCost(e.target.value)} className="ui-input" placeholder={t('dealMarginTaxCost')} />
+            <input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} className="ui-input" placeholder={t('dealMarginCommissionRate')} />
+            <input value={confidence} onChange={(e) => setConfidence(e.target.value)} className="ui-input" placeholder={t('dealMarginConfidence')} />
           </div>
           <div className="mt-4 flex gap-2">
             <button

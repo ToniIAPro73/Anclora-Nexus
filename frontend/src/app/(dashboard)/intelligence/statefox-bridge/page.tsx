@@ -246,8 +246,8 @@ export default function StatefoxBridgePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <input value={zone} onChange={(e) => setZone(e.target.value)} placeholder={t('zone')} className="rounded-xl border border-soft-subtle/20 bg-navy-darker/30 px-4 py-3 text-soft-white outline-none" />
-            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('statefoxBridgeCity')} className="rounded-xl border border-soft-subtle/20 bg-navy-darker/30 px-4 py-3 text-soft-white outline-none" />
+            <input value={zone} onChange={(e) => setZone(e.target.value)} placeholder={t('zone')} className="ui-input" />
+            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('statefoxBridgeCity')} className="ui-input" />
             <div className="flex gap-3">
               <button type="button" disabled={!canRun || loading} onClick={() => void parsePayload()} className="btn-action flex-1">
                 <Bot className="w-4 h-4" />
@@ -265,7 +265,7 @@ export default function StatefoxBridgePage() {
             onChange={(e) => setRawText(e.target.value)}
             rows={12}
             placeholder={t('statefoxBridgeTextareaPlaceholder')}
-            className="w-full rounded-2xl border border-soft-subtle/20 bg-navy-darker/20 px-4 py-4 text-sm text-soft-white outline-none"
+            className="ui-textarea min-h-[16rem]"
           />
 
           {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}

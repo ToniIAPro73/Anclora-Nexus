@@ -175,7 +175,7 @@ export function ChatConsole() {
             onChange={(e) => setInput(e.target.value)}
             disabled={intelligence.isProcessing}
             placeholder={t('placeholderIntelligence')}
-            className="w-full bg-navy-surface border border-white/10 rounded-2xl py-4 pl-4 pr-16 text-sm text-soft-white placeholder:text-soft-muted focus:outline-none focus:border-gold/30 focus:ring-1 focus:ring-gold/10 transition-all resize-none h-24 scrollbar-none disabled:opacity-50"
+            className="ui-textarea h-24 resize-none pr-16 scrollbar-none disabled:opacity-50"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()

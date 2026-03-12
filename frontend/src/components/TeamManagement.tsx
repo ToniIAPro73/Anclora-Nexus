@@ -178,7 +178,7 @@ export default function TeamManagement() {
                   placeholder={t('emailPlaceholder')}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="bg-navy-deep/50 border-gold/20 pl-10 h-12 rounded-xl focus:border-gold/50 transition-all text-soft-white"
+                  className="pl-10"
                   required
                 />
               </div>

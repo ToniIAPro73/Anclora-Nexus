@@ -21,7 +21,7 @@ type Props = {
 }
 
 function inputClassName() {
-  return 'w-full rounded-xl border border-soft-subtle/30 bg-navy-deep/40 px-3 py-2 text-sm text-soft-white outline-none transition-colors focus:border-gold/40'
+  return 'ui-input'
 }
 
 export function BuyerIntakePanel({ sourceSummary, onCreated }: Props) {
@@ -251,7 +251,7 @@ export function BuyerIntakePanel({ sourceSummary, onCreated }: Props) {
 
           <label className="block">
             <span className="kpi-label">{t('notes')}</span>
-            <textarea className={`${inputClassName()} min-h-24 resize-y`} value={form.notes} onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} />
+            <textarea className="ui-textarea min-h-24" value={form.notes} onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} />
           </label>
 
           <button

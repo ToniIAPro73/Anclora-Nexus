@@ -346,21 +346,21 @@ export default function ProfilePage() {
                     <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('fullName')}</label>
                     <div className="relative">
                         <UserCircle className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
-                        <input type="text" value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" placeholder="John Doe" />
+                        <input type="text" value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} className="ui-input pl-10" placeholder="John Doe" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('jobTitle')}</label>
                     <div className="relative">
                         <Briefcase className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
-                        <input type="text" value={formData.job_title} onChange={(e) => setFormData({...formData, job_title: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" placeholder="Real Estate Agent" />
+                        <input type="text" value={formData.job_title} onChange={(e) => setFormData({...formData, job_title: e.target.value})} className="ui-input pl-10" placeholder="Real Estate Agent" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('locationLabel')}</label>
                     <div className="relative">
                         <MapPin className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
-                        <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" placeholder="City, Country" />
+                        <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="ui-input pl-10" placeholder="City, Country" />
                     </div>
                   </div>
                  </div>
@@ -375,7 +375,7 @@ export default function ProfilePage() {
                           type="text" 
                           value={Array.isArray(formData.specialization) ? formData.specialization.join(', ') : formData.specialization} 
                           onChange={(e) => setFormData({...formData, specialization: e.target.value.split(',').map(s => s.trim())})} 
-                          className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" 
+                          className="ui-input pl-10" 
                           placeholder="Luxury, Waterfront, Investments" 
                         />
                     </div>
@@ -389,7 +389,7 @@ export default function ProfilePage() {
                           type="text" 
                           value={Array.isArray(formData.achievements) ? formData.achievements.join(', ') : formData.achievements} 
                           onChange={(e) => setFormData({...formData, achievements: e.target.value.split(',').map(s => s.trim())})} 
-                          className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl pl-10 pr-4 py-3 text-soft-white focus:border-gold/50 outline-none transition-colors" 
+                          className="ui-input pl-10" 
                           placeholder="Top Seller 2025, 50+ Deals Closed" 
                         />
                     </div>
@@ -399,7 +399,7 @@ export default function ProfilePage() {
                 {/* Row 3: Bio */}
                 <div className="space-y-2 flex-1">
                   <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('professionalSummary')}</label>
-                  <textarea rows={3} value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} className="w-full bg-navy-deep border border-soft-subtle/30 rounded-xl px-4 py-3 text-soft-white resize-none focus:border-gold/50 outline-none transition-colors h-24" placeholder="Tell us about yourself..." />
+                  <textarea rows={3} value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} className="ui-textarea h-24 resize-none" placeholder="Tell us about yourself..." />
                 </div>
 
                 <div className="flex justify-end gap-4 pt-4 border-t border-soft-subtle/10 mt-auto">

@@ -621,19 +621,19 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
               value={emailContacto}
               onChange={(e) => setEmailContacto(e.target.value)}
               placeholder={t('sellerEmailPlaceholder')}
-              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+              className="ui-input"
             />
             <input
               value={telefonoContacto}
               onChange={(e) => setTelefonoContacto(e.target.value)}
               placeholder={t('sellerPhonePlaceholder')}
-              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+              className="ui-input"
             />
             <input
               value={whatsappContacto}
               onChange={(e) => setWhatsappContacto(e.target.value)}
               placeholder={t('sellerWhatsAppPlaceholder')}
-              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+              className="ui-input"
             />
           </div>
           <div className="mt-3 flex justify-end">
@@ -722,7 +722,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
                   value={memoryQuery}
                   onChange={(e) => setMemoryQuery(e.target.value)}
                   placeholder={t('sellerMemoryQueryPlaceholder')}
-                  className="flex-1 rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+                  className="ui-input flex-1"
                 />
                 <button
                   type="button"
@@ -901,7 +901,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
               value={formResult}
               onChange={(e) => setFormResult(e.target.value)}
               placeholder={t('interactionResultPlaceholder')}
-              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+              className="ui-input"
             />
           </div>
           <textarea
@@ -909,7 +909,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             onChange={(e) => setFormContent(e.target.value)}
             placeholder={t('interactionContentPlaceholder')}
             rows={5}
-            className="mt-3 w-full rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-3 text-sm text-soft-white placeholder:text-soft-muted outline-none"
+            className="ui-textarea mt-3"
           />
           <div className="mt-3 flex justify-end">
             <button

@@ -124,7 +124,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       value={formData.name || ''}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       disabled={isLocked('name')}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ui-input pl-10 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="Nombre completo"
                     />
                   </div>
@@ -141,7 +141,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       value={formData.email || ''}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       disabled={isLocked('email')}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ui-input pl-10 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="correo@ejemplo.com"
                     />
                   </div>
@@ -157,7 +157,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       value={formData.phone || ''}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       disabled={isLocked('phone')}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ui-input pl-10 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="+34 600..."
                     />
                   </div>
@@ -173,7 +173,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       value={formData.budget || ''}
                       onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                       disabled={isLocked('budget')}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ui-input pl-10 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder={`ej. 1.5M - 2M ${currency}`}
                     />
                   </div>
@@ -189,7 +189,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                       value={formData.property_interest || ''}
                       onChange={(e) => setFormData({ ...formData, property_interest: e.target.value })}
                       disabled={isLocked('property_interest')}
-                      className="w-full pl-10 pr-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all placeholder:text-soft-subtle/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ui-input pl-10 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="¿Qué busca? (ej. Villa en Andratx)"
                     />
                   </div>

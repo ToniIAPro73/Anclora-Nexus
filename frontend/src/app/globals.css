@@ -248,6 +248,73 @@
     color: #f5f5f0;
   }
 
+  .ui-input,
+  .ui-input-ghost,
+  .ui-textarea {
+    border: 1px solid rgba(245, 245, 240, 0.14);
+    color: var(--color-soft-white);
+    font-size: 0.95rem;
+    line-height: 1.35;
+    outline: none;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .ui-input,
+  .ui-textarea {
+    width: 100%;
+    border-radius: 1rem;
+    background-color: rgba(15, 22, 41, 0.88);
+    padding: 0.82rem 1rem;
+  }
+
+  .ui-input {
+    min-height: 3rem;
+  }
+
+  .ui-textarea {
+    min-height: 7rem;
+    resize: vertical;
+  }
+
+  .ui-input-ghost {
+    min-height: 2.9rem;
+    border-radius: 9999px;
+    background-color: rgba(25, 35, 80, 0.72);
+    padding: 0.65rem 1rem;
+  }
+
+  .ui-input::placeholder,
+  .ui-input-ghost::placeholder,
+  .ui-textarea::placeholder {
+    color: rgba(245, 245, 240, 0.48);
+  }
+
+  .ui-input:hover,
+  .ui-input-ghost:hover,
+  .ui-textarea:hover {
+    border-color: rgba(175, 210, 250, 0.3);
+  }
+
+  .ui-input:focus,
+  .ui-input-ghost:focus,
+  .ui-textarea:focus {
+    border-color: rgba(212, 175, 55, 0.52);
+    box-shadow:
+      0 0 0 1px rgba(212, 175, 55, 0.22),
+      0 12px 28px rgba(4, 8, 20, 0.24);
+  }
+
+  .ui-input:disabled,
+  .ui-input-ghost:disabled,
+  .ui-textarea:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+  }
+
   /* ─── Widget Card Base ─── */
   .widget-card {
     @apply relative overflow-hidden;

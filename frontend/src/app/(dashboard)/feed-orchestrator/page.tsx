@@ -373,7 +373,7 @@ export default function FeedOrchestratorPage() {
                       max={10000}
                       value={configMaxItems}
                       onChange={(e) => setConfigMaxItems(Number(e.target.value))}
-                      className="mt-1 w-full rounded-md border border-soft-subtle bg-navy-surface/40 px-2 py-1 text-sm text-soft-white outline-none focus:border-blue-light/50"
+                      className="ui-input mt-1"
                     />
                   </label>
                   {channelConfig && (

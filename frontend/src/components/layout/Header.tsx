@@ -25,7 +25,7 @@ export function Header() {
           <input 
             type="text" 
             placeholder={t('searchPlaceholder')}
-            className="bg-navy-surface border border-soft-subtle rounded-full py-2 pl-10 pr-4 text-sm text-soft-white placeholder:text-soft-muted focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all w-52 lg:w-60"
+            className="ui-input-ghost w-52 pl-10 lg:w-60"
           />
         </div>
         
