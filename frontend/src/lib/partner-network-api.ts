@@ -20,6 +20,7 @@ export interface PartnerNetworkItem {
   coverage_areas: string[]
   languages: string[]
   opportunities_count: number
+  shared_opportunities_count: number
   buyer_referrals_count: number
   high_intent_buyers_count: number
   last_seen_at: string | null
@@ -33,6 +34,7 @@ export interface PartnerNetworkSummary {
   preferred: number
   eco_focus: number
   buyer_referrals: number
+  shared_opportunities: number
 }
 
 export async function fetchPartnerNetwork(params: {
@@ -75,6 +77,29 @@ export async function updatePartnerNetwork(
 ): Promise<PartnerNetworkItem> {
   const response = await authFetch(`/api/partners/network/${workspaceId}`, {
     method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: response.statusText }))
+    throw new Error(error.detail || `API Error: ${response.status}`)
+  }
+  return response.json()
+}
+
+export async function sharePartnerOpportunity(
+  workspaceId: string,
+  payload: {
+    title: string
+    summary: string
+    opportunity_type: string
+    target_zone?: string
+    budget_context?: string
+    next_step?: string
+  },
+): Promise<{ id: string }> {
+  const response = await authFetch(`/api/partners/network/${workspaceId}/shared-opportunities`, {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })

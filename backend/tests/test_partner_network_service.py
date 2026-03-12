@@ -1,6 +1,6 @@
 import asyncio
 
-from backend.models.partner_network import PartnerNetworkUpdate
+from backend.models.partner_network import PartnerNetworkUpdate, PartnerSharedOpportunityCreate
 from backend.services.partner_network_service import PartnerNetworkService
 
 
@@ -24,6 +24,13 @@ class _MockQuery:
 
     def limit(self, value):
         self.rows = self.rows[:value]
+        return self
+
+    def insert(self, payload):
+        row = dict(payload)
+        row.setdefault("id", f"{self.table_name}-{len(self.store.get(self.table_name, [])) + 1}")
+        self.store.setdefault(self.table_name, []).append(row)
+        self.rows = [row]
         return self
 
     def update(self, payload):
@@ -79,6 +86,9 @@ def test_list_partner_network_aggregates_buyers(monkeypatch) -> None:
         "synergi_partner_opportunities": [
             {"id": "opp-1", "org_id": "org-1", "workspace_id": "ws-1"},
         ],
+        "synergi_partner_shared_opportunities": [
+            {"id": "shared-1", "org_id": "org-1", "workspace_id": "ws-1"},
+        ],
         "buyer_profiles": [
             {
                 "id": "b-1",
@@ -102,6 +112,7 @@ def test_list_partner_network_aggregates_buyers(monkeypatch) -> None:
     assert result["items"][0]["buyer_referrals_count"] == 1
     assert result["items"][0]["high_intent_buyers_count"] == 1
     assert result["items"][0]["workspace_launch_url"].endswith("token-1")
+    assert result["items"][0]["shared_opportunities_count"] == 1
 
 
 def test_update_partner_network(monkeypatch) -> None:
@@ -131,3 +142,32 @@ def test_update_partner_network(monkeypatch) -> None:
     assert result["relationship_status"] == "watchlist"
     assert result["trust_score"] == 92
 
+
+def test_share_opportunity_with_partner(monkeypatch) -> None:
+    service = PartnerNetworkService()
+    store = {
+        "synergi_partner_workspaces": [
+            {"id": "ws-1", "org_id": "org-1", "partner_tier": "approved"}
+        ],
+        "synergi_partner_shared_opportunities": [],
+        "synergi_partner_activity": [],
+    }
+    monkeypatch.setattr("backend.services.partner_network_service.supabase_service.client", _MockClient(store))
+
+    result = asyncio.run(
+        service.share_opportunity_with_partner(
+            org_id="org-1",
+            workspace_id="ws-1",
+            created_by_user_id="user-1",
+            payload=PartnerSharedOpportunityCreate(
+                title="Buyer opportunity",
+                summary="Buyer internacional interesado en villa prime en la costa sudoeste.",
+                opportunity_type="buyer_opportunity",
+                target_zone="andratx",
+            ),
+        )
+    )
+
+    assert result is not None
+    assert result["status"] == "shared"
+    assert store["synergi_partner_activity"][0]["event_type"] == "shared_opportunity_created"

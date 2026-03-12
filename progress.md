@@ -231,3 +231,16 @@
 - `npm run lint` en `Anclora-Private-Estates` OK
 - `npm run test` en `Anclora-Private-Estates` OK
 - `npm run build` en `Anclora-Private-Estates` OK
+
+### ANCLORA-SPW-003 cerrada
+
+- Nexus ya puede compartir oportunidades curadas desde `/partner-network` hacia partners aprobados
+- `Synergi Workspace` muestra esas oportunidades y permite respuesta `interested` o `declined`
+- nueva migración `054_synergi_shared_opportunities.sql`
+- el feed de actividad registra alta y respuesta de oportunidades compartidas
+
+### Validación ejecutada
+
+- `15 passed` en backend sobre servicios y rutas de `partner_network` y `partner_workspace`
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK

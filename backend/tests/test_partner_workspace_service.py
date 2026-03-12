@@ -1,6 +1,10 @@
 import asyncio
 
-from backend.models.partner_workspaces import PublicPartnerOpportunityCreate, PublicPartnerWorkspaceProfileUpdate
+from backend.models.partner_workspaces import (
+    PublicPartnerOpportunityCreate,
+    PublicPartnerWorkspaceProfileUpdate,
+    PublicSharedOpportunityStatusUpdate,
+)
 from backend.services.partner_workspace_service import PartnerWorkspaceService
 
 
@@ -122,6 +126,7 @@ def test_get_workspace_by_token_returns_opportunities(monkeypatch) -> None:
             }
         ],
         "synergi_partner_activity": [],
+        "synergi_partner_shared_opportunities": [],
     }
     monkeypatch.setattr("backend.services.partner_workspace_service.supabase_service.client", _MockClient(store))
 
@@ -145,6 +150,7 @@ def test_create_opportunity_from_token(monkeypatch) -> None:
                 }
             ],
         "synergi_partner_activity": [],
+        "synergi_partner_shared_opportunities": [],
         }
     monkeypatch.setattr("backend.services.partner_workspace_service.supabase_service.client", _MockClient(store))
 
@@ -178,6 +184,7 @@ def test_update_profile_from_token(monkeypatch) -> None:
             }
         ],
         "synergi_partner_activity": [],
+        "synergi_partner_shared_opportunities": [],
     }
     monkeypatch.setattr("backend.services.partner_workspace_service.supabase_service.client", _MockClient(store))
 
@@ -198,3 +205,38 @@ def test_update_profile_from_token(monkeypatch) -> None:
     assert result["response_commitment_hours"] == 24
     assert "buyer_referral" in result["preferred_opportunity_types"]
     assert store["synergi_partner_activity"][0]["event_type"] == "profile_updated"
+
+
+def test_update_shared_opportunity_status(monkeypatch) -> None:
+    service = PartnerWorkspaceService()
+    store = {
+        "synergi_partner_workspaces": [
+            {
+                "id": "ws-1",
+                "org_id": "org-1",
+                "admission_id": "adm-1",
+                "access_token": "token-123456789012",
+            }
+        ],
+        "synergi_partner_shared_opportunities": [
+            {
+                "id": "shared-1",
+                "workspace_id": "ws-1",
+                "title": "Buyer opportunity",
+                "status": "shared",
+            }
+        ],
+        "synergi_partner_activity": [],
+    }
+    monkeypatch.setattr("backend.services.partner_workspace_service.supabase_service.client", _MockClient(store))
+
+    result = asyncio.run(
+        service.update_shared_opportunity_status_from_token(
+            "shared-1",
+            PublicSharedOpportunityStatusUpdate(token="token-123456789012", status="interested"),
+        )
+    )
+
+    assert result is not None
+    assert result["status"] == "interested"
+    assert store["synergi_partner_activity"][0]["event_type"] == "shared_opportunity_status_updated"

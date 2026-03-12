@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from backend.api.deps import get_current_user, get_org_id
 from backend.models.partner_admissions import PartnerAdmissionReview
-from backend.models.partner_network import PartnerNetworkUpdate
+from backend.models.partner_network import PartnerNetworkUpdate, PartnerSharedOpportunityCreate
 from backend.services.partner_admission_service import partner_admission_service
 from backend.services.partner_network_service import partner_network_service
 
@@ -109,6 +109,24 @@ async def update_partner_network(
     result = await partner_network_service.update_network_partner(
         org_id=org_id,
         workspace_id=str(workspace_id),
+        payload=payload,
+    )
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Partner workspace {workspace_id} not found")
+    return result
+
+
+@router.post("/network/{workspace_id}/shared-opportunities", status_code=status.HTTP_201_CREATED)
+async def share_opportunity_with_partner(
+    workspace_id: UUID,
+    payload: PartnerSharedOpportunityCreate,
+    org_id: str = Depends(get_org_id),
+    user=Depends(get_current_user),
+) -> dict:
+    result = await partner_network_service.share_opportunity_with_partner(
+        org_id=org_id,
+        workspace_id=str(workspace_id),
+        created_by_user_id=str(user.id),
         payload=payload,
     )
     if not result:

@@ -5,7 +5,11 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from backend.config import settings
-from backend.models.partner_workspaces import PublicPartnerOpportunityCreate, PublicPartnerWorkspaceProfileUpdate
+from backend.models.partner_workspaces import (
+    PublicPartnerOpportunityCreate,
+    PublicPartnerWorkspaceProfileUpdate,
+    PublicSharedOpportunityStatusUpdate,
+)
 from backend.services.supabase_service import supabase_service
 
 
@@ -115,6 +119,16 @@ class PartnerWorkspaceService:
         )
         return response.data or []
 
+    def _list_shared_opportunities(self, workspace_id: str) -> list[dict[str, Any]]:
+        response = (
+            supabase_service.client.table("synergi_partner_shared_opportunities")
+            .select("*")
+            .eq("workspace_id", workspace_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        return response.data or []
+
     def _append_activity(
         self,
         *,
@@ -143,6 +157,7 @@ class PartnerWorkspaceService:
         admission: Dict[str, Any],
         opportunities: Optional[List[Dict[str, Any]]] = None,
         activity: Optional[List[Dict[str, Any]]] = None,
+        shared_opportunities: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         return {
             "id": workspace.get("id"),
@@ -167,6 +182,7 @@ class PartnerWorkspaceService:
             "next_steps": self._normalize_text_list(workspace.get("next_steps")),
             "resources": workspace.get("resources") or [],
             "opportunities": opportunities or [],
+            "shared_opportunities": shared_opportunities or [],
             "activity": activity or [],
             "last_seen_at": workspace.get("last_seen_at"),
         }
@@ -220,6 +236,7 @@ class PartnerWorkspaceService:
 
         opportunities = self._list_workspace_opportunities(str(workspace["id"]))
         activity = self._list_workspace_activity(str(workspace["id"]))
+        shared_opportunities = self._list_shared_opportunities(str(workspace["id"]))
         now = self._now()
         update_payload: Dict[str, Any] = {"last_seen_at": now, "updated_at": now}
         if workspace.get("workspace_status") == "invited":
@@ -239,7 +256,7 @@ class PartnerWorkspaceService:
             .eq("id", workspace["id"])
             .execute()
         )
-        return self._serialize_workspace(workspace, admission, opportunities, activity)
+        return self._serialize_workspace(workspace, admission, opportunities, activity, shared_opportunities)
 
     async def create_opportunity_from_token(self, payload: PublicPartnerOpportunityCreate) -> Optional[Dict[str, Any]]:
         workspace_response = (
@@ -316,6 +333,40 @@ class PartnerWorkspaceService:
                 event_type="profile_updated",
                 title="Profile updated",
                 description="Se actualizaron preferencias operativas del partner.",
+            )
+        return row
+
+    async def update_shared_opportunity_status_from_token(
+        self,
+        shared_opportunity_id: str,
+        payload: PublicSharedOpportunityStatusUpdate,
+    ) -> Optional[Dict[str, Any]]:
+        workspace_response = (
+            supabase_service.client.table("synergi_partner_workspaces")
+            .select("*")
+            .eq("access_token", payload.token)
+            .limit(1)
+            .execute()
+        )
+        workspace = workspace_response.data[0] if workspace_response.data else None
+        if not workspace:
+            return None
+
+        updated = (
+            supabase_service.client.table("synergi_partner_shared_opportunities")
+            .update({"status": payload.status.value, "updated_at": self._now()})
+            .eq("workspace_id", workspace["id"])
+            .eq("id", shared_opportunity_id)
+            .execute()
+        )
+        row = updated.data[0] if updated.data else None
+        if row:
+            self._append_activity(
+                org_id=str(workspace["org_id"]),
+                workspace_id=str(workspace["id"]),
+                event_type="shared_opportunity_status_updated",
+                title="Shared opportunity updated",
+                description=f"{row.get('title')} · {payload.status.value}",
             )
         return row
 

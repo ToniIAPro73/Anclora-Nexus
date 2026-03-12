@@ -42,3 +42,17 @@ class TestPartnerNetworkRoutes:
         )
         assert response.status_code == 200
         assert response.json()["partner_tier"] == "strategic"
+
+    @patch("backend.api.routes.partners.partner_network_service")
+    def test_share_partner_opportunity(self, mock_service: MagicMock) -> None:
+        mock_service.share_opportunity_with_partner = AsyncMock(return_value={"id": "shared-1", "status": "shared"})
+        response = client.post(
+            "/api/partners/network/00000000-0000-0000-0000-000000000001/shared-opportunities",
+            json={
+                "title": "Buyer opportunity",
+                "summary": "Buyer internacional con interés en villas prime en Mallorca.",
+                "opportunity_type": "buyer_opportunity",
+            },
+        )
+        assert response.status_code == 201
+        assert response.json()["status"] == "shared"

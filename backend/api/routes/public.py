@@ -4,7 +4,11 @@ from backend.agents.graph import agent_executor
 from backend.config import settings
 from backend.models.data_lab_access import PublicDataLabAccessRequestCreate
 from backend.models.partner_admissions import PublicPartnerAdmissionCreate
-from backend.models.partner_workspaces import PublicPartnerOpportunityCreate, PublicPartnerWorkspaceProfileUpdate
+from backend.models.partner_workspaces import (
+    PublicPartnerOpportunityCreate,
+    PublicPartnerWorkspaceProfileUpdate,
+    PublicSharedOpportunityStatusUpdate,
+)
 from backend.services.data_lab_access_service import data_lab_access_service
 from backend.services.partner_admission_service import partner_admission_service
 from backend.services.partner_workspace_service import partner_workspace_service
@@ -98,6 +102,19 @@ async def update_public_partner_workspace_profile(data: PublicPartnerWorkspacePr
         if not result:
             raise HTTPException(status_code=404, detail="Partner workspace not found")
         return {"status": "updated", "workspace_id": result.get("id")}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/partner-workspace/shared-opportunities/{shared_opportunity_id}")
+async def update_public_shared_opportunity_status(shared_opportunity_id: str, data: PublicSharedOpportunityStatusUpdate):
+    try:
+        result = await partner_workspace_service.update_shared_opportunity_status_from_token(shared_opportunity_id, data)
+        if not result:
+            raise HTTPException(status_code=404, detail="Shared opportunity not found")
+        return {"status": "updated", "shared_opportunity_id": result.get("id")}
     except HTTPException:
         raise
     except Exception as e:

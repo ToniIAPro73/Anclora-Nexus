@@ -48,3 +48,13 @@ class TestPublicPartnerWorkspaceRoutes:
         )
         assert response.status_code == 200
         assert response.json()["status"] == "updated"
+
+    @patch("backend.api.routes.public.partner_workspace_service")
+    def test_update_shared_opportunity_status(self, mock_service: MagicMock) -> None:
+        mock_service.update_shared_opportunity_status_from_token = AsyncMock(return_value={"id": "shared-1"})
+        response = client.patch(
+            "/api/public/partner-workspace/shared-opportunities/shared-1",
+            json={"token": "token-123456789012", "status": "interested"},
+        )
+        assert response.status_code == 200
+        assert response.json()["status"] == "updated"

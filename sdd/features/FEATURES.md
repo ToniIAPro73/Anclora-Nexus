@@ -640,3 +640,4 @@ Resultado funcional:
 - .agent/skills/features/ai-runtime-provider-profiles/SKILL.md
 - .antigravity/prompts/features/ai-runtime-provider-profiles/
 - `ANCLORA-NBOS-001` Nexus Buyers Outreach Supervised
+- `ANCLORA-SPW-003` Synergi Shared Opportunities

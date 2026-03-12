@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from backend.models.partner_network import PartnerNetworkUpdate
+from backend.models.partner_network import PartnerNetworkUpdate, PartnerSharedOpportunityCreate
 from backend.services.partner_workspace_service import partner_workspace_service
 from backend.services.supabase_service import supabase_service
 
@@ -57,6 +57,7 @@ class PartnerNetworkService:
         admissions = self._safe_table_rows("partner_admissions", org_id)
         workspaces = self._safe_table_rows("synergi_partner_workspaces", org_id)
         opportunities = self._safe_table_rows("synergi_partner_opportunities", org_id)
+        shared_opportunities = self._safe_table_rows("synergi_partner_shared_opportunities", org_id)
         buyers = self._safe_table_rows("buyer_profiles", org_id)
 
         admissions_by_id = {str(item["id"]): item for item in admissions if item.get("status") == "accepted"}
@@ -65,6 +66,11 @@ class PartnerNetworkService:
             workspace_id = str(item.get("workspace_id") or "")
             if workspace_id:
                 opportunities_by_workspace.setdefault(workspace_id, []).append(item)
+        shared_opportunities_by_workspace: Dict[str, list[dict[str, Any]]] = {}
+        for item in shared_opportunities:
+            workspace_id = str(item.get("workspace_id") or "")
+            if workspace_id:
+                shared_opportunities_by_workspace.setdefault(workspace_id, []).append(item)
 
         items: list[dict[str, Any]] = []
         for workspace in workspaces:
@@ -90,6 +96,7 @@ class PartnerNetworkService:
                 "coverage_areas": self._normalize_text_list(admission.get("coverage_areas")),
                 "languages": self._normalize_text_list(admission.get("languages")),
                 "opportunities_count": len(opportunities_by_workspace.get(str(workspace.get("id")), [])),
+                "shared_opportunities_count": len(shared_opportunities_by_workspace.get(str(workspace.get("id")), [])),
                 "buyer_referrals_count": len(matched_buyers),
                 "high_intent_buyers_count": len(
                     [buyer for buyer in matched_buyers if float(buyer.get("motivation_score") or 0) >= 80]
@@ -143,6 +150,7 @@ class PartnerNetworkService:
             "preferred": len([row for row in rows if row["partner_tier"] == "preferred"]),
             "eco_focus": len([row for row in rows if row["sustainability_focus"]]),
             "buyer_referrals": sum(int(row["buyer_referrals_count"]) for row in rows),
+            "shared_opportunities": sum(int(row["shared_opportunities_count"]) for row in rows),
         }
 
     async def update_network_partner(self, org_id: str, workspace_id: str, payload: PartnerNetworkUpdate) -> Optional[Dict[str, Any]]:
@@ -182,6 +190,52 @@ class PartnerNetworkService:
             .execute()
         )
         return updated.data[0] if updated.data else None
+
+    async def share_opportunity_with_partner(
+        self,
+        *,
+        org_id: str,
+        workspace_id: str,
+        created_by_user_id: str,
+        payload: PartnerSharedOpportunityCreate,
+    ) -> Optional[Dict[str, Any]]:
+        workspace = (
+            supabase_service.client.table("synergi_partner_workspaces")
+            .select("*")
+            .eq("org_id", org_id)
+            .eq("id", workspace_id)
+            .limit(1)
+            .execute()
+        ).data
+        row = workspace[0] if workspace else None
+        if not row:
+            return None
+
+        record = {
+            "org_id": org_id,
+            "workspace_id": workspace_id,
+            "title": payload.title,
+            "summary": payload.summary,
+            "opportunity_type": payload.opportunity_type,
+            "target_zone": payload.target_zone,
+            "budget_context": payload.budget_context,
+            "next_step": payload.next_step,
+            "status": "shared",
+            "created_by_user_id": created_by_user_id,
+            "created_at": partner_workspace_service._now(),
+            "updated_at": partner_workspace_service._now(),
+        }
+        created = supabase_service.client.table("synergi_partner_shared_opportunities").insert(record).execute()
+        item = created.data[0] if created.data else None
+        if item:
+            partner_workspace_service._append_activity(
+                org_id=org_id,
+                workspace_id=workspace_id,
+                event_type="shared_opportunity_created",
+                title="Opportunity shared from Anclora",
+                description=payload.title,
+            )
+        return item
 
 
 partner_network_service = PartnerNetworkService()

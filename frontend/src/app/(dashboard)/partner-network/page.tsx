@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n'
 import {
   fetchPartnerNetwork,
   fetchPartnerNetworkSummary,
+  sharePartnerOpportunity,
   updatePartnerNetwork,
   type PartnerNetworkItem,
   type PartnerNetworkTier,
@@ -24,6 +25,7 @@ export default function PartnerNetworkPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [relationshipFilter, setRelationshipFilter] = useState<PartnerRelationshipStatus | ''>('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [search, setSearch] = useState('')
@@ -35,6 +37,14 @@ export default function PartnerNetworkPage() {
     preferred_for_sellers: false,
     network_tags: '',
     strategic_notes: '',
+  })
+  const [shareForm, setShareForm] = useState({
+    title: '',
+    summary: '',
+    opportunity_type: 'buyer_opportunity',
+    target_zone: '',
+    budget_context: '',
+    next_step: '',
   })
 
   const selected = useMemo(() => items.find((item) => item.workspace_id === selectedId) ?? null, [items, selectedId])
@@ -102,6 +112,35 @@ export default function PartnerNetworkPage() {
     }
   }
 
+  async function shareOpportunity() {
+    if (!selected) return
+    setSharing(true)
+    setError(null)
+    try {
+      await sharePartnerOpportunity(selected.workspace_id, {
+        title: shareForm.title,
+        summary: shareForm.summary,
+        opportunity_type: shareForm.opportunity_type,
+        target_zone: shareForm.target_zone || undefined,
+        budget_context: shareForm.budget_context || undefined,
+        next_step: shareForm.next_step || undefined,
+      })
+      setShareForm({
+        title: '',
+        summary: '',
+        opportunity_type: 'buyer_opportunity',
+        target_zone: '',
+        budget_context: '',
+        next_step: '',
+      })
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('unknownError'))
+    } finally {
+      setSharing(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-navy text-soft-white">
       <div className="mx-auto max-w-screen-2xl space-y-6 px-6 py-8">
@@ -123,13 +162,14 @@ export default function PartnerNetworkPage() {
           </div>
         </section>
 
-        <div className="grid gap-4 md:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-6">
           {[
             ['total', t('partnerNetworkKpiTotal')],
             ['strategic', t('partnerNetworkKpiStrategic')],
             ['preferred', t('partnerNetworkKpiPreferred')],
             ['eco_focus', t('partnerNetworkKpiEco')],
             ['buyer_referrals', t('partnerNetworkKpiBuyerReferrals')],
+            ['shared_opportunities', t('partnerNetworkKpiSharedOpportunities')],
           ].map(([key, label]) => (
             <div key={key} className="surface-primary rounded-2xl border border-soft-subtle/15 bg-navy-deep/45 p-4">
               <p className="kpi-label">{label}</p>
@@ -198,6 +238,10 @@ export default function PartnerNetworkPage() {
                         <p className="kpi-label">{t('partnerNetworkOpportunities')}</p>
                         <p className="mt-1 text-sm text-soft-white">{item.opportunities_count}</p>
                       </div>
+                      <div>
+                        <p className="kpi-label">{t('partnerNetworkSharedOpportunities')}</p>
+                        <p className="mt-1 text-sm text-soft-white">{item.shared_opportunities_count}</p>
+                      </div>
                     </div>
                   </button>
                 )
@@ -223,7 +267,7 @@ export default function PartnerNetworkPage() {
                   ) : null}
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-5">
                   <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
                     <p className="kpi-label">{t('partnerNetworkBuyerReferrals')}</p>
                     <p className="kpi-value mt-2">{selected.buyer_referrals_count}</p>
@@ -239,6 +283,10 @@ export default function PartnerNetworkPage() {
                   <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
                     <p className="kpi-label">{t('partnerNetworkTrust')}</p>
                     <p className="kpi-value mt-2">{selected.trust_score}</p>
+                  </div>
+                  <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+                    <p className="kpi-label">{t('partnerNetworkSharedOpportunities')}</p>
+                    <p className="kpi-value mt-2">{selected.shared_opportunities_count}</p>
                   </div>
                 </div>
 
@@ -285,6 +333,29 @@ export default function PartnerNetworkPage() {
                   <Sparkles className="h-4 w-4" />
                   {saving ? t('loading') : t('saveChanges')}
                 </button>
+
+                <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+                  <p className="section-title text-2xl">{t('partnerNetworkShareTitle')}</p>
+                  <p className="section-subtitle mt-1">{t('partnerNetworkShareSubtitle')}</p>
+                  <div className="mt-4 space-y-3">
+                    <input className={inputClassName} value={shareForm.title} onChange={(e) => setShareForm((prev) => ({ ...prev, title: e.target.value }))} placeholder={t('partnerNetworkShareFieldTitle')} />
+                    <select className="ui-select" value={shareForm.opportunity_type} onChange={(e) => setShareForm((prev) => ({ ...prev, opportunity_type: e.target.value }))}>
+                      {(['buyer_opportunity', 'seller_opportunity', 'service_request', 'strategic_invite'] as const).map((item) => (
+                        <option key={item} value={item}>{t(`partnerNetworkShareType_${item}` as never)}</option>
+                      ))}
+                    </select>
+                    <textarea className={`${textareaClassName} min-h-24`} value={shareForm.summary} onChange={(e) => setShareForm((prev) => ({ ...prev, summary: e.target.value }))} placeholder={t('partnerNetworkShareFieldSummary')} />
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <input className={inputClassName} value={shareForm.target_zone} onChange={(e) => setShareForm((prev) => ({ ...prev, target_zone: e.target.value }))} placeholder={t('partnerNetworkShareFieldZone')} />
+                      <input className={inputClassName} value={shareForm.budget_context} onChange={(e) => setShareForm((prev) => ({ ...prev, budget_context: e.target.value }))} placeholder={t('partnerNetworkShareFieldBudget')} />
+                    </div>
+                    <textarea className={`${textareaClassName} min-h-20`} value={shareForm.next_step} onChange={(e) => setShareForm((prev) => ({ ...prev, next_step: e.target.value }))} placeholder={t('partnerNetworkShareFieldNextStep')} />
+                    <button type="button" disabled={sharing} onClick={() => void shareOpportunity()} className="btn-action">
+                      <Sparkles className="h-4 w-4" />
+                      {sharing ? t('loading') : t('partnerNetworkShareAction')}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </section>

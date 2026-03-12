@@ -126,6 +126,7 @@ La entrada privada del ecosistema queda repartida asi:
    - cola interna de revision en `/partner-admissions`
    - workspace colaborativo controlado por token en `/private-area/partner/workspace`
    - workspace v2 con perfil operativo y actividad trazable
+   - workspace v3 con oportunidades compartidas y respuesta estructurada del partner
    - consola interna de red partner en `/partner-network`
 
 4. `Data Lab`

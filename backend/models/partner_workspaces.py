@@ -32,6 +32,13 @@ class PartnerOpportunityStatus(str, Enum):
     ARCHIVED = "archived"
 
 
+class SharedOpportunityStatus(str, Enum):
+    SHARED = "shared"
+    INTERESTED = "interested"
+    DECLINED = "declined"
+    ARCHIVED = "archived"
+
+
 class PublicPartnerOpportunityCreate(BaseModel):
     token: str = Field(min_length=12, max_length=255)
     title: str = Field(min_length=6, max_length=180)
@@ -49,6 +56,11 @@ class PublicPartnerWorkspaceProfileUpdate(BaseModel):
     contact_preferences: List[str] = Field(default_factory=list)
     response_commitment_hours: Optional[int] = Field(default=None, ge=1, le=168)
     profile_notes: Optional[str] = Field(default=None, max_length=1200)
+
+
+class PublicSharedOpportunityStatusUpdate(BaseModel):
+    token: str = Field(min_length=12, max_length=255)
+    status: SharedOpportunityStatus
 
 
 class PartnerWorkspaceResource(BaseModel):
@@ -77,6 +89,18 @@ class PartnerWorkspaceActivityResponse(BaseModel):
     created_at: datetime
 
 
+class PartnerWorkspaceSharedOpportunityResponse(BaseModel):
+    id: UUID
+    title: str
+    summary: str
+    opportunity_type: str
+    target_zone: Optional[str] = None
+    budget_context: Optional[str] = None
+    next_step: Optional[str] = None
+    status: SharedOpportunityStatus
+    created_at: datetime
+
+
 class PartnerWorkspaceResponse(BaseModel):
     id: UUID
     admission_id: UUID
@@ -100,5 +124,6 @@ class PartnerWorkspaceResponse(BaseModel):
     next_steps: List[str] = Field(default_factory=list)
     resources: List[PartnerWorkspaceResource] = Field(default_factory=list)
     opportunities: List[PartnerWorkspaceOpportunityResponse] = Field(default_factory=list)
+    shared_opportunities: List[PartnerWorkspaceSharedOpportunityResponse] = Field(default_factory=list)
     activity: List[PartnerWorkspaceActivityResponse] = Field(default_factory=list)
     last_seen_at: Optional[datetime] = None

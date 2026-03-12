@@ -34,6 +34,7 @@ class PartnerNetworkItem(BaseModel):
     coverage_areas: List[str] = Field(default_factory=list)
     languages: List[str] = Field(default_factory=list)
     opportunities_count: int = 0
+    shared_opportunities_count: int = 0
     buyer_referrals_count: int = 0
     high_intent_buyers_count: int = 0
     last_seen_at: Optional[str] = None
@@ -65,3 +66,11 @@ class PartnerNetworkUpdate(BaseModel):
     strategic_notes: Optional[str] = Field(default=None, max_length=3000)
     network_tags: Optional[List[str]] = None
 
+
+class PartnerSharedOpportunityCreate(BaseModel):
+    title: str = Field(min_length=6, max_length=180)
+    summary: str = Field(min_length=20, max_length=4000)
+    opportunity_type: str = Field(min_length=2, max_length=80)
+    target_zone: Optional[str] = Field(default=None, max_length=160)
+    budget_context: Optional[str] = Field(default=None, max_length=160)
+    next_step: Optional[str] = Field(default=None, max_length=800)
