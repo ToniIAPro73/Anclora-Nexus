@@ -6,6 +6,7 @@ from urllib.parse import quote
 
 from backend.models.partner_admissions import PartnerAdmissionReview, PublicPartnerAdmissionCreate
 from backend.services.email_delivery_service import get_email_transport_summary, send_email_native
+from backend.services.partner_workspace_service import partner_workspace_service
 from backend.services.supabase_service import supabase_service
 
 
@@ -56,6 +57,16 @@ class PartnerAdmissionService:
             base_query = base_query.eq("service_category", service_category)
         response = base_query.execute()
         rows = response.data or []
+        try:
+            workspace_rows = (
+                supabase_service.client.table("synergi_partner_workspaces")
+                .select("*")
+                .eq("org_id", org_id)
+                .execute()
+            ).data or []
+        except Exception:
+            workspace_rows = []
+        workspace_map = {str(row.get("admission_id")): row for row in workspace_rows}
 
         if query:
             needle = query.lower().strip()
@@ -73,8 +84,31 @@ class PartnerAdmissionService:
             ]
 
         total = len(rows)
+        enriched = []
+        for row in rows[offset : offset + limit]:
+            item = dict(row)
+            workspace = workspace_map.get(str(item.get("id")))
+            if workspace:
+                try:
+                    opportunities = (
+                        supabase_service.client.table("synergi_partner_opportunities")
+                        .select("id")
+                        .eq("workspace_id", workspace["id"])
+                        .execute()
+                    ).data or []
+                except Exception:
+                    opportunities = []
+                item["workspace"] = {
+                    "id": workspace.get("id"),
+                    "workspace_status": workspace.get("workspace_status"),
+                    "partner_tier": workspace.get("partner_tier"),
+                    "launch_url": partner_workspace_service._build_launch_url(str(workspace.get("access_token"))),
+                    "opportunities_count": len(opportunities),
+                    "last_seen_at": workspace.get("last_seen_at"),
+                }
+            enriched.append(item)
         return {
-            "items": rows[offset : offset + limit],
+            "items": enriched,
             "total": total,
             "limit": limit,
             "offset": offset,
@@ -156,12 +190,23 @@ class PartnerAdmissionService:
         }
 
         notification = None
+        workspace = None
+        if payload.status.value == "accepted":
+            try:
+                workspace = await partner_workspace_service.ensure_workspace_for_accepted_admission(org_id, row)
+            except Exception:
+                workspace = None
         if payload.notify_applicant and row.get("email"):
             mail = self._build_notification(
                 full_name=str(row.get("full_name") or "partner"),
                 status=payload.status.value,
                 review_notes=payload.review_notes,
             )
+            if workspace and workspace.get("launch_url"):
+                mail["body"] = (
+                    f"{mail['body']}\n\n"
+                    f"Acceso al workspace: {workspace['launch_url']}\n"
+                )
             transport = get_email_transport_summary()
             if transport["native_email_enabled"]:
                 delivery = send_email_native(
@@ -191,6 +236,7 @@ class PartnerAdmissionService:
         if result is None:
             return None
         result["notification"] = notification
+        result["workspace"] = workspace
         return result
 
 

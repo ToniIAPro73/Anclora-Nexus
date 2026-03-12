@@ -217,6 +217,31 @@ export default function PartnerAdmissionsPage() {
                   </div>
                 ) : null}
 
+                {selected.workspace ? (
+                  <div className="surface-secondary rounded-2xl border border-gold/20 bg-gold/5 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="kpi-label">{t('partnerAdmissionsWorkspaceTitle')}</p>
+                        <p className="mt-2 text-sm leading-6 text-soft-white">
+                          {t(`partnerWorkspaceTier_${selected.workspace.partner_tier}` as never)} ·{' '}
+                          {t(`partnerWorkspaceStatus_${selected.workspace.workspace_status}` as never)}
+                        </p>
+                        <p className="mt-2 text-sm text-soft-muted">
+                          {t('partnerAdmissionsWorkspaceOpportunities')} {selected.workspace.opportunities_count}
+                        </p>
+                      </div>
+                      <a
+                        href={selected.workspace.launch_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold px-4 py-2 text-sm font-semibold text-navy-darker transition hover:brightness-110"
+                      >
+                        {t('partnerAdmissionsWorkspaceOpen')}
+                      </a>
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
                   <label className="kpi-label" htmlFor="partner-review-notes">{t('partnerAdmissionsReviewNotes')}</label>
                   <textarea

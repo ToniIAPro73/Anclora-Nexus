@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from typing import Any, Dict
 from backend.agents.graph import agent_executor
 from backend.config import settings
 from backend.models.partner_admissions import PublicPartnerAdmissionCreate
+from backend.models.partner_workspaces import PublicPartnerOpportunityCreate
 from backend.services.partner_admission_service import partner_admission_service
+from backend.services.partner_workspace_service import partner_workspace_service
 
 router = APIRouter()
 
@@ -19,6 +21,36 @@ async def create_public_partner_admission(data: PublicPartnerAdmissionCreate):
             "status": "submitted",
             "admission_id": result.get("id"),
             "message": "Partner admission submitted",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/partner-workspace")
+async def get_public_partner_workspace(token: str = Query(..., min_length=12)):
+    try:
+        result = await partner_workspace_service.get_workspace_by_token(token)
+        if not result:
+            raise HTTPException(status_code=404, detail="Partner workspace not found")
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/partner-workspace/opportunities", status_code=status.HTTP_201_CREATED)
+async def create_public_partner_opportunity(data: PublicPartnerOpportunityCreate):
+    try:
+        result = await partner_workspace_service.create_opportunity_from_token(data)
+        if not result:
+            raise HTTPException(status_code=404, detail="Partner workspace not found")
+        return {
+            "status": "submitted",
+            "opportunity_id": result.get("id"),
+            "message": "Partner opportunity submitted",
         }
     except HTTPException:
         raise

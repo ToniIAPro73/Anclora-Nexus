@@ -188,3 +188,10 @@
 - `8 passed` en backend sobre servicio y rutas de `partner_admissions`
 - `npm run frontend:lint` OK
 - `npm run frontend:build` OK
+
+### ANCLORA-SPW-001 cerrada
+
+- `Synergi` ya dispone de workspace colaborativo controlado por token
+- nueva migración `050_synergi_partner_workspace_v1.sql`
+- la aceptación de una admisión puede crear `launch_url` para el partner
+- el workspace permite ver perfil aprobado, próximos pasos, recursos y registrar oportunidades

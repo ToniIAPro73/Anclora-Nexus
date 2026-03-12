@@ -29,6 +29,14 @@ export interface PartnerAdmissionItem {
   decision_email_sent_at: string | null
   created_at: string
   updated_at: string
+  workspace?: {
+    id: string
+    workspace_status: 'invited' | 'active' | 'paused'
+    partner_tier: 'approved' | 'preferred' | 'strategic'
+    launch_url: string
+    opportunities_count: number
+    last_seen_at: string | null
+  } | null
 }
 
 export interface PartnerAdmissionSummary {

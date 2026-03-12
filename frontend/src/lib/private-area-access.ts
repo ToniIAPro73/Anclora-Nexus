@@ -21,8 +21,8 @@ export const PRIVATE_AREA_PORTALS: Record<PrivatePortalKey, PrivatePortalDefinit
   partner: {
     key: 'partner',
     publicPath: '/private-area/partner',
-    authenticatedPath: '/private-area/partner',
-    status: 'admission_review',
+    authenticatedPath: '/private-area/partner/workspace',
+    status: 'active',
     requiresNexusMembership: false,
   },
   data_lab: {
