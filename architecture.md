@@ -129,6 +129,7 @@ La entrada privada del ecosistema queda repartida asi:
 
 4. `Data Lab`
    - reservado para acceso analitico controlado apoyado en `intelligence_packs`
+   - acceso selectivo por `request -> review -> workspace`
 
 La regla actual es:
 - `agent` usa auth de Nexus y membership activa

@@ -52,6 +52,7 @@ Estado: `Implemented`
 - `ANCLORA-SPW-001 v1.0` Synergi Partner Workspace
 - `ANCLORA-BPNM-001 v1.0` Buyer Partner Network Management
 - `ANCLORA-DLAB-001 v1.0` Data Lab Portal
+- `ANCLORA-DLAB-002 v1.0` Data Lab Selective Access
 
 Resultado funcional:
 

@@ -209,6 +209,15 @@
 - reutiliza `MTIP` y `Source Observatory` en vez de crear una capa paralela
 - `Private Estates` ajusta la entrada pública a `Data Lab` para comunicar mejor inteligencia reutilizable y acceso controlado
 
+### ANCLORA-DLAB-002 cerrada
+
+- `Data Lab` ya soporta acceso selectivo para `partner`, `client` e `investor`
+- el flujo completo queda en:
+  - solicitud pública
+  - revisión interna
+  - workspace externo tokenizado
+- `Private Estates` alinea la promesa pública con acceso selectivo autorizado
+
 ### Validación ejecutada
 
 - `npm run frontend:lint` OK

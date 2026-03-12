@@ -1,11 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight, Database, Layers3, ShieldCheck, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useI18n } from '@/lib/i18n'
 import { authFetch } from '@/lib/auth-fetch'
+import {
+  createPublicDataLabAccessRequest,
+  type DataLabProfileType,
+  type DataLabScope,
+} from '@/lib/data-lab-access-api'
 import supabase from '@/lib/supabase'
 
 type IntelligencePack = {
@@ -45,6 +50,21 @@ export function DataLabPortalClient() {
   const [activePack, setActivePack] = useState<IntelligencePack | null>(null)
   const [summary, setSummary] = useState<SourceOverviewSummary | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [requestLoading, setRequestLoading] = useState(false)
+  const [requestSuccess, setRequestSuccess] = useState(false)
+  const [requestError, setRequestError] = useState<string | null>(null)
+  const [form, setForm] = useState({
+    full_name: '',
+    email: '',
+    company_name: '',
+    profile_type: 'partner' as DataLabProfileType,
+    requested_scope: 'market_brief' as DataLabScope,
+    intended_use: '',
+    geography_focus: '',
+    languages: '',
+    website_url: '',
+    notes: '',
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -90,6 +110,32 @@ export function DataLabPortalClient() {
   }, [t])
 
   const topPacks = useMemo(() => packs.slice(0, 4), [packs])
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setRequestLoading(true)
+    setRequestError(null)
+    try {
+      await createPublicDataLabAccessRequest({
+        full_name: form.full_name,
+        email: form.email,
+        company_name: form.company_name || undefined,
+        profile_type: form.profile_type,
+        requested_scope: form.requested_scope,
+        intended_use: form.intended_use,
+        geography_focus: form.geography_focus.split(',').map((item) => item.trim()).filter(Boolean),
+        languages: form.languages.split(',').map((item) => item.trim()).filter(Boolean),
+        website_url: form.website_url || undefined,
+        notes: form.notes || undefined,
+        submission_source: 'private_area_data_lab',
+      })
+      setRequestSuccess(true)
+    } catch (err) {
+      setRequestError(err instanceof Error ? err.message : t('privateAreaDataLabRequestError'))
+    } finally {
+      setRequestLoading(false)
+    }
+  }
 
   return (
     <div className="grid gap-5 xl:grid-cols-[1.3fr_1fr]">
@@ -195,12 +241,47 @@ export function DataLabPortalClient() {
                 <p className="mt-2 text-sm leading-6 text-soft-muted">{t(`privateAreaDataLabPolicy_${item}_copy`)}</p>
               </div>
             ))}
-            <Link
-              href="mailto:datalab@anclora.com?subject=Acceso%20Anclora%20Data%20Lab"
-              className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110"
-            >
-              {t('privateAreaDataLabPrimaryCta')}
-            </Link>
+            <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+              <p className="text-sm font-semibold text-soft-white">{t('privateAreaDataLabRequestTitle')}</p>
+              <p className="mt-2 text-sm leading-6 text-soft-muted">{t('privateAreaDataLabRequestSubtitle')}</p>
+              {requestSuccess ? (
+                <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-950/20 p-4">
+                  <p className="text-sm font-semibold text-emerald-300">{t('privateAreaDataLabRequestSuccessTitle')}</p>
+                  <p className="mt-2 text-sm leading-6 text-soft-white">{t('privateAreaDataLabRequestSuccessCopy')}</p>
+                </div>
+              ) : (
+                <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <input className="ui-input" placeholder={t('privateAreaDataLabFieldFullName')} value={form.full_name} onChange={(e) => setForm((prev) => ({ ...prev, full_name: e.target.value }))} />
+                    <input className="ui-input" type="email" placeholder={t('privateAreaDataLabFieldEmail')} value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
+                    <input className="ui-input" placeholder={t('privateAreaDataLabFieldCompany')} value={form.company_name} onChange={(e) => setForm((prev) => ({ ...prev, company_name: e.target.value }))} />
+                    <input className="ui-input" placeholder={t('privateAreaDataLabFieldWebsite')} value={form.website_url} onChange={(e) => setForm((prev) => ({ ...prev, website_url: e.target.value }))} />
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <select className="ui-select" value={form.profile_type} onChange={(e) => setForm((prev) => ({ ...prev, profile_type: e.target.value as DataLabProfileType }))}>
+                      {(['partner', 'client', 'investor', 'other'] as const).map((item) => (
+                        <option key={item} value={item}>{t(`dataLabAccessProfile_${item}` as never)}</option>
+                      ))}
+                    </select>
+                    <select className="ui-select" value={form.requested_scope} onChange={(e) => setForm((prev) => ({ ...prev, requested_scope: e.target.value as DataLabScope }))}>
+                      {(['market_brief', 'partner_intelligence', 'client_pack', 'strategic_overview'] as const).map((item) => (
+                        <option key={item} value={item}>{t(`dataLabAccessScope_${item}` as never)}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <textarea className="ui-textarea min-h-28" placeholder={t('privateAreaDataLabFieldIntendedUse')} value={form.intended_use} onChange={(e) => setForm((prev) => ({ ...prev, intended_use: e.target.value }))} />
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <input className="ui-input" placeholder={t('privateAreaDataLabFieldGeography')} value={form.geography_focus} onChange={(e) => setForm((prev) => ({ ...prev, geography_focus: e.target.value }))} />
+                    <input className="ui-input" placeholder={t('privateAreaDataLabFieldLanguages')} value={form.languages} onChange={(e) => setForm((prev) => ({ ...prev, languages: e.target.value }))} />
+                  </div>
+                  <textarea className="ui-textarea min-h-24" placeholder={t('privateAreaDataLabFieldNotes')} value={form.notes} onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} />
+                  {requestError ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{requestError}</p> : null}
+                  <button type="submit" disabled={requestLoading} className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110 disabled:opacity-70">
+                    {requestLoading ? t('loading') : t('privateAreaDataLabPrimaryCta')}
+                  </button>
+                </form>
+              )}
+            </div>
           </CardContent>
         </Card>
 

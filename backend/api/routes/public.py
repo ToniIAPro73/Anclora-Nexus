@@ -2,8 +2,10 @@ from fastapi import APIRouter, HTTPException, Query, status
 from typing import Any, Dict
 from backend.agents.graph import agent_executor
 from backend.config import settings
+from backend.models.data_lab_access import PublicDataLabAccessRequestCreate
 from backend.models.partner_admissions import PublicPartnerAdmissionCreate
 from backend.models.partner_workspaces import PublicPartnerOpportunityCreate
+from backend.services.data_lab_access_service import data_lab_access_service
 from backend.services.partner_admission_service import partner_admission_service
 from backend.services.partner_workspace_service import partner_workspace_service
 
@@ -28,12 +30,43 @@ async def create_public_partner_admission(data: PublicPartnerAdmissionCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/data-lab-access-requests", status_code=status.HTTP_201_CREATED)
+async def create_public_data_lab_access_request(data: PublicDataLabAccessRequestCreate):
+    try:
+        result = await data_lab_access_service.create_public_request(
+            settings.PUBLIC_CTA_ORG_ID,
+            data,
+        )
+        return {
+            "status": "submitted",
+            "request_id": result.get("id"),
+            "message": "Data Lab access request submitted",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/partner-workspace")
 async def get_public_partner_workspace(token: str = Query(..., min_length=12)):
     try:
         result = await partner_workspace_service.get_workspace_by_token(token)
         if not result:
             raise HTTPException(status_code=404, detail="Partner workspace not found")
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/data-lab-workspace")
+async def get_public_data_lab_workspace(token: str = Query(..., min_length=12)):
+    try:
+        result = await data_lab_access_service.get_workspace_by_token(token)
+        if not result:
+            raise HTTPException(status_code=404, detail="Data Lab workspace not found")
         return result
     except HTTPException:
         raise

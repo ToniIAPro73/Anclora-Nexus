@@ -86,6 +86,7 @@ export function Sidebar() {
         { name: t('feedOrchestratorMenu'), href: '/feed-orchestrator', icon: UploadCloud },
         { name: t('partnerNetworkMenu'), href: '/partner-network', icon: Network },
         { name: t('partnerAdmissionsMenu'), href: '/partner-admissions', icon: Network },
+        { name: t('dataLabAccessMenu'), href: '/data-lab-access', icon: Database },
         { name: t('automationMenu'), href: '/automation-alerting', icon: Bot },
         { name: t('commandCenterMenu'), href: '/command-center', icon: BarChart3 },
         { name: t('dealMarginMenu'), href: '/deal-margin-simulator', icon: Calculator },
