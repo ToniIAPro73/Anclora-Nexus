@@ -234,7 +234,7 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
                 {success ? <p className="mb-4 rounded-2xl border border-emerald-400/30 bg-emerald-950/20 px-4 py-3 text-sm text-emerald-200">{success}</p> : null}
                 <form className="space-y-3" onSubmit={handleSubmit}>
                   <input className={inputClassName} placeholder={t('partnerWorkspaceFieldTitle')} value={form.title} onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))} />
-                  <select className={inputClassName} value={form.opportunity_type} onChange={(e) => setForm((prev) => ({ ...prev, opportunity_type: e.target.value as PartnerOpportunityType }))}>
+                  <select className="ui-select" value={form.opportunity_type} onChange={(e) => setForm((prev) => ({ ...prev, opportunity_type: e.target.value as PartnerOpportunityType }))}>
                     {(['collaboration_request', 'buyer_referral', 'seller_referral', 'service_offer'] as const).map((item) => (
                       <option key={item} value={item}>{t(`partnerWorkspaceOpportunityType_${item}` as never)}</option>
                     ))}
@@ -258,4 +258,3 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
     </PrivateAreaShell>
   )
 }
-

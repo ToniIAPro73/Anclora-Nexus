@@ -145,13 +145,13 @@ export default function PartnerNetworkPage() {
                 <Search className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-soft-muted" />
                 <input className={`${inputClassName} pl-11`} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('partnerNetworkSearchPlaceholder')} />
               </div>
-              <select className={inputClassName} value={relationshipFilter} onChange={(e) => setRelationshipFilter(e.target.value as PartnerRelationshipStatus | '')}>
+              <select className="ui-select" value={relationshipFilter} onChange={(e) => setRelationshipFilter(e.target.value as PartnerRelationshipStatus | '')}>
                 <option value="">{t('partnerNetworkFilterAllRelationships')}</option>
                 {(['active', 'watchlist', 'paused'] as const).map((status) => (
                   <option key={status} value={status}>{t(`partnerNetworkRelationship_${status}`)}</option>
                 ))}
               </select>
-              <select className={inputClassName} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+              <select className="ui-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
                 <option value="">{t('partnerAdmissionsFilterAllCategories')}</option>
                 {(['real_estate', 'professional', 'luxury', 'eco', 'other'] as const).map((category) => (
                   <option key={category} value={category}>{t(`partnerAdmissionsCategory_${category}`)}</option>
@@ -254,12 +254,12 @@ export default function PartnerNetworkPage() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <select className={inputClassName} value={draft.partner_tier} onChange={(e) => setDraft((prev) => ({ ...prev, partner_tier: e.target.value as PartnerNetworkTier }))}>
+                  <select className="ui-select" value={draft.partner_tier} onChange={(e) => setDraft((prev) => ({ ...prev, partner_tier: e.target.value as PartnerNetworkTier }))}>
                     {(['approved', 'preferred', 'strategic'] as const).map((tier) => (
                       <option key={tier} value={tier}>{t(`partnerWorkspaceTier_${tier}`)}</option>
                     ))}
                   </select>
-                  <select className={inputClassName} value={draft.relationship_status} onChange={(e) => setDraft((prev) => ({ ...prev, relationship_status: e.target.value as PartnerRelationshipStatus }))}>
+                  <select className="ui-select" value={draft.relationship_status} onChange={(e) => setDraft((prev) => ({ ...prev, relationship_status: e.target.value as PartnerRelationshipStatus }))}>
                     {(['active', 'watchlist', 'paused'] as const).map((status) => (
                       <option key={status} value={status}>{t(`partnerNetworkRelationship_${status}`)}</option>
                     ))}

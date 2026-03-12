@@ -288,15 +288,10 @@ export default function SellersPage() {
               <select
                 value={zona}
                 onChange={(e) => setZona(e.target.value)}
-                className="bg-transparent text-sm text-soft-white outline-none"
+                className="ui-select-ghost min-w-[220px] text-sm"
               >
                 {ZONA_OPTIONS.map((o) => (
-                  <option
-                    key={o.value}
-                    value={o.value}
-                    className="bg-navy text-soft-white"
-                    style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}
-                  >
+                  <option key={o.value} value={o.value}>
                     {o.label}
                   </option>
                 ))}
@@ -307,15 +302,10 @@ export default function SellersPage() {
               <select
                 value={estado}
                 onChange={(e) => setEstado(e.target.value)}
-                className="bg-transparent text-sm text-soft-white outline-none"
+                className="ui-select-ghost min-w-[220px] text-sm"
               >
                 {ESTADO_OPTIONS.map((o) => (
-                  <option
-                    key={o.value}
-                    value={o.value}
-                    className="bg-navy text-soft-white"
-                    style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}
-                  >
+                  <option key={o.value} value={o.value}>
                     {o.label}
                   </option>
                 ))}
@@ -326,12 +316,12 @@ export default function SellersPage() {
               <select
                 value={prioridadMin}
                 onChange={(e) => setPrioridadMin(e.target.value ? Number(e.target.value) : '')}
-                className="bg-transparent text-sm text-soft-white outline-none"
+                className="ui-select-ghost min-w-[220px] text-sm"
               >
-                <option value="" className="bg-navy text-soft-white" style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}>{t('allPriority')}</option>
-                <option value="5" className="bg-navy text-soft-white" style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}>{t('sellerPriorityP5')}</option>
-                <option value="4" className="bg-navy text-soft-white" style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}>{t('priorityHigh')}</option>
-                <option value="3" className="bg-navy text-soft-white" style={{ backgroundColor: '#18255c', color: '#f6f3eb' }}>{t('priorityMedium')}</option>
+                <option value="">{t('allPriority')}</option>
+                <option value="5">{t('sellerPriorityP5')}</option>
+                <option value="4">{t('priorityHigh')}</option>
+                <option value="3">{t('priorityMedium')}</option>
               </select>
             </div>
 

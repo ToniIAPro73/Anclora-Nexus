@@ -10,6 +10,7 @@ Toda pantalla nueva debe construirse con una jerarquía visual consistente. Esto
 
 Relacionado:
 - `sdd/contracts/UI-SURFACE-INTERACTION-CONTRACT.md`
+- `sdd/contracts/UI-SELECT-FIELD-CONTRACT.md`
 
 ## Contrato obligatorio
 

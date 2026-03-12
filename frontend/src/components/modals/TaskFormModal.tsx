@@ -105,7 +105,7 @@ export default function TaskFormModal({ isOpen, onClose, editTask }: TaskFormMod
                 <select
                   value={formData.status || 'pending'}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as 'pending' | 'done' })}
-                  className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer"
+                  className="ui-select"
                 >
                     <option value="pending">Pendiente</option>
                     <option value="done">Completada</option>

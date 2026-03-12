@@ -278,7 +278,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                     value={formData.status || 'prospect'}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as Property['status'] })}
                     disabled={isLocked('status')}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ui-select disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="prospect">{t('propertyStatusProspect')}</option>
                     <option value="listed">{t('propertyStatusListed')}</option>
@@ -295,7 +295,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                     value={formData.source_system || 'manual'}
                     onChange={(e) => setFormData({ ...formData, source_system: e.target.value as Property['source_system'] })}
                     disabled={isLocked('source_system')}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ui-select disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="manual">{t('propertyFormManualEntry')}</option>
                     <option value="widget">{t('propertyFormAutoProspection')}</option>
@@ -310,7 +310,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                     value={formData.source_portal || ''}
                     onChange={(e) => setFormData({ ...formData, source_portal: e.target.value })}
                     disabled={isLocked('source_portal')}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ui-select disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">{t('none')}</option>
                     <option value="idealista">Idealista</option>

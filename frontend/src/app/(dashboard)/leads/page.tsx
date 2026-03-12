@@ -134,7 +134,7 @@ function LeadsContent() {
               setFilterOrigin(e.target.value)
               setCurrentPage(1)
             }}
-            className="bg-navy-deep/50 border border-soft-subtle/50 rounded-lg px-3 py-1.5 text-sm text-soft-white focus:border-gold/50 outline-none transition-all"
+            className="ui-select min-w-[220px]"
           >
             <option value="all">{t('allOrigins')}</option>
             <option value="manual">{t('sourceManual')}</option>
@@ -155,7 +155,7 @@ function LeadsContent() {
               setFilterChannel(e.target.value)
               setCurrentPage(1)
             }}
-            className="bg-navy-deep/50 border border-soft-subtle/50 rounded-lg px-3 py-1.5 text-sm text-soft-white focus:border-gold/50 outline-none transition-all"
+            className="ui-select min-w-[220px]"
           >
             <option value="all">{t('allChannels')}</option>
             <option value="website">{t('sourceWebsite')}</option>

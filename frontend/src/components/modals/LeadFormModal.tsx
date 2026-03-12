@@ -224,7 +224,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                     value={formData.status || 'New'}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     disabled={isLocked('status')}
-                    className="w-full px-4 py-2 bg-navy-surface/50 border border-soft-subtle rounded-lg text-soft-white focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ui-select disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                       <option value="New">{t('leadStatusNew')}</option>
                       <option value="Contacted">{t('leadStatusContacted')}</option>

@@ -66,7 +66,7 @@ export default function OpportunityRankingPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-sm text-soft-white outline-none"
+              className="ui-select min-w-[220px]"
             >
               <option value="">{t('allStatuses')}</option>
               <option value="candidate">{t('candidate')}</option>
@@ -79,7 +79,7 @@ export default function OpportunityRankingPage() {
             <select
               value={minScore === '' ? '' : String(minScore)}
               onChange={(e) => setMinScore(e.target.value === '' ? '' : Number(e.target.value))}
-              className="rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2 text-sm text-soft-white outline-none"
+              className="ui-select min-w-[220px]"
               title={t('minScore')}
             >
               <option value="">{t('noMinScore')}</option>

@@ -186,7 +186,7 @@ export function BuyerIntakePanel({ sourceSummary, onCreated }: Props) {
           </label>
           <label className="block">
               <span className="kpi-label">{t('buyersPurchaseHorizon')}</span>
-              <select className={inputClassName()} value={form.purchase_horizon} onChange={(e) => setForm((prev) => ({ ...prev, purchase_horizon: e.target.value }))}>
+              <select className="ui-select" value={form.purchase_horizon} onChange={(e) => setForm((prev) => ({ ...prev, purchase_horizon: e.target.value }))}>
                 {['immediate', '0_3m', '3_6m', '6_12m', '12m_plus'].map((value) => (
                   <option key={value} value={value}>{t(`buyersPurchaseHorizon_${value}` as TranslationKey)}</option>
                 ))}
@@ -198,7 +198,7 @@ export function BuyerIntakePanel({ sourceSummary, onCreated }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <label className="block">
               <span className="kpi-label">{t('buyersSourceType')}</span>
-              <select className={inputClassName()} value={form.source_type} onChange={(e) => setForm((prev) => ({ ...prev, source_type: e.target.value }))}>
+              <select className="ui-select" value={form.source_type} onChange={(e) => setForm((prev) => ({ ...prev, source_type: e.target.value }))}>
                 {['partner_referral', 'crm_reactivation', 'web_inbound'].map((value) => (
                   <option key={value} value={value}>{t(`buyersSourceType_${value}` as TranslationKey)}</option>
                 ))}
@@ -206,7 +206,7 @@ export function BuyerIntakePanel({ sourceSummary, onCreated }: Props) {
             </label>
             <label className="block">
               <span className="kpi-label">{t('buyersSourcePlatform')}</span>
-              <select className={inputClassName()} value={form.source_platform} onChange={(e) => setForm((prev) => ({ ...prev, source_platform: e.target.value }))}>
+              <select className="ui-select" value={form.source_platform} onChange={(e) => setForm((prev) => ({ ...prev, source_platform: e.target.value }))}>
                 {['exp_agent', 'external_agent', 'crm', 'web'].map((value) => (
                   <option key={value} value={value}>{t(`buyersSourcePlatform_${value}` as TranslationKey)}</option>
                 ))}
@@ -226,7 +226,7 @@ export function BuyerIntakePanel({ sourceSummary, onCreated }: Props) {
               </label>
               <label className="block md:col-span-2">
                 <span className="kpi-label">{t('buyersReferralPartnerType')}</span>
-                <select className={inputClassName()} value={form.referral_partner_type} onChange={(e) => setForm((prev) => ({ ...prev, referral_partner_type: e.target.value }))}>
+                <select className="ui-select" value={form.referral_partner_type} onChange={(e) => setForm((prev) => ({ ...prev, referral_partner_type: e.target.value }))}>
                   {['exp_agent', 'external_agent', 'broker', 'partner', 'family_office', 'relocation'].map((value) => (
                     <option key={value} value={value}>{t(`buyersSourcePlatform_${value}` as TranslationKey)}</option>
                   ))}
@@ -237,7 +237,7 @@ export function BuyerIntakePanel({ sourceSummary, onCreated }: Props) {
 
           <label className="block">
             <span className="kpi-label">{t('buyersIntelligencePack')}</span>
-            <select className={inputClassName()} value={form.intelligence_pack_id} onChange={(e) => setForm((prev) => ({ ...prev, intelligence_pack_id: e.target.value }))}>
+            <select className="ui-select" value={form.intelligence_pack_id} onChange={(e) => setForm((prev) => ({ ...prev, intelligence_pack_id: e.target.value }))}>
               <option value="">{t('buyersIntelligencePackNone')}</option>
               {packs
                 .filter((pack) => pack.market_scope === 'buyer' || pack.market_scope === 'mixed')

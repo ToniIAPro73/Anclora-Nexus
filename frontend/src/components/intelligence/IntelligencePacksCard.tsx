@@ -290,7 +290,7 @@ export function IntelligencePacksCard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <label className="block">
                 <span className="kpi-label">{t('intelligencePacksMarketScope')}</span>
-                <select className={inputClassName()} value={form.market_scope} onChange={(e) => setForm((prev) => ({ ...prev, market_scope: e.target.value }))}>
+                <select className="ui-select" value={form.market_scope} onChange={(e) => setForm((prev) => ({ ...prev, market_scope: e.target.value }))}>
                   {['seller', 'buyer', 'mixed'].map((scope) => (
                     <option key={scope} value={scope}>
                       {t(`intelligencePackMarketScope_${scope}` as TranslationKey)}
@@ -300,7 +300,7 @@ export function IntelligencePacksCard() {
               </label>
               <label className="block">
                 <span className="kpi-label">{t('intelligencePacksSourceMode')}</span>
-                <select className={inputClassName()} value={form.source_mode} onChange={(e) => setForm((prev) => ({ ...prev, source_mode: e.target.value }))}>
+                <select className="ui-select" value={form.source_mode} onChange={(e) => setForm((prev) => ({ ...prev, source_mode: e.target.value }))}>
                   {['notebooklm_manual', 'live_sync_pack', 'imported_rag'].map((mode) => (
                     <option key={mode} value={mode}>
                       {t(`intelligencePackSourceMode_${mode}` as TranslationKey)}
@@ -310,7 +310,7 @@ export function IntelligencePacksCard() {
               </label>
               <label className="block">
                 <span className="kpi-label">{t('intelligencePacksLanguage')}</span>
-                <select className={inputClassName()} value={form.language_code} onChange={(e) => setForm((prev) => ({ ...prev, language_code: e.target.value }))}>
+                <select className="ui-select" value={form.language_code} onChange={(e) => setForm((prev) => ({ ...prev, language_code: e.target.value }))}>
                   {['es', 'en', 'de', 'ru'].map((code) => (
                     <option key={code} value={code}>{code.toUpperCase()}</option>
                   ))}

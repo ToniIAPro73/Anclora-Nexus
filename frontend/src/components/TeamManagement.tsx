@@ -185,7 +185,7 @@ export default function TeamManagement() {
               <select 
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as OrgRole)}
-                className="bg-navy-deep/50 border border-gold/20 rounded-xl px-4 h-12 text-sm text-soft-white focus:outline-none focus:border-gold/50 transition-all"
+                className="ui-select min-w-[220px]"
               >
                 <option value="manager">{t('teamRoleManager')}</option>
               </select>
@@ -314,7 +314,7 @@ export default function TeamManagement() {
                     onChange={(e) => handleRoleChange(member.id, e.target.value as OrgRole)}
                     disabled={isLastOwner}
                     title={isLastOwner ? t('teamLastOwnerLockedHint') : ''}
-                    className={`bg-navy-deep/80 border border-soft-subtle/10 rounded-lg px-3 py-1.5 text-xs text-soft-white focus:outline-none focus:border-gold/30 transition-all hover:bg-navy-surface ${
+                    className={`ui-select min-h-[2.25rem] px-3 py-1.5 text-xs hover:bg-navy-surface ${
                       isLastOwner ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
                     }`}
                   >

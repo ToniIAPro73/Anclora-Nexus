@@ -57,7 +57,7 @@ export function IngestionEventList({ events, loading, onViewDetails }: Props) {
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as IngestionStatus | 'all')}
-            className="bg-navy-surface/70 border border-soft-subtle text-soft-white text-xs rounded-lg px-3 py-1.5 focus:border-blue-light/50 outline-none transition-all cursor-pointer"
+            className="ui-select min-w-[180px] text-xs"
           >
             <option value="all">{t('allStatuses')}</option>
             <option value="processed">{t('ingested')}</option>
@@ -70,7 +70,7 @@ export function IngestionEventList({ events, loading, onViewDetails }: Props) {
           <select 
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as EntityType | 'all')}
-            className="bg-navy-surface/70 border border-soft-subtle text-soft-white text-xs rounded-lg px-3 py-1.5 focus:border-blue-light/50 outline-none transition-all cursor-pointer"
+            className="ui-select min-w-[180px] text-xs"
           >
             <option value="all">{t('viewAll')}</option>
             <option value="lead">{t('lead')}</option>

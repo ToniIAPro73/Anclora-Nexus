@@ -878,7 +878,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             <select
               value={formType}
               onChange={(e) => setFormType(e.target.value as InteractionType)}
-              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white outline-none"
+              className="ui-select"
             >
               {TYPE_OPTIONS.map((value) => (
                 <option key={value} value={value}>
@@ -889,7 +889,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
             <select
               value={formState}
               onChange={(e) => setFormState(e.target.value)}
-              className="rounded-lg border border-soft-subtle/40 bg-navy-surface/50 px-3 py-2 text-sm text-soft-white outline-none"
+              className="ui-select"
             >
               {STATE_OPTIONS.map((value) => (
                 <option key={value} value={value}>

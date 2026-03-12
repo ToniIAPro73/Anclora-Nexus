@@ -113,7 +113,7 @@ export default function PrivateAreaPartnerPage() {
                   <input className={inputClassName} placeholder={t('privateAreaPartnerFieldPhone')} value={form.phone} onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))} />
                   <input className={inputClassName} placeholder={t('privateAreaPartnerFieldCompany')} value={form.company_name} onChange={(e) => setForm((prev) => ({ ...prev, company_name: e.target.value }))} />
                 </div>
-                <select className={inputClassName} value={form.service_category} onChange={(e) => setForm((prev) => ({ ...prev, service_category: e.target.value as PartnerServiceCategory }))}>
+                <select className="ui-select" value={form.service_category} onChange={(e) => setForm((prev) => ({ ...prev, service_category: e.target.value as PartnerServiceCategory }))}>
                   {(['real_estate', 'professional', 'luxury', 'eco', 'other'] as const).map((item) => (
                     <option key={item} value={item}>{t(`partnerAdmissionsCategory_${item}`)}</option>
                   ))}

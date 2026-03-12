@@ -125,13 +125,13 @@ export default function PartnerAdmissionsPage() {
                 <Search className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-soft-muted" />
                 <input className={`${inputClassName} pl-11`} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('partnerAdmissionsSearchPlaceholder')} />
               </div>
-              <select className={inputClassName} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as PartnerAdmissionStatus | '')}>
+              <select className="ui-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as PartnerAdmissionStatus | '')}>
                 <option value="">{t('partnerAdmissionsFilterAllStatus')}</option>
                 {(['submitted', 'under_review', 'accepted', 'rejected'] as const).map((status) => (
                   <option key={status} value={status}>{t(`partnerAdmissionsStatus_${status}`)}</option>
                 ))}
               </select>
-              <select className={inputClassName} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as PartnerServiceCategory | '')}>
+              <select className="ui-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as PartnerServiceCategory | '')}>
                 <option value="">{t('partnerAdmissionsFilterAllCategories')}</option>
                 {(['real_estate', 'professional', 'luxury', 'eco', 'other'] as const).map((category) => (
                   <option key={category} value={category}>{t(`partnerAdmissionsCategory_${category}`)}</option>

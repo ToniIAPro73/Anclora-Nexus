@@ -152,7 +152,7 @@ export default function SettingsPage() {
                           <p className="text-soft-white font-bold mb-1">{t('timezoneSettings')}</p>
                           <p className="text-sm text-soft-muted">{t('timezoneDescription')}</p>
                         </div>
-                        <select className="bg-navy-deep border border-soft-subtle/30 rounded-xl px-4 py-2.5 text-sm text-soft-white focus:outline-none focus:border-gold/50 min-w-[200px]">
+                        <select className="ui-select min-w-[220px]">
                           <option>Europe/Madrid (GMT+1)</option>
                           <option>Europe/London (GMT+0)</option>
                           <option>America/New_York (GMT-5)</option>
@@ -371,4 +371,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-
