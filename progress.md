@@ -202,3 +202,17 @@
 - nueva migración `051_synergi_partner_network_management.sql`
 - la consola agrega buyer referrals y opportunities por partner
 - se pueden persistir tier, trust, flags buyer/seller, tags y notas estratégicas
+
+### ANCLORA-DLAB-001 cerrada
+
+- `Data Lab` deja de ser una pagina estatica y pasa a mostrar catalogo live cuando existe acceso autenticado
+- reutiliza `MTIP` y `Source Observatory` en vez de crear una capa paralela
+- `Private Estates` ajusta la entrada pública a `Data Lab` para comunicar mejor inteligencia reutilizable y acceso controlado
+
+### Validación ejecutada
+
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK
+- `npm run lint` en `Anclora-Private-Estates` OK
+- `npm run test` en `Anclora-Private-Estates` OK
+- `npm run build` en `Anclora-Private-Estates` OK

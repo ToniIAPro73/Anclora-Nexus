@@ -47,6 +47,11 @@ Estado: `Implemented`
 - `ANCLORA-MTIP-001 v1.0` Multi-Tenant Intelligence Packs
 - `ANCLORA-NBUY-001 v1.0` Nexus Buyers
 - `ANCLORA-BMCR-001 v1.0` Buyer Memory Contextual Recall
+- `ANCLORA-PAA-001 v1.0` Private Area Access Architecture
+- `ANCLORA-SPA-001 v1.0` Synergi Partner Admission
+- `ANCLORA-SPW-001 v1.0` Synergi Partner Workspace
+- `ANCLORA-BPNM-001 v1.0` Buyer Partner Network Management
+- `ANCLORA-DLAB-001 v1.0` Data Lab Portal
 
 Resultado funcional:
 

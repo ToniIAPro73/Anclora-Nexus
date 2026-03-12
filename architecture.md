@@ -3,9 +3,7 @@
 Documento marco de ecosistema:
 - `public/docs/nuevo-enfoque/Arquitectura-Ecosistema-Anclora-Group.md`
 
-Estado actualizado a `2026-03-11` tras cierre de `BL-001` a `BL-011`, backlog post-GO, `ANCLORA-MTIP-001` y primer bloque buyer-side.
-
-Actualizado a `2026-03-12` con `ANCLORA-PAA-001`, capa de acceso privado comun entre `Private Estates` y `Nexus`.
+Estado actualizado a `2026-03-12` con `ANCLORA-PAA-001`, `ANCLORA-SPA-001`, `ANCLORA-SPW-001`, `ANCLORA-BPNM-001` y `ANCLORA-DLAB-001`.
 
 ## 1. Perímetro productivo actual
 
