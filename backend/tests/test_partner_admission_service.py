@@ -58,6 +58,14 @@ def test_create_public_admission_normalizes_lists(monkeypatch) -> None:
     service = PartnerAdmissionService()
     store = {"partner_admissions": []}
     monkeypatch.setattr("backend.services.partner_admission_service.supabase_service.client", _MockClient(store))
+    monkeypatch.setattr(
+        "backend.services.partner_admission_service.captcha_verification_service.verify",
+        lambda **_kwargs: {"provider": "none", "verified": False, "required": False},
+    )
+    monkeypatch.setattr(
+        "backend.services.partner_admission_service.get_email_transport_summary",
+        lambda: {"native_email_enabled": False},
+    )
 
     result = asyncio.run(
         service.create_public_admission(
@@ -70,6 +78,7 @@ def test_create_public_admission_normalizes_lists(monkeypatch) -> None:
                 coverage_areas="mallorca, tramuntana",
                 languages="es,en",
                 sustainability_focus=True,
+                privacy_accepted=True,
             ),
         )
     )
@@ -78,6 +87,7 @@ def test_create_public_admission_normalizes_lists(monkeypatch) -> None:
     assert result["status"] == "submitted"
     assert result["coverage_areas"] == ["mallorca", "tramuntana"]
     assert result["languages"] == ["es", "en"]
+    assert result["confirmation_email"]["transport"] == "unavailable"
 
 
 def test_review_admission_updates_status(monkeypatch) -> None:
@@ -94,6 +104,10 @@ def test_review_admission_updates_status(monkeypatch) -> None:
         ]
     }
     monkeypatch.setattr("backend.services.partner_admission_service.supabase_service.client", _MockClient(store))
+    monkeypatch.setattr(
+        "backend.services.partner_admission_service.captcha_verification_service.verify",
+        lambda **_kwargs: {"provider": "none", "verified": False, "required": False},
+    )
 
     result = asyncio.run(
         service.review_admission(

@@ -71,6 +71,11 @@ export interface PublicPartnerAdmissionPayload {
   instagram_url?: string
   sustainability_focus: boolean
   sustainability_notes?: string
+  privacy_accepted: boolean
+  newsletter_opt_in: boolean
+  captcha_provider?: string
+  captcha_token?: string
+  submission_language?: string
   submission_source?: string
 }
 

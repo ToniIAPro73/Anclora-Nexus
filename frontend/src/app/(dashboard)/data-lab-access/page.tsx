@@ -26,7 +26,7 @@ export default function DataLabAccessPage() {
   const [profileFilter, setProfileFilter] = useState<DataLabProfileType | ''>('')
   const [search, setSearch] = useState('')
   const [reviewNotes, setReviewNotes] = useState('')
-  const [notifyApplicant, setNotifyApplicant] = useState(false)
+  const [notifyApplicant, setNotifyApplicant] = useState(true)
   const [accessTier, setAccessTier] = useState<DataLabAccessTier>('limited')
   const [approvedScope, setApprovedScope] = useState<DataLabScope>('market_brief')
   const [saving, setSaving] = useState(false)
@@ -49,7 +49,7 @@ export default function DataLabAccessPage() {
       setReviewNotes(active?.review_notes || '')
       setAccessTier((active?.workspace?.access_tier || 'limited') as DataLabAccessTier)
       setApprovedScope((active?.approved_scope || active?.requested_scope || 'market_brief') as DataLabScope)
-      setNotifyApplicant(false)
+      setNotifyApplicant(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('unknownError'))
       setItems([])
@@ -66,7 +66,7 @@ export default function DataLabAccessPage() {
     setReviewNotes(selected?.review_notes || '')
     setAccessTier((selected?.workspace?.access_tier || 'limited') as DataLabAccessTier)
     setApprovedScope((selected?.approved_scope || selected?.requested_scope || 'market_brief') as DataLabScope)
-    setNotifyApplicant(false)
+    setNotifyApplicant(true)
   }, [selected?.id, selected?.review_notes, selected?.workspace?.access_tier, selected?.approved_scope, selected?.requested_scope])
 
   async function applyReview(status: DataLabAccessStatus) {

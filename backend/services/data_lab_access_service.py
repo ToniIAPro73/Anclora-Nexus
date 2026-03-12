@@ -7,7 +7,12 @@ from urllib.parse import quote
 
 from backend.config import settings
 from backend.models.data_lab_access import DataLabAccessReview, PublicDataLabAccessRequestCreate
+from backend.services.captcha_verification_service import captcha_verification_service
 from backend.services.email_delivery_service import get_email_transport_summary, send_email_native
+from backend.services.external_portal_email_service import (
+    build_data_lab_review_email,
+    build_data_lab_submission_confirmation,
+)
 from backend.services.supabase_service import supabase_service
 
 
@@ -103,20 +108,52 @@ class DataLabAccessService:
         )
         return response.data[0] if response.data else None
 
-    async def create_public_request(self, org_id: str, payload: PublicDataLabAccessRequestCreate) -> Dict[str, Any]:
+    async def create_public_request(self, org_id: str, payload: PublicDataLabAccessRequestCreate, remote_ip: Optional[str] = None) -> Dict[str, Any]:
         now = self._now()
         data = payload.model_dump()
+        captcha_result = captcha_verification_service.verify(
+            provider=data.get("captcha_provider"),
+            token=data.get("captcha_token"),
+            remote_ip=remote_ip,
+        )
         record = {
-            **data,
+            **{key: value for key, value in data.items() if key != "captcha_token"},
             "org_id": org_id,
             "geography_focus": self._normalize_text_list(data.get("geography_focus")),
             "languages": self._normalize_text_list(data.get("languages")),
+            "captcha_verified_at": now if captcha_result["verified"] else None,
             "status": "submitted",
             "created_at": now,
             "updated_at": now,
         }
         response = supabase_service.client.table("data_lab_access_requests").insert(record).execute()
-        return response.data[0]
+        result = response.data[0]
+
+        transport = get_email_transport_summary()
+        confirmation = None
+        if transport["native_email_enabled"]:
+            mail = build_data_lab_submission_confirmation(
+                full_name=str(result.get("full_name") or "contact"),
+                language=str(result.get("submission_language") or "es"),
+            )
+            delivery = send_email_native(
+                to_email=str(result["email"]),
+                subject=mail["subject"],
+                body=mail["body"],
+            )
+            updated = (
+                supabase_service.client.table("data_lab_access_requests")
+                .update({"confirmation_email_sent_at": now, "updated_at": now})
+                .eq("org_id", org_id)
+                .eq("id", result["id"])
+                .execute()
+            )
+            result = updated.data[0] if updated.data else result
+            confirmation = {"transport": "smtp", "delivery": delivery}
+        else:
+            confirmation = {"transport": "unavailable"}
+        result["confirmation_email"] = confirmation
+        return result
 
     async def list_requests(
         self,
@@ -233,25 +270,6 @@ class DataLabAccessService:
         row["launch_url"] = self._build_launch_url(str(row["access_token"]))
         return row
 
-    def _build_notification(self, full_name: str, status: str, review_notes: Optional[str]) -> Dict[str, str]:
-        if status == "approved":
-            subject = "Anclora Data Lab · Access approved"
-            body = (
-                f"Hola {full_name},\n\n"
-                "Tu solicitud de acceso a Anclora Data Lab ha sido aprobada.\n"
-                f"Notas: {review_notes or 'Sin observaciones adicionales.'}\n\n"
-                "Equipo Anclora"
-            )
-        else:
-            subject = "Anclora Data Lab · Access reviewed"
-            body = (
-                f"Hola {full_name},\n\n"
-                "Hemos revisado tu solicitud para Anclora Data Lab y por ahora no avanzará a la siguiente fase.\n"
-                f"Notas: {review_notes or 'Gracias por tu interés en Anclora Data Lab.'}\n\n"
-                "Equipo Anclora"
-            )
-        return {"subject": subject, "body": body}
-
     async def review_request(
         self,
         *,
@@ -280,9 +298,13 @@ class DataLabAccessService:
         if payload.status.value == "approved":
             workspace = await self.ensure_workspace_for_approved_request(org_id, row, approved_scope, access_tier)
         if payload.notify_applicant and row.get("email"):
-            mail = self._build_notification(str(row.get("full_name") or "partner"), payload.status.value, payload.review_notes)
-            if workspace and workspace.get("launch_url"):
-                mail["body"] = f"{mail['body']}\n\nAcceso al workspace: {workspace['launch_url']}\n"
+            mail = build_data_lab_review_email(
+                full_name=str(row.get("full_name") or "contact"),
+                language=str(row.get("submission_language") or "es"),
+                approved=payload.status.value == "approved",
+                review_notes=payload.review_notes,
+                launch_url=workspace.get("launch_url") if workspace else None,
+            )
             transport = get_email_transport_summary()
             if transport["native_email_enabled"]:
                 delivery = send_email_native(

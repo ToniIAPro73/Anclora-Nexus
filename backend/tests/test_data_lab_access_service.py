@@ -58,6 +58,14 @@ def test_create_public_data_lab_request_normalizes_lists(monkeypatch) -> None:
     service = DataLabAccessService()
     store = {"data_lab_access_requests": []}
     monkeypatch.setattr("backend.services.data_lab_access_service.supabase_service.client", _MockClient(store))
+    monkeypatch.setattr(
+        "backend.services.data_lab_access_service.captcha_verification_service.verify",
+        lambda **_kwargs: {"provider": "none", "verified": False, "required": False},
+    )
+    monkeypatch.setattr(
+        "backend.services.data_lab_access_service.get_email_transport_summary",
+        lambda: {"native_email_enabled": False},
+    )
 
     result = asyncio.run(
         service.create_public_request(
@@ -70,6 +78,7 @@ def test_create_public_data_lab_request_normalizes_lists(monkeypatch) -> None:
                 intended_use="Necesito un resumen de zonas y señales para evaluar potencial de inversión.",
                 geography_focus="mallorca, tramuntana",
                 languages="es,en",
+                privacy_accepted=True,
             ),
         )
     )
@@ -78,6 +87,7 @@ def test_create_public_data_lab_request_normalizes_lists(monkeypatch) -> None:
     assert result["status"] == "submitted"
     assert result["geography_focus"] == ["mallorca", "tramuntana"]
     assert result["languages"] == ["es", "en"]
+    assert result["confirmation_email"]["transport"] == "unavailable"
 
 
 def test_review_data_lab_request_updates_status(monkeypatch) -> None:
@@ -96,6 +106,10 @@ def test_review_data_lab_request_updates_status(monkeypatch) -> None:
         "data_lab_access_workspaces": [],
     }
     monkeypatch.setattr("backend.services.data_lab_access_service.supabase_service.client", _MockClient(store))
+    monkeypatch.setattr(
+        "backend.services.data_lab_access_service.captcha_verification_service.verify",
+        lambda **_kwargs: {"provider": "none", "verified": False, "required": False},
+    )
 
     result = asyncio.run(
         service.review_request(

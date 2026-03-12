@@ -75,6 +75,12 @@ export function getPrivateEstatesPublicHref(language?: string | null): string {
   return url.toString()
 }
 
+export function getPrivateEstatesPrivacyHref(language?: string | null): string {
+  const url = new URL(getPrivateEstatesPublicHref(language))
+  url.pathname = "/legal/privacidad"
+  return url.toString()
+}
+
 export function resolvePortalEntryHref(portalKey: PrivatePortalKey, isAuthenticated: boolean): string {
   const portal = PRIVATE_AREA_PORTALS[portalKey]
   if (portalKey === 'agent') {

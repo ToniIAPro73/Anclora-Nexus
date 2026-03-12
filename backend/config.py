@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     SMTP_USE_TLS: bool = True
     SMTP_USE_SSL: bool = False
 
+    RECAPTCHA_SECRET_KEY: Optional[str] = None
+    RECAPTCHA_VERIFY_URL: str = "https://www.google.com/recaptcha/api/siteverify"
+
     # Legacy compatibility - deprecated
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None

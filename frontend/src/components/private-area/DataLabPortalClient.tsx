@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight, Database, Layers3, ShieldCheck, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { RecaptchaPanel } from '@/components/private-area/RecaptchaPanel'
 import { useI18n } from '@/lib/i18n'
 import { authFetch } from '@/lib/auth-fetch'
+import { getPrivateEstatesPrivacyHref } from '@/lib/private-area-access'
 import {
   createPublicDataLabAccessRequest,
   type DataLabProfileType,
@@ -44,7 +46,7 @@ type SourceOverviewResponse = {
 }
 
 export function DataLabPortalClient() {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const [mode, setMode] = useState<'loading' | 'guest' | 'authenticated'>('loading')
   const [packs, setPacks] = useState<IntelligencePack[]>([])
   const [activePack, setActivePack] = useState<IntelligencePack | null>(null)
@@ -64,7 +66,11 @@ export function DataLabPortalClient() {
     languages: '',
     website_url: '',
     notes: '',
+    newsletter_opt_in: false,
+    privacy_accepted: false,
   })
+  const [captchaToken, setCaptchaToken] = useState('')
+  const privacyHref = getPrivateEstatesPrivacyHref(language)
 
   useEffect(() => {
     let cancelled = false
@@ -115,6 +121,16 @@ export function DataLabPortalClient() {
     event.preventDefault()
     setRequestLoading(true)
     setRequestError(null)
+    if (!form.privacy_accepted) {
+      setRequestError(t('externalFormPrivacyRequired'))
+      setRequestLoading(false)
+      return
+    }
+    if ((process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY || process.env.NEXT_PUBLIC_RECAPTCHA_KEY) && !captchaToken) {
+      setRequestError(t('externalFormCaptchaRequired'))
+      setRequestLoading(false)
+      return
+    }
     try {
       await createPublicDataLabAccessRequest({
         full_name: form.full_name,
@@ -127,6 +143,11 @@ export function DataLabPortalClient() {
         languages: form.languages.split(',').map((item) => item.trim()).filter(Boolean),
         website_url: form.website_url || undefined,
         notes: form.notes || undefined,
+        privacy_accepted: form.privacy_accepted,
+        newsletter_opt_in: form.newsletter_opt_in,
+        captcha_provider: captchaToken ? 'recaptcha' : undefined,
+        captcha_token: captchaToken || undefined,
+        submission_language: language,
         submission_source: 'private_area_data_lab',
       })
       setRequestSuccess(true)
@@ -275,8 +296,22 @@ export function DataLabPortalClient() {
                     <input className="ui-input" placeholder={t('privateAreaDataLabFieldLanguages')} value={form.languages} onChange={(e) => setForm((prev) => ({ ...prev, languages: e.target.value }))} />
                   </div>
                   <textarea className="ui-textarea min-h-24" placeholder={t('privateAreaDataLabFieldNotes')} value={form.notes} onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} />
+                  <RecaptchaPanel token={captchaToken} onTokenChange={setCaptchaToken} />
+                  <label className="ui-checkbox-row">
+                    <input className="ui-checkbox" type="checkbox" checked={form.newsletter_opt_in} onChange={(e) => setForm((prev) => ({ ...prev, newsletter_opt_in: e.target.checked }))} />
+                    {t('externalFormNewsletterOptIn')}
+                  </label>
+                  <label className="ui-checkbox-row items-start">
+                    <input className="ui-checkbox mt-1" type="checkbox" checked={form.privacy_accepted} onChange={(e) => setForm((prev) => ({ ...prev, privacy_accepted: e.target.checked }))} />
+                    <span>
+                      {t('externalFormPrivacyAccepted')}{' '}
+                      <a href={privacyHref} target="_blank" rel="noreferrer" className="text-gold underline underline-offset-4">
+                        {t('externalFormPrivacyLinkLabel')}
+                      </a>
+                    </span>
+                  </label>
                   {requestError ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{requestError}</p> : null}
-                  <button type="submit" disabled={requestLoading} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
+                  <button type="submit" disabled={requestLoading || !form.privacy_accepted || (!!(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY || process.env.NEXT_PUBLIC_RECAPTCHA_KEY) && !captchaToken)} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
                     {requestLoading ? t('loading') : t('privateAreaDataLabPrimaryCta')}
                   </button>
                 </form>

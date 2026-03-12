@@ -27,7 +27,7 @@ export default function PartnerAdmissionsPage() {
   const [categoryFilter, setCategoryFilter] = useState<PartnerServiceCategory | ''>('')
   const [search, setSearch] = useState('')
   const [reviewNotes, setReviewNotes] = useState('')
-  const [notifyApplicant, setNotifyApplicant] = useState(false)
+  const [notifyApplicant, setNotifyApplicant] = useState(true)
   const [saving, setSaving] = useState(false)
 
   const selected = useMemo(() => items.find((item) => item.id === selectedId) ?? null, [items, selectedId])
@@ -46,7 +46,7 @@ export default function PartnerAdmissionsPage() {
       setSelectedId(nextSelected)
       const active = itemsPayload.items.find((item) => item.id === nextSelected)
       setReviewNotes(active?.review_notes || '')
-      setNotifyApplicant(false)
+      setNotifyApplicant(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('unknownError'))
       setItems([])
@@ -61,7 +61,7 @@ export default function PartnerAdmissionsPage() {
 
   useEffect(() => {
     setReviewNotes(selected?.review_notes || '')
-    setNotifyApplicant(false)
+    setNotifyApplicant(true)
   }, [selected?.id, selected?.review_notes])
 
   async function applyReview(status: PartnerAdmissionStatus) {

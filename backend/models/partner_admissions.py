@@ -36,6 +36,11 @@ class PublicPartnerAdmissionCreate(BaseModel):
     instagram_url: Optional[str] = Field(default=None, max_length=500)
     sustainability_focus: bool = False
     sustainability_notes: Optional[str] = Field(default=None, max_length=1200)
+    privacy_accepted: bool = False
+    newsletter_opt_in: bool = False
+    captcha_provider: Optional[str] = Field(default=None, max_length=32)
+    captcha_token: Optional[str] = Field(default=None, max_length=4096)
+    submission_language: str = Field(default="es", max_length=8)
     submission_source: str = Field(default="private_estates")
 
     @field_validator("coverage_areas", "languages", mode="before")
@@ -47,6 +52,13 @@ class PublicPartnerAdmissionCreate(BaseModel):
             return [item.strip() for item in value.split(",") if item.strip()]
         if isinstance(value, list):
             return [str(item).strip() for item in value if str(item).strip()]
+        return value
+
+    @field_validator("privacy_accepted")
+    @classmethod
+    def require_privacy_acceptance(cls, value: bool) -> bool:
+        if value is not True:
+            raise ValueError("Privacy policy must be accepted")
         return value
 
 
@@ -73,6 +85,12 @@ class PartnerAdmissionResponse(BaseModel):
     instagram_url: Optional[str] = None
     sustainability_focus: bool = False
     sustainability_notes: Optional[str] = None
+    privacy_accepted: bool = False
+    newsletter_opt_in: bool = False
+    captcha_provider: Optional[str] = None
+    captcha_verified_at: Optional[datetime] = None
+    confirmation_email_sent_at: Optional[datetime] = None
+    submission_language: str
     submission_source: str
     status: PartnerAdmissionStatus
     review_notes: Optional[str] = None

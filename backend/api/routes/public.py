@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from typing import Any, Dict
 from backend.agents.graph import agent_executor
 from backend.config import settings
@@ -12,16 +12,18 @@ from backend.models.partner_workspaces import (
 from backend.services.data_lab_access_service import data_lab_access_service
 from backend.services.partner_admission_service import partner_admission_service
 from backend.services.partner_workspace_service import partner_workspace_service
+from backend.services.captcha_verification_service import CaptchaVerificationError
 
 router = APIRouter()
 
 
 @router.post("/partner-admissions", status_code=status.HTTP_201_CREATED)
-async def create_public_partner_admission(data: PublicPartnerAdmissionCreate):
+async def create_public_partner_admission(data: PublicPartnerAdmissionCreate, request: Request):
     try:
         result = await partner_admission_service.create_public_admission(
             settings.PUBLIC_CTA_ORG_ID,
             data,
+            request.client.host if request.client else None,
         )
         return {
             "status": "submitted",
@@ -30,16 +32,19 @@ async def create_public_partner_admission(data: PublicPartnerAdmissionCreate):
         }
     except HTTPException:
         raise
+    except CaptchaVerificationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/data-lab-access-requests", status_code=status.HTTP_201_CREATED)
-async def create_public_data_lab_access_request(data: PublicDataLabAccessRequestCreate):
+async def create_public_data_lab_access_request(data: PublicDataLabAccessRequestCreate, request: Request):
     try:
         result = await data_lab_access_service.create_public_request(
             settings.PUBLIC_CTA_ORG_ID,
             data,
+            request.client.host if request.client else None,
         )
         return {
             "status": "submitted",
@@ -48,6 +53,8 @@ async def create_public_data_lab_access_request(data: PublicDataLabAccessRequest
         }
     except HTTPException:
         raise
+    except CaptchaVerificationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

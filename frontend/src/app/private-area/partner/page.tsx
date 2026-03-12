@@ -3,15 +3,17 @@
 import { useState, type FormEvent } from 'react'
 import { ClipboardList, Mail, ShieldCheck, TimerReset } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { RecaptchaPanel } from '@/components/private-area/RecaptchaPanel'
 import { PrivateAreaShell } from '@/components/private-area/PrivateAreaShell'
 import { useI18n } from '@/lib/i18n'
+import { getPrivateEstatesPrivacyHref } from '@/lib/private-area-access'
 import { createPublicPartnerAdmission, type PartnerServiceCategory } from '@/lib/partner-admissions-api'
 
 const inputClassName = 'ui-input'
 const textareaClassName = 'ui-textarea'
 
 export default function PrivateAreaPartnerPage() {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const [form, setForm] = useState({
     full_name: '',
     email: '',
@@ -27,15 +29,30 @@ export default function PrivateAreaPartnerPage() {
     instagram_url: '',
     sustainability_focus: false,
     sustainability_notes: '',
+    newsletter_opt_in: false,
+    privacy_accepted: false,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState('')
+
+  const privacyHref = getPrivateEstatesPrivacyHref(language)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setError(null)
+    if (!form.privacy_accepted) {
+      setError(t('externalFormPrivacyRequired'))
+      setLoading(false)
+      return
+    }
+    if ((process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY || process.env.NEXT_PUBLIC_RECAPTCHA_KEY) && !captchaToken) {
+      setError(t('externalFormCaptchaRequired'))
+      setLoading(false)
+      return
+    }
     try {
       await createPublicPartnerAdmission({
         full_name: form.full_name,
@@ -52,6 +69,11 @@ export default function PrivateAreaPartnerPage() {
         instagram_url: form.instagram_url || undefined,
         sustainability_focus: form.sustainability_focus,
         sustainability_notes: form.sustainability_notes || undefined,
+        privacy_accepted: form.privacy_accepted,
+        newsletter_opt_in: form.newsletter_opt_in,
+        captcha_provider: captchaToken ? 'recaptcha' : undefined,
+        captcha_token: captchaToken || undefined,
+        submission_language: language,
         submission_source: 'private_estates',
       })
       setSubmitted(true)
@@ -136,8 +158,22 @@ export default function PrivateAreaPartnerPage() {
                 {form.sustainability_focus ? (
                   <textarea className={`${textareaClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldSustainabilityNotes')} value={form.sustainability_notes} onChange={(e) => setForm((prev) => ({ ...prev, sustainability_notes: e.target.value }))} />
                 ) : null}
+                <RecaptchaPanel token={captchaToken} onTokenChange={setCaptchaToken} />
+                <label className="ui-checkbox-row">
+                  <input className="ui-checkbox" type="checkbox" checked={form.newsletter_opt_in} onChange={(e) => setForm((prev) => ({ ...prev, newsletter_opt_in: e.target.checked }))} />
+                  {t('externalFormNewsletterOptIn')}
+                </label>
+                <label className="ui-checkbox-row items-start">
+                  <input className="ui-checkbox mt-1" type="checkbox" checked={form.privacy_accepted} onChange={(e) => setForm((prev) => ({ ...prev, privacy_accepted: e.target.checked }))} />
+                  <span>
+                    {t('externalFormPrivacyAccepted')}{' '}
+                    <a href={privacyHref} target="_blank" rel="noreferrer" className="text-gold underline underline-offset-4">
+                      {t('externalFormPrivacyLinkLabel')}
+                    </a>
+                  </span>
+                </label>
                 {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
-                <button type="submit" disabled={loading} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
+                <button type="submit" disabled={loading || !form.privacy_accepted || (!!(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY || process.env.NEXT_PUBLIC_RECAPTCHA_KEY) && !captchaToken)} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
                   {loading ? t('privateAreaPartnerSubmitting') : t('privateAreaPartnerPrimaryCta')}
                 </button>
               </form>

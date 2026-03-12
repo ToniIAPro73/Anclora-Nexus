@@ -5,7 +5,12 @@ from typing import Any, Dict, Optional
 from urllib.parse import quote
 
 from backend.models.partner_admissions import PartnerAdmissionReview, PublicPartnerAdmissionCreate
+from backend.services.captcha_verification_service import captcha_verification_service
 from backend.services.email_delivery_service import get_email_transport_summary, send_email_native
+from backend.services.external_portal_email_service import (
+    build_partner_review_email,
+    build_partner_submission_confirmation,
+)
 from backend.services.partner_workspace_service import partner_workspace_service
 from backend.services.supabase_service import supabase_service
 
@@ -20,20 +25,52 @@ class PartnerAdmissionService:
             return [str(item).strip() for item in value if str(item).strip()]
         return []
 
-    async def create_public_admission(self, org_id: str, payload: PublicPartnerAdmissionCreate) -> Dict[str, Any]:
+    async def create_public_admission(self, org_id: str, payload: PublicPartnerAdmissionCreate, remote_ip: Optional[str] = None) -> Dict[str, Any]:
         now = datetime.now(timezone.utc).isoformat()
         data = payload.model_dump()
+        captcha_result = captcha_verification_service.verify(
+            provider=data.get("captcha_provider"),
+            token=data.get("captcha_token"),
+            remote_ip=remote_ip,
+        )
         record = {
-            **data,
+            **{key: value for key, value in data.items() if key != "captcha_token"},
             "org_id": org_id,
             "coverage_areas": self._normalize_text_list(data.get("coverage_areas")),
             "languages": self._normalize_text_list(data.get("languages")),
+            "captcha_verified_at": now if captcha_result["verified"] else None,
             "status": "submitted",
             "created_at": now,
             "updated_at": now,
         }
         response = supabase_service.client.table("partner_admissions").insert(record).execute()
-        return response.data[0]
+        result = response.data[0]
+
+        transport = get_email_transport_summary()
+        confirmation = None
+        if transport["native_email_enabled"]:
+            mail = build_partner_submission_confirmation(
+                full_name=str(result.get("full_name") or "partner"),
+                language=str(result.get("submission_language") or "es"),
+            )
+            delivery = send_email_native(
+                to_email=str(result["email"]),
+                subject=mail["subject"],
+                body=mail["body"],
+            )
+            updated = (
+                supabase_service.client.table("partner_admissions")
+                .update({"confirmation_email_sent_at": now, "updated_at": now})
+                .eq("org_id", org_id)
+                .eq("id", result["id"])
+                .execute()
+            )
+            result = updated.data[0] if updated.data else result
+            confirmation = {"transport": "smtp", "delivery": delivery}
+        else:
+            confirmation = {"transport": "unavailable"}
+        result["confirmation_email"] = confirmation
+        return result
 
     async def list_admissions(
         self,
@@ -140,26 +177,6 @@ class PartnerAdmissionService:
                 summary["eco_focus"] += 1
         return summary
 
-    def _build_notification(self, full_name: str, status: str, review_notes: Optional[str]) -> Dict[str, str]:
-        if status == "accepted":
-            subject = "Anclora Synergi · Partner admission approved"
-            body = (
-                f"Hola {full_name},\n\n"
-                "Tu solicitud para entrar en la red Synergi de Anclora ha sido aprobada.\n"
-                "En el siguiente bloque recibirás el acceso operativo al workspace de partner.\n\n"
-                f"Notas: {review_notes or 'Sin observaciones adicionales.'}\n\n"
-                "Equipo Anclora"
-            )
-        else:
-            subject = "Anclora Synergi · Partner admission reviewed"
-            body = (
-                f"Hola {full_name},\n\n"
-                "Hemos revisado tu solicitud para la red Synergi de Anclora y por ahora no avanzará a la siguiente fase.\n"
-                f"Notas: {review_notes or 'Gracias por tu interés en Anclora.'}\n\n"
-                "Equipo Anclora"
-            )
-        return {"subject": subject, "body": body}
-
     async def review_admission(
         self,
         *,
@@ -197,16 +214,13 @@ class PartnerAdmissionService:
             except Exception:
                 workspace = None
         if payload.notify_applicant and row.get("email"):
-            mail = self._build_notification(
+            mail = build_partner_review_email(
                 full_name=str(row.get("full_name") or "partner"),
-                status=payload.status.value,
+                language=str(row.get("submission_language") or "es"),
+                accepted=payload.status.value == "accepted",
                 review_notes=payload.review_notes,
+                launch_url=workspace.get("launch_url") if workspace else None,
             )
-            if workspace and workspace.get("launch_url"):
-                mail["body"] = (
-                    f"{mail['body']}\n\n"
-                    f"Acceso al workspace: {workspace['launch_url']}\n"
-                )
             transport = get_email_transport_summary()
             if transport["native_email_enabled"]:
                 delivery = send_email_native(

@@ -50,6 +50,11 @@ class PublicDataLabAccessRequestCreate(BaseModel):
     languages: List[str] = Field(default_factory=list)
     website_url: Optional[str] = Field(default=None, max_length=500)
     notes: Optional[str] = Field(default=None, max_length=1500)
+    privacy_accepted: bool = False
+    newsletter_opt_in: bool = False
+    captcha_provider: Optional[str] = Field(default=None, max_length=32)
+    captcha_token: Optional[str] = Field(default=None, max_length=4096)
+    submission_language: str = Field(default="es", max_length=8)
     submission_source: str = Field(default="private_estates")
 
     @field_validator("geography_focus", "languages", mode="before")
@@ -61,6 +66,13 @@ class PublicDataLabAccessRequestCreate(BaseModel):
             return [item.strip() for item in value.split(",") if item.strip()]
         if isinstance(value, list):
             return [str(item).strip() for item in value if str(item).strip()]
+        return value
+
+    @field_validator("privacy_accepted")
+    @classmethod
+    def require_privacy_acceptance(cls, value: bool) -> bool:
+        if value is not True:
+            raise ValueError("Privacy policy must be accepted")
         return value
 
 
@@ -108,4 +120,3 @@ class DataLabWorkspaceResponse(BaseModel):
     resources: List[DataLabWorkspaceResource] = Field(default_factory=list)
     packs: List[DataLabPackSummary] = Field(default_factory=list)
     last_seen_at: Optional[datetime] = None
-

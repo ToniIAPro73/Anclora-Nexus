@@ -91,6 +91,11 @@ export async function createPublicDataLabAccessRequest(payload: {
   languages: string[]
   website_url?: string
   notes?: string
+  privacy_accepted: boolean
+  newsletter_opt_in: boolean
+  captcha_provider?: string
+  captcha_token?: string
+  submission_language?: string
   submission_source?: string
 }): Promise<{ status: string; request_id: string }> {
   const response = await fetch(buildBackendUrl('/api/public/data-lab-access-requests'), {
