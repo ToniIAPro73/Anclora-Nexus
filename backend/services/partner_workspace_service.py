@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from backend.config import settings
-from backend.models.partner_workspaces import PublicPartnerOpportunityCreate
+from backend.models.partner_workspaces import PublicPartnerOpportunityCreate, PublicPartnerWorkspaceProfileUpdate
 from backend.services.supabase_service import supabase_service
 
 
@@ -104,11 +104,45 @@ class PartnerWorkspaceService:
         )
         return response.data or []
 
+    def _list_workspace_activity(self, workspace_id: str) -> list[dict[str, Any]]:
+        response = (
+            supabase_service.client.table("synergi_partner_activity")
+            .select("*")
+            .eq("workspace_id", workspace_id)
+            .order("created_at", desc=True)
+            .limit(12)
+            .execute()
+        )
+        return response.data or []
+
+    def _append_activity(
+        self,
+        *,
+        org_id: str,
+        workspace_id: str,
+        event_type: str,
+        title: str,
+        description: Optional[str] = None,
+        related_opportunity_id: Optional[str] = None,
+    ) -> None:
+        supabase_service.client.table("synergi_partner_activity").insert(
+            {
+                "org_id": org_id,
+                "workspace_id": workspace_id,
+                "event_type": event_type,
+                "title": title,
+                "description": description,
+                "related_opportunity_id": related_opportunity_id,
+                "created_at": self._now(),
+            }
+        ).execute()
+
     def _serialize_workspace(
         self,
         workspace: Dict[str, Any],
         admission: Dict[str, Any],
         opportunities: Optional[List[Dict[str, Any]]] = None,
+        activity: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         return {
             "id": workspace.get("id"),
@@ -125,9 +159,15 @@ class PartnerWorkspaceService:
             "partner_tier": workspace.get("partner_tier"),
             "headline": workspace.get("headline") or self._default_headline(admission),
             "collaboration_focus": self._normalize_text_list(workspace.get("collaboration_focus")),
+            "preferred_opportunity_types": self._normalize_text_list(workspace.get("preferred_opportunity_types")),
+            "priority_zones": self._normalize_text_list(workspace.get("priority_zones")),
+            "contact_preferences": self._normalize_text_list(workspace.get("contact_preferences")),
+            "response_commitment_hours": workspace.get("response_commitment_hours"),
+            "profile_notes": workspace.get("profile_notes"),
             "next_steps": self._normalize_text_list(workspace.get("next_steps")),
             "resources": workspace.get("resources") or [],
             "opportunities": opportunities or [],
+            "activity": activity or [],
             "last_seen_at": workspace.get("last_seen_at"),
         }
 
@@ -149,6 +189,9 @@ class PartnerWorkspaceService:
             "partner_tier": "approved",
             "headline": self._default_headline(admission),
             "collaboration_focus": self._default_collaboration_focus(admission),
+            "preferred_opportunity_types": [],
+            "priority_zones": self._normalize_text_list(admission.get("coverage_areas")),
+            "contact_preferences": ["email"],
             "next_steps": self._default_next_steps(admission),
             "resources": self._default_resources(admission),
             "created_at": now,
@@ -176,11 +219,19 @@ class PartnerWorkspaceService:
             return None
 
         opportunities = self._list_workspace_opportunities(str(workspace["id"]))
+        activity = self._list_workspace_activity(str(workspace["id"]))
         now = self._now()
         update_payload: Dict[str, Any] = {"last_seen_at": now, "updated_at": now}
         if workspace.get("workspace_status") == "invited":
             update_payload["workspace_status"] = "active"
             workspace["workspace_status"] = "active"
+            self._append_activity(
+                org_id=str(workspace["org_id"]),
+                workspace_id=str(workspace["id"]),
+                event_type="workspace_activated",
+                title="Workspace activated",
+                description="Primer acceso operativo al workspace Synergi.",
+            )
         workspace["last_seen_at"] = now
         (
             supabase_service.client.table("synergi_partner_workspaces")
@@ -188,7 +239,7 @@ class PartnerWorkspaceService:
             .eq("id", workspace["id"])
             .execute()
         )
-        return self._serialize_workspace(workspace, admission, opportunities)
+        return self._serialize_workspace(workspace, admission, opportunities, activity)
 
     async def create_opportunity_from_token(self, payload: PublicPartnerOpportunityCreate) -> Optional[Dict[str, Any]]:
         workspace_response = (
@@ -217,7 +268,56 @@ class PartnerWorkspaceService:
             "updated_at": now,
         }
         response = supabase_service.client.table("synergi_partner_opportunities").insert(record).execute()
-        return response.data[0] if response.data else None
+        created = response.data[0] if response.data else None
+        if created:
+            self._append_activity(
+                org_id=str(workspace["org_id"]),
+                workspace_id=str(workspace["id"]),
+                event_type="opportunity_submitted",
+                title="Opportunity submitted",
+                description=payload.title,
+                related_opportunity_id=str(created.get("id")),
+            )
+        return created
+
+    async def update_profile_from_token(self, payload: PublicPartnerWorkspaceProfileUpdate) -> Optional[Dict[str, Any]]:
+        workspace_response = (
+            supabase_service.client.table("synergi_partner_workspaces")
+            .select("*")
+            .eq("access_token", payload.token)
+            .limit(1)
+            .execute()
+        )
+        workspace = workspace_response.data[0] if workspace_response.data else None
+        if not workspace:
+            return None
+
+        now = self._now()
+        update_payload = {
+            "preferred_opportunity_types": [item.value for item in payload.preferred_opportunity_types],
+            "priority_zones": self._normalize_text_list(payload.priority_zones),
+            "contact_preferences": self._normalize_text_list(payload.contact_preferences),
+            "response_commitment_hours": payload.response_commitment_hours,
+            "profile_notes": payload.profile_notes,
+            "last_profile_update_at": now,
+            "updated_at": now,
+        }
+        updated = (
+            supabase_service.client.table("synergi_partner_workspaces")
+            .update(update_payload)
+            .eq("id", workspace["id"])
+            .execute()
+        )
+        row = updated.data[0] if updated.data else None
+        if row:
+            self._append_activity(
+                org_id=str(workspace["org_id"]),
+                workspace_id=str(workspace["id"]),
+                event_type="profile_updated",
+                title="Profile updated",
+                description="Se actualizaron preferencias operativas del partner.",
+            )
+        return row
 
     async def get_internal_workspace_for_admission(self, org_id: str, admission_id: str) -> Optional[Dict[str, Any]]:
         workspace = self._get_workspace_by_admission_id(org_id, admission_id)

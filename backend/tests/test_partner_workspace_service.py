@@ -1,6 +1,6 @@
 import asyncio
 
-from backend.models.partner_workspaces import PublicPartnerOpportunityCreate
+from backend.models.partner_workspaces import PublicPartnerOpportunityCreate, PublicPartnerWorkspaceProfileUpdate
 from backend.services.partner_workspace_service import PartnerWorkspaceService
 
 
@@ -56,7 +56,7 @@ class _MockClient:
 
 def test_ensure_workspace_for_accepted_admission(monkeypatch) -> None:
     service = PartnerWorkspaceService()
-    store = {"partner_admissions": []}
+    store = {"partner_admissions": [], "synergi_partner_activity": []}
     monkeypatch.setattr("backend.services.partner_workspace_service.supabase_service.client", _MockClient(store))
     monkeypatch.setattr("backend.services.partner_workspace_service.secrets.token_urlsafe", lambda _n: "token-123")
     monkeypatch.setattr("backend.services.partner_workspace_service.settings.APP_BASE_URL", "https://anclora.example")
@@ -121,6 +121,7 @@ def test_get_workspace_by_token_returns_opportunities(monkeypatch) -> None:
                 "created_at": "2026-03-12T00:00:00+00:00",
             }
         ],
+        "synergi_partner_activity": [],
     }
     monkeypatch.setattr("backend.services.partner_workspace_service.supabase_service.client", _MockClient(store))
 
@@ -142,7 +143,8 @@ def test_create_opportunity_from_token(monkeypatch) -> None:
                     "admission_id": "adm-1",
                     "access_token": "token-123456789012",
                 }
-            ]
+            ],
+        "synergi_partner_activity": [],
         }
     monkeypatch.setattr("backend.services.partner_workspace_service.supabase_service.client", _MockClient(store))
 
@@ -161,3 +163,38 @@ def test_create_opportunity_from_token(monkeypatch) -> None:
     assert result is not None
     assert result["workspace_id"] == "ws-1"
     assert store["synergi_partner_opportunities"][0]["opportunity_type"] == "service_offer"
+    assert store["synergi_partner_activity"][0]["event_type"] == "opportunity_submitted"
+
+
+def test_update_profile_from_token(monkeypatch) -> None:
+    service = PartnerWorkspaceService()
+    store = {
+        "synergi_partner_workspaces": [
+            {
+                "id": "ws-1",
+                "org_id": "org-1",
+                "admission_id": "adm-1",
+                "access_token": "token-123456789012",
+            }
+        ],
+        "synergi_partner_activity": [],
+    }
+    monkeypatch.setattr("backend.services.partner_workspace_service.supabase_service.client", _MockClient(store))
+
+    result = asyncio.run(
+        service.update_profile_from_token(
+            PublicPartnerWorkspaceProfileUpdate(
+                token="token-123456789012",
+                preferred_opportunity_types=["buyer_referral", "service_offer"],
+                priority_zones=["mallorca", "tramuntana"],
+                contact_preferences=["email", "whatsapp"],
+                response_commitment_hours=24,
+                profile_notes="Priorizamos referrals de buyers internacionales.",
+            )
+        )
+    )
+
+    assert result is not None
+    assert result["response_commitment_hours"] == 24
+    assert "buyer_referral" in result["preferred_opportunity_types"]
+    assert store["synergi_partner_activity"][0]["event_type"] == "profile_updated"

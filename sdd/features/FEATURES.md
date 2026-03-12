@@ -50,6 +50,7 @@ Estado: `Implemented`
 - `ANCLORA-PAA-001 v1.0` Private Area Access Architecture
 - `ANCLORA-SPA-001 v1.0` Synergi Partner Admission
 - `ANCLORA-SPW-001 v1.0` Synergi Partner Workspace
+- `ANCLORA-SPW-002 v1.0` Synergi Partner Workspace v2
 - `ANCLORA-BPNM-001 v1.0` Buyer Partner Network Management
 - `ANCLORA-DLAB-001 v1.0` Data Lab Portal
 - `ANCLORA-DLAB-002 v1.0` Data Lab Selective Access

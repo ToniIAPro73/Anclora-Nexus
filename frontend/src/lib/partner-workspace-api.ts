@@ -26,6 +26,15 @@ export interface PartnerWorkspaceOpportunity {
   created_at: string
 }
 
+export interface PartnerWorkspaceActivity {
+  id: string
+  event_type: string
+  title: string
+  description: string | null
+  related_opportunity_id: string | null
+  created_at: string
+}
+
 export interface PartnerWorkspacePayload {
   id: string
   admission_id: string
@@ -41,9 +50,15 @@ export interface PartnerWorkspacePayload {
   partner_tier: PartnerTier
   headline: string
   collaboration_focus: string[]
+  preferred_opportunity_types: PartnerOpportunityType[]
+  priority_zones: string[]
+  contact_preferences: string[]
+  response_commitment_hours: number | null
+  profile_notes: string | null
   next_steps: string[]
   resources: PartnerWorkspaceResource[]
   opportunities: PartnerWorkspaceOpportunity[]
+  activity: PartnerWorkspaceActivity[]
   last_seen_at: string | null
 }
 
@@ -67,6 +82,26 @@ export async function submitPartnerWorkspaceOpportunity(payload: {
 }): Promise<{ status: string; opportunity_id: string }> {
   const response = await fetch(buildBackendUrl('/api/public/partner-workspace/opportunities'), {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: response.statusText }))
+    throw new Error(error.detail || `API Error: ${response.status}`)
+  }
+  return response.json()
+}
+
+export async function updatePartnerWorkspaceProfile(payload: {
+  token: string
+  preferred_opportunity_types: PartnerOpportunityType[]
+  priority_zones: string[]
+  contact_preferences: string[]
+  response_commitment_hours?: number
+  profile_notes?: string
+}): Promise<{ status: string; workspace_id: string }> {
+  const response = await fetch(buildBackendUrl('/api/public/partner-workspace/profile'), {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })

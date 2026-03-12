@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/i18n'
 import {
   fetchPartnerWorkspace,
   submitPartnerWorkspaceOpportunity,
+  updatePartnerWorkspaceProfile,
   type PartnerOpportunityType,
   type PartnerWorkspacePayload,
 } from '@/lib/partner-workspace-api'
@@ -22,6 +23,7 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [profileSaving, setProfileSaving] = useState(false)
   const [form, setForm] = useState({
     title: '',
     opportunity_type: 'collaboration_request' as PartnerOpportunityType,
@@ -29,6 +31,13 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
     target_zone: '',
     budget_range: '',
     next_step: '',
+  })
+  const [profileForm, setProfileForm] = useState({
+    preferred_opportunity_types: [] as PartnerOpportunityType[],
+    priority_zones: '',
+    contact_preferences: '',
+    response_commitment_hours: '',
+    profile_notes: '',
   })
 
   const loadWorkspace = useCallback(async () => {
@@ -42,6 +51,13 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
     try {
       const payload = await fetchPartnerWorkspace(token)
       setWorkspace(payload)
+      setProfileForm({
+        preferred_opportunity_types: payload.preferred_opportunity_types || [],
+        priority_zones: (payload.priority_zones || []).join(', '),
+        contact_preferences: (payload.contact_preferences || []).join(', '),
+        response_commitment_hours: payload.response_commitment_hours ? String(payload.response_commitment_hours) : '',
+        profile_notes: payload.profile_notes || '',
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : t('unknownError'))
     } finally {
@@ -83,6 +99,30 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
       setError(err instanceof Error ? err.message : t('unknownError'))
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!token) return
+    setProfileSaving(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      await updatePartnerWorkspaceProfile({
+        token,
+        preferred_opportunity_types: profileForm.preferred_opportunity_types,
+        priority_zones: profileForm.priority_zones.split(',').map((item) => item.trim()).filter(Boolean),
+        contact_preferences: profileForm.contact_preferences.split(',').map((item) => item.trim()).filter(Boolean),
+        response_commitment_hours: profileForm.response_commitment_hours ? Number(profileForm.response_commitment_hours) : undefined,
+        profile_notes: profileForm.profile_notes || undefined,
+      })
+      setSuccess(t('partnerWorkspaceProfileSaved'))
+      await loadWorkspace()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('unknownError'))
+    } finally {
+      setProfileSaving(false)
     }
   }
 
@@ -164,6 +204,54 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
 
             <Card className="surface-primary border-soft-subtle/15 bg-navy-deep/50">
               <CardHeader>
+                <CardTitle className="text-soft-white">{t('partnerWorkspaceProfileTitle')}</CardTitle>
+                <CardDescription className="text-soft-muted">{t('partnerWorkspaceProfileSubtitle')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-3" onSubmit={handleProfileSubmit}>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+                      <p className="kpi-label">{t('partnerWorkspacePreferredTypes')}</p>
+                      <div className="mt-3 grid gap-2">
+                        {(['buyer_referral', 'seller_referral', 'service_offer', 'collaboration_request'] as const).map((item) => {
+                          const active = profileForm.preferred_opportunity_types.includes(item)
+                          return (
+                            <label key={item} className="ui-checkbox-row border-soft-subtle/10 bg-navy-surface/20 text-sm">
+                              <input
+                                className="ui-checkbox"
+                                type="checkbox"
+                                checked={active}
+                                onChange={(e) =>
+                                  setProfileForm((prev) => ({
+                                    ...prev,
+                                    preferred_opportunity_types: e.target.checked
+                                      ? [...prev.preferred_opportunity_types, item]
+                                      : prev.preferred_opportunity_types.filter((value) => value !== item),
+                                  }))
+                                }
+                              />
+                              {t(`partnerWorkspaceOpportunityType_${item}` as never)}
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <input className={inputClassName} placeholder={t('partnerWorkspaceFieldPriorityZones')} value={profileForm.priority_zones} onChange={(e) => setProfileForm((prev) => ({ ...prev, priority_zones: e.target.value }))} />
+                      <input className={inputClassName} placeholder={t('partnerWorkspaceFieldContactPreferences')} value={profileForm.contact_preferences} onChange={(e) => setProfileForm((prev) => ({ ...prev, contact_preferences: e.target.value }))} />
+                      <input className={inputClassName} type="number" min={1} max={168} placeholder={t('partnerWorkspaceFieldResponseCommitment')} value={profileForm.response_commitment_hours} onChange={(e) => setProfileForm((prev) => ({ ...prev, response_commitment_hours: e.target.value }))} />
+                    </div>
+                  </div>
+                  <textarea className={`${textareaClassName} min-h-24`} placeholder={t('partnerWorkspaceFieldProfileNotes')} value={profileForm.profile_notes} onChange={(e) => setProfileForm((prev) => ({ ...prev, profile_notes: e.target.value }))} />
+                  <button type="submit" disabled={profileSaving} className="inline-flex w-full items-center justify-center rounded-full border border-blue-light/30 bg-blue-light/10 px-5 py-3 text-sm font-semibold text-blue-light transition hover:brightness-110 disabled:opacity-70">
+                    {profileSaving ? t('loading') : t('partnerWorkspaceSaveProfile')}
+                  </button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card className="surface-primary border-soft-subtle/15 bg-navy-deep/50">
+              <CardHeader>
                 <CardTitle className="text-soft-white">{t('partnerWorkspaceOpportunitiesTitle')}</CardTitle>
                 <CardDescription className="text-soft-muted">{t('partnerWorkspaceOpportunitiesSubtitle')}</CardDescription>
               </CardHeader>
@@ -204,6 +292,30 @@ export function PartnerWorkspaceClient({ token }: { token: string }) {
                     {step}
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+
+            <Card className="surface-primary border-soft-subtle/15 bg-navy-deep/50">
+              <CardHeader>
+                <CardTitle className="text-soft-white">{t('partnerWorkspaceActivityTitle')}</CardTitle>
+                <CardDescription className="text-soft-muted">{t('partnerWorkspaceActivitySubtitle')}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {workspace.activity.length === 0 ? (
+                  <p className="text-sm text-soft-muted">{t('partnerWorkspaceActivityEmpty')}</p>
+                ) : (
+                  workspace.activity.map((item) => (
+                    <div key={item.id} className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <p className="text-sm font-semibold text-soft-white">{item.title}</p>
+                        <span className="rounded-full border border-soft-subtle/20 bg-navy-surface/50 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-soft-muted">
+                          {t(`partnerWorkspaceActivity_${item.event_type}` as never)}
+                        </span>
+                      </div>
+                      {item.description ? <p className="mt-3 text-sm leading-6 text-soft-muted">{item.description}</p> : null}
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
 

@@ -203,6 +203,12 @@
 - la consola agrega buyer referrals y opportunities por partner
 - se pueden persistir tier, trust, flags buyer/seller, tags y notas estratégicas
 
+### ANCLORA-SPW-002 cerrada
+
+- `Synergi Workspace` ya soporta perfil operativo editable por token
+- se añaden preferencias de colaboración, zonas prioritarias y canales preferidos
+- el workspace registra un feed de actividad con activación, cambios de perfil y opportunities enviadas
+
 ### ANCLORA-DLAB-001 cerrada
 
 - `Data Lab` deja de ser una pagina estatica y pasa a mostrar catalogo live cuando existe acceso autenticado

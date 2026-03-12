@@ -42,6 +42,15 @@ class PublicPartnerOpportunityCreate(BaseModel):
     next_step: Optional[str] = Field(default=None, max_length=800)
 
 
+class PublicPartnerWorkspaceProfileUpdate(BaseModel):
+    token: str = Field(min_length=12, max_length=255)
+    preferred_opportunity_types: List[PartnerOpportunityType] = Field(default_factory=list)
+    priority_zones: List[str] = Field(default_factory=list)
+    contact_preferences: List[str] = Field(default_factory=list)
+    response_commitment_hours: Optional[int] = Field(default=None, ge=1, le=168)
+    profile_notes: Optional[str] = Field(default=None, max_length=1200)
+
+
 class PartnerWorkspaceResource(BaseModel):
     label: str
     description: str
@@ -56,6 +65,15 @@ class PartnerWorkspaceOpportunityResponse(BaseModel):
     budget_range: Optional[str] = None
     next_step: Optional[str] = None
     status: PartnerOpportunityStatus
+    created_at: datetime
+
+
+class PartnerWorkspaceActivityResponse(BaseModel):
+    id: UUID
+    event_type: str
+    title: str
+    description: Optional[str] = None
+    related_opportunity_id: Optional[UUID] = None
     created_at: datetime
 
 
@@ -74,8 +92,13 @@ class PartnerWorkspaceResponse(BaseModel):
     partner_tier: PartnerTier
     headline: str
     collaboration_focus: List[str] = Field(default_factory=list)
+    preferred_opportunity_types: List[PartnerOpportunityType] = Field(default_factory=list)
+    priority_zones: List[str] = Field(default_factory=list)
+    contact_preferences: List[str] = Field(default_factory=list)
+    response_commitment_hours: Optional[int] = None
+    profile_notes: Optional[str] = None
     next_steps: List[str] = Field(default_factory=list)
     resources: List[PartnerWorkspaceResource] = Field(default_factory=list)
     opportunities: List[PartnerWorkspaceOpportunityResponse] = Field(default_factory=list)
+    activity: List[PartnerWorkspaceActivityResponse] = Field(default_factory=list)
     last_seen_at: Optional[datetime] = None
-

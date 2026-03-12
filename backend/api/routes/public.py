@@ -4,7 +4,7 @@ from backend.agents.graph import agent_executor
 from backend.config import settings
 from backend.models.data_lab_access import PublicDataLabAccessRequestCreate
 from backend.models.partner_admissions import PublicPartnerAdmissionCreate
-from backend.models.partner_workspaces import PublicPartnerOpportunityCreate
+from backend.models.partner_workspaces import PublicPartnerOpportunityCreate, PublicPartnerWorkspaceProfileUpdate
 from backend.services.data_lab_access_service import data_lab_access_service
 from backend.services.partner_admission_service import partner_admission_service
 from backend.services.partner_workspace_service import partner_workspace_service
@@ -85,6 +85,19 @@ async def create_public_partner_opportunity(data: PublicPartnerOpportunityCreate
             "opportunity_id": result.get("id"),
             "message": "Partner opportunity submitted",
         }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/partner-workspace/profile")
+async def update_public_partner_workspace_profile(data: PublicPartnerWorkspaceProfileUpdate):
+    try:
+        result = await partner_workspace_service.update_profile_from_token(data)
+        if not result:
+            raise HTTPException(status_code=404, detail="Partner workspace not found")
+        return {"status": "updated", "workspace_id": result.get("id")}
     except HTTPException:
         raise
     except Exception as e:

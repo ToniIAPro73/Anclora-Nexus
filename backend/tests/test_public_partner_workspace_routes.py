@@ -33,3 +33,18 @@ class TestPublicPartnerWorkspaceRoutes:
         )
         assert response.status_code == 201
         assert response.json()["status"] == "submitted"
+
+    @patch("backend.api.routes.public.partner_workspace_service")
+    def test_update_workspace_profile(self, mock_service: MagicMock) -> None:
+        mock_service.update_profile_from_token = AsyncMock(return_value={"id": "ws-1"})
+        response = client.patch(
+            "/api/public/partner-workspace/profile",
+            json={
+                "token": "token-123456789012",
+                "preferred_opportunity_types": ["buyer_referral"],
+                "priority_zones": ["mallorca"],
+                "contact_preferences": ["email"],
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["status"] == "updated"
