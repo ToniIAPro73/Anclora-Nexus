@@ -43,6 +43,11 @@ export default function PrivateAreaPartnerPage() {
     event.preventDefault()
     setLoading(true)
     setError(null)
+    if (form.service_summary.trim().length < 20) {
+      setError(t('privateAreaPartnerSummaryTooShort'))
+      setLoading(false)
+      return
+    }
     if (!form.privacy_accepted) {
       setError(t('externalFormPrivacyRequired'))
       setLoading(false)

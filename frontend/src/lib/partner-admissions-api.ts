@@ -79,6 +79,39 @@ export interface PublicPartnerAdmissionPayload {
   submission_source?: string
 }
 
+function formatApiError(error: unknown, fallbackStatus: number): string {
+  if (!error || typeof error !== 'object') {
+    return `API Error: ${fallbackStatus}`
+  }
+
+  const detail = (error as { detail?: unknown }).detail
+  if (typeof detail === 'string' && detail.trim()) {
+    return detail
+  }
+
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (!item || typeof item !== 'object') return null
+        const loc = Array.isArray((item as { loc?: unknown[] }).loc)
+          ? (item as { loc?: unknown[] }).loc!.filter(Boolean).join('.')
+          : null
+        const msg = typeof (item as { msg?: unknown }).msg === 'string'
+          ? (item as { msg?: string }).msg
+          : null
+        if (loc && msg) return `${loc}: ${msg}`
+        return msg || loc || null
+      })
+      .filter(Boolean)
+
+    if (messages.length) {
+      return messages.join(' | ')
+    }
+  }
+
+  return `API Error: ${fallbackStatus}`
+}
+
 export async function createPublicPartnerAdmission(payload: PublicPartnerAdmissionPayload): Promise<{ status: string; admission_id: string }> {
   const response = await fetch(buildBackendUrl('/api/public/partner-admissions'), {
     method: 'POST',
@@ -87,7 +120,7 @@ export async function createPublicPartnerAdmission(payload: PublicPartnerAdmissi
   })
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: response.statusText }))
-    throw new Error(error.detail || `API Error: ${response.status}`)
+    throw new Error(formatApiError(error, response.status))
   }
   return response.json()
 }

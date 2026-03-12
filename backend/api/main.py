@@ -30,6 +30,7 @@ app.add_middleware(
 
 from .routes.intelligence import router as intelligence_router
 from .routes.ingestion import router as ingestion_router
+from .routes.finops import router as finops_router
 from .routes.partners import router as partners_router
 from .routes.public import router as public_router
 from .routes.prospection import router as prospection_router
@@ -41,6 +42,9 @@ app.include_router(intelligence_router, prefix="/api/intelligence", tags=["Intel
 
 # Include Prospection & Buyer Matching routes
 app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospection"])
+
+# Include FinOps routes
+app.include_router(finops_router, prefix="/api/finops", tags=["FinOps"])
 
 # Include partner admission routes
 app.include_router(partners_router, prefix="/api/partners", tags=["Partners"])
