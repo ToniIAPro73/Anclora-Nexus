@@ -140,6 +140,7 @@ class DataLabAccessService:
                 to_email=str(result["email"]),
                 subject=mail["subject"],
                 body=mail["body"],
+                html=mail.get("html"),
             )
             updated = (
                 supabase_service.client.table("data_lab_access_requests")
@@ -311,6 +312,7 @@ class DataLabAccessService:
                     to_email=str(row["email"]),
                     subject=mail["subject"],
                     body=mail["body"],
+                    html=mail.get("html"),
                 )
                 update_payload["decision_email_sent_at"] = now
                 notification = {"transport": "smtp", "delivery": delivery}
