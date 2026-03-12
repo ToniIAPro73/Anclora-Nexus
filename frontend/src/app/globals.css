@@ -315,6 +315,95 @@
     cursor: not-allowed;
   }
 
+  .ui-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: 0 0 auto;
+    border-radius: 0.32rem;
+    border: 1px solid rgba(245, 245, 240, 0.22);
+    background: rgba(15, 22, 41, 0.9);
+    display: inline-grid;
+    place-items: center;
+    outline: none;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .ui-checkbox::after {
+    content: "";
+    width: 0.55rem;
+    height: 0.32rem;
+    border-left: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    transform: rotate(-45deg) scale(0.7);
+    opacity: 0;
+    transition:
+      opacity 140ms ease,
+      border-color 140ms ease,
+      transform 140ms ease;
+  }
+
+  .ui-checkbox:hover {
+    border-color: rgba(175, 210, 250, 0.34);
+  }
+
+  .ui-checkbox:focus {
+    border-color: rgba(212, 175, 55, 0.52);
+    box-shadow:
+      0 0 0 1px rgba(212, 175, 55, 0.22),
+      0 10px 24px rgba(4, 8, 20, 0.18);
+  }
+
+  .ui-checkbox:checked {
+    border-color: rgba(212, 175, 55, 0.72);
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.95), rgba(184, 150, 46, 0.92));
+  }
+
+  .ui-checkbox:checked::after {
+    opacity: 1;
+    border-color: #0f1629;
+    transform: rotate(-45deg) scale(1);
+  }
+
+  .ui-checkbox:disabled {
+    opacity: 0.58;
+    cursor: not-allowed;
+  }
+
+  .ui-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid rgba(245, 245, 240, 0.14);
+    border-radius: 1rem;
+    background: rgba(15, 22, 41, 0.44);
+    padding: 0.85rem 1rem;
+    color: rgba(245, 245, 240, 0.72);
+    font-size: 0.95rem;
+    line-height: 1.35;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .ui-checkbox-row:hover {
+    border-color: rgba(175, 210, 250, 0.28);
+  }
+
+  .ui-checkbox-row:has(.ui-checkbox:focus),
+  .ui-checkbox-row:has(.ui-checkbox:checked) {
+    border-color: rgba(212, 175, 55, 0.34);
+    box-shadow: 0 10px 24px rgba(4, 8, 20, 0.14);
+  }
+
   /* ─── Widget Card Base ─── */
   .widget-card {
     @apply relative overflow-hidden;

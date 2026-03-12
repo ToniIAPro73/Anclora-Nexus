@@ -250,8 +250,8 @@ export default function PartnerAdmissionsPage() {
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
                   />
-                  <label className="mt-3 flex items-center gap-3 text-sm text-soft-muted">
-                    <input type="checkbox" checked={notifyApplicant} onChange={(e) => setNotifyApplicant(e.target.checked)} />
+                  <label className="ui-checkbox-row mt-3 border-soft-subtle/10 bg-navy-surface/20 text-sm">
+                    <input className="ui-checkbox" type="checkbox" checked={notifyApplicant} onChange={(e) => setNotifyApplicant(e.target.checked)} />
                     {t('partnerAdmissionsNotifyApplicant')}
                   </label>
                 </div>

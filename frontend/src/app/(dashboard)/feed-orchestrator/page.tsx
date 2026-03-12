@@ -199,12 +199,12 @@ export default function FeedOrchestratorPage() {
             <header className="mb-3 flex items-center justify-between gap-2">
               <h2 className="section-title">{t('feedChannels')}</h2>
               <div className="flex items-center gap-2">
-                <label className="inline-flex items-center gap-2 rounded-lg border border-soft-subtle/60 px-2 py-1 text-xs text-soft-muted">
+                <label className="ui-checkbox-row px-3 py-2 text-xs">
                   <input
                     type="checkbox"
                     checked={onlyActiveChannels}
                     onChange={(e) => setOnlyActiveChannels(e.target.checked)}
-                    className="h-3.5 w-3.5 accent-emerald-400"
+                    className="ui-checkbox"
                   />
                   {t('feedOnlyActive')}
                 </label>
@@ -356,13 +356,13 @@ export default function FeedOrchestratorPage() {
                 </div>
 
                 <div className="space-y-3 mb-4">
-                  <label className="flex items-center justify-between rounded-lg border border-soft-subtle/40 p-2">
+                  <label className="ui-checkbox-row justify-between rounded-lg p-2">
                     <span className="text-xs text-soft-muted">{t('feedChannelActive')}</span>
                     <input
                       type="checkbox"
                       checked={configEnabled}
                       onChange={(e) => setConfigEnabled(e.target.checked)}
-                      className="h-4 w-4 accent-emerald-400"
+                      className="ui-checkbox"
                     />
                   </label>
                   <label className="block rounded-lg border border-soft-subtle/40 p-2">

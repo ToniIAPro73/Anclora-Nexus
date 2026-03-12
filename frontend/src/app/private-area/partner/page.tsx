@@ -127,8 +127,8 @@ export default function PrivateAreaPartnerPage() {
                   <input className={inputClassName} placeholder={t('privateAreaPartnerFieldLinkedin')} value={form.linkedin_url} onChange={(e) => setForm((prev) => ({ ...prev, linkedin_url: e.target.value }))} />
                 </div>
                 <input className={inputClassName} placeholder={t('privateAreaPartnerFieldInstagram')} value={form.instagram_url} onChange={(e) => setForm((prev) => ({ ...prev, instagram_url: e.target.value }))} />
-                <label className="flex items-center gap-3 rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 px-4 py-3 text-sm text-soft-muted">
-                  <input type="checkbox" checked={form.sustainability_focus} onChange={(e) => setForm((prev) => ({ ...prev, sustainability_focus: e.target.checked }))} />
+                <label className="ui-checkbox-row">
+                  <input className="ui-checkbox" type="checkbox" checked={form.sustainability_focus} onChange={(e) => setForm((prev) => ({ ...prev, sustainability_focus: e.target.checked }))} />
                   {t('privateAreaPartnerFieldSustainability')}
                 </label>
                 {form.sustainability_focus ? (

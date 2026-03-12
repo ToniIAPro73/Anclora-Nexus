@@ -269,12 +269,12 @@ export default function PartnerNetworkPage() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <label className="flex items-center gap-3 rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 px-4 py-3 text-sm text-soft-muted">
-                    <input type="checkbox" checked={draft.preferred_for_buyers} onChange={(e) => setDraft((prev) => ({ ...prev, preferred_for_buyers: e.target.checked }))} />
+                  <label className="ui-checkbox-row">
+                    <input className="ui-checkbox" type="checkbox" checked={draft.preferred_for_buyers} onChange={(e) => setDraft((prev) => ({ ...prev, preferred_for_buyers: e.target.checked }))} />
                     {t('partnerNetworkPreferredBuyers')}
                   </label>
-                  <label className="flex items-center gap-3 rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 px-4 py-3 text-sm text-soft-muted">
-                    <input type="checkbox" checked={draft.preferred_for_sellers} onChange={(e) => setDraft((prev) => ({ ...prev, preferred_for_sellers: e.target.checked }))} />
+                  <label className="ui-checkbox-row">
+                    <input className="ui-checkbox" type="checkbox" checked={draft.preferred_for_sellers} onChange={(e) => setDraft((prev) => ({ ...prev, preferred_for_sellers: e.target.checked }))} />
                     {t('partnerNetworkPreferredSellers')}
                   </label>
                 </div>

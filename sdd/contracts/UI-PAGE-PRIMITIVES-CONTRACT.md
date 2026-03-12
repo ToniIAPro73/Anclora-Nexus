@@ -12,6 +12,7 @@ Relacionado:
 - `sdd/contracts/UI-SURFACE-INTERACTION-CONTRACT.md`
 - `sdd/contracts/UI-SELECT-FIELD-CONTRACT.md`
 - `sdd/contracts/UI-TEXT-FIELD-CONTRACT.md`
+- `sdd/contracts/UI-BOOLEAN-FIELD-CONTRACT.md`
 
 ## Contrato obligatorio
 
