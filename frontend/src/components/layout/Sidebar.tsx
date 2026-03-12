@@ -84,6 +84,7 @@ export function Sidebar() {
         { name: t('ingestion'), href: '/ingestion', icon: Database },
         { name: t('dataQuality'), href: '/data-quality', icon: ShieldCheck },
         { name: t('feedOrchestratorMenu'), href: '/feed-orchestrator', icon: UploadCloud },
+        { name: t('partnerNetworkMenu'), href: '/partner-network', icon: Network },
         { name: t('partnerAdmissionsMenu'), href: '/partner-admissions', icon: Network },
         { name: t('automationMenu'), href: '/automation-alerting', icon: Bot },
         { name: t('commandCenterMenu'), href: '/command-center', icon: BarChart3 },

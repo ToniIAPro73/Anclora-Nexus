@@ -127,6 +127,7 @@ La entrada privada del ecosistema queda repartida asi:
    - admision publica operativa en `/private-area/partner`
    - cola interna de revision en `/partner-admissions`
    - workspace colaborativo controlado por token en `/private-area/partner/workspace`
+   - consola interna de red partner en `/partner-network`
 
 4. `Data Lab`
    - reservado para acceso analitico controlado apoyado en `intelligence_packs`

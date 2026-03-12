@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from backend.api.deps import get_current_user, get_org_id
 from backend.models.partner_admissions import PartnerAdmissionReview
+from backend.models.partner_network import PartnerNetworkUpdate
 from backend.services.partner_admission_service import partner_admission_service
+from backend.services.partner_network_service import partner_network_service
 
 
 router = APIRouter()
@@ -60,4 +62,55 @@ async def review_partner_admission(
     )
     if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Partner admission {admission_id} not found")
+    return result
+
+
+@router.get("/network")
+async def list_partner_network(
+    org_id: str = Depends(get_org_id),
+    _user=Depends(get_current_user),
+    relationship_status: Optional[str] = Query(None),
+    service_category: Optional[str] = Query(None),
+    q: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+) -> dict:
+    try:
+        return await partner_network_service.list_network(
+            org_id=org_id,
+            relationship_status=relationship_status,
+            service_category=service_category,
+            q=q,
+            limit=limit,
+            offset=offset,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error listing partner network: {str(e)}")
+
+
+@router.get("/network/summary")
+async def partner_network_summary(
+    org_id: str = Depends(get_org_id),
+    _user=Depends(get_current_user),
+) -> dict:
+    try:
+        return await partner_network_service.get_summary(org_id)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error loading partner network summary: {str(e)}")
+
+
+@router.patch("/network/{workspace_id}")
+async def update_partner_network(
+    workspace_id: UUID,
+    payload: PartnerNetworkUpdate,
+    org_id: str = Depends(get_org_id),
+    _user=Depends(get_current_user),
+) -> dict:
+    result = await partner_network_service.update_network_partner(
+        org_id=org_id,
+        workspace_id=str(workspace_id),
+        payload=payload,
+    )
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Partner workspace {workspace_id} not found")
     return result

@@ -195,3 +195,10 @@
 - nueva migración `050_synergi_partner_workspace_v1.sql`
 - la aceptación de una admisión puede crear `launch_url` para el partner
 - el workspace permite ver perfil aprobado, próximos pasos, recursos y registrar oportunidades
+
+### ANCLORA-BPNM-001 cerrada
+
+- Nexus ya dispone de `/partner-network` para gestionar la red partner aprobada
+- nueva migración `051_synergi_partner_network_management.sql`
+- la consola agrega buyer referrals y opportunities por partner
+- se pueden persistir tier, trust, flags buyer/seller, tags y notas estratégicas
