@@ -28,6 +28,8 @@ export default function PartnerNetworkPage() {
   const [sharing, setSharing] = useState(false)
   const [relationshipFilter, setRelationshipFilter] = useState<PartnerRelationshipStatus | ''>('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [preferenceFilter, setPreferenceFilter] = useState('')
+  const [responseFilter, setResponseFilter] = useState('')
   const [search, setSearch] = useState('')
   const [draft, setDraft] = useState({
     partner_tier: 'approved' as PartnerNetworkTier,
@@ -57,6 +59,8 @@ export default function PartnerNetworkPage() {
         fetchPartnerNetwork({
           relationship_status: relationshipFilter,
           service_category: categoryFilter || undefined,
+          preferred_opportunity_type: preferenceFilter || undefined,
+          response_status: responseFilter || undefined,
           q: search || undefined,
         }),
         fetchPartnerNetworkSummary(),
@@ -71,7 +75,7 @@ export default function PartnerNetworkPage() {
     } finally {
       setLoading(false)
     }
-  }, [categoryFilter, relationshipFilter, search, selectedId, t])
+  }, [categoryFilter, preferenceFilter, relationshipFilter, responseFilter, search, selectedId, t])
 
   useEffect(() => {
     void load()
@@ -162,7 +166,7 @@ export default function PartnerNetworkPage() {
           </div>
         </section>
 
-        <div className="grid gap-4 md:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-7">
           {[
             ['total', t('partnerNetworkKpiTotal')],
             ['strategic', t('partnerNetworkKpiStrategic')],
@@ -170,6 +174,7 @@ export default function PartnerNetworkPage() {
             ['eco_focus', t('partnerNetworkKpiEco')],
             ['buyer_referrals', t('partnerNetworkKpiBuyerReferrals')],
             ['shared_opportunities', t('partnerNetworkKpiSharedOpportunities')],
+            ['responsive_partners', t('partnerNetworkKpiResponsivePartners')],
           ].map(([key, label]) => (
             <div key={key} className="surface-primary rounded-2xl border border-soft-subtle/15 bg-navy-deep/45 p-4">
               <p className="kpi-label">{label}</p>
@@ -180,7 +185,7 @@ export default function PartnerNetworkPage() {
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_1.35fr]">
           <section className="surface-primary rounded-3xl border border-soft-subtle/15 bg-navy-deep/45 p-5">
-            <div className="grid gap-3 md:grid-cols-[1fr_220px_220px]">
+            <div className="grid gap-3 md:grid-cols-[1fr_220px_220px] xl:grid-cols-[1fr_220px_220px_220px_220px]">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-soft-muted" />
                 <input className={`${inputClassName} pl-11`} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('partnerNetworkSearchPlaceholder')} />
@@ -195,6 +200,18 @@ export default function PartnerNetworkPage() {
                 <option value="">{t('partnerAdmissionsFilterAllCategories')}</option>
                 {(['real_estate', 'professional', 'luxury', 'eco', 'other'] as const).map((category) => (
                   <option key={category} value={category}>{t(`partnerAdmissionsCategory_${category}`)}</option>
+                ))}
+              </select>
+              <select className="ui-select" value={preferenceFilter} onChange={(e) => setPreferenceFilter(e.target.value)}>
+                <option value="">{t('partnerNetworkFilterAllPreferences')}</option>
+                {(['buyer_opportunity', 'seller_opportunity', 'service_request', 'strategic_invite'] as const).map((item) => (
+                  <option key={item} value={item}>{t(`partnerNetworkShareType_${item}` as never)}</option>
+                ))}
+              </select>
+              <select className="ui-select" value={responseFilter} onChange={(e) => setResponseFilter(e.target.value)}>
+                <option value="">{t('partnerNetworkFilterAllResponses')}</option>
+                {(['responsive', 'interested', 'pending', 'quiet'] as const).map((item) => (
+                  <option key={item} value={item}>{t(`partnerNetworkResponse_${item}` as never)}</option>
                 ))}
               </select>
             </div>
@@ -225,7 +242,7 @@ export default function PartnerNetworkPage() {
                       <span className="rounded-full border border-blue-light/20 bg-blue-light/10 px-3 py-1 text-xs text-blue-light">{t(`partnerNetworkRelationship_${item.relationship_status}` as never)}</span>
                       {item.sustainability_focus ? <span className="rounded-full border border-emerald-400/20 bg-emerald-900/20 px-3 py-1 text-xs text-emerald-300">{t('partnerAdmissionsEcoBadge')}</span> : null}
                     </div>
-                    <div className="mt-3 grid grid-cols-3 gap-3 text-left">
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-left md:grid-cols-3">
                       <div>
                         <p className="kpi-label">{t('partnerNetworkBuyerReferrals')}</p>
                         <p className="mt-1 text-sm text-soft-white">{item.buyer_referrals_count}</p>
@@ -241,6 +258,10 @@ export default function PartnerNetworkPage() {
                       <div>
                         <p className="kpi-label">{t('partnerNetworkSharedOpportunities')}</p>
                         <p className="mt-1 text-sm text-soft-white">{item.shared_opportunities_count}</p>
+                      </div>
+                      <div>
+                        <p className="kpi-label">{t('partnerNetworkEngagement')}</p>
+                        <p className="mt-1 text-sm text-soft-white">{item.engagement_score}</p>
                       </div>
                     </div>
                   </button>
@@ -267,7 +288,7 @@ export default function PartnerNetworkPage() {
                   ) : null}
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-5">
+                <div className="grid gap-4 md:grid-cols-6">
                   <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
                     <p className="kpi-label">{t('partnerNetworkBuyerReferrals')}</p>
                     <p className="kpi-value mt-2">{selected.buyer_referrals_count}</p>
@@ -288,6 +309,10 @@ export default function PartnerNetworkPage() {
                     <p className="kpi-label">{t('partnerNetworkSharedOpportunities')}</p>
                     <p className="kpi-value mt-2">{selected.shared_opportunities_count}</p>
                   </div>
+                  <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+                    <p className="kpi-label">{t('partnerNetworkEngagement')}</p>
+                    <p className="kpi-value mt-2">{selected.engagement_score}</p>
+                  </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
@@ -299,6 +324,58 @@ export default function PartnerNetworkPage() {
                     <p className="kpi-label">{t('partnerAdmissionsLanguagesLabel')}</p>
                     <p className="mt-2 text-sm leading-6 text-soft-white">{selected.languages.join(', ') || t('partnerAdmissionsNoLanguages')}</p>
                   </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+                    <p className="kpi-label">{t('partnerNetworkPreferenceTitle')}</p>
+                    <div className="mt-3 space-y-2 text-sm text-soft-white">
+                      <p><span className="text-soft-muted">{t('partnerNetworkPreferenceTypes')}</span> {selected.preferred_opportunity_types.map((item) => t(`partnerNetworkShareType_${item}` as never)).join(', ') || '—'}</p>
+                      <p><span className="text-soft-muted">{t('partnerNetworkPreferenceZones')}</span> {selected.priority_zones.join(', ') || '—'}</p>
+                      <p><span className="text-soft-muted">{t('partnerNetworkPreferenceChannels')}</span> {selected.contact_preferences.join(', ') || '—'}</p>
+                      <p><span className="text-soft-muted">{t('partnerNetworkPreferenceCommitment')}</span> {selected.response_commitment_hours ? `${selected.response_commitment_hours}h` : '—'}</p>
+                    </div>
+                  </div>
+                  <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+                    <p className="kpi-label">{t('partnerNetworkResponseTitle')}</p>
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-soft-white">
+                      <div>
+                        <p className="text-soft-muted">{t('partnerNetworkResponse_interested')}</p>
+                        <p className="mt-1 font-semibold">{selected.shared_interested_count}</p>
+                      </div>
+                      <div>
+                        <p className="text-soft-muted">{t('partnerNetworkResponse_pending')}</p>
+                        <p className="mt-1 font-semibold">{selected.shared_pending_count}</p>
+                      </div>
+                      <div>
+                        <p className="text-soft-muted">{t('partnerNetworkResponse_declined')}</p>
+                        <p className="mt-1 font-semibold">{selected.shared_declined_count}</p>
+                      </div>
+                      <div>
+                        <p className="text-soft-muted">{t('partnerNetworkResponseRate')}</p>
+                        <p className="mt-1 font-semibold">{selected.response_rate}%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
+                  <p className="kpi-label">{t('partnerNetworkRecommendationTitle')}</p>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-2xl border border-soft-subtle/15 bg-navy-deep/40 p-4">
+                      <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('partnerNetworkRecommendationType')}</p>
+                      <p className="mt-2 text-sm font-semibold text-soft-white">
+                        {selected.recommended_opportunity_type ? t(`partnerNetworkShareType_${selected.recommended_opportunity_type}` as never) : '—'}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-soft-subtle/15 bg-navy-deep/40 p-4">
+                      <p className="text-xs uppercase tracking-[0.16em] text-soft-muted">{t('partnerNetworkRecommendationZone')}</p>
+                      <p className="mt-2 text-sm font-semibold text-soft-white">{selected.recommended_zone || '—'}</p>
+                    </div>
+                  </div>
+                  {selected.profile_notes ? (
+                    <p className="mt-4 text-sm leading-6 text-soft-muted">{selected.profile_notes}</p>
+                  ) : null}
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">

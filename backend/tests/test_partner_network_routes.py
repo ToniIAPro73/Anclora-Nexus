@@ -29,7 +29,7 @@ class TestPartnerNetworkRoutes:
     @patch("backend.api.routes.partners.partner_network_service")
     def test_list_partner_network(self, mock_service: MagicMock) -> None:
         mock_service.list_network = AsyncMock(return_value={"items": [], "total": 0, "limit": 50, "offset": 0})
-        response = client.get("/api/partners/network")
+        response = client.get("/api/partners/network?preferred_opportunity_type=buyer_opportunity&response_status=responsive")
         assert response.status_code == 200
         assert response.json()["total"] == 0
 

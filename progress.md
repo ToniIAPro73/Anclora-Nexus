@@ -244,3 +244,16 @@
 - `15 passed` en backend sobre servicios y rutas de `partner_network` y `partner_workspace`
 - `npm run frontend:lint` OK
 - `npm run frontend:build` OK
+
+### ANCLORA-BPNM-002 cerrada
+
+- `/partner-network` ya explota preferencias operativas y respuesta a oportunidades compartidas
+- se añaden filtros por preferencia y respuesta
+- Nexus muestra engagement score y siguiente encaje recomendado por partner
+- no ha sido necesaria nueva migración porque la feature reutiliza datos ya persistidos
+
+### Validación ejecutada
+
+- `7 passed` en backend sobre servicios y rutas de `partner_network`
+- `npm run frontend:lint` OK
+- `npm run frontend:build` OK

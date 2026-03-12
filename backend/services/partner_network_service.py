@@ -33,6 +33,33 @@ class PartnerNetworkService:
             return False
         return referral_name in aliases
 
+    def _safe_float(self, value: Any, default: float = 0) -> float:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    def _engagement_score(
+        self,
+        *,
+        trust_score: float,
+        shared_total: int,
+        shared_interested: int,
+        response_commitment_hours: Optional[int],
+        high_intent_buyers_count: int,
+    ) -> float:
+        response_rate = (shared_interested / shared_total) if shared_total else 0
+        commitment_bonus = 0
+        if response_commitment_hours is not None:
+            if response_commitment_hours <= 12:
+                commitment_bonus = 10
+            elif response_commitment_hours <= 24:
+                commitment_bonus = 6
+            elif response_commitment_hours <= 48:
+                commitment_bonus = 3
+        buyer_bonus = min(high_intent_buyers_count * 3, 12)
+        return round(min((trust_score * 0.55) + (response_rate * 25) + commitment_bonus + buyer_bonus, 100), 1)
+
     def _safe_table_rows(self, table: str, org_id: str, columns: str = "*") -> list[dict[str, Any]]:
         try:
             return (
@@ -50,6 +77,8 @@ class PartnerNetworkService:
         org_id: str,
         relationship_status: Optional[str] = None,
         service_category: Optional[str] = None,
+        preferred_opportunity_type: Optional[str] = None,
+        response_status: Optional[str] = None,
         q: Optional[str] = None,
         limit: int = 50,
         offset: int = 0,
@@ -79,6 +108,26 @@ class PartnerNetworkService:
                 continue
             aliases = self._build_partner_aliases(admission)
             matched_buyers = [buyer for buyer in buyers if self._matches_partner(buyer, aliases)]
+            workspace_shared = shared_opportunities_by_workspace.get(str(workspace.get("id")), [])
+            shared_interested = len([item for item in workspace_shared if str(item.get("status") or "") == "interested"])
+            shared_declined = len([item for item in workspace_shared if str(item.get("status") or "") == "declined"])
+            shared_pending = len(
+                [item for item in workspace_shared if str(item.get("status") or "shared") == "shared"]
+            )
+            preferred_types = self._normalize_text_list(workspace.get("preferred_opportunity_types"))
+            priority_zones = self._normalize_text_list(workspace.get("priority_zones"))
+            contact_preferences = self._normalize_text_list(workspace.get("contact_preferences"))
+            response_commitment_hours = workspace.get("response_commitment_hours")
+            high_intent_buyers_count = len(
+                [buyer for buyer in matched_buyers if self._safe_float(buyer.get("motivation_score")) >= 80]
+            )
+            engagement_score = self._engagement_score(
+                trust_score=self._safe_float(workspace.get("trust_score"), 70),
+                shared_total=len(workspace_shared),
+                shared_interested=shared_interested,
+                response_commitment_hours=response_commitment_hours,
+                high_intent_buyers_count=high_intent_buyers_count,
+            )
             item = {
                 "workspace_id": workspace.get("id"),
                 "admission_id": admission.get("id"),
@@ -95,18 +144,36 @@ class PartnerNetworkService:
                 "strategic_notes": workspace.get("strategic_notes"),
                 "coverage_areas": self._normalize_text_list(admission.get("coverage_areas")),
                 "languages": self._normalize_text_list(admission.get("languages")),
+                "preferred_opportunity_types": preferred_types,
+                "priority_zones": priority_zones,
+                "contact_preferences": contact_preferences,
+                "response_commitment_hours": response_commitment_hours,
+                "profile_notes": workspace.get("profile_notes"),
                 "opportunities_count": len(opportunities_by_workspace.get(str(workspace.get("id")), [])),
-                "shared_opportunities_count": len(shared_opportunities_by_workspace.get(str(workspace.get("id")), [])),
+                "shared_opportunities_count": len(workspace_shared),
+                "shared_interested_count": shared_interested,
+                "shared_declined_count": shared_declined,
+                "shared_pending_count": shared_pending,
                 "buyer_referrals_count": len(matched_buyers),
-                "high_intent_buyers_count": len(
-                    [buyer for buyer in matched_buyers if float(buyer.get("motivation_score") or 0) >= 80]
-                ),
+                "high_intent_buyers_count": high_intent_buyers_count,
+                "engagement_score": engagement_score,
+                "response_rate": round((shared_interested / len(workspace_shared) * 100), 1) if workspace_shared else 0,
+                "recommended_opportunity_type": preferred_types[0] if preferred_types else None,
+                "recommended_zone": priority_zones[0] if priority_zones else None,
                 "last_seen_at": workspace.get("last_seen_at"),
                 "last_referral_at": max(
                     [
                         str(buyer.get("last_partner_touch_at") or buyer.get("created_at") or "")
                         for buyer in matched_buyers
                         if buyer.get("last_partner_touch_at") or buyer.get("created_at")
+                    ],
+                    default=None,
+                ),
+                "last_shared_response_at": max(
+                    [
+                        str(item.get("updated_at") or item.get("created_at") or "")
+                        for item in workspace_shared
+                        if str(item.get("status") or "") in {"interested", "declined"}
                     ],
                     default=None,
                 ),
@@ -118,6 +185,20 @@ class PartnerNetworkService:
             items = [item for item in items if item["relationship_status"] == relationship_status]
         if service_category:
             items = [item for item in items if item["service_category"] == service_category]
+        if preferred_opportunity_type:
+            items = [
+                item for item in items
+                if preferred_opportunity_type in (item.get("preferred_opportunity_types") or [])
+            ]
+        if response_status:
+            if response_status == "responsive":
+                items = [item for item in items if item["shared_interested_count"] > 0 or item["shared_declined_count"] > 0]
+            elif response_status == "interested":
+                items = [item for item in items if item["shared_interested_count"] > 0]
+            elif response_status == "pending":
+                items = [item for item in items if item["shared_pending_count"] > 0]
+            elif response_status == "quiet":
+                items = [item for item in items if item["shared_opportunities_count"] == 0]
         if q:
             needle = q.lower().strip()
             items = [
@@ -132,7 +213,10 @@ class PartnerNetworkService:
                 ).lower()
             ]
 
-        items.sort(key=lambda row: (row["partner_tier"], row["trust_score"], row["buyer_referrals_count"]), reverse=True)
+        items.sort(
+            key=lambda row: (row["partner_tier"], row["engagement_score"], row["trust_score"], row["buyer_referrals_count"]),
+            reverse=True,
+        )
         total = len(items)
         return {
             "items": items[offset: offset + limit],
@@ -151,6 +235,7 @@ class PartnerNetworkService:
             "eco_focus": len([row for row in rows if row["sustainability_focus"]]),
             "buyer_referrals": sum(int(row["buyer_referrals_count"]) for row in rows),
             "shared_opportunities": sum(int(row["shared_opportunities_count"]) for row in rows),
+            "responsive_partners": len([row for row in rows if row["shared_interested_count"] > 0 or row["shared_declined_count"] > 0]),
         }
 
     async def update_network_partner(self, org_id: str, workspace_id: str, payload: PartnerNetworkUpdate) -> Optional[Dict[str, Any]]:

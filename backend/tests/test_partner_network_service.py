@@ -113,6 +113,9 @@ def test_list_partner_network_aggregates_buyers(monkeypatch) -> None:
     assert result["items"][0]["high_intent_buyers_count"] == 1
     assert result["items"][0]["workspace_launch_url"].endswith("token-1")
     assert result["items"][0]["shared_opportunities_count"] == 1
+    assert result["items"][0]["preferred_opportunity_types"] == []
+    assert result["items"][0]["shared_pending_count"] == 1
+    assert result["items"][0]["engagement_score"] > 0
 
 
 def test_update_partner_network(monkeypatch) -> None:
@@ -171,3 +174,60 @@ def test_share_opportunity_with_partner(monkeypatch) -> None:
     assert result is not None
     assert result["status"] == "shared"
     assert store["synergi_partner_activity"][0]["event_type"] == "shared_opportunity_created"
+
+
+def test_list_partner_network_filters_by_preference_and_response(monkeypatch) -> None:
+    service = PartnerNetworkService()
+    store = {
+        "partner_admissions": [
+            {
+                "id": "adm-1",
+                "org_id": "org-1",
+                "status": "accepted",
+                "full_name": "Eco Partner",
+                "company_name": "Eco Partner",
+                "service_category": "eco",
+                "coverage_areas": ["tramuntana"],
+                "languages": ["es"],
+            }
+        ],
+        "synergi_partner_workspaces": [
+            {
+                "id": "ws-1",
+                "org_id": "org-1",
+                "admission_id": "adm-1",
+                "access_token": "token-1",
+                "partner_tier": "preferred",
+                "relationship_status": "active",
+                "trust_score": 80,
+                "preferred_opportunity_types": ["service_request"],
+                "priority_zones": ["tramuntana"],
+                "contact_preferences": ["email", "whatsapp"],
+                "response_commitment_hours": 24,
+            }
+        ],
+        "synergi_partner_opportunities": [],
+        "synergi_partner_shared_opportunities": [
+            {"id": "shared-1", "org_id": "org-1", "workspace_id": "ws-1", "status": "interested", "updated_at": "2026-03-12T10:00:00+00:00"},
+        ],
+        "buyer_profiles": [],
+    }
+    monkeypatch.setattr("backend.services.partner_network_service.supabase_service.client", _MockClient(store))
+    monkeypatch.setattr(
+        "backend.services.partner_network_service.partner_workspace_service._build_launch_url",
+        lambda token: f"https://anclora.local/private-area/partner/workspace?token={token}",
+    )
+
+    result = asyncio.run(
+        service.list_network(
+            org_id="org-1",
+            preferred_opportunity_type="service_request",
+            response_status="interested",
+        )
+    )
+
+    assert result["total"] == 1
+    assert result["items"][0]["recommended_opportunity_type"] == "service_request"
+    assert result["items"][0]["recommended_zone"] == "tramuntana"
+    assert result["items"][0]["shared_interested_count"] == 1
+    assert result["items"][0]["response_rate"] == 100.0

@@ -128,6 +128,7 @@ La entrada privada del ecosistema queda repartida asi:
    - workspace v2 con perfil operativo y actividad trazable
    - workspace v3 con oportunidades compartidas y respuesta estructurada del partner
    - consola interna de red partner en `/partner-network`
+   - consola interna v2 con explotacion de preferencias, respuesta y engagement del partner
 
 4. `Data Lab`
    - reservado para acceso analitico controlado apoyado en `intelligence_packs`

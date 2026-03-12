@@ -641,3 +641,4 @@ Resultado funcional:
 - .antigravity/prompts/features/ai-runtime-provider-profiles/
 - `ANCLORA-NBOS-001` Nexus Buyers Outreach Supervised
 - `ANCLORA-SPW-003` Synergi Shared Opportunities
+- `ANCLORA-BPNM-002` Buyer Partner Network Management v2
