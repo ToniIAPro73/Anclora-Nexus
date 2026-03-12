@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
+import { getPrivateEstatesPublicHref } from '@/lib/private-area-access'
 
 type PrivateAreaShellProps = {
   eyebrow: string
@@ -12,6 +13,7 @@ type PrivateAreaShellProps = {
   children: React.ReactNode
   theme?: 'default' | 'premium'
   premiumVariant?: 'partner' | 'data-lab' | 'default'
+  backHref?: string
 }
 
 export function PrivateAreaShell({
@@ -21,9 +23,11 @@ export function PrivateAreaShell({
   children,
   theme = 'default',
   premiumVariant = 'default',
+  backHref,
 }: PrivateAreaShellProps) {
   const { t } = useI18n()
   const premium = theme === 'premium'
+  const resolvedBackHref = backHref || (premium ? getPrivateEstatesPublicHref() : '/login')
   const premiumVariantClass =
     premium && premiumVariant === 'partner'
       ? 'private-estates-theme-partner'
@@ -36,7 +40,7 @@ export function PrivateAreaShell({
       <div className={`mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8 lg:px-10 ${premium ? 'private-estates-frame' : ''}`}>
         <div className={`mb-8 flex items-center justify-between gap-4 rounded-3xl px-5 py-4 backdrop-blur-xl ${premium ? 'private-estates-topbar border border-[#D4AF37]/20 bg-[rgba(7,37,47,0.72)]' : 'border border-soft-subtle/15 bg-navy-darker/50'}`}>
           <Link
-            href="/login"
+            href={resolvedBackHref}
             className={`inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] transition ${premium ? 'text-[#E5DAC0] hover:text-[#FCF6BA]' : 'text-soft-muted hover:text-gold'}`}
           >
             <ArrowLeft className="h-4 w-4" />

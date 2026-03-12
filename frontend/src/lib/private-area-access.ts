@@ -10,6 +10,8 @@ export type PrivatePortalDefinition = {
   requiresNexusMembership: boolean
 }
 
+const DEFAULT_PRIVATE_ESTATES_PUBLIC_URL = 'https://anclora-private-estates.vercel.app/'
+
 export const PRIVATE_AREA_PORTALS: Record<PrivatePortalKey, PrivatePortalDefinition> = {
   agent: {
     key: 'agent',
@@ -55,6 +57,12 @@ export function buildPortalLoginHref(portalKey: PrivatePortalKey): string {
   const portal = PRIVATE_AREA_PORTALS[portalKey]
   const nextPath = normalizeNextPath(portal.authenticatedPath, '/dashboard')
   return `/login?portal=${portalKey}&next=${encodeURIComponent(nextPath)}`
+}
+
+export function getPrivateEstatesPublicHref(): string {
+  const raw = (process.env.NEXT_PUBLIC_PRIVATE_ESTATES_URL || DEFAULT_PRIVATE_ESTATES_PUBLIC_URL).trim()
+  if (!raw) return DEFAULT_PRIVATE_ESTATES_PUBLIC_URL
+  return raw.endsWith('/') ? raw : `${raw}/`
 }
 
 export function resolvePortalEntryHref(portalKey: PrivatePortalKey, isAuthenticated: boolean): string {

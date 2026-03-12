@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildPortalLoginHref, normalizeNextPath, resolvePortalEntryHref } from '../../src/lib/private-area-access'
+import { buildPortalLoginHref, getPrivateEstatesPublicHref, normalizeNextPath, resolvePortalEntryHref } from '../../src/lib/private-area-access'
 
 describe('private area access helpers', () => {
   it('normalizes valid internal paths', () => {
@@ -21,5 +21,9 @@ describe('private area access helpers', () => {
     expect(resolvePortalEntryHref('agent', true)).toBe('/dashboard')
     expect(resolvePortalEntryHref('partner', false)).toBe('/private-area/partner')
     expect(resolvePortalEntryHref('data_lab', true)).toBe('/private-area/data-lab')
+  })
+
+  it('builds the public Private Estates fallback href', () => {
+    expect(getPrivateEstatesPublicHref()).toBe('https://anclora-private-estates.vercel.app/')
   })
 })
