@@ -76,8 +76,19 @@ export function getPrivateEstatesPublicHref(language?: string | null): string {
 }
 
 export function getPrivateEstatesPrivateAreaHref(language?: string | null): string {
-  const url = new URL(getPrivateEstatesPublicHref(language))
-  url.pathname = '/private-area'
+  const configuredUrl = process.env.NEXT_PUBLIC_PRIVATE_ESTATES_PRIVATE_AREA_URL?.trim()
+  const url = configuredUrl ? new URL(configuredUrl) : new URL(getPrivateEstatesPublicHref(language))
+
+  if (!configuredUrl) {
+    url.pathname = '/'
+    url.searchParams.set('open', 'private-area')
+  }
+
+  const normalizedLanguage = normalizeLanguageParam(language)
+  if (normalizedLanguage) {
+    url.searchParams.set('lang', normalizedLanguage)
+  }
+
   return url.toString()
 }
 
