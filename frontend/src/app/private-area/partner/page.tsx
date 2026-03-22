@@ -103,7 +103,7 @@ export default function PrivateAreaPartnerPage() {
       theme="premium"
       premiumVariant="partner"
     >
-      <div className="grid gap-5 xl:grid-cols-[1.3fr_1fr]">
+      <div className="grid gap-5">
         <Card className="surface-primary border-soft-subtle/15 bg-navy-deep/50">
           <CardHeader>
             <CardTitle className="text-soft-white">{t('privateAreaPartnerAdmissionTitle')}</CardTitle>

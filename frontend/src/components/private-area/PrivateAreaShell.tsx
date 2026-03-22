@@ -2,9 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
-import { getPrivateEstatesPublicHref } from '@/lib/private-area-access'
 
 type PrivateAreaShellProps = {
   eyebrow: string
@@ -27,7 +25,7 @@ export function PrivateAreaShell({
 }: PrivateAreaShellProps) {
   const { t, language, setLanguage } = useI18n()
   const premium = theme === 'premium'
-  const resolvedBackHref = backHref || (premium ? getPrivateEstatesPublicHref(language) : '/login')
+  const resolvedBackHref = backHref || (premium ? '/private-area' : '/login')
   const premiumVariantClass =
     premium && premiumVariant === 'partner'
       ? 'private-estates-theme-partner'
@@ -65,7 +63,14 @@ export function PrivateAreaShell({
                 ))}
               </div>
             ) : null}
-            <BrandLogo size={40} src="/brand/logo-nexus.png" />
+            {premium ? (
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-[radial-gradient(circle_at_30%_30%,#FCF6BA_0%,#BF953F_42%,#08212a_100%)] shadow-[0_0_18px_rgba(212,175,55,0.22)]"
+                aria-label="Anclora Private Estates"
+              >
+                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#08212a]">PE</span>
+              </div>
+            ) : null}
             <div className="text-right">
               <p className={`text-[11px] uppercase tracking-[0.28em] ${premium ? 'text-[#D4AF37]' : 'text-gold/80'}`}>{eyebrow}</p>
               <p className={`text-xs ${premium ? 'text-[#D8DFD6]/72' : 'text-soft-muted'}`}>{t('privateAreaBrandLine')}</p>
