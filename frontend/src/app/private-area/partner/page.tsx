@@ -38,6 +38,12 @@ export default function PrivateAreaPartnerPage() {
   const [captchaToken, setCaptchaToken] = useState('')
 
   const privacyHref = getPrivateEstatesPrivacyHref(language)
+  const summaryTooShort = form.service_summary.trim().length > 0 && form.service_summary.trim().length < 20
+
+  function updateForm<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }))
+    if (error) setError(null)
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -137,39 +143,95 @@ export default function PrivateAreaPartnerPage() {
             ) : (
               <form className="space-y-3" onSubmit={handleSubmit}>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldFullName')} value={form.full_name} onChange={(e) => setForm((prev) => ({ ...prev, full_name: e.target.value }))} />
-                  <input className={inputClassName} type="email" placeholder={t('privateAreaPartnerFieldEmail')} value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
-                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldPhone')} value={form.phone} onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))} />
-                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldCompany')} value={form.company_name} onChange={(e) => setForm((prev) => ({ ...prev, company_name: e.target.value }))} />
+                  <input
+                    className={inputClassName}
+                    placeholder={t('privateAreaPartnerFieldFullName')}
+                    value={form.full_name}
+                    onChange={(e) => updateForm('full_name', e.target.value)}
+                    autoComplete="name"
+                    required
+                    disabled={loading}
+                  />
+                  <input
+                    className={inputClassName}
+                    type="email"
+                    placeholder={t('privateAreaPartnerFieldEmail')}
+                    value={form.email}
+                    onChange={(e) => updateForm('email', e.target.value)}
+                    autoComplete="email"
+                    required
+                    disabled={loading}
+                  />
+                  <input
+                    className={inputClassName}
+                    placeholder={t('privateAreaPartnerFieldPhone')}
+                    value={form.phone}
+                    onChange={(e) => updateForm('phone', e.target.value)}
+                    autoComplete="tel"
+                    disabled={loading}
+                  />
+                  <input
+                    className={inputClassName}
+                    placeholder={t('privateAreaPartnerFieldCompany')}
+                    value={form.company_name}
+                    onChange={(e) => updateForm('company_name', e.target.value)}
+                    autoComplete="organization"
+                    disabled={loading}
+                  />
                 </div>
-                <select className="ui-select" value={form.service_category} onChange={(e) => setForm((prev) => ({ ...prev, service_category: e.target.value as PartnerServiceCategory }))}>
+                <select
+                  className="ui-select"
+                  value={form.service_category}
+                  onChange={(e) => updateForm('service_category', e.target.value as PartnerServiceCategory)}
+                  disabled={loading}
+                >
                   {(['real_estate', 'professional', 'luxury', 'eco', 'other'] as const).map((item) => (
                     <option key={item} value={item}>{t(`partnerAdmissionsCategory_${item}`)}</option>
                   ))}
                 </select>
-                <textarea className={`${textareaClassName} min-h-28`} placeholder={t('privateAreaPartnerFieldSummary')} value={form.service_summary} onChange={(e) => setForm((prev) => ({ ...prev, service_summary: e.target.value }))} />
-                <textarea className={`${textareaClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldPitch')} value={form.collaboration_pitch} onChange={(e) => setForm((prev) => ({ ...prev, collaboration_pitch: e.target.value }))} />
-                <div className="grid gap-3 md:grid-cols-2">
-                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldCoverage')} value={form.coverage_areas} onChange={(e) => setForm((prev) => ({ ...prev, coverage_areas: e.target.value }))} />
-                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldLanguages')} value={form.languages} onChange={(e) => setForm((prev) => ({ ...prev, languages: e.target.value }))} />
-                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldWebsite')} value={form.website_url} onChange={(e) => setForm((prev) => ({ ...prev, website_url: e.target.value }))} />
-                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldLinkedin')} value={form.linkedin_url} onChange={(e) => setForm((prev) => ({ ...prev, linkedin_url: e.target.value }))} />
+                <div className="space-y-2">
+                  <textarea
+                    className={`${textareaClassName} min-h-28`}
+                    placeholder={t('privateAreaPartnerFieldSummary')}
+                    value={form.service_summary}
+                    onChange={(e) => updateForm('service_summary', e.target.value)}
+                    minLength={20}
+                    required
+                    disabled={loading}
+                    aria-invalid={summaryTooShort}
+                  />
+                  {summaryTooShort ? (
+                    <p className="text-xs text-amber-200">{t('privateAreaPartnerSummaryTooShort')}</p>
+                  ) : null}
                 </div>
-                <input className={inputClassName} placeholder={t('privateAreaPartnerFieldInstagram')} value={form.instagram_url} onChange={(e) => setForm((prev) => ({ ...prev, instagram_url: e.target.value }))} />
+                <textarea
+                  className={`${textareaClassName} min-h-24`}
+                  placeholder={t('privateAreaPartnerFieldPitch')}
+                  value={form.collaboration_pitch}
+                  onChange={(e) => updateForm('collaboration_pitch', e.target.value)}
+                  disabled={loading}
+                />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldCoverage')} value={form.coverage_areas} onChange={(e) => updateForm('coverage_areas', e.target.value)} disabled={loading} />
+                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldLanguages')} value={form.languages} onChange={(e) => updateForm('languages', e.target.value)} disabled={loading} />
+                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldWebsite')} value={form.website_url} onChange={(e) => updateForm('website_url', e.target.value)} inputMode="url" disabled={loading} />
+                  <input className={inputClassName} placeholder={t('privateAreaPartnerFieldLinkedin')} value={form.linkedin_url} onChange={(e) => updateForm('linkedin_url', e.target.value)} inputMode="url" disabled={loading} />
+                </div>
+                <input className={inputClassName} placeholder={t('privateAreaPartnerFieldInstagram')} value={form.instagram_url} onChange={(e) => updateForm('instagram_url', e.target.value)} inputMode="url" disabled={loading} />
                 <label className="ui-checkbox-row">
-                  <input className="ui-checkbox" type="checkbox" checked={form.sustainability_focus} onChange={(e) => setForm((prev) => ({ ...prev, sustainability_focus: e.target.checked }))} />
+                  <input className="ui-checkbox" type="checkbox" checked={form.sustainability_focus} onChange={(e) => updateForm('sustainability_focus', e.target.checked)} disabled={loading} />
                   {t('privateAreaPartnerFieldSustainability')}
                 </label>
                 {form.sustainability_focus ? (
-                  <textarea className={`${textareaClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldSustainabilityNotes')} value={form.sustainability_notes} onChange={(e) => setForm((prev) => ({ ...prev, sustainability_notes: e.target.value }))} />
+                  <textarea className={`${textareaClassName} min-h-24`} placeholder={t('privateAreaPartnerFieldSustainabilityNotes')} value={form.sustainability_notes} onChange={(e) => updateForm('sustainability_notes', e.target.value)} disabled={loading} />
                 ) : null}
                 <RecaptchaPanel token={captchaToken} onTokenChange={setCaptchaToken} />
                 <label className="ui-checkbox-row">
-                  <input className="ui-checkbox" type="checkbox" checked={form.newsletter_opt_in} onChange={(e) => setForm((prev) => ({ ...prev, newsletter_opt_in: e.target.checked }))} />
+                  <input className="ui-checkbox" type="checkbox" checked={form.newsletter_opt_in} onChange={(e) => updateForm('newsletter_opt_in', e.target.checked)} disabled={loading} />
                   {t('externalFormNewsletterOptIn')}
                 </label>
                 <label className="ui-checkbox-row items-start">
-                  <input className="ui-checkbox mt-1" type="checkbox" checked={form.privacy_accepted} onChange={(e) => setForm((prev) => ({ ...prev, privacy_accepted: e.target.checked }))} />
+                  <input className="ui-checkbox mt-1" type="checkbox" checked={form.privacy_accepted} onChange={(e) => updateForm('privacy_accepted', e.target.checked)} disabled={loading} />
                   <span>
                     {t('externalFormPrivacyAccepted')}{' '}
                     <a href={privacyHref} target="_blank" rel="noreferrer" className="text-gold underline underline-offset-4">
@@ -177,7 +239,7 @@ export default function PrivateAreaPartnerPage() {
                     </a>
                   </span>
                 </label>
-                {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
+                {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200" role="alert" aria-live="polite">{error}</p> : null}
                 <button type="submit" disabled={loading || !form.privacy_accepted || (!!(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITEKEY || process.env.NEXT_PUBLIC_RECAPTCHA_KEY) && !captchaToken)} className="btn-private-estates w-full px-5 py-3 text-sm disabled:opacity-70">
                   {loading ? t('privateAreaPartnerSubmitting') : t('privateAreaPartnerPrimaryCta')}
                 </button>
