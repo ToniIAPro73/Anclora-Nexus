@@ -75,6 +75,12 @@ export function getPrivateEstatesPublicHref(language?: string | null): string {
   return url.toString()
 }
 
+export function getPrivateEstatesPrivateAreaHref(language?: string | null): string {
+  const url = new URL(getPrivateEstatesPublicHref(language))
+  url.pathname = '/private-area'
+  return url.toString()
+}
+
 export function getPrivateEstatesPrivacyHref(language?: string | null): string {
   const url = new URL(getPrivateEstatesPublicHref(language))
   url.pathname = "/legal/privacidad"

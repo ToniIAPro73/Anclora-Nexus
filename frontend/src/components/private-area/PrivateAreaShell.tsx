@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
+import { getPrivateEstatesPrivateAreaHref } from '@/lib/private-area-access'
 
 type PrivateAreaShellProps = {
   eyebrow: string
@@ -25,7 +26,7 @@ export function PrivateAreaShell({
 }: PrivateAreaShellProps) {
   const { t, language, setLanguage } = useI18n()
   const premium = theme === 'premium'
-  const resolvedBackHref = backHref || (premium ? '/private-area' : '/login')
+  const resolvedBackHref = backHref || (premium ? getPrivateEstatesPrivateAreaHref(language) : '/login')
   const premiumVariantClass =
     premium && premiumVariant === 'partner'
       ? 'private-estates-theme-partner'
@@ -64,11 +65,13 @@ export function PrivateAreaShell({
               </div>
             ) : null}
             {premium ? (
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-[radial-gradient(circle_at_30%_30%,#FCF6BA_0%,#BF953F_42%,#08212a_100%)] shadow-[0_0_18px_rgba(212,175,55,0.22)]"
-                aria-label="Anclora Private Estates"
-              >
-                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#08212a]">PE</span>
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-[#D4AF37]/40 bg-[rgba(6,33,42,0.44)] shadow-[0_0_18px_rgba(212,175,55,0.22)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/brand/logo-anclora-private-estates.png"
+                  alt="Anclora Private Estates logo"
+                  className="h-full w-full object-cover"
+                />
               </div>
             ) : null}
             <div className="text-right">
