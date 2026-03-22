@@ -1,5 +1,4 @@
 'use client'
-import { BentoGrid, BentoCell } from "@/components/layout/BentoGrid"
 import { LeadsPulse } from "@/components/widgets/LeadsPulse"
 import { TasksToday } from "@/components/widgets/TasksToday"
 import { PropertyPipeline } from "@/components/widgets/PropertyPipeline"
@@ -21,56 +20,42 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 min-h-full">
-      <StaggerList>
-        <BentoGrid>
+      <StaggerList className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)] gap-4 xl:gap-6 items-start">
+        <div className="space-y-4 xl:space-y-6 min-w-0">
           <StaggerItem>
-            <BentoCell colSpan={2} rowSpan={2}>
-              <LeadsPulse />
-            </BentoCell>
+            <LeadsPulse />
           </StaggerItem>
 
           <StaggerItem>
-            <BentoCell colSpan={1} rowSpan={2}>
-              <TasksToday />
-            </BentoCell>
+            <PropertyPipeline />
           </StaggerItem>
 
           <StaggerItem>
-            <BentoCell colSpan={1} rowSpan={1}>
-              <QuickStats />
-            </BentoCell>
+            <RadarTerritorial />
+          </StaggerItem>
+        </div>
+
+        <div className="space-y-4 xl:space-y-6 min-w-0">
+          <StaggerItem>
+            <TasksToday />
           </StaggerItem>
 
           <StaggerItem>
-            <BentoCell colSpan={2} rowSpan={2}>
-              <PropertyPipeline />
-            </BentoCell>
+            <QuickStats />
           </StaggerItem>
 
           <StaggerItem>
-            <BentoCell colSpan={1} rowSpan={1}>
-              <QuickActions />
-            </BentoCell>
+            <QuickActions />
           </StaggerItem>
 
           <StaggerItem>
-            <BentoCell colSpan={1} rowSpan={1}>
-              <AgentStream />
-            </BentoCell>
+            <AgentStream />
           </StaggerItem>
 
           <StaggerItem>
-            <BentoCell colSpan={1} rowSpan={1}>
-              <BudgetStatusWidget />
-            </BentoCell>
+            <BudgetStatusWidget />
           </StaggerItem>
-
-          <StaggerItem>
-            <BentoCell colSpan={6} rowSpan={2}>
-              <RadarTerritorial />
-            </BentoCell>
-          </StaggerItem>
-        </BentoGrid>
+        </div>
       </StaggerList>
     </div>
   )

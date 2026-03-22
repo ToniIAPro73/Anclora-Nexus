@@ -88,7 +88,7 @@ export function QuickActions() {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 h-full">
+      <div className="grid grid-cols-1 gap-3 h-full">
         {actions.map((action, idx) => (
           <motion.button
             key={idx}
