@@ -36,6 +36,8 @@ async def limit_check_node(state: AgentState) -> AgentState:
         daily_leads = await supabase_service.count_daily_leads(org_id)
         if daily_leads >= limits["max_daily_leads"]:
             state["limits_ok"] = False
+            state["status"] = "blocked"
+            state["limit_violation"] = "max_daily_leads"
             state["error"] = f"Constitutional limit reached: max_daily_leads ({limits['max_daily_leads']})"
             print(f"LIMIT BLOCKED: {state['error']}")
             
@@ -44,6 +46,8 @@ async def limit_check_node(state: AgentState) -> AgentState:
         daily_tokens = await supabase_service.get_daily_token_usage(org_id)
         if daily_tokens >= limits["max_llm_tokens_per_day"]:
             state["limits_ok"] = False
+            state["status"] = "blocked"
+            state["limit_violation"] = "max_llm_tokens_per_day"
             state["error"] = f"Constitutional limit reached: max_llm_tokens_per_day ({limits['max_llm_tokens_per_day']})"
             print(f"LIMIT BLOCKED: {state['error']}")
 
@@ -175,7 +179,9 @@ async def result_handler_node(state: AgentState) -> AgentState:
                 **lead_data
             }
             new_lead = await supabase_service.insert_lead(full_lead_data)
-            lead_id = new_lead["id"]
+            lead_id = new_lead.get("id")
+            if not lead_id:
+                raise ValueError("Lead intake persistence completed without returning a lead id")
 
             if assignee_user_id:
                 lead_notes = new_lead.get("notes") if isinstance(new_lead.get("notes"), dict) else {}
@@ -338,5 +344,6 @@ async def audit_logger_node(state: AgentState) -> AgentState:
 
 async def finalize_node(state: AgentState) -> AgentState:
     print("--- FINALIZE ---")
-    state["status"] = "success"
+    if state.get("status") not in {"error", "blocked"}:
+        state["status"] = "success"
     return state

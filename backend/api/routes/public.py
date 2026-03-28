@@ -167,8 +167,21 @@ async def public_cta_lead_capture(data: Dict[str, Any]):
         
         if result.get("status") == "error":
             raise HTTPException(status_code=500, detail=result.get("error"))
+        if result.get("status") == "blocked":
+            raise HTTPException(
+                status_code=429,
+                detail=result.get("error") or "Lead intake blocked by constitutional limits",
+            )
+
+        final_result = result.get("final_result") or {}
+        lead_id = final_result.get("lead_id")
+        if not lead_id:
+            raise HTTPException(
+                status_code=500,
+                detail="Lead intake completed without lead_id",
+            )
             
-        return {"status": "success", "lead_id": result.get("final_result", {}).get("lead_id")}
+        return {"status": "success", "lead_id": lead_id}
     except HTTPException:
         raise
     except Exception as e:
