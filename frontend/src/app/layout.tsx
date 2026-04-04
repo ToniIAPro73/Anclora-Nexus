@@ -1,28 +1,31 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import type { CSSProperties } from "react";
 import "./globals.css";
-import { I18nProvider } from "@/lib/i18n";
-import { OrgProvider } from "@/lib/contexts/OrgContext";
 import { CurrencyProvider } from "@/lib/currency";
-
+import { OrgProvider } from "@/lib/contexts/OrgContext";
+import { NEXUS_BRAND } from "@/lib/brand";
+import { I18nProvider } from "@/lib/i18n";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const jetbrains = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Anclora Nexus — AI Real Estate Intelligence",
-  description: "Luxury real estate operations powered by OpenClaw",
+  title: NEXUS_BRAND.name,
+  description: NEXUS_BRAND.subtitle,
   icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    icon: NEXUS_BRAND.assets.favicon,
+    shortcut: NEXUS_BRAND.assets.favicon,
+    apple: NEXUS_BRAND.assets.favicon,
   },
 };
 
@@ -32,8 +35,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="dark">
-      <body className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-navy-darker text-soft-white`}>
+    <html lang={NEXUS_BRAND.defaultLanguage} className="dark" data-brand="nexus" data-brand-mode={NEXUS_BRAND.theme.mode}>
+      <body
+        className={`${inter.variable} ${jetbrains.variable} antialiased font-sans bg-navy-darker text-soft-white`}
+        style={NEXUS_BRAND.theme.cssVars as CSSProperties}
+      >
         <I18nProvider>
           <CurrencyProvider>
             <OrgProvider>
@@ -41,7 +47,6 @@ export default function RootLayout({
             </OrgProvider>
           </CurrencyProvider>
         </I18nProvider>
-
       </body>
     </html>
   );

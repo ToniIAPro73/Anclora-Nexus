@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { translations, Language, TranslationKey } from './translations'
+import { NEXUS_BRAND, isSupportedNexusLanguage } from '@/lib/brand'
 
 interface I18nContextType {
   language: Language
@@ -12,21 +13,21 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window === 'undefined') return 'es'
+    if (typeof window === 'undefined') return NEXUS_BRAND.defaultLanguage
     const params = new URLSearchParams(window.location.search)
     const langFromUrl = params.get('lang') as Language | null
-    if (langFromUrl && langFromUrl in translations) {
+    if (isSupportedNexusLanguage(langFromUrl)) {
       return langFromUrl
     }
     const savedLang = localStorage.getItem('anclora-language') as Language | null
-    if (savedLang && savedLang in translations) {
+    if (isSupportedNexusLanguage(savedLang)) {
       return savedLang
     }
-    return 'es'
+    return NEXUS_BRAND.defaultLanguage
   })
 
   const setLanguage = (lang: Language) => {
-    const safeLang: Language = (lang in translations ? lang : 'es') as Language
+    const safeLang: Language = (isSupportedNexusLanguage(lang) ? lang : NEXUS_BRAND.defaultLanguage) as Language
     setLanguageState(safeLang)
     localStorage.setItem('anclora-language', safeLang)
     if (typeof window !== 'undefined') {
