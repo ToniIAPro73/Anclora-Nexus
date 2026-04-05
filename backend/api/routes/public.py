@@ -13,6 +13,8 @@ from backend.services.data_lab_access_service import data_lab_access_service
 from backend.services.partner_admission_service import partner_admission_service
 from backend.services.partner_workspace_service import partner_workspace_service
 from backend.services.captcha_verification_service import CaptchaVerificationError
+from backend.models.valuation_requests import PublicValuationRequestCreate
+from backend.services.valuation_request_service import valuation_request_service
 
 router = APIRouter()
 
@@ -126,6 +128,27 @@ async def update_public_shared_opportunity_status(shared_opportunity_id: str, da
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/valuation-requests", status_code=status.HTTP_201_CREATED)
+async def create_public_valuation_request(data: PublicValuationRequestCreate, request: Request):
+    try:
+        result = await valuation_request_service.create_public_request(
+            settings.PUBLIC_CTA_ORG_ID,
+            data,
+            request.client.host if request.client else None,
+        )
+        return {
+            "status": "submitted",
+            "request_id": result.get("id"),
+            "message": "Valuation request submitted",
+        }
+    except HTTPException:
+        raise
+    except CaptchaVerificationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/cta/lead")
 async def public_cta_lead_capture(data: Dict[str, Any]):

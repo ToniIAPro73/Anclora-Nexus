@@ -311,6 +311,64 @@ def build_data_lab_submission_confirmation(*, full_name: str, language: Optional
     return {"subject": subject, "body": body, "html": html}
 
 
+def build_valuation_submission_confirmation(*, full_name: str, language: Optional[str]) -> dict[str, str]:
+    lang = _normalize_lang(language)
+    if lang == "en":
+        subject = "Anclora Private Estates · We received your valuation request"
+        body = (
+            f"Hello {full_name},\n\n"
+            "We have received your property valuation request.\n"
+            "Our team will review the details and get back to you personally within a target window of two working days.\n\n"
+            "Regards,\nAnclora"
+        )
+        html = _render_shell(
+            eyebrow="Private Estates",
+            title="Your valuation request has been received",
+            intro=f"Hello {full_name}, we have received your property valuation request. Our team will review the details and get back to you personally within a target window of two working days.",
+            secondary_title="What happens next",
+            secondary_body="We will assess the asset, the micro-location and the right approach before scheduling a private conversation.",
+            closing="Regards,",
+            signature="Anclora",
+        )
+        return {"subject": subject, "body": body, "html": html}
+    if lang == "de":
+        subject = "Anclora Private Estates · Ihre Bewertungsanfrage ist eingegangen"
+        body = (
+            f"Hallo {full_name},\n\n"
+            "Wir haben Ihre Immobilienbewertungsanfrage erhalten.\n"
+            "Unser Team wird die Angaben prüfen und sich innerhalb von zwei Werktagen persönlich bei Ihnen melden.\n\n"
+            "Viele Grüße\nAnclora"
+        )
+        html = _render_shell(
+            eyebrow="Private Estates",
+            title="Ihre Bewertungsanfrage ist eingegangen",
+            intro=f"Hallo {full_name}, wir haben Ihre Immobilienbewertungsanfrage erhalten. Unser Team wird die Angaben prüfen und sich innerhalb von zwei Werktagen persönlich bei Ihnen melden.",
+            secondary_title="Nächste Schritte",
+            secondary_body="Wir analysieren das Objekt, die Mikrolage und den richtigen Ansatz, bevor wir ein privates Gespräch vereinbaren.",
+            closing="Viele Grüße",
+            signature="Anclora",
+        )
+        return {"subject": subject, "body": body, "html": html}
+
+    subject = "Anclora Private Estates · Hemos recibido tu solicitud de valoración"
+    body = (
+        f"Hola {full_name},\n\n"
+        "Hemos recibido tu solicitud de valoración de inmueble.\n"
+        "Nuestro equipo revisará los detalles y te responderá de forma personal dentro de un plazo objetivo de dos días hábiles.\n\n"
+        "Equipo Anclora"
+    )
+    html = _render_shell(
+        eyebrow="Private Estates",
+        title="Tu solicitud de valoración ha sido recibida",
+        intro=f"Hola {full_name}, hemos recibido tu solicitud de valoración. Nuestro equipo revisará los detalles y te responderá de forma personal dentro de un plazo objetivo de dos días hábiles.",
+        secondary_title="Qué ocurrirá ahora",
+        secondary_body="Analizaremos el activo, la microzona y el enfoque más adecuado antes de organizar una conversación privada.",
+        closing="Equipo Anclora",
+        signature="Anclora",
+    )
+    return {"subject": subject, "body": body, "html": html}
+
+
 def build_data_lab_review_email(*, full_name: str, language: Optional[str], approved: bool, review_notes: Optional[str], launch_url: Optional[str]) -> dict[str, str]:
     lang = _normalize_lang(language)
     notes = review_notes or ("Sin observaciones adicionales." if lang == "es" else "No further notes.")
