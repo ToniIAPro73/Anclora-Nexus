@@ -10,6 +10,28 @@ import { Card } from '@/components/ui/card'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { normalizeNextPath, type PrivatePortalKey } from '@/lib/private-area-access'
 
+function resolveAppUrl() {
+  const configured = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/\/$/, '')
+  if (typeof window === 'undefined') return configured
+
+  if (!configured) return window.location.origin
+
+  try {
+    const configuredUrl = new URL(configured)
+    const currentUrl = new URL(window.location.origin)
+    const isConfiguredLocalhost = configuredUrl.hostname === 'localhost' || configuredUrl.hostname === '127.0.0.1'
+    const isCurrentLocalhost = currentUrl.hostname === 'localhost' || currentUrl.hostname === '127.0.0.1'
+
+    if (isConfiguredLocalhost && !isCurrentLocalhost) {
+      return window.location.origin
+    }
+
+    return configuredUrl.toString().replace(/\/$/, '')
+  } catch {
+    return window.location.origin
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter()
   type Particle = {
@@ -136,37 +158,63 @@ export default function LoginPage() {
     setMessage('')
     setIsError(false)
 
-    const { error } =
-      mode === 'login'
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({
-            email,
-            password,
-            options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-          })
-
-    if (error) {
-      const raw = (error.message || '').toLowerCase()
-      if (raw.includes('invalid login credentials')) {
-        setMessage('Email o contraseña incorrectos.')
-      } else if (raw.includes('email not confirmed')) {
-        setMessage('Debes confirmar tu email antes de iniciar sesión.')
-      } else if (raw.includes('invitation_required')) {
-        setMessage('Solo puedes crear cuenta si has sido invitado por tu organización.')
-      } else {
-        setMessage(error.message)
-      }
-      setIsError(true)
-    } else {
-      setMessage(mode === 'login' ? 'Acceso correcto' : 'Cuenta creada. Si tu invitación era válida, ya puedes iniciar sesión.')
-      setIsError(false)
+    try {
       if (mode === 'login') {
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        })
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}))
+          const raw = String(payload?.message || '').toLowerCase()
+          if (raw.includes('invalid login credentials')) {
+            setMessage('Email o contraseña incorrectos.')
+          } else if (raw.includes('email not confirmed')) {
+            setMessage('Debes confirmar tu email antes de iniciar sesión.')
+          } else if (raw.includes('invitation_required')) {
+            setMessage('Solo puedes crear cuenta si has sido invitado por tu organización.')
+          } else {
+            setMessage(payload?.message || 'No se pudo iniciar sesión.')
+          }
+          setIsError(true)
+          setLoading(false)
+          return
+        }
+
+        setMessage('Acceso correcto')
+        setIsError(false)
         router.replace(nextPath)
         router.refresh()
       } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        })
+
+        if (error) {
+          const raw = (error.message || '').toLowerCase()
+          if (raw.includes('invitation_required')) {
+            setMessage('Solo puedes crear cuenta si has sido invitado por tu organización.')
+          } else {
+            setMessage(error.message)
+          }
+          setIsError(true)
+          setLoading(false)
+          return
+        }
+
+        setMessage('Cuenta creada. Si tu invitación era válida, ya puedes iniciar sesión.')
+        setIsError(false)
         setMode('login')
       }
+    } catch {
+      setMessage('No se pudo conectar con el servicio de acceso. Revisa tu conexión o vuelve a intentarlo.')
+      setIsError(true)
     }
+
     setLoading(false)
   }
 
@@ -179,8 +227,7 @@ export default function LoginPage() {
     setLoading(true)
     setMessage('')
     setIsError(false)
-    const configuredAppUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/\/$/, '')
-    const appUrl = configuredAppUrl || window.location.origin
+    const appUrl = resolveAppUrl()
     const resetNext = encodeURIComponent('/login?mode=reset')
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${appUrl}/auth/callback?next=${resetNext}`,
@@ -199,8 +246,7 @@ export default function LoginPage() {
     setLoading(true)
     setMessage('')
     setIsError(false)
-    const configuredAppUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/\/$/, '')
-    const appUrl = configuredAppUrl || window.location.origin
+    const appUrl = resolveAppUrl()
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -213,6 +259,10 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
+
+  const isGoogleAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === 'true'
+  const isGithubAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_GITHUB_AUTH === 'true'
+  const showOAuthSection = isGoogleAuthEnabled || isGithubAuthEnabled
 
   return (
     <div className="h-screen flex items-center justify-center p-3 bg-navy-darker relative overflow-hidden">
@@ -370,37 +420,45 @@ export default function LoginPage() {
               </Button>
             )}
 
-            <div className="relative py-1">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-soft-subtle/20" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-3 text-[10px] uppercase tracking-widest text-soft-muted bg-navy-surface">
-                  o continúa con
-                </span>
-              </div>
-            </div>
+            {showOAuthSection ? (
+              <>
+                <div className="relative py-1">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-soft-subtle/20" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-3 text-[10px] uppercase tracking-widest text-soft-muted bg-navy-surface">
+                      o continúa con
+                    </span>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={loading}
-                onClick={() => handleOAuth('google')}
-                className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
-              >
-                Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={loading}
-                onClick={() => handleOAuth('github')}
-                className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
-              >
-                GitHub
-              </Button>
-            </div>
+                <div className={`grid gap-2 ${isGoogleAuthEnabled && isGithubAuthEnabled ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                  {isGoogleAuthEnabled ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={loading}
+                      onClick={() => handleOAuth('google')}
+                      className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
+                    >
+                      Google
+                    </Button>
+                  ) : null}
+                  {isGithubAuthEnabled ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={loading}
+                      onClick={() => handleOAuth('github')}
+                      className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
+                    >
+                      GitHub
+                    </Button>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
 
             {message && (
               <p className={`text-center text-sm ${isError ? 'text-danger' : 'text-emerald-400'}`}>

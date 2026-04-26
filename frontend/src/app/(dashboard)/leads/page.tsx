@@ -175,7 +175,7 @@ function LeadsContent() {
               }}
               className="text-xs text-blue-light hover:text-white transition-colors underline underline-offset-4"
             >
-              Limpiar filtros
+              {t('clearFilters')}
             </button>
           )}
         </div>

@@ -99,6 +99,40 @@ Resultado funcional:
 
 ## FEATURES EN ESPECIFICACIÓN
 
+### 0. Nexus MVP v1
+
+**ID**: ANCLORA-NXMVP-001  
+**Versión**: 1.0  
+**Status**: Defined  
+**Fase**: MVP Focus  
+**Prioridad**: CRÍTICA
+
+**Descripción**: Reencuadra `Anclora Nexus` como una herramienta operativa centrada en captación de propiedades, captación de compradores y seguimiento diario, reduciendo la superficie visible del producto sin eliminar funcionalidades ya existentes.
+
+**Características clave**:
+- Sidebar principal reducida al flujo operativo esencial.
+- Priorización de `dashboard`, `leads`, `sellers`, `properties` y `tasks`.
+- `prospection-unified` como apoyo ligero de priorización.
+- Módulos no-MVP preservados en código y rutas, pero fuera de la navegación principal.
+- Compatibilidad mantenida con idiomas, temas y gramática visual existentes.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/nexus-mvp-v1/nexus-mvp-v1-INDEX.md`
+- **Spec Técnica**: `sdd/features/nexus-mvp-v1/nexus-mvp-v1-spec-v1.md`
+- **Prompt SDD**: `sdd/features/nexus-mvp-v1/prompts/nexus-mvp-v1-prompt.md`
+- **Feature Rules**: `.agent/rules/feature-nexus-mvp-v1.md`
+- **SKILL**: `.agent/skills/features/nexus-mvp-v1/SKILL.md`
+- **Prompt Antigravity**: `.antigravity/prompts/features/nexus-mvp-v1/feature-nexus-mvp-v1-v1.md`
+
+**Regla de rollout**:
+- No borrar funcionalidades existentes.
+- Ocultar o despriorizar antes que eliminar.
+- Ningún módulo nuevo entra en la sidebar principal si no mejora captación, seguimiento o conversión.
+
+**Status Aprobación**: ✅ Definido
+
+---
+
 ### 1. Multi-Tenant Memberships v1
 
 **ID**: ANCLORA-MTM-001  

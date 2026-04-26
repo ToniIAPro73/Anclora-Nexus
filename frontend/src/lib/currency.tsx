@@ -138,7 +138,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
     async function refreshRates() {
       try {
-        const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=GBP,USD,RUB', { cache: 'no-store' })
+        const res = await fetch('https://api.frankfurter.dev/v1/latest?from=EUR&to=GBP,USD,RUB', { cache: 'no-store' })
         if (!res.ok) return
         const json = await res.json() as { rates?: Record<string, number>; date?: string }
         const nextRates: FxRates = {

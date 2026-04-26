@@ -4,6 +4,42 @@
 
 ---
 
+## [1.0] - 2026-04-26 - Nexus MVP v1 Governance
+
+**Date**: 2026-04-26  
+**Status**: ✅ DEFINED  
+**Criticality**: ALTA  
+**Feature**: ANCLORA-NXMVP-001 v1.0
+
+### Scope delivered
+- Formalized `Nexus MVP v1` as a product-surface constraint for the current phase.
+- Reduced primary navigation focus to sellers, buyers/leads, properties, tasks and lightweight prospection.
+- Preserved non-MVP modules in code and routes while taking them out of the primary product narrative.
+
+### Core/API Changes
+- No backend contract changes required in this governance step.
+- No database migrations required.
+
+### Frontend Changes
+- Sidebar focus aligned with MVP surface.
+- No global redesign authorized by this feature.
+- Existing i18n and theming remain mandatory constraints.
+
+### SDD / Governance Artifacts
+- `sdd/features/nexus-mvp-v1/`
+- `sdd/features/nexus-mvp-v1/prompts/nexus-mvp-v1-prompt.md`
+- `.agent/rules/feature-nexus-mvp-v1.md`
+- `.agent/skills/features/nexus-mvp-v1/SKILL.md`
+- `.antigravity/prompts/features/nexus-mvp-v1/`
+- `sdd/features/FEATURES.md`
+
+### Validation
+- Governance scope documented.
+- Feature registry updated.
+- Product-surface rules aligned with current MVP intent.
+
+---
+
 ## [1.0] - 2026-03-08 - AI Runtime Provider Profiles v1
 
 **Date**: 2026-03-08  

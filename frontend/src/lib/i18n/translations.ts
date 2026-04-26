@@ -2,7 +2,7 @@ export const translations = {
   es: {
     // Navigation
     dashboard: 'Panel de Control',
-    leads: 'Contactos',
+    leads: 'Compradores',
     properties: 'Propiedades',
     tasks: 'Tareas',
     logout: 'Cerrar sesión',
@@ -25,7 +25,7 @@ export const translations = {
     noEmail: 'Sin email',
 
     // Dashboard widgets
-    leadsPulse: 'Contactos Activos',
+    leadsPulse: 'Compradores Activos',
     tasksToday: 'Tareas de Hoy',
     propertyPipeline: 'Cartera de Propiedades',
     quickStats: 'Estadísticas Rápidas',
@@ -33,7 +33,8 @@ export const translations = {
     quickActions: 'Acciones Rápidas',
 
     // Quick Actions
-    newLead: 'Nuevo Contacto',
+    newLead: 'Nuevo Comprador',
+    createLeadAction: 'Crear Comprador',
     manualEntry: 'Alta Manual',
     prospectionRun: 'Ejecutar Prospección',
     weeklySearch: 'Escaneo Semanal',
@@ -41,7 +42,7 @@ export const translations = {
     generateReport: 'Reporte Semanal',
 
     // Stats
-    leadsThisWeek: 'Contactos esta semana',
+    leadsThisWeek: 'Compradores esta semana',
     responseRate: 'Tasa de respuesta',
     activeMandates: 'Propiedades en Cartera',
     weeklyInsight: 'Insight Semanal de IA',
@@ -51,12 +52,12 @@ export const translations = {
     live: 'EN VIVO',
 
     // Activity Types
-    TYPE_LEAD_INTAKE: 'NUEVO CONTACTO',
+    TYPE_LEAD_INTAKE: 'NUEVO COMPRADOR',
     TYPE_PROSPECTION: 'PROSPECCIÓN',
     TYPE_WEEKLY_RECAP: 'RESUMEN SEMANAL',
 
     // Leads
-    lead: 'Contacto',
+    lead: 'Comprador',
     contact: 'Datos de contacto',
     budget: 'Presupuesto',
     priority: 'Prioridad',
@@ -64,9 +65,9 @@ export const translations = {
     status: 'Estado',
     actions: 'Acciones',
     confirmDelete: '¿Eliminar?',
-    noLeadsRegistered: 'No hay contactos registrados',
+    noLeadsRegistered: 'No hay compradores registrados',
     total: 'Total',
-    contactManagement: 'Gestión de contactos y oportunidades',
+    contactManagement: 'Gestión de compradores y seguimiento comercial',
     leadStatusNew: 'Nuevo',
     leadStatusContacted: 'Contactado',
     leadStatusQualified: 'Cualificado',
@@ -1344,7 +1345,7 @@ export const translations = {
   en: {
     // Navigation
     dashboard: 'Dashboard',
-    leads: 'Contacts',
+    leads: 'Buyers',
     properties: 'Properties',
     tasks: 'Tasks',
     logout: 'Logout',
@@ -1492,7 +1493,7 @@ export const translations = {
     noEmail: 'No email',
 
     // Dashboard widgets
-    leadsPulse: 'Active Contacts',
+    leadsPulse: 'Active Buyers',
     tasksToday: 'Today\'s Tasks',
     propertyPipeline: 'Property Pipeline',
     quickStats: 'Quick Stats',
@@ -1500,7 +1501,8 @@ export const translations = {
     quickActions: 'Quick Actions',
 
     // Quick Actions
-    newLead: 'New Contact',
+    newLead: 'New Buyer',
+    createLeadAction: 'Create Buyer',
     manualEntry: 'Manual Entry',
     prospectionRun: 'Run Prospection',
     weeklySearch: 'Weekly Scan',
@@ -1508,7 +1510,7 @@ export const translations = {
     generateReport: 'Weekly Report',
 
     // Stats
-    leadsThisWeek: 'Contacts this week',
+    leadsThisWeek: 'Buyers this week',
     responseRate: 'Response rate',
     activeMandates: 'Properties in Portfolio',
     weeklyInsight: 'AI Weekly Insight',
@@ -1518,21 +1520,21 @@ export const translations = {
     live: 'LIVE',
 
     // Activity Types
-    TYPE_LEAD_INTAKE: 'NEW CONTACT',
+    TYPE_LEAD_INTAKE: 'NEW BUYER',
     TYPE_PROSPECTION: 'PROSPECTION',
     TYPE_WEEKLY_RECAP: 'WEEKLY RECAP',
 
     // Leads
-    lead: 'Contact',
+    lead: 'Buyer',
     contact: 'Contact Info',
     budget: 'Budget',
     priority: 'Priority',
     source: 'Source',
     status: 'Status',
     actions: 'Actions',
-    noLeadsRegistered: 'No contacts registered',
+    noLeadsRegistered: 'No buyers registered',
     total: 'Total',
-    contactManagement: 'Contact and opportunity management',
+    contactManagement: 'Buyer management and commercial follow-up',
     leadStatusNew: 'New',
     leadStatusContacted: 'Contacted',
     leadStatusQualified: 'Qualified',
@@ -2432,7 +2434,7 @@ export const translations = {
   },
   de: {
     dashboard: 'Dashboard',
-    leads: 'Kontakte',
+    leads: 'Kaeufer',
     properties: 'Immobilien',
     tasks: 'Aufgaben',
     logout: 'Abmelden',
@@ -2579,7 +2581,7 @@ export const translations = {
     noEmail: 'Keine E-Mail',
 
     // Dashboard widgets
-    leadsPulse: 'Aktive Kontakte',
+    leadsPulse: 'Aktive Kaeufer',
     tasksToday: 'Heutige Aufgaben',
     propertyPipeline: 'Immobilien-Portfolio',
     quickStats: 'Schnellstatistiken',
@@ -2587,7 +2589,8 @@ export const translations = {
     quickActions: 'Schnellaktionen',
 
     // Quick Actions
-    newLead: 'Neuer Kontakt',
+    newLead: 'Neuer Kaeufer',
+    createLeadAction: 'Kaeufer erstellen',
     manualEntry: 'Manuelle Eingabe',
     prospectionRun: 'Prospektion Starten',
     weeklySearch: 'Wöchentlicher Scan',
@@ -2595,7 +2598,7 @@ export const translations = {
     generateReport: 'Bericht Erstellen',
 
     // Stats
-    leadsThisWeek: 'Kontakte diese Woche',
+    leadsThisWeek: 'Kaeufer diese Woche',
     responseRate: 'Antwortrate',
     activeMandates: 'Immobilien im Portfolio',
     weeklyInsight: 'KI-Wochenbericht',
@@ -2605,21 +2608,21 @@ export const translations = {
     live: 'LIVE',
 
     // Activity Types
-    TYPE_LEAD_INTAKE: 'NEUER KONTAKT',
+    TYPE_LEAD_INTAKE: 'NEUER KAEUFER',
     TYPE_PROSPECTION: 'PROSPEKTION',
     TYPE_WEEKLY_RECAP: 'WOCHENBERICHT',
 
     // Leads
-    lead: 'Kontakt',
+    lead: 'Kaeufer',
     contact: 'Kontaktdaten',
     budget: 'Budget',
     priority: 'Priorität',
     source: 'Quelle',
     status: 'Status',
     actions: 'Aktionen',
-    noLeadsRegistered: 'Keine Kontakte registriert',
+    noLeadsRegistered: 'Keine Kaeufer registriert',
     total: 'Gesamt',
-    contactManagement: 'Kontakt- und Chancenverwaltung',
+    contactManagement: 'Kaeufermanagement und vertrieblicher Follow-up',
     leadStatusNew: 'Neu',
     leadStatusContacted: 'Kontaktiert',
     leadStatusQualified: 'Qualifiziert',
@@ -3439,7 +3442,7 @@ export const translations = {
   ru: {
     // Navigation
     dashboard: 'Панель управления',
-    leads: 'Контакты',
+    leads: 'Покупатели',
     ingestion: 'Ингестия',
     properties: 'Объекты',
     tasks: 'Задачи',
@@ -3586,7 +3589,7 @@ export const translations = {
     noEmail: 'Нет email',
 
     // Dashboard widgets
-    leadsPulse: 'Активные контакты',
+    leadsPulse: 'Активные покупатели',
     tasksToday: 'Задачи на сегодня',
     propertyPipeline: 'Портфель объектов',
     quickStats: 'Быстрая статистика',
@@ -3594,7 +3597,8 @@ export const translations = {
     quickActions: 'Быстрые действия',
 
     // Quick Actions
-    newLead: 'Новый контакт',
+    newLead: 'Новый покупатель',
+    createLeadAction: 'Создать покупателя',
     manualEntry: 'Ручное добавление',
     prospectionRun: 'Запустить просекцию',
     weeklySearch: 'Недельный скан',
@@ -3602,7 +3606,7 @@ export const translations = {
     generateReport: 'Недельный отчет',
 
     // Stats
-    leadsThisWeek: 'Контактов за неделю',
+    leadsThisWeek: 'Покупателей за неделю',
     responseRate: 'Доля ответов',
     activeMandates: 'Объектов в портфеле',
     weeklyInsight: 'Недельный AI-инсайт',
@@ -3612,12 +3616,12 @@ export const translations = {
     live: 'В ЭФИРЕ',
 
     // Activity Types
-    TYPE_LEAD_INTAKE: 'НОВЫЙ КОНТАКТ',
+    TYPE_LEAD_INTAKE: 'НОВЫЙ ПОКУПАТЕЛЬ',
     TYPE_PROSPECTION: 'ПРОСПЕКЦИЯ',
     TYPE_WEEKLY_RECAP: 'НЕДЕЛЬНАЯ СВОДКА',
 
     // Leads
-    lead: 'Контакт',
+    lead: 'Покупатель',
     contact: 'Контактные данные',
     budget: 'Бюджет',
     priority: 'Приоритет',
@@ -3625,9 +3629,9 @@ export const translations = {
     status: 'Статус',
     actions: 'Действия',
     confirmDelete: 'Удалить?',
-    noLeadsRegistered: 'Нет зарегистрированных контактов',
+    noLeadsRegistered: 'Нет зарегистрированных покупателей',
     total: 'Итого',
-    contactManagement: 'Управление контактами и возможностями',
+    contactManagement: 'Управление покупателями и коммерческим сопровождением',
     leadStatusNew: 'Новый',
     leadStatusContacted: 'Связались',
     leadStatusQualified: 'Квалифицирован',

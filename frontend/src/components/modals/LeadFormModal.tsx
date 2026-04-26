@@ -89,7 +89,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                 <div className="text-gold">
                   {editLead ? <Pencil className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
                 </div>
-                {editLead ? 'Editar Contacto' : t('newLead') || 'Nuevo Contacto'}
+                {editLead ? `${t('edit')} ${t('lead')}` : t('newLead')}
               </h2>
               <button
                 type="button"
@@ -250,7 +250,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                   className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {editLead ? 'Guardar Cambios' : (loading ? 'Creando...' : 'Crear Contacto')}
+                  {editLead ? 'Guardar Cambios' : (loading ? 'Creando...' : t('createLeadAction'))}
                 </button>
               </div>
             </form>

@@ -1,32 +1,35 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Home, CheckSquare, UserCog, Target, ChevronsLeft, ChevronsRight, Database, ShieldCheck, ChevronDown, ChevronRight, UploadCloud, Bot, BarChart3, Calculator, LineChart, UserSearch, Network } from 'lucide-react'
+import { LayoutDashboard, Users, Home, CheckSquare, Target, ChevronsLeft, ChevronsRight, ChevronDown, ChevronRight, UserSearch } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
 
-function getSectionFromPath(pathname: string): 'core' | 'intelligence' | 'operations' {
+function getSectionFromPath(pathname: string): 'core' | 'intelligence' {
   if (
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/leads') ||
     pathname.startsWith('/properties') ||
-    pathname.startsWith('/tasks') ||
-    pathname.startsWith('/team')
+    pathname.startsWith('/tasks')
   ) {
     return 'core'
   }
-  if (pathname.startsWith('/prospection') || pathname.startsWith('/intelligence') || pathname.startsWith('/sellers')) {
+  if (
+    pathname.startsWith('/prospection') ||
+    pathname.startsWith('/intelligence') ||
+    pathname.startsWith('/sellers')
+  ) {
     return 'intelligence'
   }
-  return 'operations'
+  return 'core'
 }
 
 export function Sidebar() {
   const pathname = usePathname()
   const { t } = useI18n()
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
-  const [openSection, setOpenSection] = useState<'core' | 'intelligence' | 'operations' | null>(null)
+  const [openSection, setOpenSection] = useState<'core' | 'intelligence' | null>(null)
 
   const toggleSidebar = () => {
     setIsCollapsed((prev) => {
@@ -47,7 +50,7 @@ export function Sidebar() {
   const visibleSection = openSection ?? autoSection
 
   const sections: Array<{
-    id: 'core' | 'intelligence' | 'operations'
+    id: 'core' | 'intelligence'
     title: string
     icon: typeof LayoutDashboard
     links: Array<{ name: string; href: string; icon: typeof LayoutDashboard }>
@@ -59,9 +62,9 @@ export function Sidebar() {
       links: [
         { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
         { name: t('leads'), href: '/leads', icon: Users },
+        { name: t('sellerPipelineMenu'), href: '/sellers', icon: UserSearch },
         { name: t('properties'), href: '/properties', icon: Home },
         { name: t('tasks'), href: '/tasks', icon: CheckSquare },
-        { name: t('team'), href: '/team', icon: UserCog },
       ],
     },
     {
@@ -69,28 +72,8 @@ export function Sidebar() {
       title: t('sidebarSectionIntelligence'),
       icon: Target,
       links: [
-        { name: `${t('prospection')} studio`, href: '/prospection', icon: Target },
         { name: `${t('prospection')} operativa`, href: '/prospection-unified', icon: Target },
-        { name: t('sellerPipelineMenu'), href: '/sellers', icon: UserSearch },
-        { name: t('opportunityRankingMenu'), href: '/opportunity-ranking', icon: Target },
         { name: t('intelligence'), href: '/intelligence', icon: LayoutDashboard },
-      ],
-    },
-    {
-      id: 'operations',
-      title: t('sidebarSectionOperations'),
-      icon: Database,
-      links: [
-        { name: t('ingestion'), href: '/ingestion', icon: Database },
-        { name: t('dataQuality'), href: '/data-quality', icon: ShieldCheck },
-        { name: t('feedOrchestratorMenu'), href: '/feed-orchestrator', icon: UploadCloud },
-        { name: t('partnerNetworkMenu'), href: '/partner-network', icon: Network },
-        { name: t('partnerAdmissionsMenu'), href: '/partner-admissions', icon: Network },
-        { name: t('dataLabAccessMenu'), href: '/data-lab-access', icon: Database },
-        { name: t('automationMenu'), href: '/automation-alerting', icon: Bot },
-        { name: t('commandCenterMenu'), href: '/command-center', icon: BarChart3 },
-        { name: t('dealMarginMenu'), href: '/deal-margin-simulator', icon: Calculator },
-        { name: t('sourceObservatoryMenu'), href: '/source-observatory', icon: LineChart },
       ],
     },
   ]
