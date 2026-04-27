@@ -159,3 +159,69 @@ class SellerStatsResponse(BaseModel):
     alta_prioridad: int   # prioridad >= 4
     tasa_mandatos: float  # mandato_exclusivo / total (%)
     timestamp: str
+
+
+# ─── Intake Pipeline (ANCLORA-SIP-001) ──────────────────────────────────────
+
+
+class SellerIntakeRequest(BaseModel):
+    """Raw data intake payload — accepts unstructured input from any source."""
+    raw_data: Dict[str, Any]
+    org_id: Optional[str] = None
+
+
+class SellerIntakeResponse(BaseModel):
+    seller_id: Optional[str]
+    draft_id: Optional[str]
+    status: str
+    priority_score: Optional[float]
+    priority_tier: Optional[int]
+    timestamp: str
+
+
+class SellerPrioritizeRequest(BaseModel):
+    batch_size: int = Field(default=10, ge=1, le=50)
+
+
+class SellerPrioritizeItem(BaseModel):
+    seller_id: str
+    nombre_propietario: Optional[str]
+    priority_score: float
+    priority_tier: int
+    zona: str
+
+
+class SellerPrioritizeResponse(BaseModel):
+    scored: List[SellerPrioritizeItem]
+    total_processed: int
+    timestamp: str
+
+
+class PendingApprovalItem(BaseModel):
+    draft_id: str
+    seller_id: str
+    seller_name: Optional[str]
+    priority_tier: int
+    email_draft: Optional[str]
+    whatsapp_draft: Optional[str]
+    created_at: str
+
+
+class PendingApprovalResponse(BaseModel):
+    items: List[PendingApprovalItem]
+    total: int
+    limit: int
+    offset: int
+
+
+class ApproveAndSendRequest(BaseModel):
+    draft_id: str
+    approved_email_body: Optional[str] = None
+    approved_whatsapp_body: Optional[str] = None
+    agent_comments: Optional[str] = None
+
+
+class ApproveAndSendResponse(BaseModel):
+    status: str
+    job_id: Optional[str]
+    draft_id: str

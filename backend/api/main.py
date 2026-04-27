@@ -28,6 +28,7 @@ app.add_middleware(
 # ROUTES - Import AFTER app is created
 # ═══════════════════════════════════════════════════════════════
 
+from .routes.automation import router as automation_router
 from .routes.intelligence import router as intelligence_router
 from .routes.ingestion import router as ingestion_router
 from .routes.finops import router as finops_router
@@ -39,6 +40,9 @@ from .routes.skills import router as skills_router
 
 # Include Intelligence routes (+ NotebookLM territorial insights)
 app.include_router(intelligence_router, prefix="/api/intelligence", tags=["Intelligence"])
+
+# Include Automation rules and alerts
+app.include_router(automation_router, prefix="/api/automation", tags=["Automation"])
 
 # Include Prospection & Buyer Matching routes
 app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospection"])

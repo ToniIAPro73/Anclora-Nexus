@@ -765,3 +765,236 @@ async def confirm_supervised_send(
         )
 
     return result.data[0]
+
+
+# ─── Intake Pipeline (ANCLORA-SIP-001) ───────────────────────────────────────
+
+
+async def intake_seller_raw(
+    db: SupabaseService,
+    org_id: str,
+    raw_data: dict,
+) -> dict:
+    """
+    Process raw intake data through the SellerProspectionGraph.
+    Returns seller_id, draft_id, priority_score, priority_tier.
+    """
+    from backend.agents.seller_prospection_agent import seller_prospection_graph, SellerProspectionState
+
+    initial_state: SellerProspectionState = {
+        "raw_data": raw_data,
+        "org_id": org_id,
+        "seller_id": None,
+        "extraction_result": {},
+        "extraction_confidence": 0.0,
+        "priority_score": 0.0,
+        "priority_tier": 1,
+        "can_proceed": True,
+        "limit_violation": None,
+        "outreach_email": "",
+        "outreach_whatsapp": "",
+        "draft_id": None,
+        "approval_status": "draft",
+        "audit_chain": [],
+        "error_message": None,
+        "status": "running",
+    }
+
+    final_state = await seller_prospection_graph.ainvoke(initial_state)
+    return {
+        "seller_id": final_state.get("seller_id"),
+        "draft_id": final_state.get("draft_id"),
+        "status": final_state.get("status") or "success",
+        "priority_score": final_state.get("priority_score"),
+        "priority_tier": final_state.get("priority_tier"),
+        "error_message": final_state.get("error_message"),
+        "can_proceed": final_state.get("can_proceed", True),
+        "limit_violation": final_state.get("limit_violation"),
+    }
+
+
+async def batch_prioritize_sellers(
+    db: SupabaseService,
+    org_id: str,
+    batch_size: int = 10,
+) -> list[dict]:
+    """
+    Apply deterministic priority formula to sellers without priority_score.
+    Returns list of {seller_id, priority_score, priority_tier}.
+    """
+    from backend.agents.seller_prospection_agent import (
+        _score_budget, _score_urgency, _score_property_fit,
+        _score_source_quality, _tier_from_score,
+        _W_BUDGET, _W_URGENCY, _W_PROPERTY_FIT, _W_SOURCE_QUALITY,
+    )
+
+    result = (
+        db.client.table("nexus_sellers")
+        .select("id, nombre_propietario, zona, fuente, precio_publicado, dias_en_mercado, senales_motivacion")
+        .eq("org_id", str(org_id))
+        .is_("priority_score", "null")
+        .neq("estado_contacto", "descartado")
+        .order("fecha_deteccion", desc=True)
+        .limit(batch_size)
+        .execute()
+    )
+    sellers = result.data or []
+    scored: list[dict] = []
+    now = datetime.now(timezone.utc).isoformat()
+
+    for s in sellers:
+        b = _score_budget(s.get("precio_publicado"))
+        u = _score_urgency(s.get("dias_en_mercado"), s.get("senales_motivacion") or [])
+        p = _score_property_fit(s.get("zona") or "otra")
+        q = _score_source_quality(s.get("fuente") or "manual")
+        score = round(b * _W_BUDGET + u * _W_URGENCY + p * _W_PROPERTY_FIT + q * _W_SOURCE_QUALITY, 4)
+        tier = _tier_from_score(score)
+
+        db.client.table("nexus_sellers").update({
+            "priority_score": score,
+            "priority_computed_at": now,
+            "prioridad": tier,
+        }).eq("org_id", str(org_id)).eq("id", s["id"]).execute()
+
+        scored.append({
+            "seller_id": s["id"],
+            "nombre_propietario": s.get("nombre_propietario"),
+            "priority_score": score,
+            "priority_tier": tier,
+            "zona": s.get("zona") or "otra",
+        })
+
+    return scored
+
+
+async def list_pending_approval(
+    db: SupabaseService,
+    org_id: str,
+    priority_tier: Optional[int] = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> dict:
+    """
+    Return outreach drafts awaiting human approval, ordered by priority DESC.
+    """
+    query = (
+        db.client.table("seller_outreach_drafts")
+        .select("id, seller_id, email_draft, whatsapp_draft, priority_tier, created_at, status")
+        .eq("org_id", str(org_id))
+        .eq("status", "draft")
+        .order("priority_tier", desc=True)
+        .order("created_at", desc=True)
+        .range(offset, offset + limit - 1)
+    )
+    if priority_tier is not None:
+        query = query.eq("priority_tier", priority_tier)
+
+    result = query.execute()
+    drafts = result.data or []
+
+    # Enrich with seller name (single lookup per draft)
+    items = []
+    for d in drafts:
+        seller_name: Optional[str] = None
+        try:
+            s_result = (
+                db.client.table("nexus_sellers")
+                .select("nombre_propietario")
+                .eq("org_id", str(org_id))
+                .eq("id", str(d["seller_id"]))
+                .maybe_single()
+                .execute()
+            )
+            seller_name = (s_result.data or {}).get("nombre_propietario")
+        except Exception:
+            pass
+
+        items.append({
+            "draft_id": d["id"],
+            "seller_id": d["seller_id"],
+            "seller_name": seller_name,
+            "priority_tier": d.get("priority_tier") or 1,
+            "email_draft": d.get("email_draft"),
+            "whatsapp_draft": d.get("whatsapp_draft"),
+            "created_at": str(d.get("created_at") or ""),
+        })
+
+    count_result = (
+        db.client.table("seller_outreach_drafts")
+        .select("id", count="exact")
+        .eq("org_id", str(org_id))
+        .eq("status", "draft")
+        .execute()
+    )
+    total = count_result.count or len(items)
+
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+async def approve_and_send_outreach(
+    db: SupabaseService,
+    org_id: str,
+    draft_id: str,
+    approved_email_body: Optional[str] = None,
+    approved_whatsapp_body: Optional[str] = None,
+    agent_comments: Optional[str] = None,
+    user_id: Optional[str] = None,
+) -> dict:
+    """
+    Approve an outreach draft and queue for send.
+    Returns status=202 accepted + job_id for async processing.
+    """
+    import uuid as _uuid
+
+    # Validate draft belongs to org
+    draft_result = (
+        db.client.table("seller_outreach_drafts")
+        .select("*")
+        .eq("org_id", str(org_id))
+        .eq("id", str(draft_id))
+        .eq("status", "draft")
+        .maybe_single()
+        .execute()
+    )
+    draft = draft_result.data
+    if not draft:
+        raise ValueError(f"Draft {draft_id} not found or already processed")
+
+    job_id = str(_uuid.uuid4())
+    update_payload: dict = {
+        "status": "approved",
+        "approved_at": datetime.now(timezone.utc).isoformat(),
+        "agent_comments": agent_comments,
+        "job_id": job_id,
+    }
+    if approved_email_body:
+        update_payload["email_draft"] = approved_email_body
+    if approved_whatsapp_body:
+        update_payload["whatsapp_draft"] = approved_whatsapp_body
+    if user_id:
+        update_payload["approved_by"] = user_id
+
+    db.client.table("seller_outreach_drafts").update(update_payload).eq("id", str(draft_id)).execute()
+
+    # Log approval in audit_log via supabase_service
+    try:
+        from backend.services.supabase_service import supabase_service
+        await supabase_service.insert_audit_log({
+            "org_id": org_id,
+            "actor_type": "human",
+            "actor_id": user_id or "unknown",
+            "action": "approve_outreach_draft",
+            "resource_type": "seller_outreach_drafts",
+            "resource_id": str(draft_id),
+            "details": {
+                "seller_id": draft.get("seller_id"),
+                "job_id": job_id,
+                "has_email_override": bool(approved_email_body),
+                "has_whatsapp_override": bool(approved_whatsapp_body),
+                "agent_comments": agent_comments,
+            },
+        })
+    except Exception:
+        pass
+
+    return {"status": "202 Accepted", "job_id": job_id, "draft_id": draft_id}

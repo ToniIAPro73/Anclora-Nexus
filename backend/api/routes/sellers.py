@@ -20,12 +20,20 @@ from ...models.sellers import (
     EstadoContactoEnum,
     ZonaEnum,
     FuenteEnum,
+    # Intake pipeline
+    SellerIntakeRequest,
+    SellerIntakeResponse,
+    SellerPrioritizeRequest,
+    SellerPrioritizeResponse,
+    PendingApprovalResponse,
+    ApproveAndSendRequest,
+    ApproveAndSendResponse,
 )
 from ...services import sellers_service
 from ...services.seller_memory_service import seller_memory_service
 from ...services.supabase_service import SupabaseService
 from ...services.llm_service import llm_service
-from ..deps import check_budget_hard_stop, get_org_id
+from ..deps import check_budget_hard_stop, get_current_user, get_org_id
 from ...skills.whale_dossier import run_whale_dossier
 
 
@@ -482,3 +490,174 @@ async def confirm_supervised_send(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error confirming supervised send: {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# INTAKE PIPELINE (ANCLORA-SIP-001)
+# ═══════════════════════════════════════════════════════════════
+
+
+@router.post("/intake", response_model=SellerIntakeResponse, status_code=202)
+async def seller_intake(
+    payload: SellerIntakeRequest,
+    _budget=Depends(check_budget_hard_stop),
+    org_id: str = Depends(get_org_id),
+):
+    """
+    Raw seller lead intake — ANCLORA-SIP-001.
+
+    Accepts unstructured data from any source (StateFox webhook, FSBO scraper, web form).
+    Triggers the SellerProspectionGraph: extract → prioritize → limit check → outreach copy → HITL queue.
+    Returns preliminary priority and draft_id for HITL approval.
+    """
+    from datetime import datetime, timezone
+    try:
+        db = get_db()
+        result = await sellers_service.intake_seller_raw(
+            db=db,
+            org_id=org_id,
+            raw_data=payload.raw_data,
+        )
+        if result.get("limit_violation"):
+            raise HTTPException(
+                status_code=429,
+                detail=f"Constitutional limit reached: {result['limit_violation']}",
+            )
+        return SellerIntakeResponse(
+            seller_id=result.get("seller_id"),
+            draft_id=result.get("draft_id"),
+            status=result.get("status") or "success",
+            priority_score=result.get("priority_score"),
+            priority_tier=result.get("priority_tier"),
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing seller intake: {str(e)}")
+
+
+@router.post("/prioritize", response_model=SellerPrioritizeResponse)
+async def prioritize_sellers(
+    payload: SellerPrioritizeRequest,
+    org_id: str = Depends(get_org_id),
+):
+    """
+    Batch prioritization — ANCLORA-SIP-001.
+
+    Applies deterministic formula to sellers without a priority_score:
+      priority = budget×0.35 + urgency×0.25 + property_fit×0.25 + source_quality×0.15
+    Scores are reproducible (same input → same output). Tier: 0-0.19=1 … 0.80-1.0=5.
+    """
+    from datetime import datetime, timezone
+    try:
+        db = get_db()
+        scored = await sellers_service.batch_prioritize_sellers(
+            db=db,
+            org_id=org_id,
+            batch_size=payload.batch_size,
+        )
+        from ...models.sellers import SellerPrioritizeItem
+        return SellerPrioritizeResponse(
+            scored=[SellerPrioritizeItem(**s) for s in scored],
+            total_processed=len(scored),
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error running batch prioritization: {str(e)}")
+
+
+@router.get("/pending-approval", response_model=PendingApprovalResponse)
+async def list_pending_approval(
+    priority_tier: Optional[int] = Query(None, ge=1, le=5, description="Filter by priority tier"),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    org_id: str = Depends(get_org_id),
+):
+    """
+    HITL approval queue — ANCLORA-SIP-001.
+
+    Returns outreach drafts pending human approval, ordered by priority DESC, created_at DESC.
+    Each item includes email_draft and whatsapp_draft for review before send.
+    """
+    try:
+        db = get_db()
+        result = await sellers_service.list_pending_approval(
+            db=db,
+            org_id=org_id,
+            priority_tier=priority_tier,
+            limit=limit,
+            offset=offset,
+        )
+        from ...models.sellers import PendingApprovalItem
+        return PendingApprovalResponse(
+            items=[PendingApprovalItem(**item) for item in result["items"]],
+            total=result["total"],
+            limit=result["limit"],
+            offset=result["offset"],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing pending approvals: {str(e)}")
+
+
+@router.post("/approve-and-send", response_model=ApproveAndSendResponse, status_code=202)
+async def approve_and_send(
+    payload: ApproveAndSendRequest,
+    org_id: str = Depends(get_org_id),
+    user=Depends(get_current_user),
+):
+    """
+    Approve outreach draft and queue for send — ANCLORA-SIP-001 HITL workflow.
+
+    Allows optional override of email/whatsapp bodies before approval.
+    Returns 202 Accepted + job_id for async send processing.
+    Logs approved_by + timestamp to audit_log.
+    """
+    try:
+        db = get_db()
+        result = await sellers_service.approve_and_send_outreach(
+            db=db,
+            org_id=org_id,
+            draft_id=payload.draft_id,
+            approved_email_body=payload.approved_email_body,
+            approved_whatsapp_body=payload.approved_whatsapp_body,
+            agent_comments=payload.agent_comments,
+            user_id=str(user.id) if user else None,
+        )
+        return ApproveAndSendResponse(
+            status=result["status"],
+            job_id=result["job_id"],
+            draft_id=result["draft_id"],
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error approving outreach draft: {str(e)}")
+
+
+@router.post("/{seller_id}/generate-outreach", response_model=dict)
+async def generate_seller_outreach(
+    seller_id: str,
+    _budget=Depends(check_budget_hard_stop),
+    org_id: str = Depends(get_org_id),
+):
+    """
+    Generate personalized outreach copy for a seller — delegates to generate-dossier.
+    Alias endpoint for pipeline compatibility.
+    """
+    try:
+        db = get_db()
+        result = await run_whale_dossier(
+            data={"seller_id": seller_id, "org_id": org_id},
+            llm=llm_service,
+            db=db,
+        )
+        if result.get("status") == "error":
+            raise HTTPException(status_code=404, detail=result.get("reason", "Error"))
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating seller outreach: {str(e)}")
