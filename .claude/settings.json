@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npm ci *)",
+      "Bash(curl -s http://localhost:3000/api/health)",
+      "Bash(curl -s -X POST http://localhost:3000/api/content/generate -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s \"http://localhost:3000/api/content/status?job_id=job_1777309737726_45lyefhgw\")",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(curl -s \"http://localhost:3000/api/content/status?job_id=job_1777309974810_ig0hlx5xk\")",
+      "Bash(curl -s \"http://localhost:3000/api/content/status?job_id=job_1777323540244_pm7elt101\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST https://openrouter.ai/api/v1/chat/completions -H 'Authorization: Bearer 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' -H 'Content-Type: application/json' -d '{\"model\":\"claude-3-5-sonnet\",\"messages\":[{\"role\":\"user\",\"content\":\"test\"}],\"max_tokens\":50}')",
+      "Bash(curl -s -X POST https://openrouter.ai/api/v1/chat/completions -H 'Authorization: Bearer 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' -H 'Content-Type: application/json' -d '{\"model\":\"anthropic/claude-3.5-sonnet\",\"messages\":[{\"role\":\"user\",\"content\":\"test\"}],\"max_tokens\":50}')",
+      "Bash(curl -s https://openrouter.ai/api/v1/models -H 'Authorization: Bearer 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')",
+      "Bash(curl -s -X POST https://openrouter.ai/api/v1/chat/completions -H 'Authorization: Bearer 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' -H 'Content-Type: application/json' -d '{\"model\":\"~anthropic/claude-haiku-latest\",\"messages\":[{\"role\":\"user\",\"content\":\"test\"}],\"max_tokens\":50}')",
+      "Bash(curl -s \"http://localhost:3000/api/content/status?job_id=job_1777323714799_k7zrut8o1\")",
+      "Bash(curl -s -X POST http://localhost:3001/api/content/generate -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s \"http://localhost:3001/api/content/status?job_id=job_1777323738461_wn3leyjev\")",
+      "Bash(jq '.jobId' -r)",
+      "Bash(curl -s 'http://localhost:3001/api/content/status?job_id=__TRACKED_VAR__')",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(curl -s -H \"Authorization: Bearer $\\(grep GITHUB_TOKEN .env.local)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs kill *)",
+      "Bash(curl -s 'http://localhost:3000/api/content/status?job_id=__TRACKED_VAR__')"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}
