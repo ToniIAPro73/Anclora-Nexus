@@ -1,6 +1,6 @@
-export type PrivatePortalKey = 'agent' | 'partner' | 'data_lab'
+export type PrivatePortalKey = 'agent'
 
-export type PrivatePortalStatus = 'active' | 'admission_review' | 'controlled_access'
+export type PrivatePortalStatus = 'active'
 
 export type PrivatePortalDefinition = {
   key: PrivatePortalKey
@@ -19,20 +19,6 @@ export const PRIVATE_AREA_PORTALS: Record<PrivatePortalKey, PrivatePortalDefinit
     authenticatedPath: '/dashboard',
     status: 'active',
     requiresNexusMembership: true,
-  },
-  partner: {
-    key: 'partner',
-    publicPath: '/private-area/partner',
-    authenticatedPath: '/private-area/partner/workspace',
-    status: 'active',
-    requiresNexusMembership: false,
-  },
-  data_lab: {
-    key: 'data_lab',
-    publicPath: '/private-area/data-lab',
-    authenticatedPath: '/private-area/data-lab',
-    status: 'controlled_access',
-    requiresNexusMembership: false,
   },
 }
 
