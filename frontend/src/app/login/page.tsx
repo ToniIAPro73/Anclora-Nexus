@@ -63,7 +63,7 @@ export default function LoginPage() {
     if (typeof window === 'undefined') return null
     const params = new URLSearchParams(window.location.search)
     const portal = params.get('portal')
-    return portal === 'agent' || portal === 'partner' || portal === 'data_lab' ? portal : null
+    return portal === 'agent' ? 'agent' : null
   })
   const particles: Particle[] = [...Array(12)].map((_, i) => ({
     id: i,
@@ -304,7 +304,7 @@ export default function LoginPage() {
             <p className="text-[10px] uppercase tracking-[0.2em] text-soft-muted">Private Estate Intelligence</p>
             {portalKey ? (
               <div className="mt-3 rounded-full border border-gold/25 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
-                {portalKey === 'agent' ? 'Portal de Agente' : portalKey === 'partner' ? 'Portal de Partner' : 'Anclora Data Lab'}
+                Portal de Agente
               </div>
             ) : null}
             <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent mt-3" />
