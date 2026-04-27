@@ -26,8 +26,6 @@ from ...services.intelligence_packs_service import (
     update_intelligence_pack,
 )
 from ...services.ai_runtime import get_runtime_summary
-from ...services.data_lab_access_service import data_lab_access_service
-from ...models.data_lab_access import DataLabAccessReview
 from ...services.supabase_service import SupabaseService
 from ...services.territorial_sync_service import (
     get_territorial_pipeline_status,
@@ -107,14 +105,6 @@ class IntelligencePackUpdateRequest(BaseModel):
     is_default: Optional[bool] = None
     metadata: Optional[Dict[str, Any]] = None
     last_synced_at: Optional[str] = None
-
-
-class DataLabAccessReviewRequest(BaseModel):
-    status: str
-    review_notes: Optional[str] = None
-    access_tier: Optional[str] = None
-    approved_scope: Optional[str] = None
-    notify_applicant: bool = False
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -478,64 +468,6 @@ async def update_intelligence_pack_endpoint(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating intelligence pack: {str(e)}")
-
-
-@router.get("/data-lab-access")
-async def list_data_lab_access_requests(
-    status_filter: Optional[str] = Query(None, alias="status"),
-    profile_type: Optional[str] = Query(None),
-    q: Optional[str] = Query(None),
-    limit: int = Query(25, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    org_id: str = Depends(get_org_id),
-    _user=Depends(get_current_user),
-):
-    try:
-        return await data_lab_access_service.list_requests(
-            org_id=org_id,
-            status=status_filter,
-            profile_type=profile_type,
-            query=q,
-            limit=limit,
-            offset=offset,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error listing Data Lab access requests: {str(e)}")
-
-
-@router.get("/data-lab-access/summary")
-async def get_data_lab_access_summary(
-    org_id: str = Depends(get_org_id),
-    _user=Depends(get_current_user),
-):
-    try:
-        return await data_lab_access_service.get_summary(org_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading Data Lab access summary: {str(e)}")
-
-
-@router.patch("/data-lab-access/{request_id}")
-async def review_data_lab_access_request(
-    request_id: str,
-    payload: DataLabAccessReviewRequest,
-    org_id: str = Depends(get_org_id),
-    user=Depends(get_current_user),
-):
-    result = await data_lab_access_service.review_request(
-        org_id=org_id,
-        request_id=request_id,
-        reviewer_user_id=str(user.id),
-        payload=DataLabAccessReview(
-            status=payload.status,
-            review_notes=payload.review_notes,
-            access_tier=payload.access_tier,
-            approved_scope=payload.approved_scope,
-            notify_applicant=payload.notify_applicant,
-        ),
-    )
-    if not result:
-        raise HTTPException(status_code=404, detail="Data Lab access request not found")
-    return result
 
 
 @router.get("/statefox-discovery")

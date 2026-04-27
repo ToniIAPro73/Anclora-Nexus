@@ -1,7 +1,6 @@
 'use client'
 
-import Link from 'next/link'
-import { Building2, LockKeyhole, Network, Sparkles, Telescope } from 'lucide-react'
+import { Building2, LockKeyhole, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useI18n } from '@/lib/i18n'
 import supabase from '@/lib/supabase'
@@ -9,11 +8,10 @@ import { PrivateAreaShell } from '@/components/private-area/PrivateAreaShell'
 import { resolvePortalEntryHref } from '@/lib/private-area-access'
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import Link from 'next/link'
 
 const PORTAL_META = [
   { key: 'agent', icon: LockKeyhole },
-  { key: 'partner', icon: Network },
-  { key: 'data_lab', icon: Telescope },
 ] as const
 
 export default function PrivateAreaPage() {
@@ -36,7 +34,7 @@ export default function PrivateAreaPage() {
       title={t('privateAreaTitle')}
       subtitle={t('privateAreaSubtitle')}
     >
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-1 max-w-xl mx-auto">
         {PORTAL_META.map(({ key, icon: Icon }) => (
           <Card key={key} className="surface-primary border-soft-subtle/15 bg-navy-deep/55">
             <CardHeader className="gap-3">
@@ -99,7 +97,7 @@ export default function PrivateAreaPage() {
             <CardDescription className="text-soft-muted">{t('privateAreaRoadmapSubtitle')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {(['agent', 'partner', 'data_lab'] as const).map((key) => (
+            {(['agent'] as const).map((key) => (
               <div key={key} className="surface-secondary rounded-2xl border border-soft-subtle/15 bg-navy-darker/40 p-4">
                 <p className="text-sm font-semibold text-soft-white">{t(`privateAreaPortalTitle_${key}`)}</p>
                 <p className="mt-2 text-sm leading-6 text-soft-muted">{t(`privateAreaPortalRoadmap_${key}`)}</p>
