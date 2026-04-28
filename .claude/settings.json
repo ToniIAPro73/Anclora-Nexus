@@ -23,7 +23,14 @@
       "Bash(curl -s -H \"Authorization: Bearer $\\(grep GITHUB_TOKEN .env.local)",
       "Bash(awk '{print $2}')",
       "Bash(xargs kill *)",
-      "Bash(curl -s 'http://localhost:3000/api/content/status?job_id=__TRACKED_VAR__')"
+      "Bash(curl -s 'http://localhost:3000/api/content/status?job_id=__TRACKED_VAR__')",
+      "Bash(npm install *)",
+      "Bash(netstat -tulpn)",
+      "Bash(kill -9 1488)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s http://localhost:3000/dashboard/generation)",
+      "mcp__firecrawl-mcp__firecrawl_browser_create",
+      "Bash(curl -s http://localhost:3000/login)"
     ],
     "additionalDirectories": [
       "/tmp"
