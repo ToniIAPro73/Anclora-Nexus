@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import type { AuthChangeEvent } from '@supabase/supabase-js'
 import supabase from '@/lib/supabase'
 
 export type OrgRole = 'owner' | 'manager' | 'agent'
@@ -24,9 +25,14 @@ interface OrgContextType {
 
 export const OrgContext = createContext<OrgContextType | undefined>(undefined)
 
-export function OrgProvider({ children }: { children: React.ReactNode }) {
-  const [membership, setMembership] = useState<OrgMembership | null>(null)
-  const [loading, setLoading] = useState(true)
+interface OrgProviderProps {
+  children: React.ReactNode
+  initialMembership?: OrgMembership | null
+}
+
+export function OrgProvider({ children, initialMembership = null }: OrgProviderProps) {
+  const [membership, setMembership] = useState<OrgMembership | null>(initialMembership ?? null)
+  const [loading, setLoading] = useState(!initialMembership)
   const [error, setError] = useState<string | null>(null)
 
   const fetchMembership = async () => {
@@ -78,16 +84,23 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    fetchMembership()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    // Only fetch if we don't have initial data
+    if (!initialMembership) {
       fetchMembership()
+    }
+
+    // Listen for auth changes (login/logout), but not every route change
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
+      // Only refetch on actual auth events (sign out, sign in), not route changes
+      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        fetchMembership()
+      }
     })
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [initialMembership])
 
   return (
     <OrgContext.Provider 

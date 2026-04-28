@@ -6,6 +6,7 @@ import { CurrencyProvider } from "@/lib/currency";
 import { OrgProvider } from "@/lib/contexts/OrgContext";
 import { NEXUS_BRAND } from "@/lib/brand";
 import { I18nProvider } from "@/lib/i18n";
+import { fetchUserAndOrg } from "@/lib/server-auth";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -29,11 +30,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch user and org data server-side once per request
+  const initialData = await fetchUserAndOrg()
+
   return (
     <html lang={NEXUS_BRAND.defaultLanguage} className="dark" data-brand="nexus" data-brand-mode={NEXUS_BRAND.theme.mode}>
       <body
@@ -42,7 +46,7 @@ export default function RootLayout({
       >
         <I18nProvider>
           <CurrencyProvider>
-            <OrgProvider>
+            <OrgProvider initialMembership={initialData.membership}>
               {children}
             </OrgProvider>
           </CurrencyProvider>

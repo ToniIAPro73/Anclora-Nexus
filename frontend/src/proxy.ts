@@ -90,21 +90,57 @@ export async function proxy(req: NextRequest) {
 
     if (userError || !user) {
       await supabase.auth.signOut()
+      res.cookies.delete('nexus-org-id')
+      res.cookies.delete('nexus-org-role')
       return NextResponse.redirect(new URL('/login?error=session-invalid', req.url))
     }
 
-    const { data: membership, error: membershipError } = await supabase
-      .from('organization_members')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .limit(1)
-      .maybeSingle()
+    // Fetch full membership data and cache it
+    const [profileData, membershipData] = await Promise.all([
+      supabase
+        .from('user_profiles')
+        .select('org_id')
+        .eq('id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('organization_members')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('updated_at', { ascending: false }),
+    ])
 
-    if (membershipError || !membership) {
+    const membershipRows = membershipData.data || []
+    if (!membershipRows.length) {
       await supabase.auth.signOut()
+      res.cookies.delete('nexus-org-id')
+      res.cookies.delete('nexus-org-role')
       return NextResponse.redirect(new URL('/login?error=invitation-required', req.url))
     }
+
+    // Select preferred membership
+    const preferredOrgId = profileData.data?.org_id
+    const selectedMembership = preferredOrgId
+      ? membershipRows.find(m => m.org_id === preferredOrgId) || membershipRows[0]
+      : membershipRows[0]
+
+    // Cache org data in cookies (7 days) to prevent repeated queries on navigation
+    res.cookies.set('nexus-org-id', selectedMembership.org_id, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+    })
+    res.cookies.set('nexus-org-role', selectedMembership.role, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+    })
+  } else if (!session) {
+    // Clear org cookies if session is gone
+    res.cookies.delete('nexus-org-id')
+    res.cookies.delete('nexus-org-role')
   }
 
   return res
