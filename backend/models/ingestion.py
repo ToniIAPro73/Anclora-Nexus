@@ -32,6 +32,18 @@ class LeadSourceChannel(str, Enum):
     PHONE = "phone"
     OTHER = "other"
 
+class HNWIQualificationTier(str, Enum):
+    HOT = "hot"
+    WARM = "warm"
+    COLD = "cold"
+
+class HNWISourceChannel(str, Enum):
+    LINKEDIN = "linkedin"
+    FACEBOOK = "facebook"
+    REDDIT = "reddit"
+    GOOGLE_ALERT = "google-alert"
+    OTHER = "other"
+
 class PropertySourceSystem(str, Enum):
     MANUAL = "manual"
     WIDGET = "widget"
@@ -64,7 +76,16 @@ class LeadIngestionPayload(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     budget: Optional[float] = None
+    property_interest: Optional[str] = None
     notes: Optional[str] = None
+    nationality: Optional[str] = None
+    zone_interest: Optional[str] = None
+    qualification_score: Optional[int] = Field(default=None, ge=0, le=100)
+    qualification_tier: Optional[HNWIQualificationTier] = None
+    hnwi_intent_signal: Optional[str] = None
+    email_verified: bool = False
+    email_verification_source: Optional[str] = None
+    hnwi_source_channel: Optional[HNWISourceChannel] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class PropertyIngestionPayload(BaseModel):

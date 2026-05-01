@@ -1,0 +1,186 @@
+{
+  "name": "HNWI Prospection v2 - Anclora Nexus (Improved)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger (Every 12h)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// HNWI Prospection v2 - Email-first lead normalization\n// Supports: LinkedIn, Facebook, Reddit, Google Alerts\n\nconst items = $input.all();\nconst processedLeads = [];\n\nfunction parseBudget(raw) {\n  const value = String(raw || '').trim();\n  if (!value) return null;\n  const millionMatch = value.match(/(\\d+(?:[\\.,]\\d+)?)\\s*M/i);\n  if (millionMatch) return Math.round(parseFloat(millionMatch[1].replace(',', '.')) * 1000000);\n  const eurMatch = value.replace(/\\./g, '').match(/(\\d{6,8})/);\n  if (eurMatch) return Number(eurMatch[1]);\n  return null;\n}\n\nfunction normalizeHnwiChannel(raw) {\n  const value = String(raw || 'linkedin').trim().toLowerCase().replace(/[_\\s]+/g, '-');\n  if (['linkedin', 'facebook', 'reddit', 'google-alert'].includes(value)) return value;\n  return 'other';\n}\n\nconst resolvedOrgId = process.env.PUBLIC_CTA_ORG_ID || process.env.ORG_ID || '00000000-0000-0000-0000-000000000000';\n\nfor (const item of items) {\n  const data = item.json;\n  const hnwiChannel = normalizeHnwiChannel(data.channel || data.source || 'linkedin');\n  const sourceChannel = ['linkedin', 'facebook', 'email', 'phone', 'website', 'instagram'].includes(hnwiChannel)\n    ? hnwiChannel\n    : 'other';\n\n  const lead = {\n    org_id: data.org_id || resolvedOrgId,\n    external_id: 'hnwi-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9),\n    connector_name: `hnwi-prospection:${hnwiChannel}`,\n    source_system: 'social',\n    source_channel: sourceChannel,\n    hnwi_source_channel: hnwiChannel,\n    source_detail: 'n8n_hnwi_prospection_workflow_v2',\n    name: data.name || data.fullName || 'HNWI Prospect',\n    email: data.email || '',\n    phone: data.phone || '',\n    budget: parseBudget(data.budget || data.presupuesto),\n    property_interest: data.interest || data.interes || 'Luxury villa / finca Mallorca',\n    notes: data.notes || data.mensaje || 'High-intent HNWI signal detected',\n    nationality: data.nationality || 'Unknown',\n    zone_interest: data.zone || data.zona || 'Andratx / Calvia / Son Vida',\n    email_verified: Boolean(data.email_verified || data.emailVerified || data.email),\n    email_verification_source: data.email_verification_source || data.emailSource || 'manual_or_public',\n    metadata: {\n      raw_channel: data.channel || data.source || null,\n      original_budget: data.budget || data.presupuesto || null,\n      urgency: data.urgency || 'medium'\n    }\n  };\n\n  processedLeads.push({ json: lead });\n}\n\nreturn processedLeads;"
+      },
+      "id": "smart-parser",
+      "name": "Smart Lead Parser",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NEXUS_API_URL }}/api/ingestion/leads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "headers": {
+          "Authorization": "Bearer ={{ $env.NEXUS_SERVICE_TOKEN }}"
+        },
+        "body": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "ingest-nexus",
+      "name": "Ingest to Anclora Nexus",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $('Ingest to Anclora Nexus').item.json.qualification_score }}",
+              "operation": "largerEqual",
+              "value2": 70
+            },
+            {
+              "value1": "={{ $('Ingest to Anclora Nexus').item.json.email_verified }}",
+              "operation": "isTrue"
+            },
+            {
+              "value1": "={{ $('Ingest to Anclora Nexus').item.json.outreach_ready }}",
+              "operation": "isTrue"
+            }
+          ]
+        }
+      },
+      "id": "if-hot",
+      "name": "If Hot Lead Ready For Email",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NEXUS_API_URL }}/api/leads/{{ $('Ingest to Anclora Nexus').item.json.lead_id }}/generate-outreach",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "headers": {
+          "Authorization": "Bearer ={{ $env.NEXUS_SERVICE_TOKEN }}"
+        },
+        "body": "={}",
+        "options": {}
+      },
+      "id": "prepare-email-hot",
+      "name": "Prepare Email Outreach (Hot Leads)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = items[0].json;\nconsole.log(`✅ Lead processed | lead_id: ${lead.lead_id || 'n/a'} | Tier: ${lead.qualification_tier || 'n/a'} | Score: ${lead.qualification_score || 'n/a'} | outreach_ready: ${lead.outreach_ready || false}`);\nreturn items;"
+      },
+      "id": "log-result",
+      "name": "Log Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 400]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Every 12h)": {
+      "main": [
+        [
+          {
+            "node": "Smart Lead Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Lead Parser": {
+      "main": [
+        [
+          {
+            "node": "Ingest to Anclora Nexus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingest to Anclora Nexus": {
+      "main": [
+        [
+          {
+            "node": "If Hot Lead Ready For Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Hot Lead Ready For Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Outreach (Hot Leads)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Outreach (Hot Leads)": {
+      "main": [
+        [
+          {
+            "node": "Log Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2.0-hnwi-prospection-improved",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "hnwi-prospection-v2",
+  "tags": [
+    {
+      "name": "hnwi-prospection",
+      "createdAt": "2026-05-01T21:00:00.000Z",
+      "updatedAt": "2026-05-01T21:00:00.000Z"
+    }
+  ]
+}

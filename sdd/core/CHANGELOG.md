@@ -4,6 +4,40 @@
 
 ---
 
+## [1.0] - 2026-05-01 - HNWI Prospection v1 Definition
+
+**Date**: 2026-05-01  
+**Status**: ✅ DEFINED  
+**Criticality**: ALTA  
+**Feature**: ANCLORA-HNWI-001 v1.0
+
+### Scope delivered
+- Formalized the HNWI Prospection feature package for Mallorca luxury lead generation.
+- Aligned the feature with `email-first` outreach over `leads` instead of a WhatsApp-dependent MVP.
+- Registered the SDD, governance and prompt artifacts under the standard Anclora structure.
+
+### Core/API Changes
+- Feature package references the lead-side ingestion and outreach contracts.
+- No additional core route changes introduced by this documentation-governance step.
+
+### Database Changes
+- Feature package references:
+  - `058_hnwi_prospection.sql`
+  - `059_lead_outreach_interactions.sql`
+
+### SDD / Governance Artifacts
+- `sdd/features/hnwi-prospection/`
+- `.agent/rules/feature-hnwi-prospection.md`
+- `.agent/skills/features/hnwi-prospection/SKILL.md`
+- `.antigravity/prompts/features/hnwi-prospection/`
+- `sdd/features/FEATURES.md`
+
+### Validation
+- Feature package relocated from ad-hoc `feature/` folder to the canonical structure.
+- Registry and governance artifacts aligned with the rest of the application.
+
+---
+
 ## [1.0] - 2026-04-26 - Nexus MVP v1 Governance
 
 **Date**: 2026-04-26  

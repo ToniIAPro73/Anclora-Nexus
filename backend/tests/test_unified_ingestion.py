@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from backend.models.ingestion import (
     EntityType,
+    HNWISourceChannel,
     IngestionStatus,
     LeadIngestionPayload,
     LeadSourceChannel,
@@ -15,6 +16,7 @@ from backend.models.ingestion import (
     SellerSignalIngestionPayload,
 )
 from backend.services.ingestion_service import IngestionService
+from backend.services.hnwi_scoring_service import hnwi_scoring_service
 
 
 def test_lead_payload_validation() -> None:
@@ -102,6 +104,7 @@ def test_ingestion_service_success_updates_processed_status() -> None:
     mock_table.insert.return_value.execute.return_value.data = [{"id": "lead-1"}]
     mock_supabase = MagicMock()
     mock_supabase.client.table.return_value = mock_table
+    service.client = mock_supabase.client
 
     with patch("backend.services.ingestion_service.supabase_service", mock_supabase), \
          patch.object(service, "_get_existing_event", return_value=None), \
@@ -134,3 +137,71 @@ def test_seller_signal_ingestion_routes_to_skill() -> None:
 
     assert result["status"] == "processed"
     assert result["created"] == 1
+
+
+def test_hnwi_scoring_marks_hot_lead_with_verified_email() -> None:
+    payload = LeadIngestionPayload(
+        org_id="org-1",
+        external_id="hnwi-1",
+        connector_name="hnwi-prospection:linkedin",
+        source_system=LeadSourceSystem.SOCIAL,
+        source_channel=LeadSourceChannel.LINKEDIN,
+        name="Hans Investor",
+        email="hans@example.com",
+        budget=3_000_000,
+        property_interest="Looking for a luxury villa in Andratx",
+        nationality="German",
+        zone_interest="Andratx",
+        email_verified=True,
+    )
+
+    result = hnwi_scoring_service.score_lead(payload)
+
+    assert result.score >= 70
+    assert result.tier == "hot"
+    assert result.outreach_ready is True
+
+
+def test_ingestion_service_persists_hnwi_fields_and_logs_finops() -> None:
+    service = IngestionService()
+    payload = LeadIngestionPayload(
+        org_id="org-1",
+        external_id="hnwi-2",
+        connector_name="hnwi-prospection:reddit",
+        source_system=LeadSourceSystem.SOCIAL,
+        source_channel=LeadSourceChannel.OTHER,
+        hnwi_source_channel=HNWISourceChannel.REDDIT,
+        name="HNWI Lead",
+        email="lead@example.com",
+        budget=2_500_000,
+        property_interest="Looking for a villa in Calvia",
+        nationality="British",
+        zone_interest="Calvia",
+        email_verified=True,
+    )
+
+    mock_table = MagicMock()
+    mock_table.insert.return_value.execute.return_value.data = [{"id": "lead-1"}]
+    mock_supabase = MagicMock()
+    mock_supabase.client.table.return_value = mock_table
+    service.client = mock_supabase.client
+
+    with patch("backend.services.ingestion_service.supabase_service", mock_supabase), \
+         patch("backend.services.ingestion_service.finops_service.log_usage_event", new_callable=AsyncMock) as mock_finops, \
+         patch.object(service, "_get_existing_event", return_value=None), \
+         patch.object(service, "_register_received", return_value={"id": "event-1"}), \
+         patch.object(service, "_ensure_connector_enabled", return_value=None), \
+         patch.object(service, "_update_event"):
+        result = asyncio.run(service.ingest_lead(payload))
+
+    assert result["status"] == "processed"
+    lead_insert = next(
+        call.args[0]
+        for call in mock_table.insert.call_args_list
+        if isinstance(call.args[0], dict) and call.args[0].get("name") == "HNWI Lead"
+    )
+    assert lead_insert["qualification_tier"] == "hot"
+    assert lead_insert["email_verified"] is True
+    assert lead_insert["hnwi_source_channel"] == "reddit"
+    assert lead_insert["source_metadata"]["hnwi"]["outreach_ready"] is True
+    mock_finops.assert_awaited_once()

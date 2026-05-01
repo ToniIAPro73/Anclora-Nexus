@@ -31,6 +31,7 @@ app.add_middleware(
 from .routes.automation import router as automation_router
 from .routes.intelligence import router as intelligence_router
 from .routes.ingestion import router as ingestion_router
+from .routes.leads import router as leads_router
 from .routes.finops import router as finops_router
 from .routes.partners import router as partners_router
 from .routes.public import router as public_router
@@ -61,6 +62,9 @@ app.include_router(skills_router, prefix="/api", tags=["Skills"])
 
 # Include unified ingestion routes
 app.include_router(ingestion_router, prefix="/api", tags=["Ingestion"])
+
+# Include lead outreach routes
+app.include_router(leads_router, prefix="/api", tags=["Leads"])
 
 # Include public capture routes
 app.include_router(public_router, prefix="/api/public", tags=["Public"])

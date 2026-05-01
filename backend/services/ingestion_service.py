@@ -10,11 +10,17 @@ from backend.models.ingestion import (
     PropertyIngestionPayload,
     SellerSignalIngestionPayload,
 )
+from backend.models.finops import UsageEventSchema
+from backend.services.finops import finops_service
+from backend.services.hnwi_scoring_service import hnwi_scoring_service
 from backend.services.supabase_service import supabase_service
 from backend.skills.seller_signal_ingest import run_seller_signal_ingest
 
 
 class IngestionService:
+    def __init__(self) -> None:
+        self.client = supabase_service.client
+
     def _serialize_payload(self, payload: Any) -> Dict[str, Any]:
         if hasattr(payload, "model_dump"):
             return payload.model_dump(mode="json")
@@ -42,9 +48,98 @@ class IngestionService:
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
 
+    def _is_hnwi_lead(self, payload: LeadIngestionPayload, connector_name: str) -> bool:
+        return any(
+            [
+                connector_name.startswith("hnwi-prospection"),
+                payload.nationality,
+                payload.zone_interest,
+                payload.hnwi_intent_signal,
+                payload.hnwi_source_channel is not None,
+                payload.email_verified,
+            ]
+        )
+
+    def _stringify_budget(self, budget: Optional[float]) -> Optional[str]:
+        if budget is None:
+            return None
+        if float(budget).is_integer():
+            return str(int(budget))
+        return str(budget)
+
+    def _normalize_notes(self, notes: Optional[str]) -> Dict[str, Any]:
+        if not notes:
+            return {}
+        return {"ingestion_notes": notes}
+
+    def _hnwi_channel_value(self, payload: LeadIngestionPayload) -> Optional[str]:
+        if payload.hnwi_source_channel:
+            return payload.hnwi_source_channel.value
+        if payload.source_channel.value != "other":
+            return payload.source_channel.value
+        return None
+
+    def _log_hnwi_event(
+        self,
+        *,
+        org_id: str,
+        lead_id: Optional[str],
+        connector_name: str,
+        trace_id: str,
+        event_type: str,
+        payload: LeadIngestionPayload,
+        score: int,
+        tier: str,
+        metadata: Dict[str, Any],
+    ) -> None:
+        self.client.table("hnwi_prospection_events").insert(
+            {
+                "org_id": org_id,
+                "lead_id": lead_id,
+                "connector_name": connector_name,
+                "trace_id": trace_id,
+                "event_type": event_type,
+                "channel": self._hnwi_channel_value(payload),
+                "nationality": payload.nationality,
+                "qualification_tier": tier,
+                "score": score,
+                "metadata": metadata,
+            }
+        ).execute()
+
+    async def _log_hnwi_finops(
+        self,
+        *,
+        org_id: str,
+        trace_id: str,
+        connector_name: str,
+        payload: LeadIngestionPayload,
+        score: int,
+        tier: str,
+        outreach_ready: bool,
+    ) -> None:
+        await finops_service.log_usage_event(
+            org_id,
+            UsageEventSchema(
+                capability_code="hnwi_prospection",
+                provider=connector_name.split(":")[0] if ":" in connector_name else connector_name,
+                units=1,
+                cost_eur=0,
+                trace_id=trace_id,
+                metadata={
+                    "channel": self._hnwi_channel_value(payload),
+                    "nationality": payload.nationality,
+                    "score": score,
+                    "tier": tier,
+                    "email_verified": bool(payload.email_verified),
+                    "outreach_ready": outreach_ready,
+                },
+            ),
+        )
+
     def _get_existing_event(self, org_id: str, dedupe_key: str) -> Optional[Dict[str, Any]]:
         response = (
-            supabase_service.client.table("ingestion_events")
+            self.client.table("ingestion_events")
             .select("*")
             .eq("org_id", org_id)
             .eq("dedupe_key", dedupe_key)
@@ -56,7 +151,7 @@ class IngestionService:
 
     def _get_connector(self, org_id: str, connector_name: str, entity_type: EntityType) -> Optional[Dict[str, Any]]:
         response = (
-            supabase_service.client.table("ingestion_connectors")
+            self.client.table("ingestion_connectors")
             .select("*")
             .eq("org_id", org_id)
             .eq("connector_name", connector_name)
@@ -100,7 +195,7 @@ class IngestionService:
                 IngestionStatus.FAILED,
             } else None,
         }
-        result = supabase_service.client.table("ingestion_events").insert(row).execute()
+        result = self.client.table("ingestion_events").insert(row).execute()
         return result.data[0] if result.data else row
 
     def _update_event(
@@ -121,7 +216,7 @@ class IngestionService:
         if status in {IngestionStatus.PROCESSED, IngestionStatus.REJECTED, IngestionStatus.FAILED}:
             row["processed_at"] = self._now()
         result = (
-            supabase_service.client.table("ingestion_events")
+            self.client.table("ingestion_events")
             .update(row)
             .eq("id", event_id)
             .execute()
@@ -177,35 +272,122 @@ class IngestionService:
         try:
             self._ensure_connector_enabled(payload.org_id, connector_name, EntityType.LEAD)
             self._update_event(event["id"], status=IngestionStatus.VALIDATED)
+            hnwi_score = hnwi_scoring_service.score_lead(payload) if self._is_hnwi_lead(payload, connector_name) else None
+
+            source_metadata = {
+                **payload.metadata,
+                "connector_name": connector_name,
+                "trace_id": trace_id,
+            }
+            notes_json = self._normalize_notes(payload.notes)
+            if hnwi_score:
+                source_metadata["hnwi"] = {
+                    "nationality": payload.nationality,
+                    "zone_interest": payload.zone_interest,
+                    "source_channel": self._hnwi_channel_value(payload),
+                    "email_verification_source": payload.email_verification_source,
+                    "outreach_ready": hnwi_score.outreach_ready,
+                    "explanation": hnwi_score.explanation,
+                }
+                if hnwi_score.intent_signal:
+                    notes_json["hnwi_intent_signal"] = hnwi_score.intent_signal
+                self._log_hnwi_event(
+                    org_id=payload.org_id,
+                    lead_id=None,
+                    connector_name=connector_name,
+                    trace_id=trace_id,
+                    event_type="scored",
+                    payload=payload,
+                    score=hnwi_score.score,
+                    tier=hnwi_score.tier,
+                    metadata={
+                        "explanation": hnwi_score.explanation,
+                        "outreach_ready": hnwi_score.outreach_ready,
+                    },
+                )
 
             lead_data = {
                 "org_id": payload.org_id,
                 "name": payload.name,
                 "email": str(payload.email) if payload.email else None,
                 "phone": payload.phone,
-                "budget": payload.budget,
-                "notes": payload.notes,
-                "source": payload.source_system.value,
+                "budget_range": self._stringify_budget(payload.budget),
+                "property_interest": payload.property_interest,
+                "notes": notes_json,
+                "source": connector_name,
                 "source_channel": payload.source_channel.value,
+                "source_system": payload.source_system.value,
                 "source_detail": payload.source_detail,
                 "source_url": payload.source_url,
                 "source_referrer": payload.source_referrer,
+                "source_event_id": event["id"],
                 "captured_at": payload.captured_at.isoformat(),
-                "metadata_json": {
-                    **payload.metadata,
-                    "connector_name": connector_name,
-                    "trace_id": trace_id,
-                },
+                "source_metadata": source_metadata,
                 "status": "new",
             }
-            lead_result = supabase_service.client.table("leads").insert(lead_data).execute()
+            if hnwi_score:
+                lead_data.update(
+                    {
+                        "nationality": payload.nationality,
+                        "zone_interest": payload.zone_interest,
+                        "qualification_score": hnwi_score.score,
+                        "qualification_tier": hnwi_score.tier,
+                        "hnwi_intent_signal": hnwi_score.intent_signal,
+                        "email_verified": hnwi_score.email_verified,
+                        "email_verification_source": payload.email_verification_source,
+                        "hnwi_source_channel": self._hnwi_channel_value(payload),
+                    }
+                )
+            lead_result = self.client.table("leads").insert(lead_data).execute()
             lead_row = (lead_result.data or [{}])[0]
+            if hnwi_score:
+                lead_id = str(lead_row.get("id")) if lead_row.get("id") else None
+                self._log_hnwi_event(
+                    org_id=payload.org_id,
+                    lead_id=lead_id,
+                    connector_name=connector_name,
+                    trace_id=trace_id,
+                    event_type="ingested",
+                    payload=payload,
+                    score=hnwi_score.score,
+                    tier=hnwi_score.tier,
+                    metadata={"event_id": event["id"]},
+                )
+                try:
+                    await self._log_hnwi_finops(
+                        org_id=payload.org_id,
+                        trace_id=trace_id,
+                        connector_name=connector_name,
+                        payload=payload,
+                        score=hnwi_score.score,
+                        tier=hnwi_score.tier,
+                        outreach_ready=hnwi_score.outreach_ready,
+                    )
+                except Exception:
+                    pass
+            lead_id = str(lead_row.get("id")) if lead_row.get("id") else None
             self._update_event(
                 event["id"],
                 status=IngestionStatus.PROCESSED,
-                processed_entity_id=str(lead_row.get("id")) if lead_row.get("id") else None,
+                processed_entity_id=lead_id,
             )
-            return {"status": "processed", "dedupe_key": dedupe_key, "trace_id": trace_id, "event_id": event["id"]}
+            result = {
+                "status": "processed",
+                "dedupe_key": dedupe_key,
+                "trace_id": trace_id,
+                "event_id": event["id"],
+                "lead_id": lead_id,
+            }
+            if hnwi_score:
+                result.update(
+                    {
+                        "qualification_score": hnwi_score.score,
+                        "qualification_tier": hnwi_score.tier,
+                        "outreach_ready": hnwi_score.outreach_ready,
+                        "email_verified": hnwi_score.email_verified,
+                    }
+                )
+            return result
         except ValueError as exc:
             self._update_event(event["id"], status=IngestionStatus.REJECTED, error_code="connector_disabled", error_message=str(exc))
             return {"status": "rejected", "dedupe_key": dedupe_key, "trace_id": trace_id, "event_id": event["id"]}
@@ -258,7 +440,7 @@ class IngestionService:
                     "trace_id": trace_id,
                 },
             }
-            property_result = supabase_service.client.table("properties").insert(property_data).execute()
+            property_result = self.client.table("properties").insert(property_data).execute()
             property_row = (property_result.data or [{}])[0]
             self._update_event(
                 event["id"],
@@ -370,7 +552,7 @@ class IngestionService:
         trace_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         query = (
-            supabase_service.client.table("ingestion_events")
+            self.client.table("ingestion_events")
             .select("*")
             .eq("org_id", org_id)
             .order("created_at", desc=True)
@@ -389,7 +571,7 @@ class IngestionService:
 
     async def get_event_by_id(self, event_id: str) -> Optional[Dict[str, Any]]:
         response = (
-            supabase_service.client.table("ingestion_events")
+            self.client.table("ingestion_events")
             .select("*")
             .eq("id", event_id)
             .limit(1)
