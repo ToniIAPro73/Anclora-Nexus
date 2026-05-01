@@ -133,6 +133,34 @@ Resultado funcional:
 
 ---
 
+### 0.1 HNWI Prospection v1
+
+**ID**: ANCLORA-HNWI-001  
+**Versión**: 1.0  
+**Status**: Defined  
+**Fase**: Lead Generation + Automation + Intelligence  
+**Prioridad**: ALTA
+
+**Descripción**: Sistema de prospección HNWI para compradores y vendedores de alto poder adquisitivo en Mallorca, operando sobre `leads` con scoring backend, observabilidad y outreach `email-first`.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/hnwi-prospection/hnwi-prospection-INDEX.md`
+- **Spec Técnica**: `sdd/features/hnwi-prospection/hnwi-prospection-spec-v1.md`
+- **Spec Migración**: `sdd/features/hnwi-prospection/hnwi-prospection-spec-migration.md`
+- **Test Plan**: `sdd/features/hnwi-prospection/hnwi-prospection-test-plan-v1.md`
+- **Feature Rules**: `.agent/rules/feature-hnwi-prospection.md`
+- **SKILL**: `.agent/skills/features/hnwi-prospection/SKILL.md`
+- **Prompt Antigravity**: `.antigravity/prompts/features/hnwi-prospection/feature-hnwi-prospection-v1.md`
+
+**Reglas de rollout**:
+- No depender de WhatsApp en el MVP.
+- Solo preparar outreach automático para leads `hot` con `email_verified=true`.
+- Mantener trazabilidad en `hnwi_prospection_events` y `lead_interactions`.
+
+**Status Aprobación**: ✅ Definido
+
+---
+
 ### 1. Multi-Tenant Memberships v1
 
 **ID**: ANCLORA-MTM-001  

@@ -1,0 +1,203 @@
+{
+  "name": "HNWI Prospection to Anclora Nexus Ingestion (Zero Cost)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily Schedule Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 50,
+        "simple": false,
+        "options": {}
+      },
+      "id": "get-alerts-placeholder",
+      "name": "Get New Alerts (Manual or Email Trigger)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "notes": "Replace this node with Email Trigger (IMAP) or Webhook when you have alerts. For now, run manually and paste results from Google Alerts / FB / Reddit into the next node."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse high-intent signals from alerts or manual input\nconst inputData = items[0].json;\n\n// Example structure - adapt to your actual alert format\nconst leads = [];\n\n// If you have multiple alerts in one payload, loop here\n// For manual use: paste one lead per execution or batch\nconst lead = {\n  name: inputData.name || \"HNWI Prospect from \" + (inputData.source || \"LinkedIn/FB\"),\n  email: inputData.email || \"\",\n  phone: inputData.phone || \"\",\n  sourcesystem: \"hnwi-prospection\",\n  sourcechannel: inputData.channel || \"linkedin\", // linkedin | facebook | reddit | google-alert\n  ingestionmode: \"realtime\",\n  orgid: process.env.ORG_ID || \"your-org-id-here\",\n  budgetrange: inputData.budget || \"€1.5M+\",\n  propertyinterest: inputData.interest || \"Luxury villa / finca Mallorca\",\n  urgency: inputData.urgency || \"medium\",\n  externalid: \"hnwi-\" + Date.now(),\n  notes: inputData.notes || \"High-intent signal from public post. Review and qualify.\",\n  qualification_tier: \"warm\", // Will be updated by Nexus LLM\n  created_at: new Date().toISOString()\n};\n\nleads.push(lead);\n\nreturn leads.map(l => ({ json: l }));"
+      },
+      "id": "parse-lead",
+      "name": "Parse & Normalize Lead Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NEXUS_API_URL }}/api/ingestion/leads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "headers": {
+          "Authorization": "Bearer ={{ $env.NEXUS_SERVICE_TOKEN }}"
+        },
+        "body": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "ingest-to-nexus",
+      "name": "Ingest to Anclora Nexus",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Ingest to Nexus').item.json.qualification_tier }}",
+              "operation": "equals",
+              "value2": "hot"
+            }
+          ]
+        }
+      },
+      "id": "if-hot",
+      "name": "If Hot Lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NEXUS_API_URL }}/api/wa/webhook",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "headers": {
+          "Authorization": "Bearer ={{ $env.NEXUS_SERVICE_TOKEN }}"
+        },
+        "body": "={\n  \"orgid\": \"={{ $json.orgid }}\",\n  \"leadid\": \"={{ $json.id || $json.externalid }}\",\n  \"phone\": \"={{ $json.phone }}\",\n  \"message_body\": \"Hola {{ $json.name }}, soy de Anclora Private Estates. Vi tu interés en propiedades de lujo en Mallorca. ¿Te gustaría que te enviara un análisis gratuito de oportunidades en Andratx/Calvià esta semana?\",\n  \"step\": 0\n}",
+        "options": {}
+      },
+      "id": "trigger-whatsapp",
+      "name": "Trigger WhatsApp Qualification (if Hot)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('Lead ingested successfully:', items[0].json);\nreturn items;"
+      },
+      "id": "log-success",
+      "name": "Log & Notify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 400]
+    }
+  ],
+  "connections": {
+    "Daily Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get New Alerts (Manual or Email Trigger)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get New Alerts (Manual or Email Trigger)": {
+      "main": [
+        [
+          {
+            "node": "Parse & Normalize Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Normalize Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Ingest to Nexus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingest to Nexus": {
+      "main": [
+        [
+          {
+            "node": "If Hot Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Hot Lead?": {
+      "main": [
+        [
+          {
+            "node": "Trigger WhatsApp Qualification (if Hot)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log & Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger WhatsApp Qualification (if Hot)": {
+      "main": [
+        [
+          {
+            "node": "Log & Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0-hnwi-prospection-2026",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "hnwi-prospection-to-nexus",
+  "tags": [
+    {
+      "name": "hnwi-prospection",
+      "createdAt": "2026-05-01T20:00:00.000Z",
+      "updatedAt": "2026-05-01T20:00:00.000Z"
+    }
+  ]
+}
