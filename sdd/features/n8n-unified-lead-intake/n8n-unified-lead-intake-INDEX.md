@@ -126,12 +126,6 @@ SUPABASE_URL como destino de escritura desde n8n
 ## Estado esperado tras implementación
 
 ```txt
-READY_FOR_SMOKE_TEST
-```
-
-Subir a:
-
-```txt
 PRODUCTION_READY
 ```
 
