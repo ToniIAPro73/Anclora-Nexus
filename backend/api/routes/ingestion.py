@@ -19,6 +19,8 @@ async def ingest_lead(payload: LeadIngestionPayload):
     try:
         result = await ingestion_service.ingest_lead(payload)
         return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

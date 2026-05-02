@@ -69,6 +69,32 @@ Resultado funcional:
 
 ## FEATURES IMPLEMENTADAS
 
+### 0. Lead Ingestion Webhook v1
+
+**ID**: ANCLORA-LIW-001
+**Versión**: 1.0
+**Status**: Implemented
+**Fase**: Phase 0 (Lead Capture)
+**Prioridad**: ALTA
+
+**Descripción**: Endpoint de ingesta de leads con validación Pydantic, consentimiento GDPR obligatorio para tráfico web y conexión documental con el webhook unificado de n8n.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/lead-ingestion-webhook/lead-ingestion-webhook-INDEX.md`
+- **Spec Técnica**: `sdd/features/lead-ingestion-webhook/lead-ingestion-webhook-spec-v1.md`
+- **Spec Migración**: `sdd/features/lead-ingestion-webhook/lead-ingestion-webhook-spec-migration.md`
+- **Test Plan**: `sdd/features/lead-ingestion-webhook/lead-ingestion-webhook-test-plan-v1.md`
+- **Gate Final**: `sdd/features/lead-ingestion-webhook/GATE_FINAL_LEAD_INGESTION_WEBHOOK.md`
+- **Artifacto n8n**: `sdd/features/lead-ingestion-webhook/artifacts/n8n_unified_lead_intake_workflow.json`
+
+**Estado funcional**:
+- `POST /api/ingestion/leads` activo con contrato Pydantic.
+- Leads web rechazados sin `gdpr_consent`.
+- `POST /api/public/cta/lead` endurecido para captura pública.
+- Workflow n8n base de 4 nodos documentado.
+
+---
+
 ### 1. Intelligence v1
 
 **ID**: ANCLORA-INT-001  

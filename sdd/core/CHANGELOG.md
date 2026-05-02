@@ -6,6 +6,40 @@
 
 ## [1.0] - 2026-05-01 - HNWI Prospection v1 Definition
 
+## [1.0] - 2026-05-02 - Lead Ingestion Webhook v1
+
+**Date**: 2026-05-02
+**Status**: ✅ RELEASED
+**Criticality**: ALTA
+**Feature**: ANCLORA-LIW-001 v1.0
+
+### Scope delivered
+- Restored the canonical SDD package for `lead-ingestion-webhook`.
+- Hardened `POST /api/ingestion/leads` with explicit GDPR consent enforcement for web CTA traffic.
+- Standardized success responses for lead ingestion and public CTA capture.
+- Added n8n webhook environment variables and a 4-node workflow artifact for unified lead intake.
+
+### Core/API Changes
+- Updated models:
+  - `backend/models/ingestion.py`
+- Updated routes:
+  - `backend/api/routes/ingestion.py`
+  - `backend/api/routes/public.py`
+- Updated service:
+  - `backend/services/ingestion_service.py`
+- Updated config:
+  - `backend/config.py`
+  - `.env.example`
+
+### Validation
+- `backend/venv/bin/python -m pytest -q backend/tests/test_unified_ingestion.py` -> 10 passed
+- `backend/venv/bin/python -m pytest -q backend/tests/test_public_cta_lead_routes.py` -> 4 passed
+- `backend/venv/bin/python -m pytest -q backend/tests/test_ingestion_routes.py` -> 2 passed
+
+### SDD / Governance Artifacts
+- `sdd/features/lead-ingestion-webhook/`
+- `sdd/features/lead-ingestion-webhook/artifacts/n8n_unified_lead_intake_workflow.json`
+
 **Date**: 2026-05-01  
 **Status**: ✅ DEFINED  
 **Criticality**: ALTA  

@@ -15,6 +15,7 @@ os.environ.setdefault("INTERNAL_AUDIT_SECRET", "test-secret")
 from backend.api.routes.ingestion import router
 from backend.api.deps import get_org_id
 
+
 app = FastAPI()
 app.include_router(router, prefix="/api")
 app.dependency_overrides[get_org_id] = lambda: "org-1"
@@ -84,3 +85,53 @@ class TestIngestionRouteContracts:
 
         assert response.status_code == 200
         assert response.json()["created"] == 1
+
+    @patch("backend.api.routes.ingestion.ingestion_service.ingest_lead", new_callable=AsyncMock)
+    def test_ingestion_leads_returns_standard_response(self, mock_ingest_lead: AsyncMock) -> None:
+        mock_ingest_lead.return_value = {
+            "id": "lead-123",
+            "status": "processed",
+            "message": "Lead ingested successfully",
+            "event_id": "event-123",
+            "lead_id": "lead-123",
+            "trace_id": "trace-123",
+        }
+
+        response = client.post(
+            "/api/ingestion/leads",
+            json={
+                "org_id": "org-1",
+                "external_id": "ext-1",
+                "source_system": "cta_web",
+                "source_channel": "website",
+                "name": "Lead Test",
+                "email": "lead@example.com",
+                "gdpr_consent": True,
+            },
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "processed"
+        assert body["message"] == "Lead ingested successfully"
+        assert body["id"] == "lead-123"
+
+    @patch("backend.api.routes.ingestion.ingestion_service.ingest_lead", new_callable=AsyncMock)
+    def test_ingestion_leads_rejects_missing_gdpr_consent(self, mock_ingest_lead: AsyncMock) -> None:
+        mock_ingest_lead.side_effect = ValueError("gdpr_consent is required for web lead ingestion")
+
+        response = client.post(
+            "/api/ingestion/leads",
+            json={
+                "org_id": "org-1",
+                "external_id": "ext-2",
+                "source_system": "cta_web",
+                "source_channel": "website",
+                "name": "Lead Test",
+                "email": "lead@example.com",
+                "gdpr_consent": False,
+            },
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "gdpr_consent is required for web lead ingestion"

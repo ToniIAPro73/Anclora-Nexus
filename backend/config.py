@@ -53,6 +53,8 @@ class Settings(BaseSettings):
 
     RECAPTCHA_SECRET_KEY: Optional[str] = None
     RECAPTCHA_VERIFY_URL: str = "https://www.google.com/recaptcha/api/siteverify"
+    N8N_WEBHOOK_URL: Optional[str] = None
+    N8N_API_KEY: Optional[str] = None
 
     # Legacy compatibility - deprecated
     OPENAI_API_KEY: Optional[str] = None

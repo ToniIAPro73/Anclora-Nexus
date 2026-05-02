@@ -250,6 +250,13 @@ class IngestionService:
         if connector and connector.get("is_enabled") is False:
             raise ValueError(f"Connector disabled: {connector_name}")
 
+    def _requires_gdpr_consent(self, payload: LeadIngestionPayload) -> bool:
+        return payload.source_system.value == "cta_web" or payload.source_channel.value == "website"
+
+    def _ensure_gdpr_consent(self, payload: LeadIngestionPayload) -> None:
+        if self._requires_gdpr_consent(payload) and not payload.gdpr_consent:
+            raise ValueError("gdpr_consent is required for web lead ingestion")
+
     async def ingest_lead(self, payload: LeadIngestionPayload) -> Dict[str, Any]:
         connector_name = payload.connector_name or self._default_connector_name(payload, EntityType.LEAD)
         trace_id = payload.trace_id or str(uuid4())
@@ -270,6 +277,7 @@ class IngestionService:
         )
 
         try:
+            self._ensure_gdpr_consent(payload)
             self._ensure_connector_enabled(payload.org_id, connector_name, EntityType.LEAD)
             self._update_event(event["id"], status=IngestionStatus.VALIDATED)
             hnwi_score = hnwi_scoring_service.score_lead(payload) if self._is_hnwi_lead(payload, connector_name) else None
@@ -323,6 +331,9 @@ class IngestionService:
                 "source_event_id": event["id"],
                 "captured_at": payload.captured_at.isoformat(),
                 "source_metadata": source_metadata,
+                "gdpr_consent": payload.gdpr_consent,
+                "gdpr_consent_at": payload.gdpr_consent_at.isoformat() if payload.gdpr_consent_at else None,
+                "gdpr_consent_text_version": payload.gdpr_consent_text_version,
                 "status": "new",
             }
             if hnwi_score:
@@ -372,7 +383,9 @@ class IngestionService:
                 processed_entity_id=lead_id,
             )
             result = {
+                "id": lead_id or event["id"],
                 "status": "processed",
+                "message": "Lead ingested successfully",
                 "dedupe_key": dedupe_key,
                 "trace_id": trace_id,
                 "event_id": event["id"],
@@ -389,8 +402,9 @@ class IngestionService:
                 )
             return result
         except ValueError as exc:
-            self._update_event(event["id"], status=IngestionStatus.REJECTED, error_code="connector_disabled", error_message=str(exc))
-            return {"status": "rejected", "dedupe_key": dedupe_key, "trace_id": trace_id, "event_id": event["id"]}
+            error_code = "gdpr_consent_required" if "gdpr_consent" in str(exc) else "connector_disabled"
+            self._update_event(event["id"], status=IngestionStatus.REJECTED, error_code=error_code, error_message=str(exc))
+            raise
         except Exception as exc:
             self._update_event(event["id"], status=IngestionStatus.FAILED, error_code="lead_ingestion_failed", error_message=str(exc))
             raise
