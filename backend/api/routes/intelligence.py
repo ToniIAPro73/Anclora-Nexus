@@ -9,8 +9,8 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 
 # Import Intelligence
-from ...intelligence import create_orchestrator
-from ...services.notebooklm_service import (
+from backend.intelligence import create_orchestrator
+from backend.services.notebooklm_service import (
     NOTEBOOK_ID,
     NOTEBOOK_NAME,
     get_latest_insights,
@@ -18,22 +18,22 @@ from ...services.notebooklm_service import (
     get_vulnerabilidades,
     save_insight,
 )
-from ...services.intelligence_packs_service import (
+from backend.services.intelligence_packs_service import (
     create_intelligence_pack,
     get_active_intelligence_pack,
     get_intelligence_pack,
     list_intelligence_packs,
     update_intelligence_pack,
 )
-from ...services.ai_runtime import get_runtime_summary
-from ...services.supabase_service import SupabaseService
-from ...services.territorial_sync_service import (
+from backend.services.ai_runtime import get_runtime_summary
+from backend.services.supabase_service import SupabaseService
+from backend.services.territorial_sync_service import (
     get_territorial_pipeline_status,
     get_territorial_sync_status,
 )
-from ...services.statefox_discovery_service import get_statefox_discovery
-from ...services.statefox_bridge_service import parse_statefox_raw, import_statefox_listings
-from ...services.statefox_live_capture_service import get_statefox_live_capture, import_latest_statefox_capture
+from backend.services.statefox_discovery_service import get_statefox_discovery
+from backend.services.statefox_bridge_service import parse_statefox_raw, import_statefox_listings
+from backend.services.statefox_live_capture_service import get_statefox_live_capture, import_latest_statefox_capture
 from ..deps import check_budget_hard_stop
 from ..deps import get_current_user, get_org_id
 

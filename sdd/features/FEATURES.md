@@ -95,7 +95,24 @@ Resultado funcional:
 
 ---
 
-### 1. Intelligence v1
+### 1. n8n Unified Lead Intake v1.1
+
+**ID**: ANCLORA-NULI-001
+**Versión**: 1.1
+**Status**: Implemented
+**Fase**: Phase 0 (Lead Capture)
+**Prioridad**: ALTA
+
+**Descripción**: Orquestador n8n para ingesta unificada, normalización, scoring y Human Approval Gate conectando fuentes externas con el API de Nexus.
+
+**Documentación**:
+- **SDD Index**: `sdd/features/n8n-unified-lead-intake/n8n-unified-lead-intake-INDEX.md`
+- **Runbook**: `sdd/features/n8n-unified-lead-intake/RUNBOOK_N8N_UNIFIED_LEAD_INTAKE.md`
+- **Artifacto n8n**: `sdd/features/n8n-unified-lead-intake/artifacts/n8n_unified_lead_intake_workflow_v1_1.json`
+
+---
+
+### 2. Intelligence v1
 
 **ID**: ANCLORA-INT-001  
 **Versión**: 1.0  

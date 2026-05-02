@@ -1,0 +1,165 @@
+{
+  "name": "n8n Unified Lead Intake - Anclora Nexus",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexus-lead-intake",
+        "options": {}
+      },
+      "id": "e98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalización y validación inicial\nconst body = items[0].json.body;\n\n// Mapeo de fuentes según PROMPT_MAESTRO v6.1\nlet source_system = body.source_system || 'manual';\nlet source_channel = body.source_channel || 'other';\nlet connector_name = body.connector_name || 'manual:intake';\nlet source_detail = body.source_detail || 'n8n_unified_intake';\n\n// Clasificación simple\nconst text = (body.notes || '') + (body.property_interest || '');\nlet classification = 'Unknown';\nif (/sell|propietario|vender|valoraci|owner/i.test(text)) classification = 'Seller';\nelse if (/buy|comprar|inversi|search|busco/i.test(text)) classification = 'Buyer';\nif (/luxury|premium|hnwi|family office|off-market/i.test(text)) classification = 'HNWI';\n\n// Scoring sugerido\nlet score = 0;\nif (body.budget > 1000000) score += 40;\nelse if (body.budget > 500000) score += 20;\nif (classification === 'HNWI') score += 30;\nif (body.gdpr_consent) score += 10;\n\nlet tier = 'cold';\nif (score >= 70) tier = 'hot';\nelse if (score >= 40) tier = 'warm';\n\nreturn [{\n  json: {\n    org_id: body.org_id || $env[\"NEXUS_DEFAULT_ORG_ID\"],\n    external_id: body.external_id || body.email || `lead-${Date.now()}`,\n    connector_name: connector_name,\n    source_system: source_system,\n    source_channel: source_channel,\n    source_detail: source_detail,\n    gdpr_consent: body.gdpr_consent || false,\n    name: body.name || 'Anonymous Lead',\n    email: body.email,\n    phone: body.phone,\n    budget: body.budget,\n    property_interest: body.property_interest,\n    notes: body.notes,\n    qualification_score: score,\n    qualification_tier: tier,\n    metadata: {\n      ...body.metadata,\n      classification: classification,\n      workflow: 'n8n-unified-lead-intake',\n      captured_at_n8n: new Date().toISOString()\n    }\n  }\n}];"
+      },
+      "id": "a98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "name": "Normalize & Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env[\"NEXUS_API_BASE_URL\"]}}/api/ingestion/leads",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": {}
+      },
+      "id": "b98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "name": "Nexus API Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Normalize & Score\"].json[\"qualification_tier\"]}}",
+              "value2": "hot"
+            }
+          ]
+        }
+      },
+      "id": "c98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "name": "Is Hot Lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Lead Hot Detectado en Nexus\n\n**Nombre:** {{$node[\"Normalize & Score\"].json[\"name\"]}}\n**Email:** {{$node[\"Normalize & Score\"].json[\"email\"]}}\n**Score:** {{$node[\"Normalize & Score\"].json[\"qualification_score\"]}}\n**Interés:** {{$node[\"Normalize & Score\"].json[\"property_interest\"]}}"
+      },
+      "id": "d98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "name": "Notify Toni",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        250
+      ],
+      "notesInFlow": true,
+      "notes": "Sustituir por nodo de Email/Slack/WhatsApp para Toni"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Lead received and indexed\",\n  \"qualification_tier\": \"{{$node[\\\"Normalize & Score\\\"].json[\\\"qualification_tier\\\"]}}\"\n}",
+        "options": {}
+      },
+      "id": "f98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Score": {
+      "main": [
+        [
+          {
+            "node": "Nexus API Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nexus API Request": {
+      "main": [
+        [
+          {
+            "node": "Is Hot Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Hot Lead?": {
+      "main": [
+        [
+          {
+            "node": "Notify Toni",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Toni": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

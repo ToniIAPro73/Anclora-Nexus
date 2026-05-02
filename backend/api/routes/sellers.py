@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 
-from ...models.sellers import (
+from backend.models.sellers import (
     NexusSellerCreate,
     NexusSellerUpdate,
     NexusSellerResponse,
@@ -29,12 +29,12 @@ from ...models.sellers import (
     ApproveAndSendRequest,
     ApproveAndSendResponse,
 )
-from ...services import sellers_service
-from ...services.seller_memory_service import seller_memory_service
-from ...services.supabase_service import SupabaseService
-from ...services.llm_service import llm_service
+from backend.services import sellers_service
+from backend.services.seller_memory_service import seller_memory_service
+from backend.services.supabase_service import SupabaseService
+from backend.services.llm_service import llm_service
 from ..deps import check_budget_hard_stop, get_current_user, get_org_id
-from ...skills.whale_dossier import run_whale_dossier
+from backend.skills.whale_dossier import run_whale_dossier
 
 
 class InteractionCreate(BaseModel):
@@ -557,7 +557,7 @@ async def prioritize_sellers(
             org_id=org_id,
             batch_size=payload.batch_size,
         )
-        from ...models.sellers import SellerPrioritizeItem
+        from backend.models.sellers import SellerPrioritizeItem
         return SellerPrioritizeResponse(
             scored=[SellerPrioritizeItem(**s) for s in scored],
             total_processed=len(scored),
@@ -589,7 +589,7 @@ async def list_pending_approval(
             limit=limit,
             offset=offset,
         )
-        from ...models.sellers import PendingApprovalItem
+        from backend.models.sellers import PendingApprovalItem
         return PendingApprovalResponse(
             items=[PendingApprovalItem(**item) for item in result["items"]],
             total=result["total"],

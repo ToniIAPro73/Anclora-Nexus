@@ -9,18 +9,18 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Header, HTTPException
 
-from ...config import settings
-from ...services.finops import finops_service
-from ...services.org_context_service import resolve_legacy_org_id_http
-from ...services.llm_service import llm_service
-from ...services.supabase_service import supabase_service
-from ...skills.fsbo_scraper import run_fsbo_scraper
-from ...skills.notebooklm_sync import run_notebooklm_sync
-from ...skills.prospection_weekly import run_prospection_weekly
-from ...skills.recap_weekly import run_recap_weekly
-from ...skills.seller_outreach_batch import run_seller_outreach_batch
-from ...skills.seller_signal_source_run import run_seller_signal_source_run
-from ...skills.seller_signal_ingest import run_seller_signal_ingest
+from backend.config import settings
+from backend.services.finops import finops_service
+from backend.services.org_context_service import resolve_legacy_org_id_http
+from backend.services.llm_service import llm_service
+from backend.services.supabase_service import supabase_service
+from backend.skills.fsbo_scraper import run_fsbo_scraper
+from backend.skills.notebooklm_sync import run_notebooklm_sync
+from backend.skills.prospection_weekly import run_prospection_weekly
+from backend.skills.recap_weekly import run_recap_weekly
+from backend.skills.seller_outreach_batch import run_seller_outreach_batch
+from backend.skills.seller_signal_source_run import run_seller_signal_source_run
+from backend.skills.seller_signal_ingest import run_seller_signal_ingest
 
 
 router = APIRouter()
