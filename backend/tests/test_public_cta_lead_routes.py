@@ -23,11 +23,15 @@ class TestPublicCtaLeadRoutes:
 
         response = client.post(
             "/api/public/cta/lead",
-            json={"name": "Toni Test", "email": "toni@example.com"},
+            json={"name": "Toni Test", "email": "toni@example.com", "gdpr_consent": True},
         )
 
         assert response.status_code == 200
-        assert response.json() == {"status": "success", "lead_id": "lead-123"}
+        assert response.json() == {
+            "status": "success",
+            "lead_id": "lead-123",
+            "message": "Lead captured successfully",
+        }
 
     @patch("backend.api.routes.public.agent_executor")
     def test_public_cta_lead_returns_429_when_blocked(self, mock_agent_executor) -> None:
@@ -40,7 +44,7 @@ class TestPublicCtaLeadRoutes:
 
         response = client.post(
             "/api/public/cta/lead",
-            json={"name": "Toni Test", "email": "toni@example.com"},
+            json={"name": "Toni Test", "email": "toni@example.com", "gdpr_consent": True},
         )
 
         assert response.status_code == 429
@@ -57,8 +61,17 @@ class TestPublicCtaLeadRoutes:
 
         response = client.post(
             "/api/public/cta/lead",
-            json={"name": "Toni Test", "email": "toni@example.com"},
+            json={"name": "Toni Test", "email": "toni@example.com", "gdpr_consent": True},
         )
 
         assert response.status_code == 500
         assert response.json()["detail"] == "Lead intake completed without lead_id"
+
+    def test_public_cta_lead_rejects_missing_gdpr_consent(self) -> None:
+        response = client.post(
+            "/api/public/cta/lead",
+            json={"name": "Toni Test", "email": "toni@example.com", "gdpr_consent": False},
+        )
+
+        assert response.status_code == 422
+        assert "gdpr_consent is required" in str(response.json())

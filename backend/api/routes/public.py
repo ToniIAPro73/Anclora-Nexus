@@ -10,6 +10,7 @@ from backend.models.partner_workspaces import (
 from backend.services.partner_workspace_service import partner_workspace_service
 from backend.services.captcha_verification_service import CaptchaVerificationError
 from backend.models.valuation_requests import PublicValuationRequestCreate
+from backend.models.ingestion import PublicLeadCaptureRequest
 from backend.services.valuation_request_service import valuation_request_service
 
 router = APIRouter()
@@ -92,21 +93,18 @@ async def create_public_valuation_request(data: PublicValuationRequestCreate, re
 
 
 @router.post("/cta/lead")
-async def public_cta_lead_capture(data: Dict[str, Any]):
+async def public_cta_lead_capture(data: PublicLeadCaptureRequest):
     """
     Public endpoint for external lead capture (e.g., from a website CTA).
     Performs minimal validation and triggers the lead_intake skill.
     """
     try:
-        # Validate minimal fields required for intake
-        if not data.get("name"):
-             raise HTTPException(status_code=400, detail="Missing 'name' field")
-             
         # Prepare state for LangGraph
-        source_value = str(data.get("source", "")).strip() or "web-cta"
-        source_system = str(data.get("source_system", "")).strip() or "cta_web"
-        source_channel = str(data.get("source_channel", "")).strip() or "website"
-        source_detail = data.get("source_detail") or "public_cta_form"
+        payload = data.model_dump(mode="json")
+        source_value = str(payload.get("source", "")).strip() or "web-cta"
+        source_system = str(payload.get("source_system", "")).strip() or "cta_web"
+        source_channel = str(payload.get("source_channel", "")).strip() or "website"
+        source_detail = payload.get("source_detail") or "public_cta_form"
 
         # Hard rule: leads coming from Anclora Private Estates are always tagged as WEB.
         if source_detail == "private-estates-contact-form":
@@ -114,7 +112,7 @@ async def public_cta_lead_capture(data: Dict[str, Any]):
 
         initial_state = {
             "input_data": {
-                **data,
+                **payload,
                 "source": source_value,
                 "source_system": source_system,
                 "source_channel": source_channel,
@@ -145,7 +143,7 @@ async def public_cta_lead_capture(data: Dict[str, Any]):
                 detail="Lead intake completed without lead_id",
             )
             
-        return {"status": "success", "lead_id": lead_id}
+        return {"status": "success", "lead_id": lead_id, "message": "Lead captured successfully"}
     except HTTPException:
         raise
     except Exception as e:

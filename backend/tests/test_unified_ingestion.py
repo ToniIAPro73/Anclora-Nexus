@@ -27,6 +27,7 @@ def test_lead_payload_validation() -> None:
         source_channel=LeadSourceChannel.WEBSITE,
         name="Test User",
         email="test@example.com",
+        gdpr_consent=True,
     )
     assert payload.source_system == LeadSourceSystem.CTA_WEB
     assert payload.connector_name is None
@@ -39,6 +40,7 @@ def test_lead_payload_validation() -> None:
             source_channel=LeadSourceChannel.WEBSITE,
             name="Test User",
             email="not-an-email",
+            gdpr_consent=True,
         )
 
 
@@ -81,6 +83,7 @@ def test_ingestion_service_duplicate_short_circuit() -> None:
         source_system=LeadSourceSystem.CTA_WEB,
         source_channel=LeadSourceChannel.WEBSITE,
         name="Duplicate User",
+        gdpr_consent=True,
     )
 
     with patch.object(service, "_get_existing_event", return_value={"id": "event-1", "trace_id": "trace-1"}):
@@ -98,6 +101,7 @@ def test_ingestion_service_success_updates_processed_status() -> None:
         source_system=LeadSourceSystem.CTA_WEB,
         source_channel=LeadSourceChannel.WEBSITE,
         name="New User",
+        gdpr_consent=True,
     )
 
     mock_table = MagicMock()
@@ -205,3 +209,28 @@ def test_ingestion_service_persists_hnwi_fields_and_logs_finops() -> None:
     assert lead_insert["hnwi_source_channel"] == "reddit"
     assert lead_insert["source_metadata"]["hnwi"]["outreach_ready"] is True
     mock_finops.assert_awaited_once()
+
+
+def test_ingestion_service_rejects_web_lead_without_gdpr_consent() -> None:
+    service = IngestionService()
+    payload = LeadIngestionPayload(
+        org_id="org-1",
+        external_id="ext-lead-no-consent",
+        source_system=LeadSourceSystem.CTA_WEB,
+        source_channel=LeadSourceChannel.WEBSITE,
+        name="No Consent User",
+        gdpr_consent=False,
+    )
+
+    with patch.object(service, "_get_existing_event", return_value=None), \
+         patch.object(service, "_register_received", return_value={"id": "event-1"}), \
+         patch.object(service, "_update_event") as mock_update:
+        with pytest.raises(ValueError, match="gdpr_consent is required for web lead ingestion"):
+            asyncio.run(service.ingest_lead(payload))
+
+    mock_update.assert_called_with(
+        "event-1",
+        status=IngestionStatus.REJECTED,
+        error_code="gdpr_consent_required",
+        error_message="gdpr_consent is required for web lead ingestion",
+    )
