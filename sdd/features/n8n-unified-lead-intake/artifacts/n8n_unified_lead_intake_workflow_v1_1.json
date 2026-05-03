@@ -3,48 +3,33 @@
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "nexus-lead-intake",
-        "options": {}
+        "jsCode": "// Normalización y validación inicial\nconst body = items[0].json.body;\n\n// Mapeo de fuentes según PROMPT_MAESTRO v6.1\nlet source_system = body.source_system || 'manual';\nlet source_channel = body.source_channel || 'other';\nlet connector_name = body.connector_name || 'manual:intake';\nlet source_detail = body.source_detail || 'n8n_unified_intake';\n\n// Clasificación simple\nconst text = (body.notes || '') + (body.property_interest || '');\nlet classification = 'Unknown';\nif (/sell|propietario|vender|valoraci|owner/i.test(text)) classification = 'Seller';\nelse if (/buy|comprar|inversi|search|busco/i.test(text)) classification = 'Buyer';\nif (/luxury|premium|hnwi|family office|off-market/i.test(text)) classification = 'HNWI';\n\n// Scoring sugerido\nlet score = 0;\nif (body.budget > 1000000) score += 40;\nelse if (body.budget > 500000) score += 20;\nif (classification === 'HNWI') score += 30;\nif (body.gdpr_consent) score += 10;\n\nlet tier = 'cold';\nif (score >= 70) tier = 'hot';\nelse if (score >= 40) tier = 'warm';\n\nreturn [{\n  json: {\n    org_id: body.org_id || \"9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf\",\n    external_id: body.external_id || body.email || `lead-${Date.now()}`,\n    connector_name: connector_name,\n    source_system: source_system,\n    source_channel: source_channel,\n    source_detail: source_detail,\n    gdpr_consent: body.gdpr_consent || false,\n    name: body.name || 'Anonymous Lead',\n    email: body.email,\n    phone: body.phone,\n    budget: body.budget,\n    property_interest: body.property_interest,\n    notes: body.notes,\n    qualification_score: score,\n    qualification_tier: tier,\n    metadata: {\n      ...body.metadata,\n      classification: classification,\n      workflow: 'n8n-unified-lead-intake',\n      captured_at_n8n: new Date().toISOString()\n    }\n  }\n}];"
       },
-      "id": "e98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
-      "name": "Webhook Trigger",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [
-        250,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Normalización y validación inicial\nconst body = items[0].json.body;\n\n// Mapeo de fuentes según PROMPT_MAESTRO v6.1\nlet source_system = body.source_system || 'manual';\nlet source_channel = body.source_channel || 'other';\nlet connector_name = body.connector_name || 'manual:intake';\nlet source_detail = body.source_detail || 'n8n_unified_intake';\n\n// Clasificación simple\nconst text = (body.notes || '') + (body.property_interest || '');\nlet classification = 'Unknown';\nif (/sell|propietario|vender|valoraci|owner/i.test(text)) classification = 'Seller';\nelse if (/buy|comprar|inversi|search|busco/i.test(text)) classification = 'Buyer';\nif (/luxury|premium|hnwi|family office|off-market/i.test(text)) classification = 'HNWI';\n\n// Scoring sugerido\nlet score = 0;\nif (body.budget > 1000000) score += 40;\nelse if (body.budget > 500000) score += 20;\nif (classification === 'HNWI') score += 30;\nif (body.gdpr_consent) score += 10;\n\nlet tier = 'cold';\nif (score >= 70) tier = 'hot';\nelse if (score >= 40) tier = 'warm';\n\nreturn [{\n  json: {\n    org_id: body.org_id || $env[\"NEXUS_DEFAULT_ORG_ID\"],\n    external_id: body.external_id || body.email || `lead-${Date.now()}`,\n    connector_name: connector_name,\n    source_system: source_system,\n    source_channel: source_channel,\n    source_detail: source_detail,\n    gdpr_consent: body.gdpr_consent || false,\n    name: body.name || 'Anonymous Lead',\n    email: body.email,\n    phone: body.phone,\n    budget: body.budget,\n    property_interest: body.property_interest,\n    notes: body.notes,\n    qualification_score: score,\n    qualification_tier: tier,\n    metadata: {\n      ...body.metadata,\n      classification: classification,\n      workflow: 'n8n-unified-lead-intake',\n      captured_at_n8n: new Date().toISOString()\n    }\n  }\n}];"
-      },
-      "id": "a98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "id": "713ce798-42bc-4320-b8e2-6a43ef4b030a",
       "name": "Normalize & Score",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        450,
-        300
+        -656,
+        0
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{$env[\"NEXUS_API_BASE_URL\"]}}/api/ingestion/leads",
+        "url": "=https://anclora-nexus.onrender.com/api/ingestion/leads",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{JSON.stringify($json)}}",
         "options": {}
       },
-      "id": "b98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "id": "035d4aff-5f8e-49d5-9f23-f07889603618",
       "name": "Nexus API Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        650,
-        300
+        -448,
+        0
       ]
     },
     {
@@ -58,26 +43,24 @@
           ]
         }
       },
-      "id": "c98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "id": "fb998664-5093-42b8-b58a-311bdf3bc5cf",
       "name": "Is Hot Lead?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        850,
-        300
+        -256,
+        0
       ]
     },
     {
-      "parameters": {
-        "content": "## Lead Hot Detectado en Nexus\n\n**Nombre:** {{$node[\"Normalize & Score\"].json[\"name\"]}}\n**Email:** {{$node[\"Normalize & Score\"].json[\"email\"]}}\n**Score:** {{$node[\"Normalize & Score\"].json[\"qualification_score\"]}}\n**Interés:** {{$node[\"Normalize & Score\"].json[\"property_interest\"]}}"
-      },
-      "id": "d98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
+      "parameters": {},
+      "id": "cb58c865-d04e-42e4-bd6a-324aa4d01db2",
       "name": "Notify Toni",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1050,
-        250
+        -48,
+        -112
       ],
       "notesInFlow": true,
       "notes": "Sustituir por nodo de Email/Slack/WhatsApp para Toni"
@@ -85,31 +68,38 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Lead received and indexed\",\n  \"qualification_tier\": \"{{$node[\\\"Normalize & Score\\\"].json[\\\"qualification_tier\\\"]}}\"\n}",
+        "responseBody": "={{\n  {\n    status: $json.status,\n    message: $json.message || ($json.status === \"duplicate\" ? \"Lead already exists\" : \"Lead processed\"),\n    lead_id: $json.lead_id,\n    event_id: $json.event_id,\n    trace_id: $json.trace_id,\n    dedupe_key: $json.dedupe_key,\n    qualification_score: $json.qualification_score,\n    qualification_tier: $json.qualification_tier\n  }\n}}",
         "options": {}
       },
-      "id": "f98e4f55-1f1f-4f1f-bf1f-5f1f5f1f5f1f",
-      "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
+      "typeVersion": 1.5,
       "position": [
-        1250,
-        300
-      ]
+        176,
+        16
+      ],
+      "id": "ead0470b-9d12-4919-9e44-f0eaa03929b0",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nexus-lead-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -848,
+        0
+      ],
+      "id": "7f114845-b84f-43bd-826a-80c605f0e10d",
+      "name": "Webhook",
+      "webhookId": "5e57225c-24f5-42a9-bbc5-01350e852c40"
     }
   ],
+  "pinData": {},
   "connections": {
-    "Webhook Trigger": {
-      "main": [
-        [
-          {
-            "node": "Normalize & Score",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Normalize & Score": {
       "main": [
         [
@@ -160,6 +150,29 @@
           }
         ]
       ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
-  }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4edb1cf4-12a6-4865-9c1e-86aa941d46ea",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1376cb81e086ca0e90d73480ec1912a0df18a9b73e806ebfe905a17b7f18974d"
+  },
+  "id": "j6eP8gb8c7pz2q7M",
+  "tags": []
 }
