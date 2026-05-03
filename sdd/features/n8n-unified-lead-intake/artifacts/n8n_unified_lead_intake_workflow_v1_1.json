@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "// Normalización y validación inicial\nconst body = items[0].json.body;\n\n// Mapeo de fuentes según PROMPT_MAESTRO v6.1\nlet source_system = body.source_system || 'manual';\nlet source_channel = body.source_channel || 'other';\nlet connector_name = body.connector_name || 'manual:intake';\nlet source_detail = body.source_detail || 'n8n_unified_intake';\n\n// Clasificación simple\nconst text = (body.notes || '') + (body.property_interest || '');\nlet classification = 'Unknown';\nif (/sell|propietario|vender|valoraci|owner/i.test(text)) classification = 'Seller';\nelse if (/buy|comprar|inversi|search|busco/i.test(text)) classification = 'Buyer';\nif (/luxury|premium|hnwi|family office|off-market/i.test(text)) classification = 'HNWI';\n\n// Scoring sugerido\nlet score = 0;\nif (body.budget > 1000000) score += 40;\nelse if (body.budget > 500000) score += 20;\nif (classification === 'HNWI') score += 30;\nif (body.gdpr_consent) score += 10;\n\nlet tier = 'cold';\nif (score >= 70) tier = 'hot';\nelse if (score >= 40) tier = 'warm';\n\nreturn [{\n  json: {\n    org_id: body.org_id || \"9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf\",\n    external_id: body.external_id || body.email || `lead-${Date.now()}`,\n    connector_name: connector_name,\n    source_system: source_system,\n    source_channel: source_channel,\n    source_detail: source_detail,\n    gdpr_consent: body.gdpr_consent || false,\n    name: body.name || 'Anonymous Lead',\n    email: body.email,\n    phone: body.phone,\n    budget: body.budget,\n    property_interest: body.property_interest,\n    notes: body.notes,\n    qualification_score: score,\n    qualification_tier: tier,\n    metadata: {\n      ...body.metadata,\n      classification: classification,\n      workflow: 'n8n-unified-lead-intake',\n      captured_at_n8n: new Date().toISOString()\n    }\n  }\n}];"
+        "jsCode": "// Normalize & Score\n// Normaliza el payload entrante y conserva campos HNWI relevantes\n// para que el backend Nexus pueda calcular/recibir score, tier y email_verified.\n\nconst input = items[0]?.json || {};\nconst body = input.body || input;\n\n// Helpers\nfunction asString(value, fallback = undefined) {\n  if (value === null || value === undefined || value === '') return fallback;\n  return String(value).trim();\n}\n\nfunction asNumber(value, fallback = undefined) {\n  if (value === null || value === undefined || value === '') return fallback;\n  const n = Number(value);\n  return Number.isFinite(n) ? n : fallback;\n}\n\nfunction asBoolean(value, fallback = false) {\n  if (value === true || value === 'true' || value === 1 || value === '1') return true;\n  if (value === false || value === 'false' || value === 0 || value === '0') return false;\n  return fallback;\n}\n\nfunction cleanObject(obj) {\n  return Object.fromEntries(\n    Object.entries(obj).filter(([_, value]) => value !== undefined)\n  );\n}\n\n// Source mapping\nconst source_system = asString(body.source_system, 'manual');\nconst source_channel = asString(body.source_channel, 'other');\nconst connector_name = asString(\n  body.connector_name,\n  source_system && source_channel\n    ? `${source_system}:${source_channel}`\n    : 'manual:intake'\n);\nconst source_detail = asString(body.source_detail, 'n8n_unified_intake');\n\n// Text/classification\nconst text = [\n  body.notes,\n  body.property_interest,\n  body.hnwi_intent_signal,\n  body.zone_interest,\n  body.nationality,\n  body.source_detail,\n].filter(Boolean).join(' ');\n\nlet classification = 'Unknown';\n\nif (/sell|propietario|vender|valoraci|owner/i.test(text)) {\n  classification = 'Seller';\n} else if (/buy|comprar|inversi|search|busco|looking|interested/i.test(text)) {\n  classification = 'Buyer';\n}\n\nif (/luxury|premium|hnwi|family office|off-market|private client|high net worth/i.test(text)) {\n  classification = 'HNWI';\n}\n\n// Local fallback scoring\nconst budget = asNumber(body.budget);\n\nlet score = 0;\n\nif (budget !== undefined) {\n  if (budget >= 2000000) score += 40;\n  else if (budget >= 1000000) score += 30;\n  else if (budget >= 500000) score += 20;\n}\n\nif (classification === 'HNWI') score += 30;\n\nif (/andratx|calvià|calvia|son vida|bendinat|portals|deià|deia|valldemossa/i.test(text)) {\n  score += 15;\n}\n\nif (/looking to buy|busco|comprar|interested in|off-market|villa buyer|family office/i.test(text)) {\n  score += 15;\n}\n\nif (asBoolean(body.gdpr_consent, false)) score += 10;\n\nscore = Math.max(0, Math.min(score, 100));\n\nlet tier = 'cold';\nif (score >= 70) tier = 'hot';\nelse if (score >= 40) tier = 'warm';\n\n// Preserve upstream values when present.\n// This is critical for HNWI tests and upstream workflows.\nconst qualification_score =\n  body.qualification_score !== undefined && body.qualification_score !== null\n    ? asNumber(body.qualification_score, score)\n    : score;\n\nconst qualification_tier =\n  asString(body.qualification_tier) || tier;\n\nconst email_verified = asBoolean(body.email_verified, false);\n\n// IDs and traceability\nconst email = asString(body.email);\nconst phone = asString(body.phone);\nconst source_url = asString(body.source_url || body.linkedin_profile_url || body.profile_url);\n\nconst external_id = asString(\n  body.external_id ||\n  body.linkedin_member_id ||\n  source_url ||\n  email ||\n  phone ||\n  `lead-${Date.now()}`\n);\n\nconst metadata = {\n  ...(body.metadata || {}),\n  classification,\n  workflow: 'n8n-unified-lead-intake',\n  origin_workflow:\n    body.metadata?.origin_workflow ||\n    body.origin_workflow ||\n    source_detail,\n  captured_at_n8n: new Date().toISOString(),\n};\n\n// Final Nexus-compatible payload\nconst payload = cleanObject({\n  org_id: asString(body.org_id, '9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf'),\n\n  external_id,\n  connector_name,\n  source_system,\n  source_channel,\n  source_detail,\n\n  source_url,\n  source_referrer: asString(body.source_referrer),\n\n  gdpr_consent: asBoolean(body.gdpr_consent, false),\n  gdpr_consent_at: asString(body.gdpr_consent_at),\n  gdpr_consent_text_version: asString(body.gdpr_consent_text_version, 'v1'),\n\n  name: asString(body.name, 'Anonymous Lead'),\n  email,\n  phone,\n  budget,\n  property_interest: asString(body.property_interest),\n  notes: asString(body.notes),\n\n  nationality: asString(body.nationality),\n  zone_interest: asString(body.zone_interest),\n\n  qualification_score,\n  qualification_tier,\n\n  hnwi_intent_signal: asString(body.hnwi_intent_signal),\n  email_verified,\n  email_verification_source: asString(body.email_verification_source),\n  hnwi_source_channel: asString(body.hnwi_source_channel, source_channel),\n\n  metadata,\n});\n\nreturn [\n  {\n    json: payload,\n  },\n];"
       },
       "id": "713ce798-42bc-4320-b8e2-6a43ef4b030a",
       "name": "Normalize & Score",
@@ -28,53 +28,22 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -448,
+        -432,
         0
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{$node[\"Normalize & Score\"].json[\"qualification_tier\"]}}",
-              "value2": "hot"
-            }
-          ]
-        }
-      },
-      "id": "fb998664-5093-42b8-b58a-311bdf3bc5cf",
-      "name": "Is Hot Lead?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [
-        -256,
-        0
-      ]
-    },
-    {
-      "parameters": {},
-      "id": "cb58c865-d04e-42e4-bd6a-324aa4d01db2",
-      "name": "Notify Toni",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        -48,
-        -112
       ],
-      "notesInFlow": true,
-      "notes": "Sustituir por nodo de Email/Slack/WhatsApp para Toni"
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{\n  {\n    status: $json.status,\n    message: $json.message || ($json.status === \"duplicate\" ? \"Lead already exists\" : \"Lead processed\"),\n    lead_id: $json.lead_id,\n    event_id: $json.event_id,\n    trace_id: $json.trace_id,\n    dedupe_key: $json.dedupe_key,\n    qualification_score: $json.qualification_score,\n    qualification_tier: $json.qualification_tier\n  }\n}}",
+        "responseBody": "={{ JSON.stringify({\n  status: $('Nexus API Request').item.json.status || \"processed\",\n  message: $('Nexus API Request').item.json.message || \"Lead processed\",\n  lead_id: $('Nexus API Request').item.json.lead_id || null,\n  event_id: $('Nexus API Request').item.json.event_id || null,\n  trace_id: $('Nexus API Request').item.json.trace_id || null,\n  dedupe_key: $('Nexus API Request').item.json.dedupe_key || null,\n  qualification_score: $('Nexus API Request').item.json.qualification_score || null,\n  qualification_tier: $('Nexus API Request').item.json.qualification_tier || null,\n  outreach_ready: $('Nexus API Request').item.json.outreach_ready || false,\n  email_verified: $('Nexus API Request').item.json.email_verified || false\n}) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        176,
+        304,
         16
       ],
       "id": "ead0470b-9d12-4919-9e44-f0eaa03929b0",
@@ -96,6 +65,63 @@
       "id": "7f114845-b84f-43bd-826a-80c605f0e10d",
       "name": "Webhook",
       "webhookId": "5e57225c-24f5-42a9-bbc5-01350e852c40"
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@anclora.com",
+        "toEmail": "nexus-alerts@anclora.com",
+        "subject": "Nuevo Lead Hot detectado — Anclora Nexus",
+        "html": "=<div style=\"font-family: Arial, Helvetica, sans-serif; background-color:#f7f4ef; padding:24px; color:#1f2933;\">\n  <div style=\"max-width:720px; margin:0 auto; background:#ffffff; border:1px solid #e5ded3; border-radius:14px; overflow:hidden;\">\n    \n    <div style=\"background:#1f2933; color:#ffffff; padding:20px 24px;\">\n      <h2 style=\"margin:0; font-size:20px; font-weight:700;\">\n        Nuevo lead prioritario detectado\n      </h2>\n      <p style=\"margin:6px 0 0; font-size:14px; color:#d6c8b5;\">\n        Anclora Nexus · Entrada unificada de leads\n      </p>\n    </div>\n\n    <div style=\"padding:24px;\">\n      <p style=\"margin:0 0 18px; font-size:15px; line-height:1.5;\">\n        Se ha recibido un nuevo lead que cumple los criterios de alerta interna.\n        Revisa la información en Nexus / Supabase antes de realizar cualquier contacto.\n      </p>\n\n      <table style=\"width:100%; border-collapse:collapse; font-size:14px;\">\n        <tr>\n          <td style=\"padding:10px 0; color:#6b7280; width:170px;\">Nombre</td>\n          <td style=\"padding:10px 0; font-weight:600;\">{{$node[\"Normalize & Score\"].json[\"name\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:10px 0; color:#6b7280;\">Email</td>\n          <td style=\"padding:10px 0;\">{{$node[\"Normalize & Score\"].json[\"email\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:10px 0; color:#6b7280;\">Teléfono</td>\n          <td style=\"padding:10px 0;\">{{$node[\"Normalize & Score\"].json[\"phone\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:10px 0; color:#6b7280;\">Presupuesto</td>\n          <td style=\"padding:10px 0;\">{{$node[\"Normalize & Score\"].json[\"budget\"]}} €</td>\n        </tr>\n        <tr>\n          <td style=\"padding:10px 0; color:#6b7280;\">Puntuación</td>\n          <td style=\"padding:10px 0;\">\n            <strong>{{$node[\"Nexus API Request\"].json[\"qualification_score\"]}}</strong>\n          </td>\n        </tr>\n        <tr>\n          <td style=\"padding:10px 0; color:#6b7280;\">Nivel</td>\n          <td style=\"padding:10px 0;\">\n            <span style=\"display:inline-block; padding:4px 10px; border-radius:999px; background:#fee2e2; color:#991b1b; font-weight:700; text-transform:uppercase;\">\n              {{$node[\"Nexus API Request\"].json[\"qualification_tier\"]}}\n            </span>\n          </td>\n        </tr>\n        <tr>\n          <td style=\"padding:10px 0; color:#6b7280;\">Email verificado</td>\n          <td style=\"padding:10px 0;\">\n            {{$node[\"Nexus API Request\"].json[\"email_verified\"]}}\n          </td>\n        </tr>\n      </table>\n\n      <hr style=\"border:none; border-top:1px solid #eee7dc; margin:22px 0;\" />\n\n      <h3 style=\"margin:0 0 10px; font-size:16px; color:#1f2933;\">\n        Interés declarado\n      </h3>\n      <p style=\"margin:0; padding:14px; background:#faf7f2; border-radius:10px; font-size:14px; line-height:1.5;\">\n        {{$node[\"Normalize & Score\"].json[\"property_interest\"]}}\n      </p>\n\n      <h3 style=\"margin:22px 0 10px; font-size:16px; color:#1f2933;\">\n        Notas\n      </h3>\n      <p style=\"margin:0; padding:14px; background:#faf7f2; border-radius:10px; font-size:14px; line-height:1.5;\">\n        {{$node[\"Normalize & Score\"].json[\"notes\"]}}\n      </p>\n\n      <hr style=\"border:none; border-top:1px solid #eee7dc; margin:22px 0;\" />\n\n      <h3 style=\"margin:0 0 10px; font-size:16px; color:#1f2933;\">\n        Origen y trazabilidad\n      </h3>\n\n      <table style=\"width:100%; border-collapse:collapse; font-size:13px;\">\n        <tr>\n          <td style=\"padding:7px 0; color:#6b7280; width:170px;\">Fuente</td>\n          <td style=\"padding:7px 0;\">{{$node[\"Normalize & Score\"].json[\"source_detail\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:7px 0; color:#6b7280;\">Sistema</td>\n          <td style=\"padding:7px 0;\">{{$node[\"Normalize & Score\"].json[\"source_system\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:7px 0; color:#6b7280;\">Canal</td>\n          <td style=\"padding:7px 0;\">{{$node[\"Normalize & Score\"].json[\"source_channel\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:7px 0; color:#6b7280;\">Conector</td>\n          <td style=\"padding:7px 0;\">{{$node[\"Normalize & Score\"].json[\"connector_name\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:7px 0; color:#6b7280;\">Motivo de alerta</td>\n          <td style=\"padding:7px 0;\">{{$node[\"Build Notification Decision\"].json[\"notification_reason\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:7px 0; color:#6b7280;\">ID del lead</td>\n          <td style=\"padding:7px 0;\">{{$node[\"Nexus API Request\"].json[\"lead_id\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:7px 0; color:#6b7280;\">ID del evento</td>\n          <td style=\"padding:7px 0;\">{{$node[\"Nexus API Request\"].json[\"event_id\"]}}</td>\n        </tr>\n        <tr>\n          <td style=\"padding:7px 0; color:#6b7280;\">Trace ID</td>\n          <td style=\"padding:7px 0;\">{{$node[\"Nexus API Request\"].json[\"trace_id\"]}}</td>\n        </tr>\n      </table>\n\n      <div style=\"margin-top:22px; padding:14px; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; font-size:13px; line-height:1.5; color:#7c2d12;\">\n        <strong>Recordatorio operativo:</strong>\n        este email es una alerta interna. No implica contacto automático con el lead.\n        Revisa la ficha y valida el contexto antes de responder o iniciar outreach.\n      </div>\n    </div>\n\n    <div style=\"padding:16px 24px; background:#f7f4ef; color:#6b7280; font-size:12px;\">\n      Email automático enviado por Anclora Nexus. No responder a este mensaje.\n    </div>\n  </div>\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        -144
+      ],
+      "id": "bb096531-e353-45eb-a41d-7055b3610f44",
+      "name": "Email a Toni",
+      "webhookId": "6fd4b47a-d05a-44f9-8799-26ba60f2ee16",
+      "credentials": {
+        "smtp": {
+          "id": "BrIUrZb67Lru37tT",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"should_notify_internal\"]}}",
+              "value2": "={{ true }}"
+            }
+          ]
+        }
+      },
+      "id": "fb998664-5093-42b8-b58a-311bdf3bc5cf",
+      "name": "Should Notify Internal Alert?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const nexus = $('Nexus API Request').item.json;\nconst normalized = $('Normalize & Score').item.json;\n\nconst tier = nexus.qualification_tier;\nconst emailVerified = nexus.email_verified === true;\nconst connectorName = normalized.connector_name || '';\nconst isHnwi = connectorName.startsWith('hnwi-prospection');\n\nconst shouldNotify =\n  tier === 'hot' ||\n  (tier === 'warm' && emailVerified && isHnwi);\n\nreturn [\n  {\n    json: {\n      ...nexus,\n      connector_name: connectorName,\n      should_notify_internal: shouldNotify,\n      notification_reason:\n        tier === 'hot'\n          ? 'hot_lead'\n          : shouldNotify\n            ? 'warm_hnwi_email_verified'\n            : 'no_notification'\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "971ebbda-1945-46a8-9b86-f5ce58822dc7",
+      "name": "Build Notification Decision"
     }
   ],
   "pinData": {},
@@ -115,36 +141,7 @@
       "main": [
         [
           {
-            "node": "Is Hot Lead?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Is Hot Lead?": {
-      "main": [
-        [
-          {
-            "node": "Notify Toni",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Notify Toni": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
+            "node": "Build Notification Decision",
             "type": "main",
             "index": 0
           }
@@ -161,14 +158,54 @@
           }
         ]
       ]
+    },
+    "Email a Toni": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Notify Internal Alert?": {
+      "main": [
+        [
+          {
+            "node": "Email a Toni",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Notification Decision": {
+      "main": [
+        [
+          {
+            "node": "Should Notify Internal Alert?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "4edb1cf4-12a6-4865-9c1e-86aa941d46ea",
+  "versionId": "7ec78135-f1df-4a4f-be73-49eafe2001d2",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1376cb81e086ca0e90d73480ec1912a0df18a9b73e806ebfe905a17b7f18974d"
