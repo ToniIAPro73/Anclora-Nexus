@@ -25,29 +25,30 @@ Este contrato aplica a features como:
 
 ## Autoridad
 
-La bóveda gobierna contratos, clasificación, excepciones y trazabilidad.
+La bóveda gobierna contratos, clasificación, branding por grupo, excepciones y trazabilidad.
 
 `anclora-design-system` gobierna la implementación o referencia ejecutable de UI: taxonomía, tokens, themes, foundations, components, patterns y assets.
 
-Nexus no debe crear una tercera fuente de verdad local para botones, cards, modales, shell, tipografía o tokens si ya existe una pieza canónica o una regla contractual superior.
+Nexus no debe crear una tercera fuente de verdad local para botones, cards, modales, shell, tipografía, iconografía, color o tokens si ya existe una pieza canónica o una regla contractual superior.
 
 ## Fuentes obligatorias
 
-Leer en este orden cuando la feature toca UI, tablas, forms, modales, shell o navegación:
+Leer en este orden cuando la feature toca UI, tablas, forms, modales, shell, navegación o branding:
 
 ```text
 1. ToniIAPro73/boveda-anclora/docs/standards/ANCLORA_ECOSYSTEM_CONTRACT_GROUPS.md
-2. ToniIAPro73/boveda-anclora/docs/standards/ANCLORA_INTERNAL_APP_CONTRACT.md
-3. ToniIAPro73/anclora-design-system/docs/design-system-audit-and-target-architecture.md
-4. docs/standards/ANCLORA_INTERNAL_APP_CONTRACT.md
-5. docs/standards/MODAL_CONTRACT.md
-6. docs/standards/LOCALIZATION_CONTRACT.md
-7. docs/standards/UI_MOTION_CONTRACT.md
-8. sdd/contracts/UI-PAGE-PRIMITIVES-CONTRACT.md
-9. sdd/contracts/UI-SURFACE-INTERACTION-CONTRACT.md
-10. sdd/contracts/UI-TEXT-FIELD-CONTRACT.md
-11. sdd/contracts/UI-SELECT-FIELD-CONTRACT.md
-12. sdd/contracts/UI-BOOLEAN-FIELD-CONTRACT.md
+2. ToniIAPro73/boveda-anclora/docs/standards/ANCLORA_BRANDING_MASTER_CONTRACT.md
+3. ToniIAPro73/boveda-anclora/docs/standards/ANCLORA_INTERNAL_APP_CONTRACT.md
+4. ToniIAPro73/anclora-design-system/docs/design-system-audit-and-target-architecture.md
+5. docs/standards/ANCLORA_INTERNAL_APP_CONTRACT.md
+6. docs/standards/MODAL_CONTRACT.md
+7. docs/standards/LOCALIZATION_CONTRACT.md
+8. docs/standards/UI_MOTION_CONTRACT.md
+9. sdd/contracts/UI-PAGE-PRIMITIVES-CONTRACT.md
+10. sdd/contracts/UI-SURFACE-INTERACTION-CONTRACT.md
+11. sdd/contracts/UI-TEXT-FIELD-CONTRACT.md
+12. sdd/contracts/UI-SELECT-FIELD-CONTRACT.md
+13. sdd/contracts/UI-BOOLEAN-FIELD-CONTRACT.md
 ```
 
 ## Clasificación
@@ -60,6 +61,39 @@ Contrato objetivo:
 Idiomas: es / en / de / ru
 Tema: dark operativo principal
 Uso: backoffice, operaciones, revisión, decisión, automatización supervisada
+Branding group: Internal
+```
+
+## Branding INTERNAL aplicado a Nexus
+
+La bóveda agrupa las reglas de branding por tipo de aplicación. Para Nexus aplica el grupo **Interna / INTERNAL**.
+
+Reglas de branding para `anclora-nexus`:
+
+```text
+Grupo: Interna / INTERNAL
+Tipografía: Inter
+Borde de icono: plata cromada
+Accent de app: #D4AF37
+Hue: 45°
+Símbolo fundacional: círculo + tres ondas horizontales
+```
+
+Implicaciones:
+
+- El oro `#D4AF37` en Nexus es acento operativo, no lenguaje ultra premium.
+- Nexus puede usar oro para acción, estado, énfasis o marca, pero no debe adoptar una estética luxury/landing.
+- El tratamiento visual debe seguir la gramática INTERNAL: legibilidad, densidad, contraste y velocidad de revisión.
+- No usar tipografías reservadas para Ultra Premium como lenguaje principal de pantallas internas.
+- No modificar proporciones, geometría ni sistema del icono fundacional.
+- No crear variantes locales de color si el token semántico existe o debe promoverse al design system.
+
+Regla de separación:
+
+```text
+Nexus comparte accent gold con Anclora Private Estates, pero no comparte gramática visual.
+Nexus = internal operational gold.
+Private Estates = ultra premium editorial gold.
 ```
 
 ## Reglas de implementación
@@ -251,7 +285,9 @@ Una feature interna de Nexus no está lista si:
 - introduce una variante local de botón, modal, card, tabla o shell sin justificar
 - rompe contratos `sdd/contracts`
 - ignora `ANCLORA_INTERNAL_APP_CONTRACT`
+- ignora `ANCLORA_BRANDING_MASTER_CONTRACT` cuando toca marca, color, iconografía o tipografía
 - usa una gramática ultra premium/landing en una vista operativa
+- trata el oro de Nexus como lenguaje luxury en lugar de acento operativo
 - deja textos técnicos fuera de contenedor
 - omite loading/empty/error states
 - añade modal con scroll evitable
