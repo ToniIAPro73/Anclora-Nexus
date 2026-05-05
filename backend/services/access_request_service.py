@@ -1,11 +1,30 @@
 import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from backend.config import settings
-from backend.models.access_requests import PublicAccessRequestCreate
+from backend.models.access_requests import (
+    AccessRequestProduct,
+    AccessRequestRejectDecision,
+    AccessRequestReviewDecision,
+    AccessRequestStatus,
+    PublicAccessRequestCreate,
+)
 from backend.services.captcha_verification_service import captcha_verification_service, CaptchaVerificationError
 from backend.services.supabase_service import supabase_service
 
 logger = logging.getLogger(__name__)
+
+TERMINAL_ACCESS_REQUEST_STATUSES = {
+    AccessRequestStatus.APPROVED.value,
+    AccessRequestStatus.REJECTED.value,
+    AccessRequestStatus.CANCELLED.value,
+}
+
+class AccessRequestNotFoundError(Exception):
+    pass
+
+class AccessRequestInvalidTransitionError(Exception):
+    pass
 
 class AccessRequestService:
     async def create_public_request(self, data: PublicAccessRequestCreate, remote_ip: Optional[str] = None) -> Dict[str, Any]:
@@ -49,5 +68,102 @@ class AccessRequestService:
             "product": record["product"],
             "email": record["email"]
         }
+
+    async def list_requests(
+        self,
+        org_id: str,
+        status: Optional[AccessRequestStatus] = None,
+        product: Optional[AccessRequestProduct] = None,
+        limit: int = 50,
+    ) -> list[Dict[str, Any]]:
+        query = supabase_service.client.table("access_requests").select("*").eq("org_id", org_id)
+        if status:
+            query = query.eq("status", status.value)
+        if product:
+            query = query.eq("product", product.value)
+
+        result = query.order("created_at", desc=True).limit(limit).execute()
+        return result.data or []
+
+    async def get_request(self, org_id: str, request_id: str) -> Dict[str, Any]:
+        result = (
+            supabase_service.client.table("access_requests")
+            .select("*")
+            .eq("org_id", org_id)
+            .eq("id", request_id)
+            .limit(1)
+            .execute()
+        )
+        if not result.data:
+            raise AccessRequestNotFoundError(f"Access request {request_id} not found")
+        return result.data[0]
+
+    async def approve_request(
+        self,
+        org_id: str,
+        request_id: str,
+        decision: AccessRequestReviewDecision,
+    ) -> Dict[str, Any]:
+        await self._ensure_pending(org_id, request_id)
+        update_payload = {
+            "status": AccessRequestStatus.APPROVED.value,
+            "reviewed_at": self._now(),
+            "reviewed_by": decision.reviewed_by,
+            "admin_notes": decision.admin_notes,
+            "updated_at": self._now(),
+        }
+        return await self._update_pending_request(org_id, request_id, update_payload)
+
+    async def reject_request(
+        self,
+        org_id: str,
+        request_id: str,
+        decision: AccessRequestRejectDecision,
+    ) -> Dict[str, Any]:
+        await self._ensure_pending(org_id, request_id)
+        update_payload = {
+            "status": AccessRequestStatus.REJECTED.value,
+            "reviewed_at": self._now(),
+            "reviewed_by": decision.reviewed_by,
+            "admin_notes": decision.admin_notes,
+            "rejection_reason": decision.rejection_reason,
+            "updated_at": self._now(),
+        }
+        return await self._update_pending_request(org_id, request_id, update_payload)
+
+    async def _ensure_pending(self, org_id: str, request_id: str) -> None:
+        record = await self.get_request(org_id, request_id)
+        current_status = record.get("status")
+        if current_status != AccessRequestStatus.PENDING.value:
+            if current_status in TERMINAL_ACCESS_REQUEST_STATUSES:
+                raise AccessRequestInvalidTransitionError(
+                    f"Access request {request_id} is already {current_status}"
+                )
+            raise AccessRequestInvalidTransitionError(
+                f"Access request {request_id} cannot transition from {current_status}"
+            )
+
+    async def _update_pending_request(
+        self,
+        org_id: str,
+        request_id: str,
+        update_payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        result = (
+            supabase_service.client.table("access_requests")
+            .update(update_payload)
+            .eq("org_id", org_id)
+            .eq("id", request_id)
+            .eq("status", AccessRequestStatus.PENDING.value)
+            .execute()
+        )
+        if not result.data:
+            raise AccessRequestInvalidTransitionError(
+                f"Access request {request_id} is no longer pending"
+            )
+        return result.data[0]
+
+    def _now(self) -> str:
+        return datetime.now(timezone.utc).isoformat()
 
 access_request_service = AccessRequestService()

@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, EmailStr, model_validator, ConfigDict
+from pydantic import BaseModel, EmailStr, field_validator, model_validator, ConfigDict
 
 class AccessRequestProduct(str, Enum):
     SYNERGI = "synergi"
@@ -88,3 +88,56 @@ class LegacyPartnerAdmission(BaseModel):
     submission_language: str = "es"
     captcha_provider: str = "turnstile"
     captcha_token: str
+
+class AccessRequestReviewDecision(BaseModel):
+    reviewed_by: str
+    admin_notes: Optional[str] = None
+
+    @field_validator("reviewed_by")
+    @classmethod
+    def validate_reviewed_by(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("reviewed_by is required")
+        return value.strip()
+
+class AccessRequestRejectDecision(AccessRequestReviewDecision):
+    rejection_reason: str
+
+    @field_validator("rejection_reason")
+    @classmethod
+    def validate_rejection_reason(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("rejection_reason is required")
+        return value.strip()
+
+class AccessRequestResponse(BaseModel):
+    id: str
+    org_id: str
+    product: AccessRequestProduct
+    source: AccessRequestSource
+    status: AccessRequestStatus
+    full_name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    profile_type: Optional[str] = None
+    service_category: Optional[str] = None
+    service_summary: Optional[str] = None
+    intended_use: Optional[str] = None
+    requested_scope: Optional[str] = None
+    message: Optional[str] = None
+    privacy_accepted: bool
+    gdpr_consent: bool
+    submission_language: str = "es"
+    external_id: Optional[str] = None
+    captcha_provider: Optional[str] = None
+    captcha_verified: bool = False
+    captcha_hostname: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    reviewed_by: Optional[str] = None
+    admin_notes: Optional[str] = None
+    rejection_reason: Optional[str] = None
+    invite_token: Optional[str] = None
+    invite_expires_at: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
