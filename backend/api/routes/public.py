@@ -12,6 +12,14 @@ from backend.services.captcha_verification_service import CaptchaVerificationErr
 from backend.models.valuation_requests import PublicValuationRequestCreate
 from backend.models.ingestion import PublicLeadCaptureRequest
 from backend.services.valuation_request_service import valuation_request_service
+from backend.models.access_requests import (
+    PublicAccessRequestCreate, 
+    AccessRequestProduct, 
+    AccessRequestSource,
+    LegacyDataLabAccessRequest,
+    LegacyPartnerAdmission
+)
+from backend.services.access_request_service import access_request_service
 
 router = APIRouter()
 
@@ -148,3 +156,61 @@ async def public_cta_lead_capture(data: PublicLeadCaptureRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/access-requests", status_code=status.HTTP_201_CREATED)
+async def create_public_access_request(data: PublicAccessRequestCreate, request: Request):
+    try:
+        result = await access_request_service.create_public_request(
+            data,
+            request.client.host if request.client else None,
+        )
+        return {
+            "status": "submitted",
+            "request_id": result.get("id"),
+            "message": "Access request submitted",
+        }
+    except HTTPException:
+        raise
+    except CaptchaVerificationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/data-lab-access-requests", status_code=status.HTTP_201_CREATED)
+async def legacy_data_lab_access_request(data: LegacyDataLabAccessRequest, request: Request):
+    """Legacy wrapper for Data Lab access requests."""
+    # Transform legacy model to canonical without mutation
+    canonical_data = PublicAccessRequestCreate(
+        product=AccessRequestProduct.DATA_LAB,
+        source=AccessRequestSource.LANDING,
+        full_name=data.full_name,
+        email=data.email,
+        profile_type=data.profile_type,
+        requested_scope=data.requested_scope,
+        intended_use=data.intended_use,
+        privacy_accepted=data.privacy_accepted,
+        gdpr_consent=data.gdpr_consent,
+        submission_language=data.submission_language,
+        captcha_provider=data.captcha_provider,
+        captcha_token=data.captcha_token
+    )
+    return await create_public_access_request(canonical_data, request)
+
+@router.post("/partner-admissions", status_code=status.HTTP_201_CREATED)
+async def legacy_partner_admission(data: LegacyPartnerAdmission, request: Request):
+    """Legacy wrapper for Synergi partner admissions."""
+    # Transform legacy model to canonical without mutation
+    canonical_data = PublicAccessRequestCreate(
+        product=AccessRequestProduct.SYNERGI,
+        source=AccessRequestSource.LANDING,
+        full_name=data.full_name,
+        email=data.email,
+        service_category=data.service_category,
+        service_summary=data.service_summary,
+        privacy_accepted=data.privacy_accepted,
+        gdpr_consent=data.gdpr_consent,
+        submission_language=data.submission_language,
+        captcha_provider=data.captcha_provider,
+        captcha_token=data.captcha_token
+    )
+    return await create_public_access_request(canonical_data, request)

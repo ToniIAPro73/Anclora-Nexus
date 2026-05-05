@@ -14,27 +14,38 @@ class CaptchaVerificationError(RuntimeError):
 
 class CaptchaVerificationService:
     def _provider_enabled(self, provider: str | None) -> bool:
-        return (provider or "").strip().lower() == "recaptcha"
+        p = (provider or "").strip().lower()
+        return p in ["recaptcha", "turnstile"]
 
     def verify(self, *, provider: Optional[str], token: Optional[str], remote_ip: Optional[str] = None) -> Dict[str, Any]:
         if not self._provider_enabled(provider):
             return {"provider": "none", "verified": False, "required": False}
 
-        if not settings.RECAPTCHA_SECRET_KEY:
-            raise CaptchaVerificationError("reCAPTCHA secret key is not configured")
+        p = (provider or "").strip().lower()
+
+        if p == "recaptcha":
+            if not settings.RECAPTCHA_SECRET_KEY:
+                raise CaptchaVerificationError("reCAPTCHA secret key is not configured")
+            verify_url = settings.RECAPTCHA_VERIFY_URL
+            secret = settings.RECAPTCHA_SECRET_KEY
+        else:  # turnstile
+            if not settings.TURNSTILE_SECRET_KEY:
+                raise CaptchaVerificationError("Turnstile secret key is not configured")
+            verify_url = settings.TURNSTILE_VERIFY_URL
+            secret = settings.TURNSTILE_SECRET_KEY
 
         if not token:
-            raise CaptchaVerificationError("Missing reCAPTCHA token")
+            raise CaptchaVerificationError(f"Missing {p} token")
 
         payload = {
-            "secret": settings.RECAPTCHA_SECRET_KEY,
+            "secret": secret,
             "response": token,
         }
         if remote_ip:
             payload["remoteip"] = remote_ip
 
         request = Request(
-            settings.RECAPTCHA_VERIFY_URL,
+            verify_url,
             data=urlencode(payload).encode("utf-8"),
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             method="POST",
@@ -44,10 +55,10 @@ class CaptchaVerificationService:
             body = json.loads(response.read().decode("utf-8"))
 
         if not bool(body.get("success")):
-            raise CaptchaVerificationError("reCAPTCHA verification failed")
+            raise CaptchaVerificationError(f"{p} verification failed")
 
         return {
-            "provider": "recaptcha",
+            "provider": p,
             "verified": True,
             "required": True,
             "score": body.get("score"),
