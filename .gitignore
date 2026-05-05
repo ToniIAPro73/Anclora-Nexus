@@ -57,3 +57,6 @@ ops/statefox-playwright-profile/
 ops/release-gate-latest.json
 
 credentials.json
+
+# Local Codex MCP/config
+.codex/
