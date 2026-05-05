@@ -4,252 +4,106 @@ Actúa como agente técnico de mantenimiento del repositorio Anclora-Nexus.
 
 ## Objetivo
 
-Mover la carpeta `.antigravity` a una ubicación legacy para dejar `.agent/prompts` como ubicación canónica de prompts de ejecución por feature.
+Mover la carpeta `.antigravity` completa a `legacy/agent-systems/antigravity`, dejando `.agent/prompts` como ubicación canónica de prompts de ejecución por feature.
 
 ## Contexto
 
-Ya se ha copiado y verificado todo el contenido de:
+El contenido de `.antigravity/prompts/` ya fue copiado y verificado en `.agent/prompts/`.
 
-```text
-.antigravity/prompts/
-```
+No borres `.antigravity`. Muévela completa a legacy usando `git mv`.
 
-en:
+No hagas commit automáticamente.
 
-```text
-.agent/prompts/
-```
-
-La nueva ubicación canónica es:
-
-```text
-.agent/prompts/
-```
-
-La carpeta `.antigravity` queda obsoleta porque Antigravity ya no se puede usar en el portátil corporativo actual. Aun así, no queremos perder trazabilidad histórica. Por tanto, en esta fase NO borres `.antigravity`; muévela completa a una carpeta legacy.
+No añadas `.codex/` ni `AGENTS.md`.
 
 ## Repositorio
 
-```text
-~/projects/anclora-nexus
-```
+`~/projects/anclora-nexus`
 
 ## Rama
 
-```text
-sdd/synergi-datalab-access-requests
-```
+`sdd/synergi-datalab-access-requests`
 
-## Tareas
+## Script único de ejecución
 
-1. Asegúrate de estar en la rama correcta:
+Copia y pega este bloque completo en terminal:
 
-```bash
-git switch sdd/synergi-datalab-access-requests
-```
+    cd ~/projects/anclora-nexus
 
-2. Comprueba estado antes de empezar:
+    git switch sdd/synergi-datalab-access-requests
 
-```bash
-git status --short
-```
+    echo "== Initial status =="
+    git status -sb
 
-3. Verifica que `.agent/prompts` existe y contiene archivos:
+    echo "== Pre-checks =="
+    test -d .agent/prompts && echo "OK: .agent/prompts exists" || { echo "ERROR: .agent/prompts missing"; exit 1; }
+    test -d .antigravity && echo "OK: .antigravity exists" || { echo "ERROR: .antigravity missing"; exit 1; }
 
-```bash
-find .agent/prompts -type f | wc -l
-```
+    echo -n ".agent/prompts files before: "
+    find .agent/prompts -type f | wc -l
+    echo -n ".antigravity files before: "
+    find .antigravity -type f | wc -l
 
-4. Verifica que `.antigravity` existe:
+    mkdir -p legacy/agent-systems
 
-```bash
-test -d .antigravity && echo "OK: .antigravity exists"
-```
+    git mv .antigravity legacy/agent-systems/antigravity
 
-5. Crea la carpeta legacy:
+    cat > legacy/agent-systems/antigravity/README.md <<'MD'
+    # Antigravity Legacy Agent System
 
-```bash
-mkdir -p legacy/agent-systems
-```
+    Estado: DEPRECATED  
+    Fecha de deprecación: 2026-05-05
 
-6. Mueve `.antigravity` completa a:
+    ## Motivo
 
-```text
-legacy/agent-systems/antigravity
-```
+    El flujo operativo del proyecto Anclora Nexus deja de usar `.antigravity` como ubicación activa de prompts y reglas de ejecución.
 
-Usa `git mv` para conservar trazabilidad:
+    La ubicación canónica actual para prompts de agentes es `.agent/prompts/`.
 
-```bash
-git mv .antigravity legacy/agent-systems/antigravity
-```
+    ## Regla vigente
 
-7. Añade un README de deprecación en:
+    No añadir nuevos prompts a `.antigravity`.
 
-```text
-legacy/agent-systems/antigravity/README.md
-```
+    Todo nuevo prompt de ejecución por feature debe crearse en `.agent/prompts/features/<feature>/`.
 
-Contenido exacto:
+    ## Motivo operativo
 
-```markdown
-# Antigravity Legacy Agent System
+    Antigravity no puede instalarse en el portátil corporativo actual. El flujo de trabajo se centraliza en VS Code, Codex/Gemini/Claude y la estructura `.agent`.
 
-Estado: DEPRECATED  
-Fecha de deprecación: 2026-05-05
+    ## Trazabilidad
 
-## Motivo
+    Esta carpeta se conserva únicamente como histórico para evitar pérdida de contexto.
+    MD
 
-El flujo operativo del proyecto Anclora Nexus deja de usar `.antigravity` como ubicación activa de prompts y reglas de ejecución.
+    echo "== Verify moved =="
+    test ! -d .antigravity && echo "OK: .antigravity moved" || echo "ERROR: .antigravity still exists in root"
+    test -d legacy/agent-systems/antigravity && echo "OK: legacy antigravity exists" || echo "ERROR: legacy antigravity missing"
 
-La ubicación canónica actual para prompts de agentes es:
+    echo "== Counts =="
+    echo -n ".agent/prompts files after: "
+    find .agent/prompts -type f | wc -l
+    echo -n "legacy antigravity files after: "
+    find legacy/agent-systems/antigravity -type f | wc -l
 
-```text
-.agent/prompts/
-```
+    echo "== Active references to .antigravity outside legacy =="
+    grep -Rni "\.antigravity" . \
+      --exclude-dir=.git \
+      --exclude-dir=node_modules \
+      --exclude-dir=.next \
+      --exclude-dir=legacy \
+      | sed -n '1,160p' || true
 
-## Regla vigente
+    echo "== Git status =="
+    git status --short
 
-No añadir nuevos prompts a `.antigravity`.
-
-Todo nuevo prompt de ejecución por feature debe crearse en:
-
-```text
-.agent/prompts/features/<feature>/
-```
-
-## Motivo operativo
-
-Antigravity no puede instalarse en el portátil corporativo actual. El flujo de trabajo se centraliza en VS Code, Codex/Gemini/Claude y la estructura `.agent`.
-
-## Trazabilidad
-
-Esta carpeta se conserva únicamente como histórico para evitar pérdida de contexto.
-```
-
-8. Verifica que ya no existe `.antigravity` en raíz:
-
-```bash
-test ! -d .antigravity && echo "OK: .antigravity moved"
-```
-
-9. Verifica que el contenido legacy existe:
-
-```bash
-find legacy/agent-systems/antigravity -maxdepth 3 -type f | sort | sed -n '1,80p'
-```
-
-10. Verifica que `.agent/prompts` sigue intacto:
-
-```bash
-find .agent/prompts -type f | wc -l
-```
-
-11. Busca referencias activas a `.antigravity` fuera de legacy:
-
-```bash
-grep -Rni "\.antigravity" . \
-  --exclude-dir=.git \
-  --exclude-dir=node_modules \
-  --exclude-dir=.next \
-  --exclude-dir=legacy \
-  | sed -n '1,240p' || true
-```
-
-12. No edites todavía las referencias encontradas. Solo repórtalas.
-
-13. Muestra resumen final:
-
-```bash
-echo "== Git status =="
-git status --short
-
-echo "== Diff stat =="
-git diff --stat
-```
+    echo "== Diff stat =="
+    git diff --stat
 
 ## Criterios de aceptación
 
 - `.antigravity` ya no existe en raíz.
-- `legacy/agent-systems/antigravity` contiene el contenido anterior.
+- `legacy/agent-systems/antigravity` existe.
 - `.agent/prompts` sigue intacto.
-- No se modifica el contenido de prompts durante el movimiento.
-- Se crea README de deprecación.
-- Se reportan referencias activas restantes a `.antigravity`.
+- Se crea `legacy/agent-systems/antigravity/README.md`.
+- Se reportan referencias activas restantes a `.antigravity` fuera de legacy.
 - No se hace commit automáticamente.
-
-## Comandos sugeridos completos
-
-```bash
-cd ~/projects/anclora-nexus
-
-git switch sdd/synergi-datalab-access-requests
-git status --short
-
-echo "== Current prompt counts =="
-find .agent/prompts -type f | wc -l
-find .antigravity -type f | wc -l
-
-mkdir -p legacy/agent-systems
-
-git mv .antigravity legacy/agent-systems/antigravity
-
-cat > legacy/agent-systems/antigravity/README.md <<'MD'
-# Antigravity Legacy Agent System
-
-Estado: DEPRECATED  
-Fecha de deprecación: 2026-05-05
-
-## Motivo
-
-El flujo operativo del proyecto Anclora Nexus deja de usar `.antigravity` como ubicación activa de prompts y reglas de ejecución.
-
-La ubicación canónica actual para prompts de agentes es:
-
-```text
-.agent/prompts/
-```
-
-## Regla vigente
-
-No añadir nuevos prompts a `.antigravity`.
-
-Todo nuevo prompt de ejecución por feature debe crearse en:
-
-```text
-.agent/prompts/features/<feature>/
-```
-
-## Motivo operativo
-
-Antigravity no puede instalarse en el portátil corporativo actual. El flujo de trabajo se centraliza en VS Code, Codex/Gemini/Claude y la estructura `.agent`.
-
-## Trazabilidad
-
-Esta carpeta se conserva únicamente como histórico para evitar pérdida de contexto.
-MD
-
-echo "== Verify moved =="
-test ! -d .antigravity && echo "OK: .antigravity moved"
-test -d legacy/agent-systems/antigravity && echo "OK: legacy antigravity exists"
-
-echo "== Agent prompts count =="
-find .agent/prompts -type f | wc -l
-
-echo "== Legacy antigravity sample =="
-find legacy/agent-systems/antigravity -maxdepth 3 -type f | sort | sed -n '1,80p'
-
-echo "== Active references to .antigravity outside legacy =="
-grep -Rni "\.antigravity" . \
-  --exclude-dir=.git \
-  --exclude-dir=node_modules \
-  --exclude-dir=.next \
-  --exclude-dir=legacy \
-  | sed -n '1,240p' || true
-
-echo "== Git status =="
-git status --short
-
-echo "== Diff stat =="
-git diff --stat
-```
