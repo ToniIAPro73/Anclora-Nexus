@@ -93,6 +93,27 @@ class MockSupabaseClient:
         return MockAccessRequestQuery(self.rows)
 
 
+class MockEmailService:
+    def __init__(self, fail=False):
+        self.fail = fail
+        self.sent_records = []
+
+    def send_decision_email(self, record):
+        self.sent_records.append(dict(record))
+        if self.fail:
+            raise RuntimeError("SMTP failed")
+        return {"status": "sent", "transport": "smtp", "to": record["email"]}
+
+
+class MockAuditService:
+    def __init__(self):
+        self.events = []
+
+    async def log_event(self, **kwargs):
+        self.events.append(kwargs)
+        return {"id": f"audit-{len(self.events)}", **kwargs}
+
+
 @pytest.fixture
 def service():
     return AccessRequestService()
@@ -164,6 +185,39 @@ async def test_approve_pending_sets_review_fields(monkeypatch, service):
 
 
 @pytest.mark.anyio
+async def test_approve_sends_email_after_state_update(monkeypatch, service):
+    rows = [access_request_record("request-1")]
+    email_service = MockEmailService()
+    audit_service = MockAuditService()
+    monkeypatch.setattr(
+        "backend.services.access_request_service.supabase_service.client",
+        MockSupabaseClient(rows),
+    )
+    monkeypatch.setattr(
+        "backend.services.access_request_service.access_request_email_service",
+        email_service,
+    )
+    monkeypatch.setattr(
+        "backend.services.access_request_service.access_request_audit_service",
+        audit_service,
+    )
+
+    result = await service.approve_request(
+        ORG_ID,
+        "request-1",
+        AccessRequestReviewDecision(reviewed_by="admin-user"),
+    )
+
+    assert result["status"] == "approved"
+    assert email_service.sent_records[0]["status"] == "approved"
+    assert result["decision_email"]["status"] == "sent"
+    assert [event["event_type"] for event in audit_service.events] == [
+        "access_request.approved",
+        "access_request.email_sent",
+    ]
+
+
+@pytest.mark.anyio
 async def test_reject_pending_sets_rejection_reason(monkeypatch, service):
     rows = [access_request_record("request-1")]
     monkeypatch.setattr(
@@ -185,6 +239,107 @@ async def test_reject_pending_sets_rejection_reason(monkeypatch, service):
     assert result["reviewed_by"] == "admin-user"
     assert result["rejection_reason"] == "Missing eligibility criteria"
     assert result["reviewed_at"]
+
+
+@pytest.mark.anyio
+async def test_reject_sends_email_after_state_update(monkeypatch, service):
+    rows = [access_request_record("request-1")]
+    email_service = MockEmailService()
+    audit_service = MockAuditService()
+    monkeypatch.setattr(
+        "backend.services.access_request_service.supabase_service.client",
+        MockSupabaseClient(rows),
+    )
+    monkeypatch.setattr(
+        "backend.services.access_request_service.access_request_email_service",
+        email_service,
+    )
+    monkeypatch.setattr(
+        "backend.services.access_request_service.access_request_audit_service",
+        audit_service,
+    )
+
+    result = await service.reject_request(
+        ORG_ID,
+        "request-1",
+        AccessRequestRejectDecision(
+            reviewed_by="admin-user",
+            rejection_reason="Not eligible",
+        ),
+    )
+
+    assert result["status"] == "rejected"
+    assert email_service.sent_records[0]["status"] == "rejected"
+    assert result["decision_email"]["status"] == "sent"
+    assert [event["event_type"] for event in audit_service.events] == [
+        "access_request.rejected",
+        "access_request.email_sent",
+    ]
+
+
+@pytest.mark.anyio
+async def test_email_failure_does_not_revert_decision_and_logs_failure(monkeypatch, service):
+    rows = [access_request_record("request-1")]
+    email_service = MockEmailService(fail=True)
+    audit_service = MockAuditService()
+    monkeypatch.setattr(
+        "backend.services.access_request_service.supabase_service.client",
+        MockSupabaseClient(rows),
+    )
+    monkeypatch.setattr(
+        "backend.services.access_request_service.access_request_email_service",
+        email_service,
+    )
+    monkeypatch.setattr(
+        "backend.services.access_request_service.access_request_audit_service",
+        audit_service,
+    )
+
+    result = await service.approve_request(
+        ORG_ID,
+        "request-1",
+        AccessRequestReviewDecision(reviewed_by="admin-user"),
+    )
+
+    assert rows[0]["status"] == "approved"
+    assert result["status"] == "approved"
+    assert result["decision_email"]["status"] == "failed"
+    assert "SMTP failed" in result["decision_email"]["error"]
+    assert [event["event_type"] for event in audit_service.events] == [
+        "access_request.approved",
+        "access_request.email_send_failed",
+    ]
+
+
+@pytest.mark.anyio
+async def test_audit_failure_does_not_break_approval(monkeypatch, service):
+    class FailingAuditService:
+        async def log_event(self, **_kwargs):
+            raise RuntimeError("audit unavailable")
+
+    rows = [access_request_record("request-1")]
+    email_service = MockEmailService()
+    monkeypatch.setattr(
+        "backend.services.access_request_service.supabase_service.client",
+        MockSupabaseClient(rows),
+    )
+    monkeypatch.setattr(
+        "backend.services.access_request_service.access_request_email_service",
+        email_service,
+    )
+    monkeypatch.setattr(
+        "backend.services.access_request_service.access_request_audit_service",
+        FailingAuditService(),
+    )
+
+    result = await service.approve_request(
+        ORG_ID,
+        "request-1",
+        AccessRequestReviewDecision(reviewed_by="admin-user"),
+    )
+
+    assert result["status"] == "approved"
+    assert result["decision_email"]["status"] == "sent"
 
 
 def test_reject_decision_requires_rejection_reason():

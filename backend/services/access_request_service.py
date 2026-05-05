@@ -9,6 +9,8 @@ from backend.models.access_requests import (
     AccessRequestStatus,
     PublicAccessRequestCreate,
 )
+from backend.services.access_request_audit_service import access_request_audit_service
+from backend.services.access_request_email_service import access_request_email_service
 from backend.services.captcha_verification_service import captcha_verification_service, CaptchaVerificationError
 from backend.services.supabase_service import supabase_service
 
@@ -58,6 +60,16 @@ class AccessRequestService:
             raise RuntimeError("Failed to persist access request")
             
         record = result.data[0]
+        await self._log_audit_event(
+            org_id=str(record.get("org_id") or org_id),
+            access_request_id=str(record["id"]),
+            event_type="access_request.created",
+            metadata={
+                "product": record.get("product") or persistence_data.get("product"),
+                "source": record.get("source") or persistence_data.get("source"),
+                "email": record.get("email"),
+            },
+        )
         
         # 4. TODO: Internal notification
         logger.info(f"Access request created: {record['id']} for {record['email']}")
@@ -112,7 +124,17 @@ class AccessRequestService:
             "admin_notes": decision.admin_notes,
             "updated_at": self._now(),
         }
-        return await self._update_pending_request(org_id, request_id, update_payload)
+        record = await self._update_pending_request(org_id, request_id, update_payload)
+        await self._log_audit_event(
+            org_id=org_id,
+            access_request_id=request_id,
+            event_type="access_request.approved",
+            actor_id=decision.reviewed_by,
+            actor_type="user",
+            metadata={"admin_notes": decision.admin_notes},
+        )
+        record["decision_email"] = await self._send_decision_email(record)
+        return record
 
     async def reject_request(
         self,
@@ -129,7 +151,20 @@ class AccessRequestService:
             "rejection_reason": decision.rejection_reason,
             "updated_at": self._now(),
         }
-        return await self._update_pending_request(org_id, request_id, update_payload)
+        record = await self._update_pending_request(org_id, request_id, update_payload)
+        await self._log_audit_event(
+            org_id=org_id,
+            access_request_id=request_id,
+            event_type="access_request.rejected",
+            actor_id=decision.reviewed_by,
+            actor_type="user",
+            metadata={
+                "admin_notes": decision.admin_notes,
+                "rejection_reason": decision.rejection_reason,
+            },
+        )
+        record["decision_email"] = await self._send_decision_email(record)
+        return record
 
     async def _ensure_pending(self, org_id: str, request_id: str) -> None:
         record = await self.get_request(org_id, request_id)
@@ -165,5 +200,54 @@ class AccessRequestService:
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
+
+    async def _log_audit_event(
+        self,
+        *,
+        org_id: str,
+        access_request_id: str,
+        event_type: str,
+        actor_id: Optional[str] = None,
+        actor_type: str = "system",
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        try:
+            await access_request_audit_service.log_event(
+                org_id=org_id,
+                access_request_id=access_request_id,
+                event_type=event_type,
+                actor_id=actor_id,
+                actor_type=actor_type,
+                metadata=metadata,
+            )
+        except Exception as e:
+            logger.warning("Access request audit logging failed: %s", e)
+
+    async def _send_decision_email(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            result = access_request_email_service.send_decision_email(record)
+            await self._log_audit_event(
+                org_id=str(record["org_id"]),
+                access_request_id=str(record["id"]),
+                event_type="access_request.email_sent"
+                if result.get("status") == "sent"
+                else "access_request.email_skipped",
+                metadata={
+                    "status": result.get("status"),
+                    "transport": result.get("transport"),
+                    "to": result.get("to"),
+                    "subject": result.get("subject"),
+                },
+            )
+            return result
+        except Exception as e:
+            logger.warning("Access request decision email failed: %s", e)
+            await self._log_audit_event(
+                org_id=str(record["org_id"]),
+                access_request_id=str(record["id"]),
+                event_type="access_request.email_send_failed",
+                metadata={"error": str(e), "status": record.get("status")},
+            )
+            return {"status": "failed", "error": str(e)}
 
 access_request_service = AccessRequestService()
