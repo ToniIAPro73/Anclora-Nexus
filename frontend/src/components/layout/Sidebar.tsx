@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Home, CheckSquare, Target, ChevronsLeft, ChevronsRight, ChevronDown, ChevronRight, UserSearch } from 'lucide-react'
+import { LayoutDashboard, Users, Home, CheckSquare, Target, ChevronsLeft, ChevronsRight, ChevronDown, ChevronRight, UserSearch, ShieldCheck } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { useI18n } from '@/lib/i18n'
@@ -11,7 +11,8 @@ function getSectionFromPath(pathname: string): 'core' | 'intelligence' {
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/leads') ||
     pathname.startsWith('/properties') ||
-    pathname.startsWith('/tasks')
+    pathname.startsWith('/tasks') ||
+    pathname.startsWith('/access-requests')
   ) {
     return 'core'
   }
@@ -62,6 +63,7 @@ export function Sidebar() {
       links: [
         { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
         { name: t('leads'), href: '/leads', icon: Users },
+        { name: t('accessRequestsMenu'), href: '/access-requests', icon: ShieldCheck },
         { name: t('sellerPipelineMenu'), href: '/sellers', icon: UserSearch },
         { name: t('properties'), href: '/properties', icon: Home },
         { name: t('tasks'), href: '/tasks', icon: CheckSquare },
