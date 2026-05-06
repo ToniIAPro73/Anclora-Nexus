@@ -9,7 +9,7 @@ import type { OrgMembership } from '@/lib/contexts/OrgContext'
 export async function fetchUserAndOrg() {
   try {
     const cookieStore = await cookies()
-
+    type CookieSetOptions = Parameters<typeof cookieStore.set>[2]
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -18,10 +18,10 @@ export async function fetchUserAndOrg() {
           get(name: string) {
             return cookieStore.get(name)?.value
           },
-          set(name: string, value: string, options: Record<string, unknown>) {
-            cookieStore.set(name, value, options as any)
+          set(name: string, value: string, options: CookieSetOptions) {
+            cookieStore.set(name, value, options)
           },
-          remove(name: string, options: Record<string, unknown>) {
+          remove(name: string, options: CookieSetOptions) {
             cookieStore.set(name, '', { ...options, maxAge: 0 })
           },
         },
