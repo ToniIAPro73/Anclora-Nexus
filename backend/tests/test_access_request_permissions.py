@@ -56,6 +56,21 @@ async def test_authenticated_non_reviewer_gets_403(app):
 
 
 @pytest.mark.anyio
+async def test_authenticated_non_reviewer_gets_403_for_analytics(app):
+    with patch(
+        "backend.api.deps.verify_org_membership",
+        new=AsyncMock(side_effect=HTTPException(status_code=403, detail="ACCESS_REQUEST_REVIEW_FORBIDDEN")),
+    ), patch("backend.api.routes.access_requests.access_request_service") as mock_service:
+        mock_service.get_analytics_summary = AsyncMock()
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get("/api/access-requests/analytics/summary")
+
+    assert response.status_code == 403
+    mock_service.get_analytics_summary.assert_not_awaited()
+
+
+@pytest.mark.anyio
 async def test_missing_auth_gets_401_for_review_route(unauthenticated_app):
     with patch("backend.api.routes.access_requests.access_request_service") as mock_service:
         mock_service.approve_request = AsyncMock()

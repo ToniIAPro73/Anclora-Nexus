@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 from backend.config import settings
 from backend.models.access_requests import (
+    AccessRequestAnalyticsSummary,
+    AccessRequestAttentionItem,
     AccessRequestEmailStatus,
     AccessRequestLifecycleResponse,
     AccessRequestProduct,
@@ -133,6 +135,127 @@ class AccessRequestService:
         if not result.data:
             raise AccessRequestNotFoundError(f"Access request {request_id} not found")
         return result.data[0]
+
+    async def get_analytics_summary(
+        self,
+        org_id: str,
+        limit: int = 500,
+    ) -> AccessRequestAnalyticsSummary:
+        sample_limit = max(1, min(limit, 1000))
+        request_result = (
+            supabase_service.client.table("access_requests")
+            .select("*")
+            .eq("org_id", org_id)
+            .order("created_at", desc=True)
+            .limit(sample_limit)
+            .execute()
+        )
+        rows = request_result.data or []
+        audit_result = (
+            supabase_service.client.table("audit_log")
+            .select("timestamp,action,resource_id,details")
+            .eq("org_id", org_id)
+            .eq("resource_type", "access_request")
+            .order("timestamp", desc=True)
+            .limit(min(sample_limit * 4, 2000))
+            .execute()
+        )
+        audit_events_by_request = self._group_audit_events(audit_result.data or [])
+
+        now = datetime.now(timezone.utc)
+        requests_by_product = {product.value: 0 for product in AccessRequestProduct}
+        requests_by_source = {source.value: 0 for source in AccessRequestSource}
+        status_counts = {status.value: 0 for status in AccessRequestStatus}
+        pending_older_than_24h = 0
+        pending_older_than_72h = 0
+        decision_email_failed_count = 0
+        decision_email_unknown_count = 0
+        retry_available_count = 0
+        provisioning_attention_count = 0
+        review_durations: list[float] = []
+        attention_items: list[AccessRequestAttentionItem] = []
+
+        for row in rows:
+            status_value = str(row.get("status") or "")
+            product_value = str(row.get("product") or "")
+            source_value = str(row.get("source") or "")
+            if status_value in status_counts:
+                status_counts[status_value] += 1
+            if product_value in requests_by_product:
+                requests_by_product[product_value] += 1
+            if source_value in requests_by_source:
+                requests_by_source[source_value] += 1
+
+            created_at = self._parse_datetime(row.get("created_at"))
+            reviewed_at = self._parse_datetime(row.get("reviewed_at"))
+            age_hours = self._hours_between(created_at, now) if created_at else None
+            if created_at and reviewed_at:
+                review_durations.append(self._hours_between(created_at, reviewed_at))
+
+            events = audit_events_by_request.get(str(row.get("id")), [])
+            lifecycle = self._build_lifecycle(row, events)
+
+            if status_value == AccessRequestStatus.PENDING.value:
+                if age_hours is not None and age_hours >= 24:
+                    pending_older_than_24h += 1
+                    if age_hours >= 72:
+                        pending_older_than_72h += 1
+                        attention_items.append(self._attention_item(row, "pending_older_than_72h", "critical", age_hours))
+                    else:
+                        attention_items.append(self._attention_item(row, "pending_older_than_24h", "warning", age_hours))
+
+            if status_value in TERMINAL_ACCESS_REQUEST_STATUSES:
+                if lifecycle.email_status == AccessRequestEmailStatus.FAILED:
+                    decision_email_failed_count += 1
+                    attention_items.append(self._attention_item(row, "decision_email_failed", "critical", age_hours))
+                if lifecycle.email_status == AccessRequestEmailStatus.UNKNOWN:
+                    decision_email_unknown_count += 1
+                    attention_items.append(self._attention_item(row, "decision_email_unknown", "warning", age_hours))
+                if lifecycle.retry_available:
+                    retry_available_count += 1
+                    attention_items.append(self._attention_item(row, "retry_available", "warning", age_hours))
+
+            if (
+                status_value == AccessRequestStatus.APPROVED.value
+                and lifecycle.provisioning_status != AccessRequestProvisioningStatus.INVITE_READY
+            ):
+                provisioning_attention_count += 1
+                attention_items.append(self._attention_item(row, "provisioning_attention", "warning", age_hours))
+
+        attention_items = sorted(
+            attention_items,
+            key=lambda item: (
+                0 if item.severity == "critical" else 1,
+                -(item.age_hours or 0),
+            ),
+        )[:25]
+
+        average_review_time_hours = (
+            round(sum(review_durations) / len(review_durations), 2)
+            if review_durations
+            else None
+        )
+        return AccessRequestAnalyticsSummary(
+            total_requests=len(rows),
+            pending_count=status_counts[AccessRequestStatus.PENDING.value],
+            approved_count=status_counts[AccessRequestStatus.APPROVED.value],
+            rejected_count=status_counts[AccessRequestStatus.REJECTED.value],
+            cancelled_count=status_counts[AccessRequestStatus.CANCELLED.value],
+            requests_by_product=requests_by_product,
+            requests_by_source=requests_by_source,
+            pending_older_than_24h=pending_older_than_24h,
+            pending_older_than_72h=pending_older_than_72h,
+            average_review_time_hours=average_review_time_hours,
+            decision_email_failed_count=decision_email_failed_count,
+            decision_email_unknown_count=decision_email_unknown_count,
+            retry_available_count=retry_available_count,
+            provisioning_attention_count=provisioning_attention_count,
+            generated_at=self._now(),
+            sample_size=len(rows),
+            sample_limit=sample_limit,
+            is_sampled=len(rows) >= sample_limit,
+            attention_items=attention_items,
+        )
 
     async def approve_request(
         self,
@@ -440,6 +563,51 @@ class AccessRequestService:
         if event_timestamps:
             return max(event_timestamps)
         return record.get("updated_at") or record.get("reviewed_at") or record.get("created_at")
+
+    def _group_audit_events(self, events: list[Dict[str, Any]]) -> Dict[str, list[Dict[str, Any]]]:
+        grouped: Dict[str, list[Dict[str, Any]]] = {}
+        for event in events:
+            resource_id = str(event.get("resource_id") or "")
+            if not resource_id:
+                continue
+            grouped.setdefault(resource_id, []).append(event)
+        for resource_events in grouped.values():
+            resource_events.sort(key=lambda event: str(event.get("timestamp") or ""))
+        return grouped
+
+    def _parse_datetime(self, value: Any) -> Optional[datetime]:
+        if not value:
+            return None
+        if isinstance(value, datetime):
+            return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+    def _hours_between(self, start: datetime, end: datetime) -> float:
+        return round(max((end - start).total_seconds(), 0) / 3600, 2)
+
+    def _attention_item(
+        self,
+        row: Dict[str, Any],
+        reason: str,
+        severity: str,
+        age_hours: Optional[float],
+    ) -> AccessRequestAttentionItem:
+        return AccessRequestAttentionItem(
+            request_id=str(row["id"]),
+            reason=reason,
+            severity=severity,
+            status=str(row.get("status") or AccessRequestStatus.PENDING.value),
+            product=str(row.get("product") or AccessRequestProduct.SYNERGI.value),
+            source=str(row.get("source") or AccessRequestSource.LANDING.value),
+            email=str(row.get("email") or ""),
+            created_at=row.get("created_at"),
+            reviewed_at=row.get("reviewed_at"),
+            age_hours=age_hours,
+        )
 
     def _sanitize_decision_email_result(self, result: Dict[str, Any]) -> Dict[str, Any]:
         if result.get("status") != AccessRequestEmailStatus.FAILED.value:

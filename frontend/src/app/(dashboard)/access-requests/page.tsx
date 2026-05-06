@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import {
   ApiError,
   approveAccessRequest,
+  getAccessRequestAnalyticsSummary,
   getAccessRequestAudit,
   getAccessRequest,
   getAccessRequestLifecycle,
@@ -14,6 +15,7 @@ import {
   retryAccessRequestDecisionEmail,
   type AccessRequest,
   type AccessRequestAuditEvent,
+  type AccessRequestAnalyticsSummary,
   type AccessRequestLifecycle,
   type AccessRequestProduct,
   type AccessRequestSource,
@@ -21,12 +23,14 @@ import {
 } from '@/lib/access-requests-api'
 import { AccessRequestDecisionDialog } from '@/components/access-requests/AccessRequestDecisionDialog'
 import { AccessRequestDetailPanel } from '@/components/access-requests/AccessRequestDetailPanel'
+import { AccessRequestOperationsDashboard } from '@/components/access-requests/AccessRequestOperationsDashboard'
 import { AccessRequestsTable } from '@/components/access-requests/AccessRequestsTable'
 
 export default function AccessRequestsPage() {
   const { t } = useI18n()
   const [requests, setRequests] = useState<AccessRequest[]>([])
   const [selected, setSelected] = useState<AccessRequest | null>(null)
+  const [analytics, setAnalytics] = useState<AccessRequestAnalyticsSummary | null>(null)
   const [statusFilter, setStatusFilter] = useState<AccessRequestStatus | ''>('pending')
   const [productFilter, setProductFilter] = useState<AccessRequestProduct | ''>('')
   const [sourceFilter, setSourceFilter] = useState<AccessRequestSource | ''>('')
@@ -34,12 +38,14 @@ export default function AccessRequestsPage() {
   const [auditEvents, setAuditEvents] = useState<AccessRequestAuditEvent[]>([])
   const [lifecycle, setLifecycle] = useState<AccessRequestLifecycle | null>(null)
   const [loading, setLoading] = useState(true)
+  const [analyticsLoading, setAnalyticsLoading] = useState(true)
   const [detailLoading, setDetailLoading] = useState(false)
   const [auditLoading, setAuditLoading] = useState(false)
   const [lifecycleLoading, setLifecycleLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [retryingEmail, setRetryingEmail] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null)
   const [auditError, setAuditError] = useState<string | null>(null)
   const [lifecycleError, setLifecycleError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -49,15 +55,6 @@ export default function AccessRequestsPage() {
   const [rejectionReason, setRejectionReason] = useState('')
 
   const selectedId = selected?.id ?? null
-
-  const counts = useMemo(() => {
-    return {
-      total: requests.length,
-      pending: requests.filter((request) => request.status === 'pending').length,
-      approved: requests.filter((request) => request.status === 'approved').length,
-      rejected: requests.filter((request) => request.status === 'rejected').length,
-    }
-  }, [requests])
 
   const formatApiError = useCallback((err: unknown, fallbackKey: Parameters<typeof t>[0]) => {
     if (err instanceof ApiError) {
@@ -94,6 +91,23 @@ export default function AccessRequestsPage() {
   useEffect(() => {
     void loadList()
   }, [loadList])
+
+  const loadAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true)
+    setAnalyticsError(null)
+    try {
+      setAnalytics(await getAccessRequestAnalyticsSummary(500))
+    } catch (err) {
+      setAnalytics(null)
+      setAnalyticsError(formatApiError(err, 'accessRequestsAnalyticsLoadError'))
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }, [formatApiError])
+
+  useEffect(() => {
+    void loadAnalytics()
+  }, [loadAnalytics])
 
   const loadAudit = useCallback(async (requestId: string) => {
     setAuditLoading(true)
@@ -134,11 +148,17 @@ export default function AccessRequestsPage() {
   }, [loadAudit, loadLifecycle, selectedId])
 
   async function selectRequest(request: AccessRequest) {
-    setSelected(request)
+    await openRequestById(request.id, request)
+  }
+
+  async function openRequestById(requestId: string, fallback?: AccessRequest) {
+    if (fallback) {
+      setSelected(fallback)
+    }
     setDetailLoading(true)
     setError(null)
     try {
-      setSelected(await getAccessRequest(request.id))
+      setSelected(await getAccessRequest(requestId))
     } catch (err) {
       setError(formatApiError(err, 'accessRequestsDetailLoadError'))
     } finally {
@@ -179,6 +199,7 @@ export default function AccessRequestsPage() {
           : t('accessRequestsDecisionSaved'),
       )
       await loadList()
+      await loadAnalytics()
       setSelected(payload)
       if (payload.lifecycle) {
         setLifecycle(payload.lifecycle)
@@ -215,6 +236,7 @@ export default function AccessRequestsPage() {
       }
       await loadAudit(payload.id)
       await loadList()
+      await loadAnalytics()
       setSelected(payload)
     } catch (err) {
       setError(formatApiError(err, 'accessRequestsDecisionEmailRetryError'))
@@ -232,31 +254,25 @@ export default function AccessRequestsPage() {
               <h1 className="page-title">{t('accessRequestsTitle')}</h1>
               <p className="page-subtitle mt-2">{t('accessRequestsSubtitle')}</p>
             </div>
-            <button type="button" onClick={() => void loadList()} className="btn-action" disabled={loading}>
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <button
+              type="button"
+              onClick={() => void Promise.all([loadList(), loadAnalytics()])}
+              className="btn-action"
+              disabled={loading || analyticsLoading}
+            >
+              <RefreshCw className={`h-4 w-4 ${loading || analyticsLoading ? 'animate-spin' : ''}`} />
               {t('refresh')}
             </button>
           </div>
         </section>
 
-        <section className="grid gap-3 md:grid-cols-4">
-          <div className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-            <p className="kpi-label">{t('total')}</p>
-            <p className="kpi-value">{counts.total}</p>
-          </div>
-          <div className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-            <p className="kpi-label">{t('accessRequestsStatusPending')}</p>
-            <p className="kpi-value text-gold">{counts.pending}</p>
-          </div>
-          <div className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-            <p className="kpi-label">{t('accessRequestsStatusApproved')}</p>
-            <p className="kpi-value">{counts.approved}</p>
-          </div>
-          <div className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
-            <p className="kpi-label">{t('accessRequestsStatusRejected')}</p>
-            <p className="kpi-value">{counts.rejected}</p>
-          </div>
-        </section>
+        <AccessRequestOperationsDashboard
+          analytics={analytics}
+          loading={analyticsLoading}
+          error={analyticsError}
+          onSelectAttentionItem={(requestId) => void openRequestById(requestId)}
+          t={t}
+        />
 
         <section className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5">
           <div className="grid gap-3 md:grid-cols-[180px_180px_180px_minmax(220px,1fr)]">

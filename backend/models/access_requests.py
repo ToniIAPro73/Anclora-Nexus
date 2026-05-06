@@ -140,6 +140,39 @@ class AccessRequestLifecycleResponse(BaseModel):
     retry_available: bool
     last_event_at: Optional[str] = None
 
+class AccessRequestAttentionItem(BaseModel):
+    request_id: str
+    reason: str
+    severity: str
+    status: AccessRequestStatus
+    product: AccessRequestProduct
+    source: AccessRequestSource
+    email: EmailStr
+    created_at: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    age_hours: Optional[float] = None
+
+class AccessRequestAnalyticsSummary(BaseModel):
+    total_requests: int
+    pending_count: int
+    approved_count: int
+    rejected_count: int
+    cancelled_count: int
+    requests_by_product: Dict[str, int]
+    requests_by_source: Dict[str, int]
+    pending_older_than_24h: int
+    pending_older_than_72h: int
+    average_review_time_hours: Optional[float] = None
+    decision_email_failed_count: int
+    decision_email_unknown_count: int
+    retry_available_count: int
+    provisioning_attention_count: int
+    generated_at: str
+    sample_size: int
+    sample_limit: int
+    is_sampled: bool
+    attention_items: list[AccessRequestAttentionItem] = Field(default_factory=list)
+
 class AccessRequestResponse(BaseModel):
     id: str
     org_id: str
