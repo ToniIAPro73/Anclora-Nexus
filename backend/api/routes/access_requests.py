@@ -57,13 +57,14 @@ async def approve_access_request(
     request_id: str,
     decision: AccessRequestReviewDecision,
     org_id: str = Depends(get_org_id),
-    _user=Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     try:
         return await access_request_service.approve_request(
             org_id=org_id,
             request_id=request_id,
             decision=decision,
+            reviewer_id=current_user.id,
         )
     except AccessRequestNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -78,13 +79,14 @@ async def reject_access_request(
     request_id: str,
     decision: AccessRequestRejectDecision,
     org_id: str = Depends(get_org_id),
-    _user=Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     try:
         return await access_request_service.reject_request(
             org_id=org_id,
             request_id=request_id,
             decision=decision,
+            reviewer_id=current_user.id,
         )
     except AccessRequestNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

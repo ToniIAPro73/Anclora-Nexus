@@ -53,7 +53,6 @@ export interface AccessRequestFilters {
 }
 
 export interface AccessRequestReviewPayload {
-  reviewed_by: string
   admin_notes?: string
 }
 

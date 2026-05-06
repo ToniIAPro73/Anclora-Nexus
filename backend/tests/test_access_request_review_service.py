@@ -14,6 +14,7 @@ from backend.services.access_request_service import (
 
 
 ORG_ID = "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf"
+REVIEWER_ID = "admin-user"
 
 
 def access_request_record(
@@ -175,11 +176,12 @@ async def test_approve_pending_sets_review_fields(monkeypatch, service):
     result = await service.approve_request(
         ORG_ID,
         "request-1",
-        AccessRequestReviewDecision(reviewed_by="admin-user", admin_notes="Looks good"),
+        AccessRequestReviewDecision(admin_notes="Looks good"),
+        reviewer_id=REVIEWER_ID,
     )
 
     assert result["status"] == "approved"
-    assert result["reviewed_by"] == "admin-user"
+    assert result["reviewed_by"] == REVIEWER_ID
     assert result["admin_notes"] == "Looks good"
     assert result["reviewed_at"]
 
@@ -205,7 +207,8 @@ async def test_approve_sends_email_after_state_update(monkeypatch, service):
     result = await service.approve_request(
         ORG_ID,
         "request-1",
-        AccessRequestReviewDecision(reviewed_by="admin-user"),
+        AccessRequestReviewDecision(),
+        reviewer_id=REVIEWER_ID,
     )
 
     assert result["status"] == "approved"
@@ -215,6 +218,7 @@ async def test_approve_sends_email_after_state_update(monkeypatch, service):
         "access_request.approved",
         "access_request.email_sent",
     ]
+    assert audit_service.events[0]["actor_id"] == REVIEWER_ID
 
 
 @pytest.mark.anyio
@@ -229,14 +233,14 @@ async def test_reject_pending_sets_rejection_reason(monkeypatch, service):
         ORG_ID,
         "request-1",
         AccessRequestRejectDecision(
-            reviewed_by="admin-user",
             admin_notes="Not a fit",
             rejection_reason="Missing eligibility criteria",
         ),
+        reviewer_id=REVIEWER_ID,
     )
 
     assert result["status"] == "rejected"
-    assert result["reviewed_by"] == "admin-user"
+    assert result["reviewed_by"] == REVIEWER_ID
     assert result["rejection_reason"] == "Missing eligibility criteria"
     assert result["reviewed_at"]
 
@@ -263,9 +267,9 @@ async def test_reject_sends_email_after_state_update(monkeypatch, service):
         ORG_ID,
         "request-1",
         AccessRequestRejectDecision(
-            reviewed_by="admin-user",
             rejection_reason="Not eligible",
         ),
+        reviewer_id=REVIEWER_ID,
     )
 
     assert result["status"] == "rejected"
@@ -275,6 +279,7 @@ async def test_reject_sends_email_after_state_update(monkeypatch, service):
         "access_request.rejected",
         "access_request.email_sent",
     ]
+    assert audit_service.events[0]["actor_id"] == REVIEWER_ID
 
 
 @pytest.mark.anyio
@@ -298,7 +303,8 @@ async def test_email_failure_does_not_revert_decision_and_logs_failure(monkeypat
     result = await service.approve_request(
         ORG_ID,
         "request-1",
-        AccessRequestReviewDecision(reviewed_by="admin-user"),
+        AccessRequestReviewDecision(),
+        reviewer_id=REVIEWER_ID,
     )
 
     assert rows[0]["status"] == "approved"
@@ -335,7 +341,8 @@ async def test_audit_failure_does_not_break_approval(monkeypatch, service):
     result = await service.approve_request(
         ORG_ID,
         "request-1",
-        AccessRequestReviewDecision(reviewed_by="admin-user"),
+        AccessRequestReviewDecision(),
+        reviewer_id=REVIEWER_ID,
     )
 
     assert result["status"] == "approved"
@@ -344,7 +351,7 @@ async def test_audit_failure_does_not_break_approval(monkeypatch, service):
 
 def test_reject_decision_requires_rejection_reason():
     with pytest.raises(ValueError, match="rejection_reason is required"):
-        AccessRequestRejectDecision(reviewed_by="admin-user", rejection_reason="   ")
+        AccessRequestRejectDecision(rejection_reason="   ")
 
 
 @pytest.mark.anyio
@@ -360,7 +367,8 @@ async def test_approve_terminal_request_fails(monkeypatch, service, current_stat
         await service.approve_request(
             ORG_ID,
             "request-1",
-            AccessRequestReviewDecision(reviewed_by="admin-user"),
+            AccessRequestReviewDecision(),
+            reviewer_id=REVIEWER_ID,
         )
 
 
@@ -378,7 +386,7 @@ async def test_reject_terminal_request_fails(monkeypatch, service, current_statu
             ORG_ID,
             "request-1",
             AccessRequestRejectDecision(
-                reviewed_by="admin-user",
                 rejection_reason="Not eligible",
             ),
+            reviewer_id=REVIEWER_ID,
         )
