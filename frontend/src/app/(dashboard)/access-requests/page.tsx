@@ -1,10 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { RefreshCw } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
-import supabase from '@/lib/supabase'
 import {
   approveAccessRequest,
   getAccessRequest,
@@ -17,10 +15,6 @@ import {
 import { AccessRequestDecisionDialog } from '@/components/access-requests/AccessRequestDecisionDialog'
 import { AccessRequestDetailPanel } from '@/components/access-requests/AccessRequestDetailPanel'
 import { AccessRequestsTable } from '@/components/access-requests/AccessRequestsTable'
-
-function getReviewerIdentity(user: { email?: string | null; id?: string | null } | null | undefined) {
-  return user?.email || user?.id || null
-}
 
 export default function AccessRequestsPage() {
   const { t } = useI18n()
@@ -37,7 +31,6 @@ export default function AccessRequestsPage() {
   const [decisionMode, setDecisionMode] = useState<'approve' | 'reject' | null>(null)
   const [adminNotes, setAdminNotes] = useState('')
   const [rejectionReason, setRejectionReason] = useState('')
-  const [reviewerIdentity, setReviewerIdentity] = useState<string | null>(null)
 
   const selectedId = selected?.id ?? null
 
@@ -74,33 +67,6 @@ export default function AccessRequestsPage() {
     void loadList()
   }, [loadList])
 
-  useEffect(() => {
-    let mounted = true
-
-    async function loadReviewerIdentity() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (mounted) {
-        setReviewerIdentity(getReviewerIdentity(user))
-      }
-    }
-
-    void loadReviewerIdentity()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-      setReviewerIdentity(getReviewerIdentity(session?.user))
-    })
-
-    return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, [])
-
   async function selectRequest(request: AccessRequest) {
     setSelected(request)
     setDetailLoading(true)
@@ -123,10 +89,6 @@ export default function AccessRequestsPage() {
 
   async function submitDecision() {
     if (!selected || !decisionMode) return
-    if (!reviewerIdentity) {
-      setDecisionError(t('accessRequestsReviewerIdentityError'))
-      return
-    }
 
     setSubmitting(true)
     setDecisionError(null)
@@ -135,11 +97,9 @@ export default function AccessRequestsPage() {
       const payload =
         decisionMode === 'approve'
           ? await approveAccessRequest(selected.id, {
-              reviewed_by: reviewerIdentity,
               admin_notes: adminNotes.trim() || undefined,
             })
           : await rejectAccessRequest(selected.id, {
-              reviewed_by: reviewerIdentity,
               admin_notes: adminNotes.trim() || undefined,
               rejection_reason: rejectionReason.trim(),
             })

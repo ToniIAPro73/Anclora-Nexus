@@ -90,15 +90,7 @@ class LegacyPartnerAdmission(BaseModel):
     captcha_token: str
 
 class AccessRequestReviewDecision(BaseModel):
-    reviewed_by: str
     admin_notes: Optional[str] = None
-
-    @field_validator("reviewed_by")
-    @classmethod
-    def validate_reviewed_by(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("reviewed_by is required")
-        return value.strip()
 
 class AccessRequestRejectDecision(AccessRequestReviewDecision):
     rejection_reason: str

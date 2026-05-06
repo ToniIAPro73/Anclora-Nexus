@@ -101,11 +101,13 @@ async def test_approve_access_request_route(app):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.post(
                 "/api/access-requests/request-1/approve",
-                json={"reviewed_by": USER_ID, "admin_notes": "Approved"},
+                json={"admin_notes": "Approved"},
             )
 
     assert response.status_code == 200
     assert response.json()["status"] == "approved"
+    mock_service.approve_request.assert_awaited_once()
+    assert mock_service.approve_request.await_args.kwargs["reviewer_id"] == USER_ID
 
 
 @pytest.mark.anyio
@@ -119,7 +121,6 @@ async def test_reject_access_request_route(app):
             response = await ac.post(
                 "/api/access-requests/request-1/reject",
                 json={
-                    "reviewed_by": USER_ID,
                     "admin_notes": "Rejected",
                     "rejection_reason": "Not eligible",
                 },
@@ -127,6 +128,8 @@ async def test_reject_access_request_route(app):
 
     assert response.status_code == 200
     assert response.json()["status"] == "rejected"
+    mock_service.reject_request.assert_awaited_once()
+    assert mock_service.reject_request.await_args.kwargs["reviewer_id"] == USER_ID
 
 
 @pytest.mark.anyio
@@ -139,7 +142,7 @@ async def test_invalid_transition_route_returns_409(app):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.post(
                 "/api/access-requests/request-1/approve",
-                json={"reviewed_by": USER_ID},
+                json={},
             )
 
     assert response.status_code == 409

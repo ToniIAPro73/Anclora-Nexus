@@ -115,12 +115,17 @@ class AccessRequestService:
         org_id: str,
         request_id: str,
         decision: AccessRequestReviewDecision,
+        reviewer_id: str,
     ) -> Dict[str, Any]:
+        reviewer_id = reviewer_id.strip()
+        if not reviewer_id:
+            raise ValueError("reviewer_id is required")
+
         await self._ensure_pending(org_id, request_id)
         update_payload = {
             "status": AccessRequestStatus.APPROVED.value,
             "reviewed_at": self._now(),
-            "reviewed_by": decision.reviewed_by,
+            "reviewed_by": reviewer_id,
             "admin_notes": decision.admin_notes,
             "updated_at": self._now(),
         }
@@ -129,7 +134,7 @@ class AccessRequestService:
             org_id=org_id,
             access_request_id=request_id,
             event_type="access_request.approved",
-            actor_id=decision.reviewed_by,
+            actor_id=reviewer_id,
             actor_type="user",
             metadata={"admin_notes": decision.admin_notes},
         )
@@ -141,12 +146,17 @@ class AccessRequestService:
         org_id: str,
         request_id: str,
         decision: AccessRequestRejectDecision,
+        reviewer_id: str,
     ) -> Dict[str, Any]:
+        reviewer_id = reviewer_id.strip()
+        if not reviewer_id:
+            raise ValueError("reviewer_id is required")
+
         await self._ensure_pending(org_id, request_id)
         update_payload = {
             "status": AccessRequestStatus.REJECTED.value,
             "reviewed_at": self._now(),
-            "reviewed_by": decision.reviewed_by,
+            "reviewed_by": reviewer_id,
             "admin_notes": decision.admin_notes,
             "rejection_reason": decision.rejection_reason,
             "updated_at": self._now(),
@@ -156,7 +166,7 @@ class AccessRequestService:
             org_id=org_id,
             access_request_id=request_id,
             event_type="access_request.rejected",
-            actor_id=decision.reviewed_by,
+            actor_id=reviewer_id,
             actor_type="user",
             metadata={
                 "admin_notes": decision.admin_notes,
