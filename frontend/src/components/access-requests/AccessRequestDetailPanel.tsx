@@ -2,13 +2,16 @@
 
 import { CheckCircle2, ClipboardList, XCircle } from 'lucide-react'
 import type { TranslationKey } from '@/lib/i18n'
-import type { AccessRequest } from '@/lib/access-requests-api'
+import type { AccessRequest, AccessRequestAuditEvent } from '@/lib/access-requests-api'
 import { productLabel, sourceLabel, statusLabel } from './AccessRequestsTable'
 
 type Translate = (key: TranslationKey) => string
 
 interface AccessRequestDetailPanelProps {
   request: AccessRequest | null
+  auditEvents: AccessRequestAuditEvent[]
+  auditLoading: boolean
+  auditError: string | null
   onApprove: () => void
   onReject: () => void
   t: Translate
@@ -36,7 +39,21 @@ function Field({ label, value }: { label: string; value?: string | null }) {
   )
 }
 
-export function AccessRequestDetailPanel({ request, onApprove, onReject, t }: AccessRequestDetailPanelProps) {
+function formatDetails(details: Record<string, unknown>): string {
+  const entries = Object.entries(details).filter(([, value]) => value !== null && value !== undefined && value !== '')
+  if (entries.length === 0) return '-'
+  return entries.map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value) : String(value)}`).join(' · ')
+}
+
+export function AccessRequestDetailPanel({
+  request,
+  auditEvents,
+  auditLoading,
+  auditError,
+  onApprove,
+  onReject,
+  t,
+}: AccessRequestDetailPanelProps) {
   if (!request) {
     return (
       <section className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5">
@@ -106,6 +123,41 @@ export function AccessRequestDetailPanel({ request, onApprove, onReject, t }: Ac
           {t('accessRequestsEmailStatus')}: {request.decision_email.status}
         </div>
       ) : null}
+
+      <div className="mt-5">
+        <div className="mb-3">
+          <h3 className="section-title text-base">{t('accessRequestsAuditTitle')}</h3>
+          <p className="section-subtitle mt-1">{t('accessRequestsAuditSubtitle')}</p>
+        </div>
+        {auditLoading ? (
+          <div className="surface-secondary rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 text-sm text-soft-muted">
+            {t('accessRequestsAuditLoading')}
+          </div>
+        ) : auditError ? (
+          <div className="rounded-xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">
+            {auditError}
+          </div>
+        ) : auditEvents.length === 0 ? (
+          <div className="surface-secondary rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 text-sm text-soft-muted">
+            {t('accessRequestsAuditEmpty')}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {auditEvents.map((event) => (
+              <div key={event.id} className="surface-secondary surface-copy-safe rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <p className="text-sm font-semibold text-soft-white">{event.action}</p>
+                  <p className="text-xs text-soft-muted">{formatDate(event.timestamp)}</p>
+                </div>
+                <p className="mt-2 text-xs text-soft-muted">
+                  {t('accessRequestsAuditActor')}: {event.actor_type} / {event.actor_id}
+                </p>
+                <p className="mt-2 text-xs text-soft-muted">{formatDetails(event.details)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   )
 }

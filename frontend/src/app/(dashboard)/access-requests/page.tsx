@@ -4,12 +4,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import {
+  ApiError,
   approveAccessRequest,
+  getAccessRequestAudit,
   getAccessRequest,
   listAccessRequests,
   rejectAccessRequest,
   type AccessRequest,
+  type AccessRequestAuditEvent,
   type AccessRequestProduct,
+  type AccessRequestSource,
   type AccessRequestStatus,
 } from '@/lib/access-requests-api'
 import { AccessRequestDecisionDialog } from '@/components/access-requests/AccessRequestDecisionDialog'
@@ -22,10 +26,15 @@ export default function AccessRequestsPage() {
   const [selected, setSelected] = useState<AccessRequest | null>(null)
   const [statusFilter, setStatusFilter] = useState<AccessRequestStatus | ''>('pending')
   const [productFilter, setProductFilter] = useState<AccessRequestProduct | ''>('')
+  const [sourceFilter, setSourceFilter] = useState<AccessRequestSource | ''>('')
+  const [emailFilter, setEmailFilter] = useState('')
+  const [auditEvents, setAuditEvents] = useState<AccessRequestAuditEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [auditLoading, setAuditLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [auditError, setAuditError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [decisionError, setDecisionError] = useState<string | null>(null)
   const [decisionMode, setDecisionMode] = useState<'approve' | 'reject' | null>(null)
@@ -43,6 +52,16 @@ export default function AccessRequestsPage() {
     }
   }, [requests])
 
+  const formatApiError = useCallback((err: unknown, fallbackKey: Parameters<typeof t>[0]) => {
+    if (err instanceof ApiError) {
+      if (err.status === 403) return t('accessRequestsPermissionDenied')
+      if (err.status === 404) return t('accessRequestsNotFound')
+      if (err.status === 409) return t('accessRequestsInvalidTransition')
+      if (err.status === 401) return t('accessRequestsAuthRequired')
+    }
+    return err instanceof Error ? err.message : t(fallbackKey)
+  }, [t])
+
   const loadList = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -50,22 +69,46 @@ export default function AccessRequestsPage() {
       const payload = await listAccessRequests({
         status: statusFilter,
         product: productFilter,
+        source: sourceFilter,
+        email: emailFilter,
         limit: 50,
       })
       setRequests(payload)
       setSelected((current) => payload.find((request) => request.id === current?.id) ?? payload[0] ?? null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('accessRequestsLoadError'))
+      setError(formatApiError(err, 'accessRequestsLoadError'))
       setRequests([])
       setSelected(null)
     } finally {
       setLoading(false)
     }
-  }, [productFilter, statusFilter, t])
+  }, [emailFilter, formatApiError, productFilter, sourceFilter, statusFilter])
 
   useEffect(() => {
     void loadList()
   }, [loadList])
+
+  const loadAudit = useCallback(async (requestId: string) => {
+    setAuditLoading(true)
+    setAuditError(null)
+    try {
+      setAuditEvents(await getAccessRequestAudit(requestId))
+    } catch (err) {
+      setAuditEvents([])
+      setAuditError(formatApiError(err, 'accessRequestsAuditLoadError'))
+    } finally {
+      setAuditLoading(false)
+    }
+  }, [formatApiError])
+
+  useEffect(() => {
+    if (!selectedId) {
+      setAuditEvents([])
+      setAuditError(null)
+      return
+    }
+    void loadAudit(selectedId)
+  }, [loadAudit, selectedId])
 
   async function selectRequest(request: AccessRequest) {
     setSelected(request)
@@ -74,7 +117,7 @@ export default function AccessRequestsPage() {
     try {
       setSelected(await getAccessRequest(request.id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('accessRequestsDetailLoadError'))
+      setError(formatApiError(err, 'accessRequestsDetailLoadError'))
     } finally {
       setDetailLoading(false)
     }
@@ -114,8 +157,9 @@ export default function AccessRequestsPage() {
       )
       await loadList()
       setSelected(payload)
+      await loadAudit(payload.id)
     } catch (err) {
-      setDecisionError(err instanceof Error ? err.message : t('accessRequestsDecisionError'))
+      setDecisionError(formatApiError(err, 'accessRequestsDecisionError'))
     } finally {
       setSubmitting(false)
     }
@@ -157,7 +201,7 @@ export default function AccessRequestsPage() {
         </section>
 
         <section className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5">
-          <div className="grid gap-3 md:grid-cols-[220px_220px_1fr]">
+          <div className="grid gap-3 md:grid-cols-[180px_180px_180px_minmax(220px,1fr)]">
             <label>
               <span className="mb-2 block text-sm font-semibold text-soft-white">{t('status')}</span>
               <select className="ui-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as AccessRequestStatus | '')}>
@@ -175,6 +219,24 @@ export default function AccessRequestsPage() {
                 <option value="synergi">Synergi</option>
                 <option value="data_lab">Data Lab</option>
               </select>
+            </label>
+            <label>
+              <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsColumnSource')}</span>
+              <select className="ui-select" value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as AccessRequestSource | '')}>
+                <option value="">{t('accessRequestsAllSources')}</option>
+                <option value="landing">{t('accessRequestsSourceLanding')}</option>
+                <option value="synergi_app">{t('accessRequestsSourceSynergiApp')}</option>
+                <option value="data_lab_app">{t('accessRequestsSourceDataLabApp')}</option>
+              </select>
+            </label>
+            <label>
+              <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsEmailFilter')}</span>
+              <input
+                className="ui-input"
+                value={emailFilter}
+                onChange={(event) => setEmailFilter(event.target.value)}
+                placeholder={t('accessRequestsEmailFilterPlaceholder')}
+              />
             </label>
             <div className="self-end rounded-xl border border-soft-subtle/50 bg-navy-deep/30 px-4 py-3 text-sm text-soft-muted">
               {t('accessRequestsFilterHint')}
@@ -216,6 +278,9 @@ export default function AccessRequestsPage() {
             ) : null}
             <AccessRequestDetailPanel
               request={selected}
+              auditEvents={auditEvents}
+              auditLoading={auditLoading}
+              auditError={auditError}
               onApprove={() => openDecision('approve')}
               onReject={() => openDecision('reject')}
               t={t}

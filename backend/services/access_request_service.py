@@ -6,6 +6,7 @@ from backend.models.access_requests import (
     AccessRequestProduct,
     AccessRequestRejectDecision,
     AccessRequestReviewDecision,
+    AccessRequestSource,
     AccessRequestStatus,
     PublicAccessRequestCreate,
 )
@@ -86,6 +87,10 @@ class AccessRequestService:
         org_id: str,
         status: Optional[AccessRequestStatus] = None,
         product: Optional[AccessRequestProduct] = None,
+        source: Optional[AccessRequestSource] = None,
+        email: Optional[str] = None,
+        created_from: Optional[str] = None,
+        created_to: Optional[str] = None,
         limit: int = 50,
     ) -> list[Dict[str, Any]]:
         query = supabase_service.client.table("access_requests").select("*").eq("org_id", org_id)
@@ -93,6 +98,14 @@ class AccessRequestService:
             query = query.eq("status", status.value)
         if product:
             query = query.eq("product", product.value)
+        if source:
+            query = query.eq("source", source.value)
+        if email and email.strip():
+            query = query.ilike("email", f"%{email.strip()}%")
+        if created_from:
+            query = query.gte("created_at", created_from)
+        if created_to:
+            query = query.lte("created_at", created_to)
 
         result = query.order("created_at", desc=True).limit(limit).execute()
         return result.data or []
@@ -175,6 +188,23 @@ class AccessRequestService:
         )
         record["decision_email"] = await self._send_decision_email(record)
         return record
+
+    async def list_audit_events(
+        self,
+        org_id: str,
+        request_id: str,
+    ) -> list[Dict[str, Any]]:
+        await self.get_request(org_id, request_id)
+        result = (
+            supabase_service.client.table("audit_log")
+            .select("id,timestamp,actor_type,actor_id,action,resource_type,resource_id,details")
+            .eq("org_id", org_id)
+            .eq("resource_type", "access_request")
+            .eq("resource_id", request_id)
+            .order("timestamp", desc=False)
+            .execute()
+        )
+        return result.data or []
 
     async def _ensure_pending(self, org_id: str, request_id: str) -> None:
         record = await self.get_request(org_id, request_id)
