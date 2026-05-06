@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from backend.api.deps import get_current_user, get_org_id, require_access_request_reviewer
 from backend.models.access_requests import (
     AccessRequestAuditEventResponse,
+    AccessRequestAnalyticsSummary,
     AccessRequestLifecycleResponse,
     AccessRequestProduct,
     AccessRequestRejectDecision,
@@ -43,6 +44,21 @@ async def list_access_requests(
             email=email,
             created_from=created_from,
             created_to=created_to,
+            limit=limit,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/analytics/summary", response_model=AccessRequestAnalyticsSummary)
+async def get_access_request_analytics_summary(
+    org_id: str = Depends(get_org_id),
+    _current_user=Depends(require_access_request_reviewer),
+    limit: int = Query(500, ge=1, le=1000),
+):
+    try:
+        return await access_request_service.get_analytics_summary(
+            org_id=org_id,
             limit=limit,
         )
     except Exception as e:

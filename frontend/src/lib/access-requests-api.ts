@@ -63,6 +63,41 @@ export interface AccessRequestLifecycle {
   last_event_at?: string | null
 }
 
+export interface AccessRequestAttentionItem {
+  request_id: string
+  reason: string
+  severity: 'warning' | 'critical'
+  status: AccessRequestStatus
+  product: AccessRequestProduct
+  source: AccessRequestSource
+  email: string
+  created_at?: string | null
+  reviewed_at?: string | null
+  age_hours?: number | null
+}
+
+export interface AccessRequestAnalyticsSummary {
+  total_requests: number
+  pending_count: number
+  approved_count: number
+  rejected_count: number
+  cancelled_count: number
+  requests_by_product: Record<string, number>
+  requests_by_source: Record<string, number>
+  pending_older_than_24h: number
+  pending_older_than_72h: number
+  average_review_time_hours?: number | null
+  decision_email_failed_count: number
+  decision_email_unknown_count: number
+  retry_available_count: number
+  provisioning_attention_count: number
+  generated_at: string
+  sample_size: number
+  sample_limit: number
+  is_sampled: boolean
+  attention_items: AccessRequestAttentionItem[]
+}
+
 export interface AccessRequestAuditEvent {
   id: string
   timestamp?: string | null
@@ -136,6 +171,12 @@ export async function getAccessRequestAudit(id: string): Promise<AccessRequestAu
 
 export async function getAccessRequestLifecycle(id: string): Promise<AccessRequestLifecycle> {
   const response = await authFetch(`/api/access-requests/${encodeURIComponent(id)}/lifecycle`)
+  return readJsonOrThrow(response)
+}
+
+export async function getAccessRequestAnalyticsSummary(limit = 500): Promise<AccessRequestAnalyticsSummary> {
+  const search = new URLSearchParams({ limit: String(limit) })
+  const response = await authFetch(`/api/access-requests/analytics/summary?${search.toString()}`)
   return readJsonOrThrow(response)
 }
 
