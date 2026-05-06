@@ -2,7 +2,8 @@
 
 import { CheckCircle2, ClipboardList, XCircle } from 'lucide-react'
 import type { TranslationKey } from '@/lib/i18n'
-import type { AccessRequest, AccessRequestAuditEvent } from '@/lib/access-requests-api'
+import type { AccessRequest, AccessRequestAuditEvent, AccessRequestLifecycle } from '@/lib/access-requests-api'
+import { AccessRequestLifecyclePanel } from './AccessRequestLifecyclePanel'
 import { productLabel, sourceLabel, statusLabel } from './AccessRequestsTable'
 
 type Translate = (key: TranslationKey) => string
@@ -12,8 +13,13 @@ interface AccessRequestDetailPanelProps {
   auditEvents: AccessRequestAuditEvent[]
   auditLoading: boolean
   auditError: string | null
+  lifecycle: AccessRequestLifecycle | null
+  lifecycleLoading: boolean
+  lifecycleError: string | null
+  retryingEmail: boolean
   onApprove: () => void
   onReject: () => void
+  onRetryDecisionEmail: () => void
   t: Translate
 }
 
@@ -50,8 +56,13 @@ export function AccessRequestDetailPanel({
   auditEvents,
   auditLoading,
   auditError,
+  lifecycle,
+  lifecycleLoading,
+  lifecycleError,
+  retryingEmail,
   onApprove,
   onReject,
+  onRetryDecisionEmail,
   t,
 }: AccessRequestDetailPanelProps) {
   if (!request) {
@@ -123,6 +134,15 @@ export function AccessRequestDetailPanel({
           {t('accessRequestsEmailStatus')}: {request.decision_email.status}
         </div>
       ) : null}
+
+      <AccessRequestLifecyclePanel
+        lifecycle={lifecycle}
+        loading={lifecycleLoading}
+        error={lifecycleError}
+        retrying={retryingEmail}
+        onRetry={onRetryDecisionEmail}
+        t={t}
+      />
 
       <div className="mt-5">
         <div className="mb-3">

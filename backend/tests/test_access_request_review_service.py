@@ -122,14 +122,17 @@ class MockSupabaseClient:
 
 
 class MockEmailService:
-    def __init__(self, fail=False):
+    def __init__(self, fail=False, result=None):
         self.fail = fail
+        self.result = result
         self.sent_records = []
 
     def send_decision_email(self, record):
         self.sent_records.append(dict(record))
         if self.fail:
             raise RuntimeError("SMTP failed")
+        if self.result is not None:
+            return self.result
         return {"status": "sent", "transport": "smtp", "to": record["email"]}
 
 
@@ -289,6 +292,8 @@ async def test_approve_pending_sets_review_fields(monkeypatch, service):
     assert result["reviewed_by"] == REVIEWER_ID
     assert result["admin_notes"] == "Looks good"
     assert result["reviewed_at"]
+    assert result["invite_token"]
+    assert result["invite_expires_at"]
 
 
 @pytest.mark.anyio
@@ -321,9 +326,11 @@ async def test_approve_sends_email_after_state_update(monkeypatch, service):
     assert result["decision_email"]["status"] == "sent"
     assert [event["event_type"] for event in audit_service.events] == [
         "access_request.approved",
+        "access_request.provisioning_intent_prepared",
         "access_request.email_sent",
     ]
     assert audit_service.events[0]["actor_id"] == REVIEWER_ID
+    assert audit_service.events[1]["metadata"]["provisioning_status"] == "invite_ready"
 
 
 @pytest.mark.anyio
@@ -418,6 +425,7 @@ async def test_email_failure_does_not_revert_decision_and_logs_failure(monkeypat
     assert "SMTP failed" in result["decision_email"]["error"]
     assert [event["event_type"] for event in audit_service.events] == [
         "access_request.approved",
+        "access_request.provisioning_intent_prepared",
         "access_request.email_send_failed",
     ]
 

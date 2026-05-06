@@ -17,6 +17,25 @@ class AccessRequestStatus(str, Enum):
     REJECTED = "rejected"
     CANCELLED = "cancelled"
 
+class AccessRequestDecisionStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+
+class AccessRequestProvisioningStatus(str, Enum):
+    NOT_STARTED = "not_started"
+    INVITE_READY = "invite_ready"
+    PROVISIONING_PENDING = "provisioning_pending"
+    NOT_APPLICABLE = "not_applicable"
+
+class AccessRequestEmailStatus(str, Enum):
+    NOT_APPLICABLE = "not_applicable"
+    SENT = "sent"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+    UNKNOWN = "unknown"
+
 class PublicAccessRequestCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -102,6 +121,25 @@ class AccessRequestRejectDecision(AccessRequestReviewDecision):
             raise ValueError("rejection_reason is required")
         return value.strip()
 
+class DecisionEmailResult(BaseModel):
+    status: Optional[str] = None
+    transport: Optional[str] = None
+    to: Optional[str] = None
+    subject: Optional[str] = None
+    error: Optional[str] = None
+
+class AccessRequestLifecycleResponse(BaseModel):
+    request_id: str
+    status: AccessRequestStatus
+    decision_status: AccessRequestDecisionStatus
+    provisioning_status: AccessRequestProvisioningStatus
+    email_status: AccessRequestEmailStatus
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    invite_expires_at: Optional[str] = None
+    retry_available: bool
+    last_event_at: Optional[str] = None
+
 class AccessRequestResponse(BaseModel):
     id: str
     org_id: str
@@ -133,6 +171,8 @@ class AccessRequestResponse(BaseModel):
     invite_expires_at: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+    decision_email: Optional[DecisionEmailResult] = None
+    lifecycle: Optional[AccessRequestLifecycleResponse] = None
 
 class AccessRequestAuditEventResponse(BaseModel):
     id: str
