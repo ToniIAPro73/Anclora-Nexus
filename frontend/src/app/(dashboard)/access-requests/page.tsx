@@ -8,10 +8,13 @@ import {
   approveAccessRequest,
   getAccessRequestAudit,
   getAccessRequest,
+  getAccessRequestLifecycle,
   listAccessRequests,
   rejectAccessRequest,
+  retryAccessRequestDecisionEmail,
   type AccessRequest,
   type AccessRequestAuditEvent,
+  type AccessRequestLifecycle,
   type AccessRequestProduct,
   type AccessRequestSource,
   type AccessRequestStatus,
@@ -29,12 +32,16 @@ export default function AccessRequestsPage() {
   const [sourceFilter, setSourceFilter] = useState<AccessRequestSource | ''>('')
   const [emailFilter, setEmailFilter] = useState('')
   const [auditEvents, setAuditEvents] = useState<AccessRequestAuditEvent[]>([])
+  const [lifecycle, setLifecycle] = useState<AccessRequestLifecycle | null>(null)
   const [loading, setLoading] = useState(true)
   const [detailLoading, setDetailLoading] = useState(false)
   const [auditLoading, setAuditLoading] = useState(false)
+  const [lifecycleLoading, setLifecycleLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [retryingEmail, setRetryingEmail] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [auditError, setAuditError] = useState<string | null>(null)
+  const [lifecycleError, setLifecycleError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [decisionError, setDecisionError] = useState<string | null>(null)
   const [decisionMode, setDecisionMode] = useState<'approve' | 'reject' | null>(null)
@@ -101,14 +108,30 @@ export default function AccessRequestsPage() {
     }
   }, [formatApiError])
 
+  const loadLifecycle = useCallback(async (requestId: string) => {
+    setLifecycleLoading(true)
+    setLifecycleError(null)
+    try {
+      setLifecycle(await getAccessRequestLifecycle(requestId))
+    } catch (err) {
+      setLifecycle(null)
+      setLifecycleError(formatApiError(err, 'accessRequestsLifecycleLoadError'))
+    } finally {
+      setLifecycleLoading(false)
+    }
+  }, [formatApiError])
+
   useEffect(() => {
     if (!selectedId) {
       setAuditEvents([])
       setAuditError(null)
+      setLifecycle(null)
+      setLifecycleError(null)
       return
     }
     void loadAudit(selectedId)
-  }, [loadAudit, selectedId])
+    void loadLifecycle(selectedId)
+  }, [loadAudit, loadLifecycle, selectedId])
 
   async function selectRequest(request: AccessRequest) {
     setSelected(request)
@@ -157,11 +180,46 @@ export default function AccessRequestsPage() {
       )
       await loadList()
       setSelected(payload)
+      if (payload.lifecycle) {
+        setLifecycle(payload.lifecycle)
+      } else {
+        await loadLifecycle(payload.id)
+      }
       await loadAudit(payload.id)
     } catch (err) {
       setDecisionError(formatApiError(err, 'accessRequestsDecisionError'))
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function retryDecisionEmail() {
+    if (!selected) return
+
+    setRetryingEmail(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const payload = await retryAccessRequestDecisionEmail(selected.id)
+      setSelected(payload)
+      const emailStatus = payload.decision_email?.status
+      setSuccess(
+        emailStatus
+          ? `${t('accessRequestsDecisionEmailRetrySaved')} ${t('accessRequestsEmailStatus')}: ${emailStatus}`
+          : t('accessRequestsDecisionEmailRetrySaved'),
+      )
+      if (payload.lifecycle) {
+        setLifecycle(payload.lifecycle)
+      } else {
+        await loadLifecycle(payload.id)
+      }
+      await loadAudit(payload.id)
+      await loadList()
+      setSelected(payload)
+    } catch (err) {
+      setError(formatApiError(err, 'accessRequestsDecisionEmailRetryError'))
+    } finally {
+      setRetryingEmail(false)
     }
   }
 
@@ -281,8 +339,13 @@ export default function AccessRequestsPage() {
               auditEvents={auditEvents}
               auditLoading={auditLoading}
               auditError={auditError}
+              lifecycle={lifecycle}
+              lifecycleLoading={lifecycleLoading}
+              lifecycleError={lifecycleError}
+              retryingEmail={retryingEmail}
               onApprove={() => openDecision('approve')}
               onReject={() => openDecision('reject')}
+              onRetryDecisionEmail={() => void retryDecisionEmail()}
               t={t}
             />
           </div>

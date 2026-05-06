@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from backend.api.deps import get_current_user, get_org_id, require_access_request_reviewer
 from backend.models.access_requests import (
     AccessRequestAuditEventResponse,
+    AccessRequestLifecycleResponse,
     AccessRequestProduct,
     AccessRequestRejectDecision,
     AccessRequestResponse,
@@ -61,6 +62,43 @@ async def list_access_request_audit(
         )
     except AccessRequestNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/{request_id}/lifecycle", response_model=AccessRequestLifecycleResponse)
+async def get_access_request_lifecycle(
+    request_id: str,
+    org_id: str = Depends(get_org_id),
+    _current_user=Depends(require_access_request_reviewer),
+):
+    try:
+        return await access_request_service.get_lifecycle(
+            org_id=org_id,
+            request_id=request_id,
+        )
+    except AccessRequestNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/{request_id}/decision-email/retry", response_model=AccessRequestResponse)
+async def retry_access_request_decision_email(
+    request_id: str,
+    org_id: str = Depends(get_org_id),
+    current_user=Depends(require_access_request_reviewer),
+):
+    try:
+        return await access_request_service.retry_decision_email(
+            org_id=org_id,
+            request_id=request_id,
+            reviewer_id=current_user.id,
+        )
+    except AccessRequestNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AccessRequestInvalidTransitionError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

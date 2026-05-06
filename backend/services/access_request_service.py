@@ -1,9 +1,13 @@
 import logging
-from datetime import datetime, timezone
+import secrets
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 from backend.config import settings
 from backend.models.access_requests import (
+    AccessRequestEmailStatus,
+    AccessRequestLifecycleResponse,
     AccessRequestProduct,
+    AccessRequestProvisioningStatus,
     AccessRequestRejectDecision,
     AccessRequestReviewDecision,
     AccessRequestSource,
@@ -21,6 +25,13 @@ TERMINAL_ACCESS_REQUEST_STATUSES = {
     AccessRequestStatus.APPROVED.value,
     AccessRequestStatus.REJECTED.value,
     AccessRequestStatus.CANCELLED.value,
+}
+DECISION_EMAIL_AUDIT_ACTIONS = {
+    "access_request.email_sent",
+    "access_request.email_skipped",
+    "access_request.email_send_failed",
+    "access_request.decision_email_retry_succeeded",
+    "access_request.decision_email_retry_failed",
 }
 
 class AccessRequestNotFoundError(Exception):
@@ -134,13 +145,19 @@ class AccessRequestService:
         if not reviewer_id:
             raise ValueError("reviewer_id is required")
 
-        await self._ensure_pending(org_id, request_id)
+        pending_record = await self._ensure_pending(org_id, request_id)
+        invite_token = pending_record.get("invite_token") or self._generate_invite_token()
+        invite_expires_at = pending_record.get("invite_expires_at") or self._invite_expires_at()
+        invite_created = not pending_record.get("invite_token")
+        now = self._now()
         update_payload = {
             "status": AccessRequestStatus.APPROVED.value,
-            "reviewed_at": self._now(),
+            "reviewed_at": now,
             "reviewed_by": reviewer_id,
             "admin_notes": decision.admin_notes,
-            "updated_at": self._now(),
+            "invite_token": invite_token,
+            "invite_expires_at": invite_expires_at,
+            "updated_at": now,
         }
         record = await self._update_pending_request(org_id, request_id, update_payload)
         await self._log_audit_event(
@@ -151,7 +168,21 @@ class AccessRequestService:
             actor_type="user",
             metadata={"admin_notes": decision.admin_notes},
         )
+        await self._log_audit_event(
+            org_id=org_id,
+            access_request_id=request_id,
+            event_type="access_request.provisioning_intent_prepared",
+            actor_id=reviewer_id,
+            actor_type="user",
+            metadata={
+                "product": record.get("product"),
+                "invite_created": invite_created,
+                "invite_expires_at": invite_expires_at,
+                "provisioning_status": AccessRequestProvisioningStatus.INVITE_READY.value,
+            },
+        )
         record["decision_email"] = await self._send_decision_email(record)
+        record["lifecycle"] = self._build_lifecycle(record, [], record["decision_email"]).model_dump(mode="json")
         return record
 
     async def reject_request(
@@ -166,13 +197,14 @@ class AccessRequestService:
             raise ValueError("reviewer_id is required")
 
         await self._ensure_pending(org_id, request_id)
+        now = self._now()
         update_payload = {
             "status": AccessRequestStatus.REJECTED.value,
-            "reviewed_at": self._now(),
+            "reviewed_at": now,
             "reviewed_by": reviewer_id,
             "admin_notes": decision.admin_notes,
             "rejection_reason": decision.rejection_reason,
-            "updated_at": self._now(),
+            "updated_at": now,
         }
         record = await self._update_pending_request(org_id, request_id, update_payload)
         await self._log_audit_event(
@@ -187,6 +219,76 @@ class AccessRequestService:
             },
         )
         record["decision_email"] = await self._send_decision_email(record)
+        record["lifecycle"] = self._build_lifecycle(record, [], record["decision_email"]).model_dump(mode="json")
+        return record
+
+    async def get_lifecycle(
+        self,
+        org_id: str,
+        request_id: str,
+    ) -> AccessRequestLifecycleResponse:
+        record = await self.get_request(org_id, request_id)
+        audit_events = await self.list_audit_events(org_id, request_id)
+        return self._build_lifecycle(record, audit_events)
+
+    async def retry_decision_email(
+        self,
+        org_id: str,
+        request_id: str,
+        reviewer_id: str,
+    ) -> Dict[str, Any]:
+        reviewer_id = reviewer_id.strip()
+        if not reviewer_id:
+            raise ValueError("reviewer_id is required")
+
+        record = await self.get_request(org_id, request_id)
+        if record.get("status") == AccessRequestStatus.PENDING.value:
+            raise AccessRequestInvalidTransitionError(
+                f"Access request {request_id} is pending and has no decision email to retry"
+            )
+        if record.get("status") not in {
+            AccessRequestStatus.APPROVED.value,
+            AccessRequestStatus.REJECTED.value,
+        }:
+            raise AccessRequestInvalidTransitionError(
+                f"Access request {request_id} cannot retry decision email from {record.get('status')}"
+            )
+
+        audit_events = await self.list_audit_events(org_id, request_id)
+        lifecycle = self._build_lifecycle(record, audit_events)
+        if lifecycle.email_status == AccessRequestEmailStatus.SENT or not lifecycle.retry_available:
+            raise AccessRequestInvalidTransitionError(
+                f"Access request {request_id} decision email retry is not available"
+            )
+
+        await self._log_audit_event(
+            org_id=org_id,
+            access_request_id=request_id,
+            event_type="access_request.decision_email_retry_requested",
+            actor_id=reviewer_id,
+            actor_type="user",
+            metadata={"previous_email_status": lifecycle.email_status.value},
+        )
+        result = await self._send_decision_email(record)
+        sanitized_result = self._sanitize_decision_email_result(result)
+        retry_succeeded = sanitized_result.get("status") == AccessRequestEmailStatus.SENT.value
+        await self._log_audit_event(
+            org_id=org_id,
+            access_request_id=request_id,
+            event_type="access_request.decision_email_retry_succeeded"
+            if retry_succeeded
+            else "access_request.decision_email_retry_failed",
+            actor_id=reviewer_id,
+            actor_type="user",
+            metadata={
+                "status": sanitized_result.get("status"),
+                "transport": sanitized_result.get("transport"),
+                "to": sanitized_result.get("to"),
+                "subject": sanitized_result.get("subject"),
+            },
+        )
+        record["decision_email"] = sanitized_result
+        record["lifecycle"] = self._build_lifecycle(record, [], sanitized_result).model_dump(mode="json")
         return record
 
     async def list_audit_events(
@@ -206,7 +308,7 @@ class AccessRequestService:
         )
         return result.data or []
 
-    async def _ensure_pending(self, org_id: str, request_id: str) -> None:
+    async def _ensure_pending(self, org_id: str, request_id: str) -> Dict[str, Any]:
         record = await self.get_request(org_id, request_id)
         current_status = record.get("status")
         if current_status != AccessRequestStatus.PENDING.value:
@@ -217,6 +319,7 @@ class AccessRequestService:
             raise AccessRequestInvalidTransitionError(
                 f"Access request {request_id} cannot transition from {current_status}"
             )
+        return record
 
     async def _update_pending_request(
         self,
@@ -240,6 +343,110 @@ class AccessRequestService:
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
+
+    def _generate_invite_token(self) -> str:
+        return secrets.token_urlsafe(32)
+
+    def _invite_expires_at(self) -> str:
+        return (datetime.now(timezone.utc) + timedelta(days=14)).isoformat()
+
+    def _build_lifecycle(
+        self,
+        record: Dict[str, Any],
+        audit_events: list[Dict[str, Any]],
+        decision_email: Optional[Dict[str, Any]] = None,
+    ) -> AccessRequestLifecycleResponse:
+        status = str(record.get("status") or AccessRequestStatus.PENDING.value)
+        email_status = self._derive_email_status(status, audit_events, decision_email)
+        return AccessRequestLifecycleResponse(
+            request_id=str(record["id"]),
+            status=status,
+            decision_status=status,
+            provisioning_status=self._derive_provisioning_status(record),
+            email_status=email_status,
+            reviewed_by=record.get("reviewed_by"),
+            reviewed_at=record.get("reviewed_at"),
+            invite_expires_at=record.get("invite_expires_at"),
+            retry_available=status in {
+                AccessRequestStatus.APPROVED.value,
+                AccessRequestStatus.REJECTED.value,
+            }
+            and email_status != AccessRequestEmailStatus.SENT,
+            last_event_at=self._derive_last_event_at(record, audit_events),
+        )
+
+    def _derive_provisioning_status(self, record: Dict[str, Any]) -> AccessRequestProvisioningStatus:
+        status = record.get("status")
+        if status == AccessRequestStatus.PENDING.value:
+            return AccessRequestProvisioningStatus.NOT_STARTED
+        if status == AccessRequestStatus.REJECTED.value or status == AccessRequestStatus.CANCELLED.value:
+            return AccessRequestProvisioningStatus.NOT_APPLICABLE
+        if status == AccessRequestStatus.APPROVED.value:
+            if record.get("invite_token") and record.get("invite_expires_at"):
+                return AccessRequestProvisioningStatus.INVITE_READY
+            return AccessRequestProvisioningStatus.PROVISIONING_PENDING
+        return AccessRequestProvisioningStatus.NOT_APPLICABLE
+
+    def _derive_email_status(
+        self,
+        status: str,
+        audit_events: list[Dict[str, Any]],
+        decision_email: Optional[Dict[str, Any]] = None,
+    ) -> AccessRequestEmailStatus:
+        if status == AccessRequestStatus.PENDING.value:
+            return AccessRequestEmailStatus.NOT_APPLICABLE
+        if decision_email and decision_email.get("status"):
+            return self._normalize_email_status(str(decision_email["status"]))
+
+        for event in reversed(audit_events):
+            action = event.get("action")
+            if action not in DECISION_EMAIL_AUDIT_ACTIONS:
+                continue
+            details = event.get("details") or {}
+            if action == "access_request.email_sent":
+                return AccessRequestEmailStatus.SENT
+            if action == "access_request.email_skipped":
+                return AccessRequestEmailStatus.SKIPPED
+            if action == "access_request.email_send_failed":
+                return AccessRequestEmailStatus.FAILED
+            if action == "access_request.decision_email_retry_succeeded":
+                return AccessRequestEmailStatus.SENT
+            if action == "access_request.decision_email_retry_failed":
+                return self._normalize_email_status(str(details.get("status") or "failed"))
+        return AccessRequestEmailStatus.UNKNOWN
+
+    def _normalize_email_status(self, value: str) -> AccessRequestEmailStatus:
+        normalized = value.strip().lower()
+        if normalized == AccessRequestEmailStatus.SENT.value:
+            return AccessRequestEmailStatus.SENT
+        if normalized == AccessRequestEmailStatus.FAILED.value:
+            return AccessRequestEmailStatus.FAILED
+        if normalized == AccessRequestEmailStatus.SKIPPED.value:
+            return AccessRequestEmailStatus.SKIPPED
+        if normalized == AccessRequestEmailStatus.NOT_APPLICABLE.value:
+            return AccessRequestEmailStatus.NOT_APPLICABLE
+        return AccessRequestEmailStatus.UNKNOWN
+
+    def _derive_last_event_at(
+        self,
+        record: Dict[str, Any],
+        audit_events: list[Dict[str, Any]],
+    ) -> Optional[str]:
+        event_timestamps = [
+            str(event["timestamp"])
+            for event in audit_events
+            if event.get("timestamp")
+        ]
+        if event_timestamps:
+            return max(event_timestamps)
+        return record.get("updated_at") or record.get("reviewed_at") or record.get("created_at")
+
+    def _sanitize_decision_email_result(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        if result.get("status") != AccessRequestEmailStatus.FAILED.value:
+            return result
+        sanitized = dict(result)
+        sanitized["error"] = "decision_email_send_failed"
+        return sanitized
 
     async def _log_audit_event(
         self,

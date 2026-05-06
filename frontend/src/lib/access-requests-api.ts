@@ -3,6 +3,9 @@ import { authFetch } from './auth-fetch'
 export type AccessRequestProduct = 'synergi' | 'data_lab'
 export type AccessRequestSource = 'landing' | 'synergi_app' | 'data_lab_app'
 export type AccessRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+export type AccessRequestDecisionStatus = AccessRequestStatus
+export type AccessRequestProvisioningStatus = 'not_started' | 'invite_ready' | 'provisioning_pending' | 'not_applicable'
+export type AccessRequestEmailStatus = 'not_applicable' | 'sent' | 'failed' | 'skipped' | 'unknown'
 
 export interface DecisionEmailResult {
   status?: string
@@ -44,6 +47,20 @@ export interface AccessRequest {
   created_at?: string | null
   updated_at?: string | null
   decision_email?: DecisionEmailResult | null
+  lifecycle?: AccessRequestLifecycle | null
+}
+
+export interface AccessRequestLifecycle {
+  request_id: string
+  status: AccessRequestStatus
+  decision_status: AccessRequestDecisionStatus
+  provisioning_status: AccessRequestProvisioningStatus
+  email_status: AccessRequestEmailStatus
+  reviewed_by?: string | null
+  reviewed_at?: string | null
+  invite_expires_at?: string | null
+  retry_available: boolean
+  last_event_at?: string | null
 }
 
 export interface AccessRequestAuditEvent {
@@ -117,6 +134,11 @@ export async function getAccessRequestAudit(id: string): Promise<AccessRequestAu
   return readJsonOrThrow(response)
 }
 
+export async function getAccessRequestLifecycle(id: string): Promise<AccessRequestLifecycle> {
+  const response = await authFetch(`/api/access-requests/${encodeURIComponent(id)}/lifecycle`)
+  return readJsonOrThrow(response)
+}
+
 export async function approveAccessRequest(id: string, payload: AccessRequestReviewPayload): Promise<AccessRequest> {
   const response = await authFetch(`/api/access-requests/${encodeURIComponent(id)}/approve`, {
     method: 'POST',
@@ -131,6 +153,13 @@ export async function rejectAccessRequest(id: string, payload: AccessRequestReje
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+  })
+  return readJsonOrThrow(response)
+}
+
+export async function retryAccessRequestDecisionEmail(id: string): Promise<AccessRequest> {
+  const response = await authFetch(`/api/access-requests/${encodeURIComponent(id)}/decision-email/retry`, {
+    method: 'POST',
   })
   return readJsonOrThrow(response)
 }

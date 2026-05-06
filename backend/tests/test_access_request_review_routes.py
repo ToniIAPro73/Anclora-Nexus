@@ -181,3 +181,64 @@ async def test_access_request_audit_route(app):
     assert response.status_code == 200
     assert response.json()[0]["action"] == "access_request.approved"
     mock_service.list_audit_events.assert_awaited_once_with(org_id=ORG_ID, request_id="request-1")
+
+
+@pytest.mark.anyio
+async def test_access_request_lifecycle_route(app):
+    with patch("backend.api.routes.access_requests.access_request_service") as mock_service:
+        mock_service.get_lifecycle = AsyncMock(
+            return_value={
+                "request_id": "request-1",
+                "status": "approved",
+                "decision_status": "approved",
+                "provisioning_status": "invite_ready",
+                "email_status": "failed",
+                "reviewed_by": USER_ID,
+                "reviewed_at": "2026-05-06T10:00:00+00:00",
+                "invite_expires_at": "2026-05-20T10:00:00+00:00",
+                "retry_available": True,
+                "last_event_at": "2026-05-06T10:01:00+00:00",
+            }
+        )
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get("/api/access-requests/request-1/lifecycle")
+
+    assert response.status_code == 200
+    assert response.json()["retry_available"] is True
+    mock_service.get_lifecycle.assert_awaited_once_with(org_id=ORG_ID, request_id="request-1")
+
+
+@pytest.mark.anyio
+async def test_retry_decision_email_route_uses_authenticated_reviewer(app):
+    with patch("backend.api.routes.access_requests.access_request_service") as mock_service:
+        mock_service.retry_decision_email = AsyncMock(
+            return_value={
+                **access_request_response("request-1", status="approved"),
+                "decision_email": {"status": "sent", "transport": "smtp"},
+            }
+        )
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post("/api/access-requests/request-1/decision-email/retry")
+
+    assert response.status_code == 200
+    assert response.json()["decision_email"]["status"] == "sent"
+    mock_service.retry_decision_email.assert_awaited_once_with(
+        org_id=ORG_ID,
+        request_id="request-1",
+        reviewer_id=USER_ID,
+    )
+
+
+@pytest.mark.anyio
+async def test_retry_decision_email_invalid_transition_returns_409(app):
+    with patch("backend.api.routes.access_requests.access_request_service") as mock_service:
+        mock_service.retry_decision_email = AsyncMock(
+            side_effect=AccessRequestInvalidTransitionError("retry unavailable")
+        )
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post("/api/access-requests/request-1/decision-email/retry")
+
+    assert response.status_code == 409
