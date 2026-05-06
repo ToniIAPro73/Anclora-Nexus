@@ -4,6 +4,7 @@ from backend.models.access_requests import (
     AccessRequestProduct,
     AccessRequestRejectDecision,
     AccessRequestReviewDecision,
+    AccessRequestSource,
     AccessRequestStatus,
 )
 from backend.services.access_request_service import (
@@ -49,8 +50,12 @@ class MockAccessRequestQuery:
         self.rows = rows
         self.update_payload = update_payload
         self.filters = []
+        self.ilike_filters = []
+        self.gte_filters = []
+        self.lte_filters = []
         self.limit_value = None
         self.order_desc = False
+        self.order_key = None
 
     def select(self, *_args, **_kwargs):
         return self
@@ -59,7 +64,20 @@ class MockAccessRequestQuery:
         self.filters.append((key, value))
         return self
 
+    def ilike(self, key, pattern):
+        self.ilike_filters.append((key, pattern.strip("%").lower()))
+        return self
+
+    def gte(self, key, value):
+        self.gte_filters.append((key, value))
+        return self
+
+    def lte(self, key, value):
+        self.lte_filters.append((key, value))
+        return self
+
     def order(self, _key, desc=False):
+        self.order_key = _key
         self.order_desc = desc
         return self
 
@@ -75,6 +93,12 @@ class MockAccessRequestQuery:
             row for row in self.rows
             if all(row.get(key) == value for key, value in self.filters)
         ]
+        for key, value in self.ilike_filters:
+            matches = [row for row in matches if value in str(row.get(key) or "").lower()]
+        for key, value in self.gte_filters:
+            matches = [row for row in matches if str(row.get(key) or "") >= value]
+        for key, value in self.lte_filters:
+            matches = [row for row in matches if str(row.get(key) or "") <= value]
         if self.order_desc:
             matches = list(reversed(matches))
         if self.limit_value is not None:
@@ -86,11 +110,14 @@ class MockAccessRequestQuery:
 
 
 class MockSupabaseClient:
-    def __init__(self, rows):
+    def __init__(self, rows, audit_rows=None):
         self.rows = rows
+        self.audit_rows = audit_rows or []
 
     def table(self, name):
-        assert name == "access_requests"
+        assert name in {"access_requests", "audit_log"}
+        if name == "audit_log":
+            return MockAccessRequestQuery(self.audit_rows)
         return MockAccessRequestQuery(self.rows)
 
 
@@ -142,6 +169,46 @@ async def test_list_requests_filters_by_status_and_product(monkeypatch, service)
 
 
 @pytest.mark.anyio
+async def test_list_requests_applies_operations_filters(monkeypatch, service):
+    rows = [
+        {
+            **access_request_record("request-1", status="pending", product="synergi"),
+            "source": "landing",
+            "email": "ana@example.com",
+            "created_at": "2026-05-01T10:00:00+00:00",
+        },
+        {
+            **access_request_record("request-2", status="pending", product="synergi"),
+            "source": "synergi_app",
+            "email": "beta@example.com",
+            "created_at": "2026-05-03T10:00:00+00:00",
+        },
+        {
+            **access_request_record("request-3", status="pending", product="synergi"),
+            "source": "landing",
+            "email": "ana.later@example.com",
+            "created_at": "2026-05-08T10:00:00+00:00",
+        },
+    ]
+    monkeypatch.setattr(
+        "backend.services.access_request_service.supabase_service.client",
+        MockSupabaseClient(rows),
+    )
+
+    result = await service.list_requests(
+        org_id=ORG_ID,
+        status=AccessRequestStatus.PENDING,
+        product=AccessRequestProduct.SYNERGI,
+        source=AccessRequestSource.LANDING,
+        email="ana",
+        created_from="2026-05-01T00:00:00+00:00",
+        created_to="2026-05-04T00:00:00+00:00",
+    )
+
+    assert [row["id"] for row in result] == ["request-1"]
+
+
+@pytest.mark.anyio
 async def test_get_request_existing(monkeypatch, service):
     rows = [access_request_record("request-1")]
     monkeypatch.setattr(
@@ -163,6 +230,44 @@ async def test_get_request_missing_raises_not_found(monkeypatch, service):
 
     with pytest.raises(AccessRequestNotFoundError):
         await service.get_request(ORG_ID, "missing")
+
+
+@pytest.mark.anyio
+async def test_list_audit_events_returns_request_scoped_events(monkeypatch, service):
+    rows = [access_request_record("request-1")]
+    audit_rows = [
+        {
+            "id": "audit-1",
+            "org_id": ORG_ID,
+            "timestamp": "2026-05-06T10:00:00+00:00",
+            "actor_type": "user",
+            "actor_id": REVIEWER_ID,
+            "action": "access_request.approved",
+            "resource_type": "access_request",
+            "resource_id": "request-1",
+            "details": {"admin_notes": "Looks good"},
+        },
+        {
+            "id": "audit-2",
+            "org_id": ORG_ID,
+            "timestamp": "2026-05-06T11:00:00+00:00",
+            "actor_type": "user",
+            "actor_id": REVIEWER_ID,
+            "action": "access_request.approved",
+            "resource_type": "access_request",
+            "resource_id": "other-request",
+            "details": {},
+        },
+    ]
+    monkeypatch.setattr(
+        "backend.services.access_request_service.supabase_service.client",
+        MockSupabaseClient(rows, audit_rows=audit_rows),
+    )
+
+    result = await service.list_audit_events(ORG_ID, "request-1")
+
+    assert [row["id"] for row in result] == ["audit-1"]
+    assert result[0]["details"] == {"admin_notes": "Looks good"}
 
 
 @pytest.mark.anyio

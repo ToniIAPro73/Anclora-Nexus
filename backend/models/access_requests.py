@@ -1,6 +1,6 @@
 from enum import Enum
-from typing import Optional
-from pydantic import BaseModel, EmailStr, field_validator, model_validator, ConfigDict
+from typing import Any, Dict, Optional
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator, ConfigDict
 
 class AccessRequestProduct(str, Enum):
     SYNERGI = "synergi"
@@ -133,3 +133,13 @@ class AccessRequestResponse(BaseModel):
     invite_expires_at: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+
+class AccessRequestAuditEventResponse(BaseModel):
+    id: str
+    timestamp: Optional[str] = None
+    actor_type: str
+    actor_id: str
+    action: str
+    resource_type: Optional[str] = None
+    resource_id: Optional[str] = None
+    details: Dict[str, Any] = Field(default_factory=dict)

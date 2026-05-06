@@ -1,6 +1,9 @@
 from typing import Optional
+from uuid import UUID
 from fastapi import Header, HTTPException, Depends
 from backend.config import settings
+from backend.api.middleware import verify_org_membership
+from backend.models.membership import UserRole
 from backend.services.supabase_service import supabase_service
 
 async def get_current_user(authorization: Optional[str] = Header(None)):
@@ -45,6 +48,26 @@ async def get_org_id(user = Depends(get_current_user)):
     if settings.ALLOW_LEGACY_ORG_FALLBACK and settings.LEGACY_SINGLE_TENANT_ORG_ID:
         return settings.LEGACY_SINGLE_TENANT_ORG_ID
     raise HTTPException(status_code=403, detail="ORG_SCOPE_NOT_RESOLVED")
+
+async def require_access_request_reviewer(
+    org_id: str = Depends(get_org_id),
+    current_user = Depends(get_current_user),
+):
+    """
+    Requires an active owner/manager membership for access request decisions.
+    """
+    try:
+        parsed_org_id = UUID(str(org_id))
+        parsed_user_id = UUID(str(current_user.id))
+    except Exception:
+        raise HTTPException(status_code=403, detail="ACCESS_REQUEST_REVIEW_FORBIDDEN")
+
+    await verify_org_membership(
+        parsed_user_id,
+        parsed_org_id,
+        required_role=UserRole.MANAGER,
+    )
+    return current_user
 
 async def check_budget_hard_stop(org_id: str = Depends(get_org_id)):
     """

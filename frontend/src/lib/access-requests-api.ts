@@ -46,9 +46,24 @@ export interface AccessRequest {
   decision_email?: DecisionEmailResult | null
 }
 
+export interface AccessRequestAuditEvent {
+  id: string
+  timestamp?: string | null
+  actor_type: string
+  actor_id: string
+  action: string
+  resource_type?: string | null
+  resource_id?: string | null
+  details: Record<string, unknown>
+}
+
 export interface AccessRequestFilters {
   status?: AccessRequestStatus | ''
   product?: AccessRequestProduct | ''
+  source?: AccessRequestSource | ''
+  email?: string
+  created_from?: string
+  created_to?: string
   limit?: number
 }
 
@@ -63,15 +78,29 @@ export interface AccessRequestRejectPayload extends AccessRequestReviewPayload {
 async function readJsonOrThrow(response: Response) {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: response.statusText }))
-    throw new Error(error.detail || `API Error: ${response.status}`)
+    throw new ApiError(response.status, error.detail || `API Error: ${response.status}`)
   }
   return response.json()
+}
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
 }
 
 export async function listAccessRequests(filters: AccessRequestFilters = {}): Promise<AccessRequest[]> {
   const search = new URLSearchParams()
   if (filters.status) search.set('status', filters.status)
   if (filters.product) search.set('product', filters.product)
+  if (filters.source) search.set('source', filters.source)
+  if (filters.email?.trim()) search.set('email', filters.email.trim())
+  if (filters.created_from) search.set('created_from', filters.created_from)
+  if (filters.created_to) search.set('created_to', filters.created_to)
   search.set('limit', String(filters.limit ?? 50))
 
   const response = await authFetch(`/api/access-requests?${search.toString()}`)
@@ -80,6 +109,11 @@ export async function listAccessRequests(filters: AccessRequestFilters = {}): Pr
 
 export async function getAccessRequest(id: string): Promise<AccessRequest> {
   const response = await authFetch(`/api/access-requests/${encodeURIComponent(id)}`)
+  return readJsonOrThrow(response)
+}
+
+export async function getAccessRequestAudit(id: string): Promise<AccessRequestAuditEvent[]> {
+  const response = await authFetch(`/api/access-requests/${encodeURIComponent(id)}/audit`)
   return readJsonOrThrow(response)
 }
 
