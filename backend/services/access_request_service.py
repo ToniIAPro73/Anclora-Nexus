@@ -1,7 +1,8 @@
 import logging
 import secrets
+import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple
 from backend.config import settings
 from backend.models.access_requests import (
     AccessRequestAnalyticsSummary,
@@ -12,6 +13,10 @@ from backend.models.access_requests import (
     AccessRequestProvisioningStatus,
     AccessRequestRejectDecision,
     AccessRequestReviewDecision,
+    AccessRequestSlaItem,
+    AccessRequestSlaReason,
+    AccessRequestSlaScanResponse,
+    AccessRequestSlaSeverity,
     AccessRequestSource,
     AccessRequestStatus,
     PublicAccessRequestCreate,
@@ -34,6 +39,10 @@ DECISION_EMAIL_AUDIT_ACTIONS = {
     "access_request.email_send_failed",
     "access_request.decision_email_retry_succeeded",
     "access_request.decision_email_retry_failed",
+}
+SLA_AUDIT_ACTIONS = {
+    "access_request.sla_warning",
+    "access_request.sla_critical",
 }
 
 class AccessRequestNotFoundError(Exception):
@@ -255,6 +264,185 @@ class AccessRequestService:
             sample_limit=sample_limit,
             is_sampled=len(rows) >= sample_limit,
             attention_items=attention_items,
+        )
+
+    async def run_sla_scan(
+        self,
+        org_id: str,
+        reviewer_id: str,
+        dedupe_window_hours: int = 24,
+        limit: int = 500,
+    ) -> AccessRequestSlaScanResponse:
+        reviewer_id = reviewer_id.strip()
+        if not reviewer_id:
+            raise ValueError("reviewer_id is required")
+
+        scan_limit = max(1, min(limit, 1000))
+        dedupe_hours = max(1, min(dedupe_window_hours, 168))
+        now = datetime.now(timezone.utc)
+        scan_id = str(uuid.uuid4())
+
+        # 1. Fetch requests
+        request_result = (
+            supabase_service.client.table("access_requests")
+            .select("*")
+            .eq("org_id", org_id)
+            .order("created_at", desc=True)
+            .limit(scan_limit)
+            .execute()
+        )
+        rows = request_result.data or []
+
+        # 2. Fetch recent SLA audit events for deduplication
+        # We look back dedupe_hours + some buffer to be safe
+        lookback_time = (now - timedelta(hours=dedupe_hours + 1)).isoformat()
+        audit_result = (
+            supabase_service.client.table("audit_log")
+            .select("timestamp,action,resource_id,details")
+            .eq("org_id", org_id)
+            .eq("resource_type", "access_request")
+            .in_("action", list(SLA_AUDIT_ACTIONS))
+            .gte("timestamp", lookback_time)
+            .execute()
+        )
+        recent_sla_events = audit_result.data or []
+        audit_events_by_request = self._group_audit_events(recent_sla_events)
+
+        # 3. Process requests and identify SLA alerts
+        items: list[AccessRequestSlaItem] = []
+        alerts_created = 0
+        alerts_suppressed = 0
+        warning_count = 0
+        critical_count = 0
+
+        for row in rows:
+            request_id = str(row["id"])
+            status_value = str(row.get("status") or AccessRequestStatus.PENDING.value)
+            
+            # Build lifecycle to get email/provisioning status
+            # For heavy scans, we might want to optimize this, but for now we follow analytics pattern
+            # Fetching individual audit events per request would be slow, but we only need recent SLA events for dedupe
+            # and maybe some others for email status.
+            # However, analytics_summary fetches MANY audit events.
+            # Let's assume we need to evaluate the same logic as analytics_summary attention items.
+            
+            created_at = self._parse_datetime(row.get("created_at"))
+            age_hours = self._hours_between(created_at, now) if created_at else None
+            
+            # For email/provisioning status, we need full audit history of the request
+            # OR we can rely on the fact that lifecycle logic is already in _build_lifecycle
+            # To avoid N+1 queries, we could have fetched all relevant audit events for these rows upfront.
+            # But analytics summary does a limit 2000.
+            
+            # Let's try to identify reasons
+            potential_alerts: list[Tuple[AccessRequestSlaReason, AccessRequestSlaSeverity]] = []
+
+            if status_value == AccessRequestStatus.PENDING.value:
+                if age_hours is not None:
+                    if age_hours >= 72:
+                        potential_alerts.append((AccessRequestSlaReason.PENDING_OLDER_THAN_72H, AccessRequestSlaSeverity.CRITICAL))
+                    elif age_hours >= 24:
+                        potential_alerts.append((AccessRequestSlaReason.PENDING_OLDER_THAN_24H, AccessRequestSlaSeverity.WARNING))
+
+            # For terminal statuses, we need lifecycle to check email/provisioning
+            # This is slow if we do it for every row. 
+            # In a real system, we'd fetch all audit events for these rows in one query.
+            # For now, let's only do it if it's in a terminal status or we need attention.
+            
+            if status_value in TERMINAL_ACCESS_REQUEST_STATUSES or (status_value == AccessRequestStatus.APPROVED.value):
+                # We need more info for these. Let's fetch audit events for THIS request.
+                # Optimization: in a real scan we'd batch this.
+                request_audit = (
+                    supabase_service.client.table("audit_log")
+                    .select("timestamp,action,resource_id,details")
+                    .eq("org_id", org_id)
+                    .eq("resource_type", "access_request")
+                    .eq("resource_id", request_id)
+                    .order("timestamp", desc=True)
+                    .execute()
+                )
+                lifecycle = self._build_lifecycle(row, request_audit.data or [])
+                
+                if status_value in TERMINAL_ACCESS_REQUEST_STATUSES:
+                    if lifecycle.email_status == AccessRequestEmailStatus.FAILED:
+                        potential_alerts.append((AccessRequestSlaReason.DECISION_EMAIL_FAILED, AccessRequestSlaSeverity.CRITICAL))
+                    if lifecycle.email_status == AccessRequestEmailStatus.UNKNOWN:
+                        potential_alerts.append((AccessRequestSlaReason.DECISION_EMAIL_UNKNOWN, AccessRequestSlaSeverity.WARNING))
+                    if lifecycle.retry_available:
+                        potential_alerts.append((AccessRequestSlaReason.RETRY_AVAILABLE, AccessRequestSlaSeverity.WARNING))
+
+                if status_value == AccessRequestStatus.APPROVED.value and lifecycle.provisioning_status != AccessRequestProvisioningStatus.INVITE_READY:
+                    potential_alerts.append((AccessRequestSlaReason.PROVISIONING_ATTENTION, AccessRequestSlaSeverity.WARNING))
+
+            # 4. Filter through dedupe and log
+            for reason, severity in potential_alerts:
+                # Check dedupe
+                is_suppressed = False
+                last_alert_at = None
+                
+                request_recent_events = audit_events_by_request.get(request_id, [])
+                for event in request_recent_events:
+                    details = event.get("details") or {}
+                    if (
+                        details.get("reason") == reason.value and 
+                        details.get("severity") == severity.value
+                    ):
+                        event_time = self._parse_datetime(event.get("timestamp"))
+                        if event_time and (now - event_time).total_seconds() < dedupe_hours * 3600:
+                            is_suppressed = True
+                            last_alert_at = event_time
+                            break
+                
+                audit_event_created = False
+                if not is_suppressed:
+                    event_type = "access_request.sla_critical" if severity == AccessRequestSlaSeverity.CRITICAL else "access_request.sla_warning"
+                    await self._log_audit_event(
+                        org_id=org_id,
+                        access_request_id=request_id,
+                        event_type=event_type,
+                        actor_id=reviewer_id,
+                        actor_type="user",
+                        metadata={
+                            "reason": reason.value,
+                            "severity": severity.value,
+                            "age_hours": age_hours,
+                            "scan_id": scan_id,
+                        }
+                    )
+                    audit_event_created = True
+                    alerts_created += 1
+                    if severity == AccessRequestSlaSeverity.CRITICAL:
+                        critical_count += 1
+                    else:
+                        warning_count += 1
+                else:
+                    alerts_suppressed += 1
+
+                items.append(AccessRequestSlaItem(
+                    request_id=request_id,
+                    reason=reason,
+                    severity=severity,
+                    status=status_value,
+                    product=str(row.get("product") or ""),
+                    source=str(row.get("source") or ""),
+                    email=str(row.get("email") or ""),
+                    age_hours=age_hours,
+                    audit_event_created=audit_event_created,
+                    suppressed_by_dedupe=is_suppressed,
+                    last_alert_at=last_alert_at
+                ))
+
+        return AccessRequestSlaScanResponse(
+            scan_id=scan_id,
+            generated_at=now,
+            scanned_count=len(rows),
+            alerts_created=alerts_created,
+            alerts_suppressed=alerts_suppressed,
+            warning_count=warning_count,
+            critical_count=critical_count,
+            notification_status="audit_only",
+            dedupe_window_hours=dedupe_hours,
+            items=items
         )
 
     async def approve_request(
