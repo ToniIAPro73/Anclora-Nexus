@@ -11,6 +11,7 @@ from backend.models.access_requests import (
     AccessRequestRejectDecision,
     AccessRequestResponse,
     AccessRequestReviewDecision,
+    AccessRequestSlaScanResponse,
     AccessRequestSource,
     AccessRequestStatus,
 )
@@ -59,6 +60,24 @@ async def get_access_request_analytics_summary(
     try:
         return await access_request_service.get_analytics_summary(
             org_id=org_id,
+            limit=limit,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/sla/scan", response_model=AccessRequestSlaScanResponse)
+async def run_access_request_sla_scan(
+    org_id: str = Depends(get_org_id),
+    current_user=Depends(require_access_request_reviewer),
+    limit: int = Query(500, ge=1, le=1000),
+    dedupe_window_hours: int = Query(24, ge=1, le=168),
+):
+    try:
+        return await access_request_service.run_sla_scan(
+            org_id=org_id,
+            reviewer_id=current_user.id,
+            dedupe_window_hours=dedupe_window_hours,
             limit=limit,
         )
     except Exception as e:

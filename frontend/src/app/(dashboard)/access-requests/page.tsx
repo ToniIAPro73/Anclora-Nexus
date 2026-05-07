@@ -24,6 +24,7 @@ import {
 import { AccessRequestDecisionDialog } from '@/components/access-requests/AccessRequestDecisionDialog'
 import { AccessRequestDetailPanel } from '@/components/access-requests/AccessRequestDetailPanel'
 import { AccessRequestOperationsDashboard } from '@/components/access-requests/AccessRequestOperationsDashboard'
+import { AccessRequestSlaPanel } from '@/components/access-requests/AccessRequestSlaPanel'
 import { AccessRequestsTable } from '@/components/access-requests/AccessRequestsTable'
 
 export default function AccessRequestsPage() {
@@ -345,6 +346,7 @@ export default function AccessRequestsPage() {
           </section>
 
           <div className="min-w-0 space-y-3">
+            <AccessRequestSlaPanel onSelectRequest={(id) => void openRequestById(id)} t={t} />
             {detailLoading ? (
               <div className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5 text-sm text-soft-muted">
                 {t('accessRequestsDetailLoading')}

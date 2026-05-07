@@ -204,3 +204,53 @@ export async function retryAccessRequestDecisionEmail(id: string): Promise<Acces
   })
   return readJsonOrThrow(response)
 }
+
+export type AccessRequestSlaSeverity = 'warning' | 'critical'
+export type AccessRequestSlaReason =
+  | 'pending_older_than_24h'
+  | 'pending_older_than_72h'
+  | 'decision_email_failed'
+  | 'decision_email_unknown'
+  | 'retry_available'
+  | 'provisioning_attention'
+
+export interface AccessRequestSlaItem {
+  request_id: string
+  reason: AccessRequestSlaReason
+  severity: AccessRequestSlaSeverity
+  status: string
+  product: string
+  source: string
+  email: string
+  age_hours?: number | null
+  audit_event_created: boolean
+  suppressed_by_dedupe: boolean
+  last_alert_at?: string | null
+}
+
+export interface AccessRequestSlaScanResponse {
+  scan_id: string
+  generated_at: string
+  scanned_count: number
+  alerts_created: number
+  alerts_suppressed: number
+  warning_count: number
+  critical_count: number
+  notification_status: string
+  dedupe_window_hours: number
+  items: AccessRequestSlaItem[]
+}
+
+export async function runAccessRequestSlaScan(params: {
+  limit?: number
+  dedupe_window_hours?: number
+} = {}): Promise<AccessRequestSlaScanResponse> {
+  const search = new URLSearchParams()
+  if (params.limit) search.set('limit', String(params.limit))
+  if (params.dedupe_window_hours) search.set('dedupe_window_hours', String(params.dedupe_window_hours))
+
+  const response = await authFetch(`/api/access-requests/sla/scan?${search.toString()}`, {
+    method: 'POST',
+  })
+  return readJsonOrThrow(response)
+}
