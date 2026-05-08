@@ -28,7 +28,7 @@ export function reasonLabel(reason: AccessRequestSlaReason | string, t: Translat
 
 function severityClassName(severity: AccessRequestSlaSeverity | string) {
   return severity === 'critical'
-    ? 'border-rose-400/30 bg-rose-950/20 text-rose-200'
+    ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-navy-surface/50 dark:text-rose-200'
     : 'border-gold/25 bg-gold/10 text-gold'
 }
 
@@ -81,7 +81,7 @@ export function AccessRequestSlaPanel({ onSelectRequest, onScanComplete, t }: Ac
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-400/30 bg-rose-950/20 p-4 text-sm text-rose-200">
+        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-500/30 dark:bg-navy-surface/50 dark:text-rose-200">
           <XCircle className="h-5 w-5 shrink-0" />
           <p>{t('accessRequestsSlaScanFailed')}: {error}</p>
         </div>

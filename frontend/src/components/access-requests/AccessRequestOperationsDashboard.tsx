@@ -111,7 +111,7 @@ export function AccessRequestOperationsDashboard({
 
   if (error) {
     return (
-      <section className="rounded-xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">
+      <section className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-500/30 dark:bg-navy-surface/50 dark:text-rose-200">
         {error}
       </section>
     )

@@ -218,8 +218,7 @@ export default function PartnerNetworkPage() {
 
             <div className="mt-5 space-y-3">
               {loading ? <p className="text-sm text-soft-muted">{t('loading')}</p> : null}
-              {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-950/20 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
-              {!loading && items.length === 0 ? <p className="text-sm text-soft-muted">{t('partnerNetworkEmpty')}</p> : null}
+              {error ? <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-500/30 dark:bg-navy-surface/50 dark:text-rose-200">{error}</p> : null}              {!loading && items.length === 0 ? <p className="text-sm text-soft-muted">{t('partnerNetworkEmpty')}</p> : null}
               {items.map((item) => {
                 const active = selectedId === item.workspace_id
                 return (

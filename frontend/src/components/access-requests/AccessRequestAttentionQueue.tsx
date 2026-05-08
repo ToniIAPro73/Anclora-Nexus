@@ -27,7 +27,7 @@ function reasonLabel(reason: string, t: Translate): string {
 
 function severityClassName(severity: AccessRequestAttentionItem['severity']) {
   return severity === 'critical'
-    ? 'border-rose-400/30 bg-rose-950/20 text-rose-200'
+    ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-navy-surface/50 dark:text-rose-200'
     : 'border-gold/25 bg-gold/10 text-gold'
 }
 
