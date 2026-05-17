@@ -54,7 +54,7 @@ function getContent(language: string, kind: Kind) {
     description: de ? 'Nutzungsbedingungen für Anclora Nexus.' : en ? 'Use conditions for Anclora Nexus.' : 'Condiciones de uso de Anclora Nexus.',
     updated,
     blocks: [
-      { title: de ? 'Betreiber' : en ? 'Operator' : 'Operador', paragraphs: [de ? 'Anclora Nexus ist eine Handelsmarke, die unter exklusiver Lizenz von Anclora Group betrieben wird.' : en ? 'Anclora Nexus is a commercial brand operated under exclusive license by Anclora Group.' : 'Anclora Nexus es una marca comercial operada bajo licencia exclusiva por Anclora Group.'] },
+      { title: de ? 'Betreiber' : en ? 'Operator' : 'Operador', paragraphs: [de ? 'Anclora Nexus ist Teil des operativen Ökosystems von Anclora Group.' : en ? 'Anclora Nexus is part of the Anclora Group operational ecosystem.' : 'Anclora Nexus forma parte del ecosistema operativo de Anclora Group.'] },
       { title: de ? 'Interner Dienst' : en ? 'Internal service' : 'Servicio interno', paragraphs: [de ? 'Der Zugriff ist auf autorisierte Profile beschränkt.' : en ? 'Access is limited to authorized profiles.' : 'El acceso está limitado a perfiles autorizados.'] },
     ],
   }

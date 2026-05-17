@@ -4,10 +4,10 @@ import Link from 'next/link'
 import { useI18n } from '@/lib/i18n'
 
 const labels = {
-  es: { terms: 'Términos del servicio', privacy: 'Política de privacidad', legal: 'Aviso legal', rights: 'Todos los derechos reservados.', brand: 'Anclora Nexus es una marca comercial operada bajo licencia exclusiva por Anclora Group.' },
-  en: { terms: 'Terms of service', privacy: 'Privacy policy', legal: 'Legal notice', rights: 'All rights reserved.', brand: 'Anclora Nexus is a commercial brand operated under exclusive license by Anclora Group.' },
-  de: { terms: 'Nutzungsbedingungen', privacy: 'Datenschutzerklärung', legal: 'Impressum', rights: 'Alle Rechte vorbehalten.', brand: 'Anclora Nexus ist eine Handelsmarke, die unter exklusiver Lizenz von Anclora Group betrieben wird.' },
-  ru: { terms: 'Условия сервиса', privacy: 'Политика конфиденциальности', legal: 'Правовая информация', rights: 'Все права защищены.', brand: 'Anclora Nexus является коммерческим брендом, управляемым по эксклюзивной лицензии Anclora Group.' },
+  es: { terms: 'Términos del servicio', privacy: 'Política de privacidad', legal: 'Aviso legal', rights: 'Todos los derechos reservados.', brand: 'Anclora Nexus forma parte del ecosistema operativo de Anclora Group.' },
+  en: { terms: 'Terms of service', privacy: 'Privacy policy', legal: 'Legal notice', rights: 'All rights reserved.', brand: 'Anclora Nexus is part of the Anclora Group operational ecosystem.' },
+  de: { terms: 'Nutzungsbedingungen', privacy: 'Datenschutzerklärung', legal: 'Impressum', rights: 'Alle Rechte vorbehalten.', brand: 'Anclora Nexus ist Teil des operativen Ökosystems von Anclora Group.' },
+  ru: { terms: 'Условия сервиса', privacy: 'Политика конфиденциальности', legal: 'Правовая информация', rights: 'Все права защищены.', brand: 'Anclora Nexus является частью операционной экосистемы Anclora Group.' },
 }
 
 export function LegalFooter() {
