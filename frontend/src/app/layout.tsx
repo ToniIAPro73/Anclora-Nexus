@@ -7,6 +7,8 @@ import { OrgProvider } from "@/lib/contexts/OrgContext";
 import { NEXUS_BRAND } from "@/lib/brand";
 import { I18nProvider } from "@/lib/i18n";
 import { fetchUserAndOrg } from "@/lib/server-auth";
+import { CookieConsent } from "@/components/legal/CookieConsent";
+import { LegalFooter } from "@/components/legal/LegalFooter";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -48,6 +50,8 @@ export default async function RootLayout({
           <CurrencyProvider>
             <OrgProvider initialMembership={initialData.membership}>
               {children}
+              <LegalFooter />
+              <CookieConsent />
             </OrgProvider>
           </CurrencyProvider>
         </I18nProvider>
