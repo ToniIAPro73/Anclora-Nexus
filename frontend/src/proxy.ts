@@ -61,7 +61,7 @@ export async function proxy(req: NextRequest) {
   } = await supabase.auth.getSession()
 
   const isLoginPage = req.nextUrl.pathname.startsWith('/login')
-  const isAuthCallback = req.nextUrl.pathname.startsWith('/auth/callback')
+  const isAuthRoute = req.nextUrl.pathname.startsWith('/auth/')
   const isInvitePage = req.nextUrl.pathname.startsWith('/invite/')
   const isPrivateAreaPublic = req.nextUrl.pathname === '/private-area' || req.nextUrl.pathname.startsWith('/private-area/')
   const isRecoveryFlow =
@@ -69,7 +69,7 @@ export async function proxy(req: NextRequest) {
     req.nextUrl.searchParams.get('mode') === 'reset' ||
     req.nextUrl.searchParams.get('type') === 'recovery'
 
-  if (isAuthCallback || isInvitePage || isPrivateAreaPublic) {
+  if (isAuthRoute || isInvitePage || isPrivateAreaPublic) {
     return res
   }
 
