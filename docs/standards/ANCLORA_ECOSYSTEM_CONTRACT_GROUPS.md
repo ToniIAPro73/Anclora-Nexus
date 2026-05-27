@@ -180,7 +180,7 @@ Al crear una app nueva:
 | Aplicación | Grupo | Idiomas objetivo | Tema objetivo | Contratos mínimos |
 | --- | --- | --- | --- | --- |
 | `anclora-advisor-ai` | Interna | `es`, `en` | `dark/light/system` | Base + interno |
-| `anclora-nexus` | Interna | `es`, `en`, `de`, `ru` | `dark` operativo | Base + interno |
+| `anclora-nexus` | Interna | objetivo `es`, `ca`, `en`, `de`; activos `es`, `en`, `de` | `dark` operativo | Base + interno; catalán pendiente de copy |
 | `anclora-content-generator-ai` | Interna | `es`, `en` | `dark/light/system` | Base + interno |
 | `anclora-impulso` | Premium | `es`, `en` | `dark/light` | Base + premium |
 | `anclora-command-center` | Premium | `es`, `en`, `de` | `dark/light` | Base + premium |

@@ -2,7 +2,7 @@ export const NEXUS_BRAND = {
   name: 'Anclora Nexus',
   subtitle: 'Capa operativa interna de Anclora para pipeline, relaciones y coordinacion comercial.',
   defaultLanguage: 'es',
-  supportedLanguages: ['es', 'en', 'de', 'ru'] as const,
+  supportedLanguages: ['es', 'en', 'de'] as const,
   assets: {
     logoPrimary: '/brand/logo-nexus-v1.png',
     logoFallback: '/brand/logo-nexus.png',

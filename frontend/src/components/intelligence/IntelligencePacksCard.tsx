@@ -5,12 +5,12 @@ import { BookOpen, Globe2, Layers3, Plus, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import type { Language, TranslationKey } from '@/lib/i18n'
 import { authFetch } from '@/lib/auth-fetch'
+import { ACTIVE_NEXUS_LOCALES } from '@/lib/anclora-language-toggle'
 
 const LOCALE_BY_LANGUAGE: Record<Language, string> = {
   es: 'es-ES',
   en: 'en-US',
   de: 'de-DE',
-  ru: 'ru-RU',
 }
 
 type IntelligencePack = {
@@ -21,7 +21,7 @@ type IntelligencePack = {
   notebook_name: string
   market_scope: 'seller' | 'buyer' | 'mixed' | string
   zone_scope: string[]
-  language_code: 'es' | 'en' | 'de' | 'ru' | string
+  language_code: 'es' | 'en' | 'de' | string
   source_mode: 'notebooklm_manual' | 'live_sync_pack' | 'imported_rag' | string
   status: 'active' | 'draft' | 'archived' | string
   is_default: boolean
@@ -311,7 +311,7 @@ export function IntelligencePacksCard() {
               <label className="block">
                 <span className="kpi-label">{t('intelligencePacksLanguage')}</span>
                 <select className="ui-select" value={form.language_code} onChange={(e) => setForm((prev) => ({ ...prev, language_code: e.target.value }))}>
-                  {['es', 'en', 'de', 'ru'].map((code) => (
+                  {ACTIVE_NEXUS_LOCALES.map((code) => (
                     <option key={code} value={code}>{code.toUpperCase()}</option>
                   ))}
                 </select>

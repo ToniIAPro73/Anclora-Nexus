@@ -58,7 +58,9 @@ Leer en este orden cuando la feature toca UI, tablas, forms, modales, shell, nav
 Contrato objetivo:
 
 ```text
-Idiomas: es / en / de / ru
+Idiomas objetivo Internal: es / ca / en / de
+Idiomas activos actuales: es / en / de
+Catalán queda pendiente de localización completa y ruso no debe mostrarse en el selector Internal.
 Tema: dark operativo principal
 Uso: backoffice, operaciones, revisión, decisión, automatización supervisada
 Branding group: Internal
@@ -255,7 +257,7 @@ Reglas:
 - no mezclar idiomas en una misma pantalla
 - no hardcodear strings visibles si existe patrón i18n en el repo
 - mapear estados técnicos a labels humanos
-- diseñar para expansión de copy en `es/en/de/ru`
+- diseñar para expansión de copy en `es/ca/en/de`
 
 ## Motion
 
