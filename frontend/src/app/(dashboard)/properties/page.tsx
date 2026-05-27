@@ -78,7 +78,6 @@ export default function PropertiesPage() {
       es: 'es-ES',
       en: 'en-GB',
       de: 'de-DE',
-      ru: 'ru-RU',
     } as const
 
     const rtf = new Intl.RelativeTimeFormat(localeMap[language] || 'es-ES', { numeric: 'always' })

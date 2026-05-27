@@ -29,7 +29,9 @@ Lectura mínima antes de tocar interfaz:
 - familia contractual: `Internal`
 - branding: `Interna`
 - tema operativo: `dark`
-- idiomas activos: `es/en/de/ru`
+- idiomas objetivo Internal: `es/ca/en/de`
+- idiomas activos con copy completa: `es/en/de`
+- `ca`: pendiente de localización; no se activa hasta pasar Locale Copy Guardian
 - `light`: posible futuro, no requisito actual
 
 ## Branding y activos

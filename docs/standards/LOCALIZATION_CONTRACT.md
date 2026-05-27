@@ -24,7 +24,7 @@ Regla:
 
 Cobertura objetivo por aplicación:
 - `anclora-advisor-ai`: `es`, `en`
-- `anclora-nexus`: `es`, `en`, `de`, `ru`
+- `anclora-nexus`: objetivo Internal `es`, `ca`, `en`, `de`; activos actuales `es`, `en`, `de` hasta completar copy en catalán.
 - `anclora-content-generator-ai`: `es`, `en`
 - `anclora-impulso`: `es`, `en`
 - `anclora-command-center`: `es`, `en`, `de`

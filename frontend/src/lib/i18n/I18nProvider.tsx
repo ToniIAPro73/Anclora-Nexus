@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { translations, Language, TranslationKey } from './translations'
 import { NEXUS_BRAND, isSupportedNexusLanguage } from '@/lib/brand'
+import { resolveInitialLocale } from '@/lib/anclora-language-toggle'
 
 interface I18nContextType {
   language: Language
@@ -15,15 +16,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window === 'undefined') return NEXUS_BRAND.defaultLanguage
     const params = new URLSearchParams(window.location.search)
-    const langFromUrl = params.get('lang') as Language | null
-    if (isSupportedNexusLanguage(langFromUrl)) {
-      return langFromUrl
-    }
-    const savedLang = localStorage.getItem('anclora-language') as Language | null
-    if (isSupportedNexusLanguage(savedLang)) {
-      return savedLang
-    }
-    return NEXUS_BRAND.defaultLanguage
+    return resolveInitialLocale({
+      urlLocale: params.get('lang') || params.get('locale'),
+      persistedLocale: localStorage.getItem('anclora-language'),
+      browserLocales: navigator.languages?.length ? navigator.languages : [navigator.language],
+    })
   })
 
   const setLanguage = (lang: Language) => {
@@ -40,10 +37,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const t = (key: TranslationKey): string => {
     const fallbackGroup = translations.es as Record<string, string>
     const rawLangGroup = ((translations as Record<string, unknown>)[language] || {}) as Record<string, string>
-    const langGroup =
-      language === 'ru'
-        ? ({ ...fallbackGroup, ...rawLangGroup } as Record<string, string>)
-        : rawLangGroup
+    const langGroup = rawLangGroup
     return langGroup[key] || fallbackGroup[key] || key
   }
 

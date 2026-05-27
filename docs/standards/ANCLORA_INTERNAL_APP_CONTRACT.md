@@ -114,7 +114,7 @@ Regla:
 
 ### `anclora-nexus`
 - Mantener dark como contrato operativo principal.
-- Mantener cobertura `es/en/de/ru`.
+- Mantener cobertura objetivo Internal `es/ca/en/de`; en Nexus quedan activos `es/en/de` hasta completar copy en catalán. Ruso no debe mostrarse como idioma de selector Internal.
 - Los contratos existentes de `surface` y `page primitives` siguen vigentes y deben leerse como implementación concreta del grupo interno.
 - No introducir nuevos portales, cards o modales fuera de la gramática ya definida en `sdd/contracts`.
 

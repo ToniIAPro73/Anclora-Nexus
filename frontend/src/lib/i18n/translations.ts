@@ -1,3 +1,5 @@
+import type { NexusLanguage } from '@/lib/brand'
+
 export const translations = {
   es: {
     // Navigation
@@ -5227,5 +5229,5 @@ export const translations = {
   },
 } as const
 
-export type Language = keyof typeof translations
+export type Language = NexusLanguage
 export type TranslationKey = keyof typeof translations.es
