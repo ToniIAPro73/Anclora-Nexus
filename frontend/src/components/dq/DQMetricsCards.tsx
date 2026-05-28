@@ -50,8 +50,8 @@ export function DQMetricsCards({ metrics }: DQMetricsCardsProps) {
               <stat.icon className={`w-6 h-6 ${stat.color}`} />
             </div>
             <div>
-              <p className="text-white-soft/60 text-sm font-medium">{stat.label}</p>
-              <h3 className="text-2xl font-bold text-white-soft mt-1">{stat.value}</h3>
+              <p className="text-soft-white/60 text-sm font-medium">{stat.label}</p>
+              <h3 className="text-2xl font-bold text-soft-white mt-1">{stat.value}</h3>
             </div>
           </div>
         </div>

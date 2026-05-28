@@ -19,7 +19,7 @@ function LeadsContent() {
   const { formatBudgetText } = useCurrency()
   const searchParams = useSearchParams()
   const [highlightId, setHighlightId] = useState<string | null>(null)
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingLead, setEditingLead] = useState<Lead | null>(null)
 
@@ -35,7 +35,7 @@ function LeadsContent() {
 
   const ITEMS_PER_PAGE = 10
   const totalPages = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE)
-  
+
   const safeCurrentPage = Math.min(Math.max(1, currentPage), Math.max(1, totalPages))
   const paginatedLeads = filteredLeads.slice((safeCurrentPage - 1) * ITEMS_PER_PAGE, safeCurrentPage * ITEMS_PER_PAGE)
 
@@ -72,7 +72,7 @@ function LeadsContent() {
       if (index !== -1) {
         const targetPage = Math.ceil((index + 1) / ITEMS_PER_PAGE)
         setTimeout(() => setCurrentPage(targetPage), 0)
-        
+
         setTimeout(() => {
           const el = document.getElementById(`lead-row-${highlightId}`)
           if (el) {
@@ -93,7 +93,7 @@ function LeadsContent() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link 
+            <Link
               href="/dashboard"
               className="p-2 rounded-lg bg-navy-surface/40 border border-soft-subtle hover:border-gold/50 transition-colors"
             >
@@ -128,7 +128,7 @@ function LeadsContent() {
             <Filter className="w-4 h-4 text-gold" />
             <span className="text-sm font-medium text-soft-muted">{t('filterByOrigin')}:</span>
           </div>
-          <select 
+          <select
             value={filterOrigin}
             onChange={(e) => {
               setFilterOrigin(e.target.value)
@@ -149,7 +149,7 @@ function LeadsContent() {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-soft-muted">{t('filterByChannel')}:</span>
           </div>
-          <select 
+          <select
             value={filterChannel}
             onChange={(e) => {
               setFilterChannel(e.target.value)
@@ -173,7 +173,7 @@ function LeadsContent() {
                 setFilterChannel('all')
                 setCurrentPage(1)
               }}
-              className="text-xs text-blue-light hover:text-white transition-colors underline underline-offset-4"
+              className="text-xs text-blue-light hover:text-soft-white transition-colors underline underline-offset-4"
             >
               {t('clearFilters')}
             </button>
@@ -227,8 +227,8 @@ function LeadsContent() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                         className={`group transition-all duration-500 ${
-                          isHighlighted 
-                            ? 'bg-gold/10 border-y border-gold/30 shadow-[0_0_15px_rgba(212,175,55,0.1)]' 
+                          isHighlighted
+                            ? 'bg-gold/10 border-y border-gold/30 shadow-[0_0_15px_rgba(212,175,55,0.1)]'
                             : 'hover:bg-white/[0.02]'
                         }`}
                       >
@@ -308,7 +308,7 @@ function LeadsContent() {
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={safeCurrentPage === 1}
-                className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-white"
+                className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-soft-white"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -318,7 +318,7 @@ function LeadsContent() {
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={safeCurrentPage === totalPages}
-                className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-white"
+                className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-soft-white"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -326,14 +326,14 @@ function LeadsContent() {
           )}
         </div>
       </motion.div>
-      
-      <LeadFormModal 
-        isOpen={isModalOpen} 
+
+      <LeadFormModal
+        isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false)
           setEditingLead(null)
-        }} 
-        editLead={editingLead} 
+        }}
+        editLead={editingLead}
       />
     </div>
   )

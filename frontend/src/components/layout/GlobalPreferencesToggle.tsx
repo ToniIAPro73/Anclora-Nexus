@@ -193,7 +193,7 @@ export function GlobalPreferencesToggle() {
               </select>
             </Field>
 
-            <button type="button" className="mt-4 w-full rounded-lg bg-gold px-4 py-2 text-sm font-bold text-navy-darker" onClick={() => setIsOpen(false)}>
+            <button type="button" className="mt-4 w-full rounded-lg bg-gold px-4 py-2 text-sm font-bold text-[#0F1629]" onClick={() => setIsOpen(false)}>
               {copy.save}
             </button>
           </motion.div>

@@ -20,7 +20,7 @@ export function IngestionEventDetail({ event, onClose }: Props) {
             <h2 className="text-xl font-display font-semibold text-soft-white">{t('payloadDetails')}</h2>
             <p className="text-xs text-soft-muted mt-1 uppercase tracking-widest">{event.connector_name} • {event.external_id}</p>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 rounded-xl hover:bg-white/5 text-soft-muted hover:text-soft-white transition-colors"
           >
@@ -86,9 +86,9 @@ export function IngestionEventDetail({ event, onClose }: Props) {
 
         {/* Footer */}
         <div className="p-6 border-t border-soft-subtle bg-white/[0.02] flex justify-end">
-          <button 
+          <button
             onClick={onClose}
-            className="px-6 py-2 rounded-xl bg-gold text-navy-deep font-bold text-sm tracking-wide hover:bg-gold-muted transition-all active:scale-95"
+            className="px-6 py-2 rounded-xl bg-gold text-[#0F1629] font-bold text-sm tracking-wide hover:bg-gold-muted transition-all active:scale-95"
           >
             {t('closeLabel') || 'Cerrar'}
           </button>

@@ -15,18 +15,18 @@ export function LegalFooter() {
   const copy = labels[language] ?? labels.es
   const year = new Date().getFullYear()
   return (
-    <footer className="border-t border-white/10 bg-navy-dark/80 px-5 py-4 text-xs text-white/55">
+    <footer className="border-t border-white/10 bg-navy-surface/80 px-5 py-4 text-xs text-soft-muted">
       <div className="mx-auto flex max-w-7xl flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <p>© {year} Anclora Group — {copy.rights}</p>
           <p>{copy.brand}</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href="/terms" className="hover:text-white">{copy.terms}</Link>
-          <Link href="/privacy" className="hover:text-white">{copy.privacy}</Link>
-          <Link href="/legal" className="hover:text-white">{copy.legal}</Link>
-          <a href="mailto:hola@anclora.com" className="hover:text-white">hola@anclora.com</a>
-          <button type="button" onClick={() => window.dispatchEvent(new Event('anclora:open-cookie-preferences'))} className="hover:text-white">Cookies</button>
+          <Link href="/terms" className="hover:text-soft-white">{copy.terms}</Link>
+          <Link href="/privacy" className="hover:text-soft-white">{copy.privacy}</Link>
+          <Link href="/legal" className="hover:text-soft-white">{copy.legal}</Link>
+          <a href="mailto:hola@anclora.com" className="hover:text-soft-white">hola@anclora.com</a>
+          <button type="button" onClick={() => window.dispatchEvent(new Event('anclora:open-cookie-preferences'))} className="hover:text-soft-white">Cookies</button>
         </div>
       </div>
     </footer>

@@ -46,22 +46,22 @@ export function ChatConsole() {
         <div className="flex items-center gap-3">
           {/* Ultra-Minimalist Mode Selector */}
           <div className="flex bg-navy-surface/80 p-0.5 rounded-full border border-white/10 shadow-inner">
-            <button 
+            <button
               onClick={() => setMode('fast')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all duration-500 rounded-r-none ${
-                mode === 'fast' 
-                  ? 'bg-gold text-navy-deep font-bold shadow-lg shadow-gold/10' 
+                mode === 'fast'
+                  ? 'bg-gold text-[#0F1629] font-bold shadow-lg shadow-gold/10'
                   : 'text-soft-muted hover:text-soft-white hover:bg-white/5'
               }`}
             >
               <Zap className={`w-3 h-3 ${mode === 'fast' ? 'fill-current' : ''}`} />
               <span className="text-[8px] uppercase font-bold tracking-wider">{t('fast')}</span>
             </button>
-            <button 
+            <button
               onClick={() => setMode('deep')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all duration-500 rounded-l-none ${
-                mode === 'deep' 
-                  ? 'bg-blue-light text-navy-deep font-bold shadow-lg shadow-blue-light/10' 
+                mode === 'deep'
+                  ? 'bg-blue-light text-[#0F1629] font-bold shadow-lg shadow-blue-light/10'
                   : 'text-soft-muted hover:text-soft-white hover:bg-white/5'
               }`}
             >
@@ -72,7 +72,7 @@ export function ChatConsole() {
 
           <div className="w-px h-3 bg-white/10 shrink-0" />
 
-          <button 
+          <button
             onClick={clearIntelligenceHistory}
             className="text-soft-muted hover:text-red-400 hover:bg-white/5 p-1.5 rounded-full transition-all shrink-0"
             title={t('clearHistory')}
@@ -83,13 +83,13 @@ export function ChatConsole() {
       </div>
 
       {/* MESSAGES AREA */}
-      <div 
+      <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10"
       >
         <AnimatePresence initial={false}>
           {intelligence.queryHistory.length === 0 && !intelligence.isProcessing && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="h-full flex flex-col items-center justify-center text-center p-10 opacity-40"
@@ -105,7 +105,7 @@ export function ChatConsole() {
           {intelligence.queryHistory.map((item, idx) => (
             <div key={idx} className="space-y-4">
               {/* User Message */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="flex justify-end"
@@ -116,7 +116,7 @@ export function ChatConsole() {
               </motion.div>
 
               {/* AI Response - Just the text summary part */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="flex justify-start"
@@ -135,24 +135,24 @@ export function ChatConsole() {
           ))}
 
           {intelligence.isProcessing && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex justify-start"
             >
               <div className="bg-navy-surface/50 border border-gold/10 rounded-2xl rounded-tl-none px-5 py-4 flex items-center gap-3">
                 <div className="flex gap-1">
-                  <motion.div 
+                  <motion.div
                     animate={{ y: [0, -5, 0] }}
                     transition={{ repeat: Infinity, duration: 1 }}
                     className="w-1.5 h-1.5 bg-gold rounded-full"
                   />
-                  <motion.div 
+                  <motion.div
                     animate={{ y: [0, -5, 0] }}
                     transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
                     className="w-1.5 h-1.5 bg-gold rounded-full"
                   />
-                  <motion.div 
+                  <motion.div
                     animate={{ y: [0, -5, 0] }}
                     transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
                     className="w-1.5 h-1.5 bg-gold rounded-full"
@@ -170,7 +170,7 @@ export function ChatConsole() {
       {/* INPUT AREA */}
       <div className="p-4 bg-navy-darker/40 border-t border-soft-subtle">
         <form onSubmit={handleSubmit} className="relative group">
-          <textarea 
+          <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={intelligence.isProcessing}
@@ -183,10 +183,10 @@ export function ChatConsole() {
               }
             }}
           />
-          <button 
+          <button
             type="submit"
             disabled={intelligence.isProcessing || !input.trim()}
-            className="absolute right-3 bottom-3 p-3 bg-gold text-navy-deep rounded-xl hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 transition-all shadow-[0_0_15px_rgba(212,175,55,0.3)] group-hover:shadow-[0_0_20px_rgba(212,175,55,0.5)]"
+            className="absolute right-3 bottom-3 p-3 bg-gold text-[#0F1629] rounded-xl hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 transition-all shadow-[0_0_15px_rgba(212,175,55,0.3)] group-hover:shadow-[0_0_20px_rgba(212,175,55,0.5)]"
           >
             <Send className="w-5 h-5" />
           </button>

@@ -30,7 +30,7 @@ export default function PropertiesPage() {
   const ITEMS_PER_PAGE = 9
   const [currentPage, setCurrentPage] = useState(1)
   const totalPages = Math.ceil(properties.length / ITEMS_PER_PAGE)
-  
+
   const safeCurrentPage = Math.min(Math.max(1, currentPage), Math.max(1, totalPages))
   const paginatedProperties = properties.slice((safeCurrentPage - 1) * ITEMS_PER_PAGE, safeCurrentPage * ITEMS_PER_PAGE)
 
@@ -119,7 +119,7 @@ export default function PropertiesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link 
+            <Link
               href="/dashboard"
               className="p-2 rounded-lg bg-navy-surface/40 border border-soft-subtle hover:border-gold/50 transition-colors"
             >
@@ -186,11 +186,11 @@ export default function PropertiesPage() {
                           {getPropertyStatusLabel(property.status)}
                         </span>
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-2">
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
-                          property.source_system === 'pbm' 
-                            ? 'bg-gold/10 text-gold border-gold/20' 
+                          property.source_system === 'pbm'
+                            ? 'bg-gold/10 text-gold border-gold/20'
                             : property.source_system === 'widget'
                             ? 'bg-blue-500/10 text-blue-300 border-blue-500/20'
                             : 'bg-white/5 text-soft-muted border-soft-subtle'
@@ -208,7 +208,7 @@ export default function PropertiesPage() {
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="flex items-center gap-2 text-sm text-soft-muted">
                         <MapPin className="w-4 h-4 shrink-0" />
                         <span className="line-clamp-1">{property.zone || property.address}</span>
@@ -253,8 +253,8 @@ export default function PropertiesPage() {
                               <span className="text-xs text-soft-muted uppercase tracking-wider">{t('matchLabel')}</span>
                               <div className="flex items-center gap-2">
                                  <div className="h-1.5 w-16 bg-navy-deep rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-gradient-to-r from-gold to-amber-500" 
+                                    <div
+                                      className="h-full bg-gradient-to-r from-gold to-amber-500"
                                       style={{ width: `${pbmMetaByPropertyId[property.id]?.bestMatchScore || property.match_score}%` }}
                                     />
                                  </div>
@@ -309,7 +309,7 @@ export default function PropertiesPage() {
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={safeCurrentPage === 1}
-                className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-white"
+                className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-soft-white"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -319,7 +319,7 @@ export default function PropertiesPage() {
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={safeCurrentPage === totalPages}
-                className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-white"
+                className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-soft-white"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -327,8 +327,8 @@ export default function PropertiesPage() {
           )}
         </div>
       </motion.div>
-      
-      <PropertyFormModal 
+
+      <PropertyFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         editProperty={editingProperty}

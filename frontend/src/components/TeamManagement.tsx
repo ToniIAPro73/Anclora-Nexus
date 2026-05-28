@@ -6,12 +6,12 @@ import { useTeamManagement } from '@/lib/hooks/useTeamManagement'
 import { useI18n } from '@/lib/i18n'
 import supabase from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  UserPlus, 
-  Trash2, 
-  UserCog, 
-  Mail, 
-  CheckCircle2, 
+import {
+  UserPlus,
+  Trash2,
+  UserCog,
+  Mail,
+  CheckCircle2,
   AlertCircle,
   ChevronRight
 } from 'lucide-react'
@@ -28,11 +28,11 @@ type TeamMember = OrgMembership & {
 export default function TeamManagement() {
   const { t } = useI18n()
   const { canManageTeam, org_id, user_id: currentUserId } = useOrgMembership()
-  const { 
-    inviteMember, 
-    changeMemberRole, 
-    removeMember, 
-    fetchMembers, 
+  const {
+    inviteMember,
+    changeMemberRole,
+    removeMember,
+    fetchMembers,
     loading: actionLoading,
     error: teamApiError
   } = useTeamManagement()
@@ -173,8 +173,8 @@ export default function TeamManagement() {
            <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/50" />
-                <Input 
-                  type="email" 
+                <Input
+                  type="email"
                   placeholder={t('emailPlaceholder')}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
@@ -182,17 +182,17 @@ export default function TeamManagement() {
                   required
                 />
               </div>
-              <select 
+              <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as OrgRole)}
                 className="ui-select min-w-[220px]"
               >
                 <option value="manager">{t('teamRoleManager')}</option>
               </select>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={actionLoading}
-                className="bg-gold hover:bg-gold-muted text-navy-deep font-bold px-6 h-12 rounded-xl transition-all flex items-center gap-2"
+                className="bg-gold hover:bg-gold-muted text-[#0F1629] font-bold px-6 h-12 rounded-xl transition-all flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
                 {t('invite')}
@@ -203,7 +203,7 @@ export default function TeamManagement() {
 
       <AnimatePresence>
         {successMessage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -215,7 +215,7 @@ export default function TeamManagement() {
           </motion.div>
         )}
         {errorMessage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -279,10 +279,10 @@ export default function TeamManagement() {
               const subline = displayEmail || `${t('teamMemberIdLabel')}: ${member.id.substring(0,8)}`
               const avatarInitial = (displayName || 'U').charAt(0).toUpperCase()
               return (
-              <motion.tr 
+              <motion.tr
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                key={member.id} 
+                key={member.id}
                 className="group border-b border-soft-subtle/5 hover:bg-white/[0.02] transition-colors"
               >
                 <td className="px-6 py-5">
@@ -309,7 +309,7 @@ export default function TeamManagement() {
                   </div>
                 </td>
                 <td className="px-6 py-5">
-                  <select 
+                  <select
                     value={member.role}
                     onChange={(e) => handleRoleChange(member.id, e.target.value as OrgRole)}
                     disabled={isLastOwner}
@@ -325,8 +325,8 @@ export default function TeamManagement() {
                 </td>
                 <td className="px-6 py-5">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                    member.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                    member.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                    member.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                    member.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                     'bg-red-500/10 text-red-400 border-red-500/20'
                   }`}>
                     {getMembershipStatusLabel(member.status)}
@@ -334,9 +334,9 @@ export default function TeamManagement() {
                 </td>
                 <td className="px-6 py-5 text-right">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       disabled={isOwnerMember}
                       title={isOwnerMember ? t('teamLastOwnerLockedHint') : ''}
                       className="h-8 w-8 text-soft-muted hover:text-red-400 hover:bg-red-500/10"

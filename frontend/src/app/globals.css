@@ -17,6 +17,16 @@
   --color-gold: var(--brand-highlight);
   --color-gold-muted: var(--brand-highlight-muted);
   --color-soft-white: var(--brand-foreground);
+  --color-primary: var(--brand-highlight);
+  --color-primary-foreground: #0F1629;
+  --color-secondary: var(--brand-surface);
+  --color-secondary-foreground: var(--brand-foreground);
+  --color-accent: var(--brand-surface-hover);
+  --color-accent-foreground: var(--brand-foreground);
+  --color-destructive: #DC2626;
+  --color-border: var(--brand-subtle);
+  --color-input: var(--brand-subtle);
+  --color-ring: rgba(212, 175, 55, 0.48);
 
   /* Semantic / Derivative */
   --color-navy-surface: var(--brand-surface);
@@ -92,8 +102,28 @@
     --popover: var(--brand-background);
   }
 
+  :root.light {
+    --brand-background: #F5F7FB;
+    --brand-background-elevated: #FFFFFF;
+    --brand-background-muted: #E8EEF7;
+    --brand-foreground: #111827;
+    --brand-accent: #2563EB;
+    --brand-accent-muted: #5477B7;
+    --brand-highlight: #D4AF37;
+    --brand-highlight-muted: #A77F1E;
+    --brand-surface: rgba(255, 255, 255, 0.88);
+    --brand-surface-hover: rgba(232, 238, 247, 0.96);
+    --brand-muted: rgba(17, 24, 39, 0.62);
+    --brand-subtle: rgba(17, 24, 39, 0.12);
+    --background: var(--brand-background);
+    --foreground: var(--brand-foreground);
+    --card: var(--brand-background-elevated);
+    --card-foreground: var(--brand-foreground);
+    --popover: var(--brand-background-elevated);
+  }
+
   body {
-    @apply bg-navy-darker text-white antialiased;
+    @apply bg-navy-darker text-soft-white antialiased;
     background: linear-gradient(135deg, var(--brand-background) 0%, var(--brand-background-muted) 42%, var(--brand-background-elevated) 100%);
     background-attachment: fixed;
     font-family: var(--brand-font-sans, 'Inter', system-ui, sans-serif);
@@ -115,6 +145,101 @@
   body {
     color-scheme: dark;
   }
+
+  html.light,
+  html.light body {
+    color-scheme: light;
+  }
+
+}
+
+html.light .widget-card {
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow:
+    0 18px 44px rgba(17, 24, 39, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+html.light .text-soft-white,
+html.light .hover\:text-soft-white:hover {
+  color: #111827 !important;
+}
+
+html.light .text-soft-muted,
+html.light .text-soft-muted\/40,
+html.light .text-soft-muted\/30 {
+  color: rgba(17, 24, 39, 0.62) !important;
+}
+
+html.light .bg-navy-darker,
+html.light .bg-navy-darker\/95,
+html.light .bg-navy-darker\/80,
+html.light .bg-navy-darker\/70,
+html.light .bg-navy-darker\/60,
+html.light .bg-navy-darker\/50,
+html.light .bg-navy-darker\/40,
+html.light .bg-navy-darker\/35,
+html.light .bg-navy-darker\/30,
+html.light .bg-navy-darker\/20 {
+  background-color: rgba(245, 247, 251, 0.88) !important;
+}
+
+html.light .bg-navy-surface,
+html.light .bg-navy-surface\/80,
+html.light .bg-navy-surface\/70,
+html.light .bg-navy-surface\/50,
+html.light .bg-navy-surface\/40,
+html.light .bg-navy-surface\/35,
+html.light .bg-navy-surface\/30 {
+  background-color: rgba(255, 255, 255, 0.82) !important;
+}
+
+html.light .ui-input,
+html.light .ui-input-ghost,
+html.light .ui-textarea,
+html.light .ui-select,
+html.light .ui-select-ghost {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+  color: #111827 !important;
+}
+
+html.light .ui-checkbox-row {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+  color: #111827 !important;
+}
+
+html.dark .text-soft-white,
+html.dark .hover\:text-soft-white:hover {
+  color: #F5F5F0 !important;
+}
+
+html.dark .text-soft-muted,
+html.dark .text-soft-muted\/40,
+html.dark .text-soft-muted\/30 {
+  color: rgba(245, 245, 240, 0.66) !important;
+}
+
+html.dark .bg-navy-darker,
+html.dark .bg-navy-darker\/95,
+html.dark .bg-navy-darker\/80,
+html.dark .bg-navy-darker\/70,
+html.dark .bg-navy-darker\/60,
+html.dark .bg-navy-darker\/50,
+html.dark .bg-navy-darker\/40,
+html.dark .bg-navy-darker\/35,
+html.dark .bg-navy-darker\/30,
+html.dark .bg-navy-darker\/20 {
+  background-color: rgba(15, 22, 41, 0.88) !important;
+}
+
+html.dark .bg-navy-surface,
+html.dark .bg-navy-surface\/80,
+html.dark .bg-navy-surface\/70,
+html.dark .bg-navy-surface\/50,
+html.dark .bg-navy-surface\/40,
+html.dark .bg-navy-surface\/35,
+html.dark .bg-navy-surface\/30 {
+  background-color: rgba(20, 28, 58, 0.88) !important;
 }
 
 @layer components {
@@ -269,6 +394,25 @@
     color: #f5f5f0;
   }
 
+  html.light .ui-select,
+  html.light .ui-select-ghost {
+    border-color: rgba(17, 24, 39, 0.16);
+    color: var(--color-soft-white);
+    background-image:
+      linear-gradient(135deg, transparent 0%, transparent 60%, rgba(212, 175, 55, 0.14) 100%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  }
+
+  html.light .ui-select {
+    background-color: rgba(255, 255, 255, 0.94);
+  }
+
+  html.light .ui-select option,
+  html.light .ui-select-ghost option {
+    background: #ffffff;
+    color: #111827;
+  }
+
   .ui-input,
   .ui-input-ghost,
   .ui-textarea {
@@ -336,6 +480,20 @@
     cursor: not-allowed;
   }
 
+  html.light .ui-input,
+  html.light .ui-input-ghost,
+  html.light .ui-textarea {
+    border-color: rgba(17, 24, 39, 0.16);
+    color: var(--color-soft-white);
+    background-color: rgba(255, 255, 255, 0.94);
+  }
+
+  html.light .ui-input::placeholder,
+  html.light .ui-input-ghost::placeholder,
+  html.light .ui-textarea::placeholder {
+    color: rgba(17, 24, 39, 0.48);
+  }
+
   .ui-checkbox {
     appearance: none;
     -webkit-appearance: none;
@@ -397,6 +555,11 @@
     cursor: not-allowed;
   }
 
+  html.light .ui-checkbox {
+    border-color: rgba(17, 24, 39, 0.22);
+    background: rgba(255, 255, 255, 0.94);
+  }
+
   .ui-checkbox-row {
     display: flex;
     align-items: center;
@@ -423,6 +586,12 @@
   .ui-checkbox-row:has(.ui-checkbox:checked) {
     border-color: rgba(212, 175, 55, 0.34);
     box-shadow: 0 10px 24px rgba(4, 8, 20, 0.14);
+  }
+
+  html.light .ui-checkbox-row {
+    border-color: rgba(17, 24, 39, 0.14);
+    background: rgba(255, 255, 255, 0.68);
+    color: var(--color-soft-white);
   }
 
   .private-estates-theme {
@@ -633,7 +802,7 @@
   .btn-action {
     @apply inline-flex items-center justify-center gap-2 px-6 h-12 rounded-xl text-sm font-bold;
     background: var(--color-gold);
-    color: var(--color-navy-deep);
+    color: #0F1629;
     column-gap: 0.5rem; /* exact match with invite button gap-2 */
     transition: all 0.2s ease;
   }

@@ -39,7 +39,7 @@ export default function TasksPage() {
     setIsModalOpen(true)
   }
 
-  // ... (inside return) 
+  // ... (inside return)
   return (
     <div className="min-h-screen p-8">
       <motion.div
@@ -50,7 +50,7 @@ export default function TasksPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link 
+            <Link
               href="/dashboard"
               className="p-2 rounded-lg bg-navy-surface/40 border border-soft-subtle hover:border-gold/50 transition-colors"
             >
@@ -189,7 +189,7 @@ export default function TasksPage() {
                     onClick={() => toggleTask(task.id)}
                   >
                     <div className="w-6 h-6 rounded-md bg-gold border-2 border-gold flex items-center justify-center flex-shrink-0">
-                      <Check className="w-4 h-4 text-navy-deep" strokeWidth={3} />
+                      <Check className="w-4 h-4 text-[#0F1629]" strokeWidth={3} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-soft-muted line-through">
@@ -254,7 +254,7 @@ export default function TasksPage() {
         </div>
       </motion.div>
 
-      <TaskFormModal 
+      <TaskFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         editTask={editingTask}

@@ -58,7 +58,7 @@ export default function PrivateAreaPage() {
               </div>
               <Link
                 href={resolvePortalEntryHref(key, isAuthenticated)}
-                className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-navy-darker transition hover:brightness-110"
+                className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-sm font-semibold text-[#0F1629] transition hover:brightness-110"
               >
                 {t(`privateAreaPortalAction_${key}`)}
               </Link>
