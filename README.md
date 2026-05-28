@@ -44,3 +44,13 @@ Lectura mínima antes de tocar interfaz:
 ## Nota
 
 `anclora-nexus` mantiene además contratos específicos en `sdd/contracts/`. Esos documentos siguen vigentes y concretan la implementación interna del grupo `Internal`.
+## Global Preferences Toggle
+
+Esta app sigue el contrato global de preferencias de Anclora Group.
+
+Incluye:
+- idioma
+- moneda, porque muestra importes
+- unidades, porque muestra superficies/medidas
+
+El Theme Toggle se gestiona por separado y solo aparece en grupos Premium, Internal y Portfolio.

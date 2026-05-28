@@ -1,8 +1,7 @@
 'use client'
 import { Search } from 'lucide-react'
-import { LanguageSelector } from './LanguageSelector'
-import { CurrencySelector } from './CurrencySelector'
-import { UnitSelector } from './UnitSelector'
+import { GlobalPreferencesToggle } from './GlobalPreferencesToggle'
+import { ThemeToggle } from './ThemeToggle'
 import { NotificationPanel } from './NotificationPanel'
 import { UserMenu } from './UserMenu'
 import { useI18n } from '@/lib/i18n'
@@ -31,11 +30,9 @@ export function Header() {
         
         <NotificationPanel />
 
-        <CurrencySelector />
+        <GlobalPreferencesToggle />
 
-        <LanguageSelector />
-
-        <UnitSelector />
+        <ThemeToggle />
 
         <UserMenu />
       </div>
