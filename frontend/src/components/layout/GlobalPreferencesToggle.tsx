@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, ChevronDown, Globe, X } from 'lucide-react'
+import { ChevronDown, Globe, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { useI18n, Language } from '@/lib/i18n'
@@ -74,28 +74,26 @@ export function GlobalPreferencesToggle() {
             </div>
 
             <Field label="Language">
-              <div className="grid gap-1.5">
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value as Language)}
+                className="w-full rounded-lg border border-soft-subtle/30 bg-navy-darker px-3 py-2 text-sm text-soft-white"
+                aria-label="Language"
+              >
                 {INTERNAL_LOCALES.map((locale: AncloraInternalLocale) => {
                   const lang = ANCLORA_INTERNAL_LOCALE_META[locale]
                   const active = lang.status === 'active'
-                  const selected = language === lang.code
                   return (
-                    <button
+                    <option
                       key={lang.code}
-                      type="button"
                       disabled={!active}
-                      onClick={() => active && setLanguage(lang.code as Language)}
-                      className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition ${
-                        selected ? 'border-gold/60 bg-gold/10 text-gold' : 'border-soft-subtle/30 text-soft-white hover:bg-white/5'
-                      } ${!active ? 'cursor-not-allowed opacity-55' : ''}`}
-                      aria-pressed={selected}
+                      value={lang.code}
                     >
-                      <span>{lang.nativeName}</span>
-                      {selected ? <Check className="h-4 w-4" /> : <span className="text-xs">{active ? lang.short : 'Pending'}</span>}
-                    </button>
+                      {lang.nativeName} - {lang.englishName}{active ? '' : ' - Pending'}
+                    </option>
                   )
                 })}
-              </div>
+              </select>
             </Field>
 
             <Field label="Currency">
