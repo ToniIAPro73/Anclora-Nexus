@@ -814,4 +814,22 @@ html.dark .bg-navy-surface\/30 {
     opacity: 1;
     color: currentColor;
   }
+
+  html.light .btn-create,
+  html.light .btn-action {
+    background: rgba(212, 175, 55, 0.10);
+    border: 1px solid rgba(212, 175, 55, 0.20);
+    color: var(--color-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: none;
+  }
+
+  html.light .btn-create:hover,
+  html.light .btn-action:hover {
+    background: rgba(212, 175, 55, 0.18);
+    border-color: rgba(212, 175, 55, 0.34);
+    color: var(--color-gold);
+    box-shadow: 0 10px 26px rgba(212, 175, 55, 0.10);
+  }
 }
