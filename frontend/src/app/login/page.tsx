@@ -267,7 +267,7 @@ export default function LoginPage() {
   const showOAuthSection = isGoogleAuthEnabled || isGithubAuthEnabled
 
   return (
-    <div className="h-screen flex items-center justify-center p-3 bg-navy-darker relative overflow-hidden">
+    <div className="relative flex min-h-screen items-center justify-center overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(212,168,67,0.10),_transparent_38%),linear-gradient(135deg,_rgba(8,12,24,1)_0%,_rgba(13,19,35,0.98)_50%,_rgba(10,16,30,0.96)_100%)] p-4">
       {/* Abstract Background Particles */}
       {particles.map((p) => (
         <motion.div
@@ -460,7 +460,19 @@ export default function LoginPage() {
                   ) : null}
                 </div>
               </>
-            ) : null}
+            ) : (
+              <div>
+                <div className="flex items-center gap-3 my-3">
+                  <div className="h-px flex-1 bg-soft-subtle/20" />
+                  <span className="text-[10px] uppercase tracking-widest text-soft-muted">{t('loginSocialSeparator')}</span>
+                  <div className="h-px flex-1 bg-soft-subtle/20" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button disabled className="h-10 rounded-xl border border-soft-subtle/20 text-xs text-soft-muted opacity-50 cursor-not-allowed">{t('loginGoogle')}</button>
+                  <button disabled className="h-10 rounded-xl border border-soft-subtle/20 text-xs text-soft-muted opacity-50 cursor-not-allowed">{t('loginGithub')}</button>
+                </div>
+              </div>
+            )}
 
             {message && (
               <p className={`text-center text-sm ${isError ? 'text-danger' : 'text-emerald-400'}`}>
