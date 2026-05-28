@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
-export type CurrencyCode = 'EUR' | 'GBP' | 'USD' | 'RUB'
+export type CurrencyCode = 'EUR' | 'USD' | 'GBP' | 'CHF' | 'SEK' | 'DKK' | 'NOK'
 export type UnitSystem = 'metric' | 'imperial'
 
 type CurrencyConfig = {
@@ -17,16 +17,22 @@ type FxRates = Record<CurrencyCode, number>
 
 const DEFAULT_RATES: FxRates = {
   EUR: 1,
-  GBP: 0.86,
   USD: 1.08,
-  RUB: 98,
+  GBP: 0.86,
+  CHF: 0.95,
+  SEK: 11.2,
+  DKK: 7.46,
+  NOK: 11.6,
 }
 
 export const CURRENCY_OPTIONS: CurrencyConfig[] = [
   { code: 'EUR', label: 'Euro', locale: 'es-ES', symbol: '€', position: 'suffix' },
-  { code: 'GBP', label: 'Libra esterlina', locale: 'en-GB', symbol: '£', position: 'prefix' },
   { code: 'USD', label: 'Dólar', locale: 'en-US', symbol: '$', position: 'prefix' },
-  { code: 'RUB', label: 'Rublo', locale: 'ru-RU', symbol: '₽', position: 'suffix' },
+  { code: 'GBP', label: 'Libra esterlina', locale: 'en-GB', symbol: '£', position: 'prefix' },
+  { code: 'CHF', label: 'Franco suizo', locale: 'de-CH', symbol: 'CHF', position: 'suffix' },
+  { code: 'SEK', label: 'Corona sueca', locale: 'sv-SE', symbol: 'SEK kr', position: 'suffix' },
+  { code: 'DKK', label: 'Corona danesa', locale: 'da-DK', symbol: 'DKK kr', position: 'suffix' },
+  { code: 'NOK', label: 'Corona noruega', locale: 'nb-NO', symbol: 'NOK kr', position: 'suffix' },
 ]
 
 const CURRENCY_BY_CODE = Object.fromEntries(CURRENCY_OPTIONS.map((c) => [c.code, c])) as Record<CurrencyCode, CurrencyConfig>
@@ -138,14 +144,17 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
     async function refreshRates() {
       try {
-        const res = await fetch('https://api.frankfurter.dev/v1/latest?from=EUR&to=GBP,USD,RUB', { cache: 'no-store' })
+        const res = await fetch('https://api.frankfurter.dev/v1/latest?from=EUR&to=USD,GBP,CHF,SEK,DKK,NOK', { cache: 'no-store' })
         if (!res.ok) return
         const json = await res.json() as { rates?: Record<string, number>; date?: string }
         const nextRates: FxRates = {
           EUR: 1,
-          GBP: json.rates?.GBP ?? DEFAULT_RATES.GBP,
           USD: json.rates?.USD ?? DEFAULT_RATES.USD,
-          RUB: json.rates?.RUB ?? DEFAULT_RATES.RUB,
+          GBP: json.rates?.GBP ?? DEFAULT_RATES.GBP,
+          CHF: json.rates?.CHF ?? DEFAULT_RATES.CHF,
+          SEK: json.rates?.SEK ?? DEFAULT_RATES.SEK,
+          DKK: json.rates?.DKK ?? DEFAULT_RATES.DKK,
+          NOK: json.rates?.NOK ?? DEFAULT_RATES.NOK,
         }
         const updatedAt = json.date || new Date().toISOString()
         if (!cancelled) {
