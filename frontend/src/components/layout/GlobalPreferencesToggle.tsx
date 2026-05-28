@@ -7,10 +7,88 @@ import { useI18n, Language } from '@/lib/i18n'
 import { ANCLORA_INTERNAL_LOCALE_META, INTERNAL_LOCALES, type AncloraInternalLocale } from '@/lib/anclora-language-toggle'
 import { CURRENCY_OPTIONS, useCurrency, type CurrencyCode, type UnitSystem } from '@/lib/currency'
 
-const UNITS: { code: UnitSystem; label: string; symbol: string }[] = [
-  { code: 'metric', label: 'Square Meter - m² / Hectare - Ha', symbol: 'm²' },
-  { code: 'imperial', label: 'Square Foot - sqft / Acre - ac', symbol: 'Sqft' },
+const UNITS: { code: UnitSystem; symbol: string }[] = [
+  { code: 'metric', symbol: 'm²' },
+  { code: 'imperial', symbol: 'Sqft' },
 ]
+
+const preferenceCopy = {
+  es: {
+    trigger: 'Preferencias globales',
+    dialog: 'Ajustes de preferencias globales',
+    eyebrow: 'Ajustes',
+    title: 'Preferencias',
+    close: 'Cerrar preferencias',
+    language: 'Idioma',
+    currency: 'Moneda',
+    units: 'Unidades de medida',
+    pending: 'Pendiente',
+    save: 'Guardar y cerrar',
+    currencyLabels: {
+      EUR: 'Euro',
+      USD: 'Dólar estadounidense',
+      GBP: 'Libra esterlina',
+      CHF: 'Franco suizo',
+      SEK: 'Corona sueca',
+      DKK: 'Corona danesa',
+      NOK: 'Corona noruega',
+    },
+    unitLabels: {
+      metric: 'Metro cuadrado - m² / Hectárea - ha',
+      imperial: 'Pie cuadrado - ft² / Acre - ac',
+    },
+  },
+  en: {
+    trigger: 'Global preferences',
+    dialog: 'Global preferences settings',
+    eyebrow: 'Settings',
+    title: 'Preferences',
+    close: 'Close preferences',
+    language: 'Language',
+    currency: 'Currency',
+    units: 'Measure units',
+    pending: 'Pending',
+    save: 'Save and close',
+    currencyLabels: {
+      EUR: 'Euro',
+      USD: 'US dollar',
+      GBP: 'Pound sterling',
+      CHF: 'Swiss franc',
+      SEK: 'Swedish krona',
+      DKK: 'Danish krone',
+      NOK: 'Norwegian krone',
+    },
+    unitLabels: {
+      metric: 'Square meter - m² / Hectare - ha',
+      imperial: 'Square foot - ft² / Acre - ac',
+    },
+  },
+  de: {
+    trigger: 'Globale Einstellungen',
+    dialog: 'Globale Präferenzeinstellungen',
+    eyebrow: 'Einstellungen',
+    title: 'Präferenzen',
+    close: 'Einstellungen schließen',
+    language: 'Sprache',
+    currency: 'Währung',
+    units: 'Maßeinheiten',
+    pending: 'Ausstehend',
+    save: 'Speichern und schließen',
+    currencyLabels: {
+      EUR: 'Euro',
+      USD: 'US-Dollar',
+      GBP: 'Pfund Sterling',
+      CHF: 'Schweizer Franken',
+      SEK: 'Schwedische Krone',
+      DKK: 'Dänische Krone',
+      NOK: 'Norwegische Krone',
+    },
+    unitLabels: {
+      metric: 'Quadratmeter - m² / Hektar - ha',
+      imperial: 'Quadratfuß - ft² / Acre - ac',
+    },
+  },
+} as const
 
 export function GlobalPreferencesToggle() {
   const { language, setLanguage } = useI18n()
@@ -19,6 +97,7 @@ export function GlobalPreferencesToggle() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const currentLang = ANCLORA_INTERNAL_LOCALE_META[language]
   const currentUnit = UNITS.find((unit) => unit.code === unitSystem) || UNITS[0]
+  const copy = preferenceCopy[language]
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -41,7 +120,7 @@ export function GlobalPreferencesToggle() {
         type="button"
         onClick={() => setIsOpen((value) => !value)}
         className="flex items-center gap-2 rounded-lg border border-soft-subtle bg-navy-surface/40 px-3 py-2 transition-all hover:border-gold/50"
-        aria-label="Global preferences"
+        aria-label={copy.trigger}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
       >
@@ -61,24 +140,24 @@ export function GlobalPreferencesToggle() {
             transition={{ duration: 0.15 }}
             className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-xl border-2 border-soft-muted/30 bg-navy-deep p-3 shadow-2xl backdrop-blur-xl"
             role="dialog"
-            aria-label="Global preferences settings"
+            aria-label={copy.dialog}
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-soft-muted">Ajustes</p>
-                <h2 className="text-sm font-bold text-soft-white">Preferences</h2>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-soft-muted">{copy.eyebrow}</p>
+                <h2 className="text-sm font-bold text-soft-white">{copy.title}</h2>
               </div>
-              <button type="button" className="rounded-lg p-1.5 text-soft-muted hover:bg-white/5 hover:text-soft-white" onClick={() => setIsOpen(false)} aria-label="Close preferences">
+              <button type="button" className="rounded-lg p-1.5 text-soft-muted hover:bg-white/5 hover:text-soft-white" onClick={() => setIsOpen(false)} aria-label={copy.close}>
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <Field label="Language">
+            <Field label={copy.language}>
               <select
                 value={language}
                 onChange={(event) => setLanguage(event.target.value as Language)}
                 className="w-full rounded-lg border border-soft-subtle/30 bg-navy-darker px-3 py-2 text-sm text-soft-white"
-                aria-label="Language"
+                aria-label={copy.language}
               >
                 {INTERNAL_LOCALES.map((locale: AncloraInternalLocale) => {
                   const lang = ANCLORA_INTERNAL_LOCALE_META[locale]
@@ -89,33 +168,33 @@ export function GlobalPreferencesToggle() {
                       disabled={!active}
                       value={lang.code}
                     >
-                      {lang.nativeName} - {lang.englishName}{active ? '' : ' - Pending'}
+                      {lang.nativeName} - {lang.englishName}{active ? '' : ` - ${copy.pending}`}
                     </option>
                   )
                 })}
               </select>
             </Field>
 
-            <Field label="Currency">
-              <select value={currency} onChange={(event) => setCurrency(event.target.value as CurrencyCode)} className="w-full rounded-lg border border-soft-subtle/30 bg-navy-darker px-3 py-2 text-sm text-soft-white" aria-label="Currency">
+            <Field label={copy.currency}>
+              <select value={currency} onChange={(event) => setCurrency(event.target.value as CurrencyCode)} className="w-full rounded-lg border border-soft-subtle/30 bg-navy-darker px-3 py-2 text-sm text-soft-white" aria-label={copy.currency}>
                 {CURRENCY_OPTIONS.map((item) => (
                   <option key={item.code} value={item.code}>
-                    {item.label} - {item.code} {item.symbol}
+                    {copy.currencyLabels[item.code]} - {item.code} {item.symbol}
                   </option>
                 ))}
               </select>
             </Field>
 
-            <Field label="Measure Units">
-              <select value={unitSystem} onChange={(event) => setUnitSystem(event.target.value as UnitSystem)} className="w-full rounded-lg border border-soft-subtle/30 bg-navy-darker px-3 py-2 text-sm text-soft-white" aria-label="Measure units">
+            <Field label={copy.units}>
+              <select value={unitSystem} onChange={(event) => setUnitSystem(event.target.value as UnitSystem)} className="w-full rounded-lg border border-soft-subtle/30 bg-navy-darker px-3 py-2 text-sm text-soft-white" aria-label={copy.units}>
                 {UNITS.map((item) => (
-                  <option key={item.code} value={item.code}>{item.label}</option>
+                  <option key={item.code} value={item.code}>{copy.unitLabels[item.code]}</option>
                 ))}
               </select>
             </Field>
 
             <button type="button" className="mt-4 w-full rounded-lg bg-gold px-4 py-2 text-sm font-bold text-navy-darker" onClick={() => setIsOpen(false)}>
-              Guardar y cerrar
+              {copy.save}
             </button>
           </motion.div>
         )}
