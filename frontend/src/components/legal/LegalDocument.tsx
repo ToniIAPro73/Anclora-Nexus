@@ -11,17 +11,17 @@ export function LegalDocument({ kind }: { kind: Kind }) {
   return (
     <main className="min-h-screen bg-navy-darker px-5 py-12 text-soft-white">
       <div className="mx-auto max-w-4xl space-y-6">
-        <section className="rounded-2xl border border-gold/20 bg-navy-dark p-8">
+        <section className="rounded-2xl border border-gold/20 bg-navy-surface p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Anclora Nexus</p>
           <h1 className="mt-3 text-4xl font-semibold">{content.title}</h1>
-          <p className="mt-3 text-sm leading-7 text-white/65">{content.description}</p>
-          <p className="mt-2 text-xs text-white/50">{content.updated}</p>
+          <p className="mt-3 text-sm leading-7 text-soft-muted">{content.description}</p>
+          <p className="mt-2 text-xs text-soft-muted">{content.updated}</p>
         </section>
-        <section className="space-y-4 rounded-2xl border border-white/10 bg-navy-dark p-6">
+        <section className="space-y-4 rounded-2xl border border-white/10 bg-navy-surface p-6">
           {content.blocks.map((block) => (
             <article key={block.title} className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
               <h2 className="text-2xl font-semibold">{block.title}</h2>
-              {block.paragraphs.map((paragraph) => <p key={paragraph} className="mt-3 text-sm leading-7 text-white/65">{paragraph}</p>)}
+              {block.paragraphs.map((paragraph) => <p key={paragraph} className="mt-3 text-sm leading-7 text-soft-muted">{paragraph}</p>)}
             </article>
           ))}
         </section>
@@ -29,7 +29,7 @@ export function LegalDocument({ kind }: { kind: Kind }) {
           <Link href="/terms" className="rounded-full border border-white/15 px-5 py-3">Terms</Link>
           <Link href="/privacy" className="rounded-full border border-white/15 px-5 py-3">Privacy</Link>
           <Link href="/legal" className="rounded-full border border-white/15 px-5 py-3">Legal</Link>
-          <Link href="/dashboard" className="rounded-full bg-gold px-5 py-3 font-semibold text-navy-darker">Dashboard</Link>
+          <Link href="/dashboard" className="rounded-full bg-gold px-5 py-3 font-semibold text-[#0F1629]">Dashboard</Link>
         </nav>
       </div>
     </main>

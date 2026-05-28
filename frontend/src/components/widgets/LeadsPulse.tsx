@@ -81,7 +81,7 @@ export function LeadsPulse() {
                         </span>
                       </td>
                       <td className="py-3 pl-2 text-right">
-                        <span className="text-[9px] uppercase tracking-wider text-soft-muted font-bold group-hover:text-white transition-colors">
+                        <span className="text-[9px] uppercase tracking-wider text-soft-muted font-bold group-hover:text-soft-white transition-colors">
                           {getLeadStatusLabel(lead.status)}
                         </span>
                       </td>
@@ -91,14 +91,14 @@ export function LeadsPulse() {
               </tbody>
             </table>
           </div>
-          
+
           {leads.length > 0 && (
             <div className="pt-3 border-t border-soft-subtle/30 mt-auto flex justify-center">
-              <Link 
-                href="/leads" 
+              <Link
+                href="/leads"
                 className="text-[10px] uppercase tracking-wider font-bold text-soft-muted hover:text-gold transition-colors flex items-center gap-1 group"
               >
-                {t('viewAll')} 
+                {t('viewAll')}
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>

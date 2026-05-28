@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import type { CSSProperties } from "react";
 import "./globals.css";
 import { CurrencyProvider } from "@/lib/currency";
 import { OrgProvider } from "@/lib/contexts/OrgContext";
@@ -44,7 +43,6 @@ export default async function RootLayout({
     <html lang={NEXUS_BRAND.defaultLanguage} className="dark" data-brand="nexus" data-brand-mode={NEXUS_BRAND.theme.mode}>
       <body
         className={`${inter.variable} ${jetbrains.variable} antialiased font-sans bg-navy-darker text-soft-white`}
-        style={NEXUS_BRAND.theme.cssVars as CSSProperties}
       >
         <I18nProvider>
           <CurrencyProvider>

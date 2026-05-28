@@ -728,7 +728,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
                   type="button"
                   onClick={refreshMemory}
                   disabled={loadingMemory || !memoryQuery.trim()}
-                  className="rounded-lg border border-gold/40 bg-gold px-4 py-2 text-sm font-semibold text-navy-deep transition-opacity disabled:opacity-50"
+                  className="rounded-lg border border-gold/40 bg-gold px-4 py-2 text-sm font-semibold text-[#0F1629] transition-opacity disabled:opacity-50"
                 >
                   {t('searchSellerMemory')}
                 </button>
@@ -916,7 +916,7 @@ export function SellerDrawer({ sellerId, sellerName, open, onClose }: SellerDraw
               type="button"
               onClick={saveInteraction}
               disabled={savingInteraction || !formContent.trim()}
-              className="rounded-lg border border-gold/40 bg-gold px-4 py-2 text-sm font-semibold text-navy-deep transition-opacity disabled:opacity-50"
+              className="rounded-lg border border-gold/40 bg-gold px-4 py-2 text-sm font-semibold text-[#0F1629] transition-opacity disabled:opacity-50"
             >
               <Save className="mr-2 inline h-4 w-4" />
               {savingInteraction ? t('savingInteraction') : t('saveInteraction')}
@@ -1027,7 +1027,7 @@ function ArtifactCard({
               <button
                 type="button"
                 onClick={primaryAction}
-                className="rounded-lg border border-gold/40 bg-gold px-3 py-2 text-xs font-semibold text-navy-deep transition-colors"
+                className="rounded-lg border border-gold/40 bg-gold px-3 py-2 text-xs font-semibold text-[#0F1629] transition-colors"
               >
                 {primaryActionLabel}
               </button>

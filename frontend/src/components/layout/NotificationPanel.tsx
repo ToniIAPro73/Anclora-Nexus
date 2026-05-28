@@ -357,7 +357,7 @@ export function NotificationPanel() {
                       >
                         <ChevronLeft className="w-4 h-4 text-soft-white" />
                       </button>
-                      
+
                       <div className="flex items-center gap-2">
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                           <button
@@ -365,7 +365,7 @@ export function NotificationPanel() {
                             onClick={() => setCurrentPage(page)}
                             className={`w-6 h-6 rounded-full text-xs font-medium transition-all ${
                               currentPage === page
-                                ? 'bg-gold text-navy-deep'
+                                ? 'bg-gold text-[#0F1629]'
                                 : 'text-soft-muted hover:bg-white/[0.05] hover:text-soft-white'
                             }`}
                           >

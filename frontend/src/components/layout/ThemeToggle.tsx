@@ -18,6 +18,7 @@ function applyTheme(mode: ThemeMode) {
   document.documentElement.classList.toggle('light', resolved === 'light')
   document.documentElement.classList.toggle('dark', resolved === 'dark')
   document.documentElement.dataset.theme = mode
+  document.documentElement.dataset.resolvedTheme = resolved
 }
 
 export function ThemeToggle() {
@@ -29,6 +30,14 @@ export function ThemeToggle() {
 
   useEffect(() => {
     applyTheme(theme)
+
+    if (theme !== 'system') return
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)')
+    const handleChange = () => applyTheme('system')
+    mediaQuery.addEventListener('change', handleChange)
+
+    return () => mediaQuery.removeEventListener('change', handleChange)
   }, [theme])
 
   function selectTheme(nextTheme: ThemeMode) {
@@ -38,7 +47,7 @@ export function ThemeToggle() {
   }
 
   return (
-    <div className="flex items-center rounded-lg border border-soft-subtle bg-navy-surface/40 p-1" role="group" aria-label="Theme selector">
+    <div className="inline-flex h-9 items-center rounded-full border border-soft-subtle/70 bg-navy-surface/70 p-1" role="group" aria-label="Theme selector">
       {modes.map((mode) => {
         const Icon = mode.icon
         const active = theme === mode.code
@@ -47,8 +56,8 @@ export function ThemeToggle() {
             key={mode.code}
             type="button"
             onClick={() => selectTheme(mode.code)}
-            className={`flex h-8 w-8 items-center justify-center rounded-md transition-all ${
-              active ? 'bg-gold text-navy-darker' : 'text-soft-muted hover:bg-white/5 hover:text-soft-white'
+            className={`flex h-7 w-7 items-center justify-center rounded-full transition ${
+              active ? 'bg-gold text-[#0F1629] shadow-sm' : 'text-soft-muted hover:bg-navy-hover/50 hover:text-soft-white'
             }`}
             aria-pressed={active}
             title={mode.label}

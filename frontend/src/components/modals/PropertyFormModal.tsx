@@ -156,7 +156,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 -mr-2 text-soft-muted hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                className="p-2 -mr-2 text-soft-muted hover:text-soft-white hover:bg-white/10 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -175,7 +175,7 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                 </div>
               ) : null}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Title */}
                 <div className="col-span-1 md:col-span-2 space-y-2">
                   <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">{t('propertyFormTitleOptional')}</label>
@@ -352,14 +352,14 @@ export default function PropertyFormModal({ isOpen, onClose, editProperty }: Pro
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-sm text-soft-muted hover:text-white hover:bg-white/5 transition-colors"
+                  className="px-4 py-2 rounded-lg text-sm text-soft-muted hover:text-soft-white hover:bg-white/5 transition-colors"
                 >
                   {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="px-6 py-2 rounded-lg bg-gold text-[#0F1629] text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {editProperty ? t('propertyFormSaveChanges') : (loading ? t('propertyFormSaving') : t('propertyFormCreateAction'))}

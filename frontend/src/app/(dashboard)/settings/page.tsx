@@ -1,16 +1,16 @@
 'use client'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Settings, 
-  Bell, 
-  Lock, 
-  Database, 
-  Globe, 
-  Cpu, 
-  ShieldCheck, 
-  Zap, 
-  Save, 
+import {
+  Settings,
+  Bell,
+  Lock,
+  Database,
+  Globe,
+  Cpu,
+  ShieldCheck,
+  Zap,
+  Save,
   RotateCcw,
   Check,
   Wallet,
@@ -63,7 +63,7 @@ export default function SettingsPage() {
             {t('settingsSubtitle')}
           </p>
         </div>
-        
+
           <div className="flex gap-3">
             <button
             type="button"
@@ -96,7 +96,7 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
-      
+
 
         <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar Navigation */}
@@ -108,8 +108,8 @@ export default function SettingsPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all group ${
-                  activeTab === tab.id 
-                    ? 'bg-gold/10 text-gold border border-gold/20 shadow-[0_0_20px_rgba(212,175,55,0.05)]' 
+                  activeTab === tab.id
+                    ? 'bg-gold/10 text-gold border border-gold/20 shadow-[0_0_20px_rgba(212,175,55,0.05)]'
                     : 'text-soft-muted hover:text-soft-white hover:bg-white/5 border border-transparent'
                 }`}
               >
@@ -166,7 +166,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex bg-navy-deep p-1 rounded-xl border border-soft-subtle/20 self-start md:self-auto">
                           {['5m', '15m', '30m', 'Auto'].map((val) => (
-                            <button key={val} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${val === 'Auto' ? 'bg-gold text-navy-deep' : 'text-soft-muted hover:text-soft-white'}`}>
+                            <button key={val} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${val === 'Auto' ? 'bg-gold text-[#0F1629]' : 'text-soft-muted hover:text-soft-white'}`}>
                               {val}
                             </button>
                           ))}

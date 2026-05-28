@@ -13,8 +13,8 @@ export function DQIssueList({ issues }: DQIssueListProps) {
   if (issues.length === 0) {
     return (
       <div className="glass-panel p-6 text-center border border-white/5">
-        <Shield className="w-12 h-12 text-white-soft/20 mx-auto mb-4" />
-        <p className="text-white-soft/60">{t('dqNoIssuesFound')}</p>
+        <Shield className="w-12 h-12 text-soft-white/20 mx-auto mb-4" />
+        <p className="text-soft-white/60">{t('dqNoIssuesFound')}</p>
       </div>
     )
   }
@@ -38,11 +38,11 @@ export function DQIssueList({ issues }: DQIssueListProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-white-soft flex items-center gap-2">
+      <h2 className="text-xl font-semibold text-soft-white flex items-center gap-2">
         <AlertTriangle className="w-5 h-5 text-gold-muted" />
         {t('dqQualityIssues')}
       </h2>
-      
+
       <div className="grid gap-3">
         {issues.map((issue) => {
           const Icon = getSeverityIcon(issue.severity)
@@ -54,21 +54,21 @@ export function DQIssueList({ issues }: DQIssueListProps) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-white-soft font-medium">
+                    <span className="text-soft-white font-medium">
                       {issue.entity_type === 'lead' ? t('lead') : t('property')}
                     </span>
-                    <span className="text-white-soft/30">•</span>
-                    <span className="text-white-soft/60 text-sm">
+                    <span className="text-soft-white/30">•</span>
+                    <span className="text-soft-white/60 text-sm">
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {t(`dqIssue_${issue.issue_type}` as any) || issue.issue_type.replace(/_/g, ' ')}
                     </span>
                   </div>
-                  <p className="text-white-soft/80 text-sm mt-1">
+                  <p className="text-soft-white/80 text-sm mt-1">
                     {String(issue.issue_payload?.message || issue.issue_payload?.field || t('dqIssue_technical_error'))}
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded border font-semibold ${getSeverityColor(issue.severity)}`}>
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

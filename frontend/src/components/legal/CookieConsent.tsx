@@ -47,14 +47,14 @@ export function CookieConsent() {
 
   return (
     <>
-      <button type="button" aria-label={title} onClick={() => { setOpen(true); setSettings(true) }} className="fixed bottom-5 left-5 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-gold/40 bg-navy-dark/90 text-gold shadow-2xl backdrop-blur">
+      <button type="button" aria-label={title} onClick={() => { setOpen(true); setSettings(true) }} className="fixed bottom-5 left-5 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-gold/40 bg-navy-surface/90 text-gold shadow-2xl backdrop-blur">
         <Cookie className="h-5 w-5" aria-hidden="true" />
       </button>
       {open ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 px-4 py-6 backdrop-blur-sm sm:items-center" role="dialog" aria-modal="true" aria-labelledby="nexus-cookie-title">
-          <div className="w-full max-w-lg rounded-2xl border border-gold/20 bg-navy-dark p-6 text-white shadow-2xl">
+          <div className="w-full max-w-lg rounded-2xl border border-gold/20 bg-navy-surface p-6 text-soft-white shadow-2xl">
             <h2 id="nexus-cookie-title" className="text-2xl font-semibold">{settings ? (de ? 'Cookies verwalten' : en ? 'Manage cookies' : 'Gestionar cookies') : title}</h2>
-            <p className="mt-3 text-sm leading-6 text-white/65">{body}</p>
+            <p className="mt-3 text-sm leading-6 text-soft-muted">{body}</p>
             {settings ? (
               <div className="mt-5 space-y-3">
                 <CookieRow title={de ? 'Notwendige Cookies' : en ? 'Necessary cookies' : 'Cookies necesarias'} description={de ? 'Sitzung, Sicherheit und Betrieb. Nicht deaktivierbar.' : en ? 'Session, security and operation. They cannot be disabled.' : 'Sesión, seguridad y operación. No se pueden desactivar.'} checked disabled onChange={() => {}} />
@@ -62,9 +62,9 @@ export function CookieConsent() {
               </div>
             ) : null}
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              {!settings ? <button type="button" onClick={() => persist({ ...defaults, analytics: true })} className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy-darker">{de ? 'Alle akzeptieren' : en ? 'Accept all' : 'Aceptar todas'}</button> : null}
+              {!settings ? <button type="button" onClick={() => persist({ ...defaults, analytics: true })} className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-[#0F1629]">{de ? 'Alle akzeptieren' : en ? 'Accept all' : 'Aceptar todas'}</button> : null}
               <button type="button" onClick={() => settings ? persist(preferences) : setSettings(true)} className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold">{settings ? (de ? 'Speichern' : en ? 'Save preferences' : 'Guardar preferencias') : (de ? 'Einstellungen' : en ? 'Settings' : 'Configuración')}</button>
-              <button type="button" onClick={() => persist(defaults)} className="rounded-full px-5 py-3 text-sm font-semibold text-white/65">{de ? 'Optionale ablehnen' : en ? 'Reject optional' : 'Rechazar opcionales'}</button>
+              <button type="button" onClick={() => persist(defaults)} className="rounded-full px-5 py-3 text-sm font-semibold text-soft-muted">{de ? 'Optionale ablehnen' : en ? 'Reject optional' : 'Rechazar opcionales'}</button>
             </div>
           </div>
         </div>
@@ -76,7 +76,7 @@ export function CookieConsent() {
 function CookieRow({ title, description, checked, disabled, onChange }: { title: string; description: string; checked: boolean; disabled?: boolean; onChange: (checked: boolean) => void }) {
   return (
     <label className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <span><span className="block text-sm font-medium">{title}</span><span className="mt-1 block text-xs leading-5 text-white/55">{description}</span></span>
+      <span><span className="block text-sm font-medium">{title}</span><span className="mt-1 block text-xs leading-5 text-soft-muted">{description}</span></span>
       <input type="checkbox" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} className="mt-1 h-5 w-5 accent-gold" />
     </label>
   )

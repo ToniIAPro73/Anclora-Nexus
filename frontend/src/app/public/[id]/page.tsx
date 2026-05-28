@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { 
-  Shield, MapPin, 
+import {
+  Shield, MapPin,
   Globe, UserCircle, Check
 } from 'lucide-react'
 import supabase from '@/lib/supabase'
@@ -66,7 +66,7 @@ export default function PublicProfilePage() {
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Public Header */}
         <div className="text-center space-y-8">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="inline-block relative"
@@ -83,7 +83,7 @@ export default function PublicProfilePage() {
               </div>
             </div>
             <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gold rounded-2xl flex items-center justify-center border-4 border-navy-deep shadow-xl">
-              <Shield className="w-6 h-6 text-navy-deep" />
+              <Shield className="w-6 h-6 text-[#0F1629]" />
             </div>
           </motion.div>
 

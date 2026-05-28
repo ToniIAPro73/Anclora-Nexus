@@ -94,7 +94,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 -mr-2 text-soft-muted hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                className="p-2 -mr-2 text-soft-muted hover:text-soft-white hover:bg-white/10 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -178,7 +178,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                     />
                   </div>
                 </div>
-                
+
                 {/* Property Interest */}
                 <div className="col-span-1 md:col-span-2 space-y-2">
                   <label className="text-xs font-semibold text-soft-muted uppercase tracking-wider">Interés</label>
@@ -207,7 +207,7 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                         disabled={isLocked('priority')}
                         className={`flex-1 h-9 rounded-lg text-xs font-bold transition-all border ${
                           formData.priority === p
-                            ? 'bg-gold text-navy-deep border-gold shadow-lg shadow-gold/20 scale-105'
+                            ? 'bg-gold text-[#0F1629] border-gold shadow-lg shadow-gold/20 scale-105'
                             : 'bg-navy-surface/50 text-soft-muted border-soft-subtle hover:border-gold/50 hover:text-soft-white'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
@@ -240,14 +240,14 @@ export default function LeadFormModal({ isOpen, onClose, editLead }: LeadFormMod
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-sm text-soft-muted hover:text-white hover:bg-white/5 transition-colors"
+                  className="px-4 py-2 rounded-lg text-sm text-soft-muted hover:text-soft-white hover:bg-white/5 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="px-6 py-2 rounded-lg bg-gold text-[#0F1629] text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {editLead ? 'Guardar Cambios' : (loading ? 'Creando...' : t('createLeadAction'))}

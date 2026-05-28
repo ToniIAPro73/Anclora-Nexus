@@ -10,14 +10,14 @@ import { DQCandidateList } from '@/components/dq/DQCandidateList'
 
 export default function DataQualityPage() {
   const { t } = useI18n()
-  const { 
-    dqIssues, 
-    dqMetrics, 
-    dqCandidates, 
-    fetchDqIssues, 
-    fetchDqMetrics, 
+  const {
+    dqIssues,
+    dqMetrics,
+    dqCandidates,
+    fetchDqIssues,
+    fetchDqMetrics,
     fetchDqCandidates,
-    recomputeDq 
+    recomputeDq
   } = useStore()
 
   const [isRecomputing, setIsRecomputing] = useState(false)
@@ -71,7 +71,7 @@ export default function DataQualityPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-soft-subtle/50 shrink-0">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <Link 
+            <Link
               href="/dashboard"
               className="p-2 rounded-xl border border-soft-subtle bg-navy-surface/40 text-soft-muted hover:text-soft-white hover:border-blue-light/50 transition-all group"
             >
@@ -81,11 +81,11 @@ export default function DataQualityPage() {
               {t('dataQuality')}
             </h1>
           </div>
-          <p className="text-white-soft/60">
+          <p className="text-soft-white/60">
             {t('dataQualitySubtitle')}
           </p>
         </div>
-        
+
         <button
           onClick={handleRecompute}
           disabled={isRecomputing}

@@ -22,8 +22,8 @@ export function AgentStream() {
   return (
     <div className="widget-card h-full flex flex-col">
       <h3 className="widget-title">{t('agentStream')}</h3>
-      <div 
-        ref={scrollRef} 
+      <div
+        ref={scrollRef}
         className="flex-1 overflow-auto flex flex-col justify-start scrollbar-thin scroll-smooth px-1 mask-fade-y"
         style={{ maskImage: 'linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)' }}
       >
@@ -42,9 +42,9 @@ export function AgentStream() {
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {t(`TYPE_${log.agent.replace(/\s+/g, '_').toUpperCase()}` as any) || log.agent}
                     </span>
-                    <span className="text-[9px] text-white/30 whitespace-nowrap">{log.timestamp}</span>
+                    <span className="text-[9px] text-soft-muted whitespace-nowrap">{log.timestamp}</span>
                   </div>
-                  <p className="text-xs text-white/80 leading-relaxed font-light">
+                  <p className="text-xs text-soft-white leading-relaxed font-light">
                     {i === displayLogs.length - 1 ? (
                       <TypeWriter text={log.message} speed={20} />
                     ) : (

@@ -546,7 +546,7 @@ export default function ProspectionPage() {
                 <button
                   onClick={() => setPage((p: number) => Math.max(0, p - 1))}
                   disabled={currentPage === 0}
-                  className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-white"
+                  className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-soft-white"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -556,7 +556,7 @@ export default function ProspectionPage() {
                 <button
                   onClick={() => setPage((p: number) => Math.min(totalPages - 1, p + 1))}
                   disabled={currentPage >= totalPages - 1}
-                  className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-white"
+                  className="p-2 rounded-lg hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-soft-muted hover:text-soft-white"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>

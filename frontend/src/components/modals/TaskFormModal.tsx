@@ -63,7 +63,7 @@ export default function TaskFormModal({ isOpen, onClose, editTask }: TaskFormMod
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 -mr-2 text-soft-muted hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                className="p-2 -mr-2 text-soft-muted hover:text-soft-white hover:bg-white/10 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -117,13 +117,13 @@ export default function TaskFormModal({ isOpen, onClose, editTask }: TaskFormMod
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-sm text-soft-muted hover:text-white hover:bg-white/5 transition-colors"
+                  className="px-4 py-2 rounded-lg text-sm text-soft-muted hover:text-soft-white hover:bg-white/5 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-lg bg-gold text-navy-deep text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2"
+                  className="px-6 py-2 rounded-lg bg-gold text-[#0F1629] text-sm font-bold hover:bg-gold-light hover:shadow-lg hover:shadow-gold/20 transition-all flex items-center gap-2"
                 >
                   <Save className="w-4 h-4" />
                   {editTask ? 'Guardar Cambios' : 'Crear Tarea'}

@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2, 
-  UserPlus, 
+import {
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  UserPlus,
   Building2,
   ArrowRight
 } from 'lucide-react'
@@ -71,7 +71,7 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
 
       const response = await fetch(`/api/invitations/${code}/accept`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token || ''}`
         },
@@ -111,7 +111,7 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
         </div>
         <h2 className="text-2xl font-bold text-soft-white mb-2">Invitation Error</h2>
         <p className="text-soft-muted mb-8">{error}</p>
-        <Button 
+        <Button
           onClick={() => router.push('/')}
           className="w-full bg-navy-deep border-soft-subtle text-soft-white hover:bg-navy-surface"
         >
@@ -124,7 +124,7 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
   if (success) {
     return (
       <div className="max-w-md mx-auto p-12 text-center bg-navy-surface border border-emerald-500/20 rounded-3xl backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', damping: 12 }}
@@ -135,7 +135,7 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
         <h2 className="text-2xl font-bold text-soft-white mb-2">Welcome to {invitation?.org_name}!</h2>
         <p className="text-soft-muted mb-8">Your account has been successfully linked to the organization. Redirecting to your dashboard...</p>
         <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             animate={{ width: '100%' }}
             transition={{ duration: 2 }}
@@ -179,17 +179,17 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
           </div>
         </div>
 
-        <Button 
+        <Button
           onClick={handleAccept}
           disabled={accepting}
-          className="w-full h-14 bg-gold hover:bg-gold-muted text-navy-deep font-black rounded-2xl transition-all shadow-lg shadow-gold/10 flex items-center justify-center gap-3 overflow-hidden relative group"
+          className="w-full h-14 bg-gold hover:bg-gold-muted text-[#0F1629] font-black rounded-2xl transition-all shadow-lg shadow-gold/10 flex items-center justify-center gap-3 overflow-hidden relative group"
         >
           <AnimatePresence mode="wait">
             {accepting ? (
-              <motion.div 
-                key="loading" 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-3"
               >
@@ -197,10 +197,10 @@ export function InvitationAccept({ code }: InvitationAcceptProps) {
                 <span>Processing...</span>
               </motion.div>
             ) : (
-              <motion.div 
-                key="default" 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
+              <motion.div
+                key="default"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-3"
               >

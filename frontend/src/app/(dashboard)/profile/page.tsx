@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Mail, Shield, Calendar, MapPin, 
+import {
+  Mail, Shield, Calendar, MapPin,
   Briefcase, Trophy, Edit2, Camera, X, Check, Loader2,
   UserCircle, ExternalLink, AlertCircle, ChevronLeft, Save
 } from 'lucide-react'
@@ -25,7 +25,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [errorStatus, setErrorStatus] = useState<string | null>(null)
-  
+
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -46,10 +46,10 @@ export default function ProfilePage() {
     try {
       setLoading(true)
       const { data: { user: authUser } } = await supabase.auth.getUser()
-      
+
       if (authUser) {
         setUser(authUser)
-        
+
         // 1. Fetch User Profile
         let { data: profileData } = await supabase
           .from('user_profiles')
@@ -61,7 +61,7 @@ export default function ProfilePage() {
         if (!profileData) {
           const { data: orgs } = await supabase.from('organizations').select('id').limit(1)
           const orgId = orgs?.[0]?.id || '00000000-0000-0000-0000-000000000000'
-          
+
           const { data: newProfile } = await supabase
             .from('user_profiles')
             .upsert({
@@ -74,7 +74,7 @@ export default function ProfilePage() {
             })
             .select('*')
             .single()
-          
+
           if (newProfile) profileData = newProfile
         }
 
@@ -85,7 +85,7 @@ export default function ProfilePage() {
             .select('*')
             .eq('id', profileData.org_id)
             .maybeSingle()
-            
+
           setProfile(profileData)
           setOrg(orgData)
           setFormData({
@@ -110,7 +110,7 @@ export default function ProfilePage() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.id) return
-    
+
     setIsSaving(true)
     try {
       const { error } = await supabase
@@ -140,13 +140,13 @@ export default function ProfilePage() {
     if (!user || !file) return
     setIsUploading(true)
     setErrorStatus(null)
-    
+
     try {
       // 1. Upload under "<uid>/..." so Storage RLS can scope ownership.
       const extension = file.name.includes('.') ? file.name.split('.').pop() : 'jpg'
       const fileName = `${user.id}/avatar-${Date.now()}.${extension}`
       const bucket = 'avatars'
-      
+
       const { error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, {
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                   )}
                 </div>
               </div>
-              <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-1 right-1 p-2.5 bg-gold rounded-full text-navy-deep hover:scale-110 shadow-lg z-10">
+              <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-1 right-1 p-2.5 bg-gold rounded-full text-[#0F1629] hover:scale-110 shadow-lg z-10">
                 <Camera className="w-4 h-4" />
               </button>
               <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} className="hidden" accept="image/*" />
@@ -247,7 +247,7 @@ export default function ProfilePage() {
                   {profile?.job_title || t('luxuryEstateConsultant')} @ {org?.name || 'Anclora Private Estates'}
                 </p>
               </div>
-              
+
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm text-soft-muted">
                 <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-gold/60" /> {user?.email}</div>
                 <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-gold/60" /> {profile?.location}</div>
@@ -255,7 +255,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="pt-4 flex flex-wrap justify-center md:justify-start gap-4">
-                <Button onClick={() => setIsEditModalOpen(true)} className="bg-gold hover:bg-gold-muted text-navy-deep font-bold px-8 rounded-xl shadow-lg">
+                <Button onClick={() => setIsEditModalOpen(true)} className="bg-gold hover:bg-gold-muted text-[#0F1629] font-bold px-8 rounded-xl shadow-lg">
                   <Edit2 className="w-4 h-4 mr-2" />{t('editProfile')}
                 </Button>
                 <Button variant="outline" onClick={() => window.open(`/public/${user?.id}`, '_blank')} className="border-soft-subtle/50 text-soft-white px-8 rounded-xl">
@@ -336,10 +336,10 @@ export default function ProfilePage() {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-7xl bg-navy-surface border border-soft-subtle/30 rounded-[1.5rem] p-8 shadow-2xl overflow-hidden">
               <div className="flex justify-between items-center mb-6 border-b border-soft-subtle/10 pb-4">
                 <h2 className="text-2xl font-bold text-soft-white flex items-center gap-3"><Edit2 className="w-6 h-6 text-gold" /> {t('editProfile')}</h2>
-                <button onClick={() => setIsEditModalOpen(false)} className="text-soft-muted hover:text-white transition-colors"><X className="w-6 h-6" /></button>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-soft-muted hover:text-soft-white transition-colors"><X className="w-6 h-6" /></button>
               </div>
               <form onSubmit={handleUpdateProfile} className="flex flex-col gap-6">
-                
+
                 {/* Row 1: Core Info */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
@@ -371,12 +371,12 @@ export default function ProfilePage() {
                     <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('specializationsLabel')} (comma separated)</label>
                     <div className="relative">
                         <Trophy className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
-                        <input 
-                          type="text" 
-                          value={Array.isArray(formData.specialization) ? formData.specialization.join(', ') : formData.specialization} 
-                          onChange={(e) => setFormData({...formData, specialization: e.target.value.split(',').map(s => s.trim())})} 
-                          className="ui-input pl-10" 
-                          placeholder="Luxury, Waterfront, Investments" 
+                        <input
+                          type="text"
+                          value={Array.isArray(formData.specialization) ? formData.specialization.join(', ') : formData.specialization}
+                          onChange={(e) => setFormData({...formData, specialization: e.target.value.split(',').map(s => s.trim())})}
+                          className="ui-input pl-10"
+                          placeholder="Luxury, Waterfront, Investments"
                         />
                     </div>
                   </div>
@@ -385,12 +385,12 @@ export default function ProfilePage() {
                     <label className="text-xs font-bold text-gold uppercase tracking-wider">{t('achievementsLabel')} (comma separated)</label>
                      <div className="relative">
                         <Shield className="absolute left-3 top-3.5 w-4 h-4 text-soft-muted" />
-                        <input 
-                          type="text" 
-                          value={Array.isArray(formData.achievements) ? formData.achievements.join(', ') : formData.achievements} 
-                          onChange={(e) => setFormData({...formData, achievements: e.target.value.split(',').map(s => s.trim())})} 
-                          className="ui-input pl-10" 
-                          placeholder="Top Seller 2025, 50+ Deals Closed" 
+                        <input
+                          type="text"
+                          value={Array.isArray(formData.achievements) ? formData.achievements.join(', ') : formData.achievements}
+                          onChange={(e) => setFormData({...formData, achievements: e.target.value.split(',').map(s => s.trim())})}
+                          className="ui-input pl-10"
+                          placeholder="Top Seller 2025, 50+ Deals Closed"
                         />
                     </div>
                   </div>
@@ -403,8 +403,8 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex justify-end gap-4 pt-4 border-t border-soft-subtle/10 mt-auto">
-                  <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)} className="text-soft-muted hover:text-white hover:bg-white/5">{t('cancel')}</Button>
-                  <Button type="submit" disabled={isSaving} className="bg-gold hover:bg-gold-muted text-navy-deep font-bold px-8 rounded-xl shadow-lg transition-transform active:scale-95">
+                  <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)} className="text-soft-muted hover:text-soft-white hover:bg-white/5">{t('cancel')}</Button>
+                  <Button type="submit" disabled={isSaving} className="bg-gold hover:bg-gold-muted text-[#0F1629] font-bold px-8 rounded-xl shadow-lg transition-transform active:scale-95">
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                     {isSaving ? 'Saving...' : t('saveChanges')}
                   </Button>

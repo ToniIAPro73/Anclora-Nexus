@@ -271,10 +271,10 @@ export default function LoginPage() {
         <motion.div
           key={p.id}
           className="absolute w-1 h-1 bg-blue-light/10 rounded-full"
-          initial={{ 
-            x: p.x, 
+          initial={{
+            x: p.x,
             y: p.y,
-            opacity: 0.1 
+            opacity: 0.1
           }}
           animate={{
             y: [null, p.y + p.offsetY],
@@ -318,7 +318,7 @@ export default function LoginPage() {
                 onClick={() => setMode('login')}
                 className={`h-8 rounded-md text-xs font-semibold transition ${
                   mode === 'login'
-                    ? 'bg-gold text-navy-deep'
+                    ? 'bg-gold text-[#0F1629]'
                     : 'text-soft-muted hover:text-soft-white'
                 }`}
               >
@@ -329,7 +329,7 @@ export default function LoginPage() {
                 onClick={() => setMode('signup')}
                 className={`h-8 rounded-md text-xs font-semibold transition ${
                   mode === 'signup'
-                    ? 'bg-gold text-navy-deep'
+                    ? 'bg-gold text-[#0F1629]'
                     : 'text-soft-muted hover:text-soft-white'
                 }`}
               >
@@ -375,7 +375,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-md bg-navy-deep/10 text-navy-deep/60 hover:bg-navy-deep/20 hover:text-navy-deep transition-colors flex items-center justify-center"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-md bg-navy-surface/70 text-soft-muted hover:bg-navy-hover/70 hover:text-soft-white transition-colors flex items-center justify-center"
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -403,7 +403,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-gold hover:bg-gold-muted text-navy-deep font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
+              className="w-full h-11 bg-gold hover:bg-gold-muted text-[#0F1629] font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
             >
               {loading ? 'Procesando...' : mode === 'login' ? 'Acceder' : mode === 'signup' ? 'Crear cuenta' : 'Actualizar contraseña'}
             </Button>
