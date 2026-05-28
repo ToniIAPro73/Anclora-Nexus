@@ -467,8 +467,11 @@ export default function LoginPage() {
             )}
           </form>
 
-          <p className="text-center text-[10px] text-soft-muted mt-4 uppercase tracking-widest">
-            Powered by OpenClaw
+          <p className="mt-4 text-center text-[10px] leading-relaxed text-soft-muted">
+            Al continuar aceptas los{' '}
+            <a href="/terms" className="underline underline-offset-2 hover:text-gold">Términos del servicio</a>
+            {' '}y la{' '}
+            <a href="/privacy" className="underline underline-offset-2 hover:text-gold">Política de privacidad</a>.
           </p>
         </Card>
       </motion.div>
