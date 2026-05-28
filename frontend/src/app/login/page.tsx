@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { normalizeNextPath, type PrivatePortalKey } from '@/lib/private-area-access'
+import { useI18n } from '@/lib/i18n'
 
 function resolveAppUrl() {
   const configured = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/\/$/, '')
@@ -34,6 +35,7 @@ function resolveAppUrl() {
 
 export default function LoginPage() {
   const router = useRouter()
+  const { t } = useI18n()
   type Particle = {
     id: number
     x: number
@@ -300,6 +302,7 @@ export default function LoginPage() {
             <div className="mb-2">
               <BrandLogo size={64} src="/brand/logo-nexus.png" />
             </div>
+            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent my-2" />
             <h1 className="font-display text-2xl text-soft-white mb-1">Anclora Nexus</h1>
             <p className="text-[10px] uppercase tracking-[0.2em] text-soft-muted">Private Estate Intelligence</p>
             {portalKey ? (
@@ -307,7 +310,6 @@ export default function LoginPage() {
                 Portal de Agente
               </div>
             ) : null}
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent mt-3" />
           </div>
 
 
@@ -322,7 +324,7 @@ export default function LoginPage() {
                     : 'text-soft-muted hover:text-soft-white'
                 }`}
               >
-                Iniciar sesión
+                {t('loginSignIn')}
               </button>
               <button
                 type="button"
@@ -333,19 +335,19 @@ export default function LoginPage() {
                     : 'text-soft-muted hover:text-soft-white'
                 }`}
               >
-                Crear cuenta
+                {t('loginSignUp')}
               </button>
             </div>
 
             {mode === 'reset' && (
               <p className="text-xs text-soft-muted text-center">
-                Introduce tu nueva contraseña para completar la recuperación.
+                {t('loginResetCopy')}
               </p>
             )}
 
             <div className="space-y-1">
               <label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
-                Email Profesional
+                {t('loginEmail')}
               </label>
               <Input
                 id="email"
@@ -360,7 +362,7 @@ export default function LoginPage() {
 
             <div className="space-y-1">
               <label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
-                {mode === 'reset' ? 'Nueva contraseña' : 'Contraseña'}
+                {t('loginPassword')}
               </label>
               <div className="relative">
                 <Input
@@ -376,7 +378,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-md bg-navy-surface/70 text-soft-muted hover:bg-navy-hover/70 hover:text-soft-white transition-colors flex items-center justify-center"
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  aria-label={showPassword ? t('loginHidePassword') : t('loginShowPassword')}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -405,7 +407,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full h-11 bg-gold hover:bg-gold-muted text-[#0F1629] font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
             >
-              {loading ? 'Procesando...' : mode === 'login' ? 'Acceder' : mode === 'signup' ? 'Crear cuenta' : 'Actualizar contraseña'}
+              {loading ? '…' : mode === 'login' ? t('loginSignIn') : mode === 'signup' ? t('loginSignUp') : t('loginPassword')}
             </Button>
 
             {mode !== 'reset' && (
@@ -416,7 +418,7 @@ export default function LoginPage() {
                 onClick={handleForgotPassword}
                 className="w-full h-9 text-soft-muted hover:text-soft-white"
               >
-                Olvidé mi contraseña
+                {t('loginForgot')}
               </Button>
             )}
 
@@ -428,7 +430,7 @@ export default function LoginPage() {
                   </div>
                   <div className="relative flex justify-center">
                     <span className="px-3 text-[10px] uppercase tracking-widest text-soft-muted bg-navy-surface">
-                      o continúa con
+                      {t('loginSocialSeparator')}
                     </span>
                   </div>
                 </div>
@@ -442,7 +444,7 @@ export default function LoginPage() {
                       onClick={() => handleOAuth('google')}
                       className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
                     >
-                      Google
+                      {t('loginGoogle')}
                     </Button>
                   ) : null}
                   {isGithubAuthEnabled ? (
@@ -453,7 +455,7 @@ export default function LoginPage() {
                       onClick={() => handleOAuth('github')}
                       className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
                     >
-                      GitHub
+                      {t('loginGithub')}
                     </Button>
                   ) : null}
                 </div>
@@ -468,10 +470,10 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-4 text-center text-[10px] leading-relaxed text-soft-muted">
-            Al continuar aceptas los{' '}
-            <a href="/terms" className="underline underline-offset-2 hover:text-gold">Términos del servicio</a>
-            {' '}y la{' '}
-            <a href="/privacy" className="underline underline-offset-2 hover:text-gold">Política de privacidad</a>.
+            {t('loginLegalPrefix')}{' '}
+            <a href="/terms" className="underline underline-offset-2 hover:text-gold">{t('loginTerms')}</a>
+            {' '}{t('loginLegalMiddle')}{' '}
+            <a href="/privacy" className="underline underline-offset-2 hover:text-gold">{t('loginPrivacy')}</a>.
           </p>
         </Card>
       </motion.div>
