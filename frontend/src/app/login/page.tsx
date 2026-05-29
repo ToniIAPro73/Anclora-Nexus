@@ -295,26 +295,20 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full max-w-md"
+        className="w-full max-w-[460px]"
       >
-        <Card className="widget-card w-full px-6 py-5 border-soft-subtle/20 bg-navy-surface backdrop-blur-xl">
-          <div className="flex flex-col items-center mb-4">
-            <div className="mb-2">
-              <BrandLogo size={64} src="/brand/logo-nexus.png" />
+        <Card className="widget-card w-full border-soft-subtle/20 bg-navy-surface backdrop-blur-xl hover:shadow-[0_48px_100px_-35px_rgba(212,168,67,0.50)] hover:scale-[1.018] transition-[transform,box-shadow] duration-300 ease-out rounded-3xl" style={{minHeight: "560px", boxShadow: "0 32px 80px -40px rgba(212, 168, 67, 0.35)"}}>
+          <div className="flex flex-col items-center pt-8 pb-5 px-8">
+            <div style={{width: "50px", height: "50px"}} className="mb-2 drop-shadow-[0_12px_24px_rgba(0,0,0,0.30)]">
+              <BrandLogo size={50} src="/brand/logo-nexus.png" />
             </div>
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent my-2" />
-            <h1 className="font-display text-2xl text-soft-white mb-1">Anclora Nexus</h1>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-soft-muted">Private Estate Intelligence</p>
-            {portalKey ? (
-              <div className="mt-3 rounded-full border border-gold/25 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
-                Portal de Agente
-              </div>
-            ) : null}
+            <div className="h-[1px] w-[50px] bg-gradient-to-r from-transparent via-gold/70 to-transparent mb-2" />
+            <h1 className="font-display text-sm font-bold text-soft-white">Anclora Nexus</h1>
           </div>
 
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="grid grid-cols-2 gap-2 p-1 bg-navy-darker/40 rounded-lg border border-soft-subtle/20">
+          <div className="px-6 sm:px-8">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-navy-darker/40 rounded-lg border border-soft-subtle/20 mb-4">
               <button
                 type="button"
                 onClick={() => setMode('login')}
@@ -339,6 +333,8 @@ export default function LoginPage() {
               </button>
             </div>
 
+          <form onSubmit={handleLogin} className="space-y-3">
+
             {mode === 'reset' && (
               <p className="text-xs text-soft-muted text-center">
                 {t('loginResetCopy')}
@@ -356,7 +352,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-11"
+                className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10"
               />
             </div>
 
@@ -372,7 +368,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-11 pr-10"
+                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10 pr-10"
                 />
                 <button
                   type="button"
@@ -397,7 +393,7 @@ export default function LoginPage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-11"
+                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10"
                 />
               </div>
             )}
@@ -405,7 +401,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-gold hover:bg-gold-muted text-[#0F1629] font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
+              className="w-full h-10 bg-gold hover:bg-gold-muted text-[#0F1629] font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
             >
               {loading ? '…' : mode === 'login' ? t('loginSignIn') : mode === 'signup' ? t('loginSignUp') : t('loginPassword')}
             </Button>
@@ -479,14 +475,15 @@ export default function LoginPage() {
                 {message}
               </p>
             )}
-          </form>
 
-          <p className="mt-4 text-center text-[10px] leading-relaxed text-soft-muted">
-            {t('loginLegalPrefix')}{' '}
-            <a href="/terms" className="underline underline-offset-2 hover:text-gold">{t('loginTerms')}</a>
-            {' '}{t('loginLegalMiddle')}{' '}
-            <a href="/privacy" className="underline underline-offset-2 hover:text-gold">{t('loginPrivacy')}</a>.
-          </p>
+            <p className="mt-4 text-center text-[10px] leading-relaxed text-soft-muted">
+              {t('loginLegalPrefix')}{' '}
+              <a href="/terms" className="underline underline-offset-2 hover:text-gold">{t('loginTerms')}</a>
+              {' '}{t('loginLegalMiddle')}{' '}
+              <a href="/privacy" className="underline underline-offset-2 hover:text-gold">{t('loginPrivacy')}</a>.
+            </p>
+          </form>
+          </div>
         </Card>
       </motion.div>
     </div>
