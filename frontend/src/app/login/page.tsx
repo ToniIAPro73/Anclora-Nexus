@@ -290,7 +290,6 @@ export default function LoginPage() {
         />
       ))}
 
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -298,7 +297,7 @@ export default function LoginPage() {
         className="w-full max-w-[460px]"
       >
         <Card className="widget-card w-full border-soft-subtle/20 bg-navy-surface backdrop-blur-xl hover:shadow-[0_48px_100px_-35px_rgba(212,168,67,0.50)] hover:scale-[1.018] transition-[transform,box-shadow] duration-300 ease-out rounded-3xl" style={{minHeight: "560px", boxShadow: "0 32px 80px -40px rgba(212, 168, 67, 0.35)"}}>
-          <div className="flex flex-col items-center pt-8 pb-5 px-8">
+          <div className="flex flex-col items-center pt-8 pb-5">
             <div style={{width: "50px", height: "50px"}} className="mb-2 drop-shadow-[0_12px_24px_rgba(0,0,0,0.30)]">
               <BrandLogo size={50} src="/brand/logo-nexus.png" />
             </div>
@@ -306,129 +305,137 @@ export default function LoginPage() {
             <h1 className="font-display text-sm font-bold text-soft-white">Anclora Nexus</h1>
           </div>
 
+          <div className="px-6 sm:px-8 pb-6 sm:pb-8">
+            <form onSubmit={handleLogin} className="space-y-2.5">
+              {mode === 'reset' && (
+                <p className="text-xs text-soft-muted text-center mb-3">
+                  {t('loginResetCopy')}
+                </p>
+              )}
 
-          <div className="px-6 sm:px-8">
-            <div className="grid grid-cols-2 gap-2 p-1 bg-navy-darker/40 rounded-lg border border-soft-subtle/20 mb-4">
-              <button
-                type="button"
-                onClick={() => setMode('login')}
-                className={`h-8 rounded-md text-xs font-semibold transition ${
-                  mode === 'login'
-                    ? 'bg-gold text-[#0F1629]'
-                    : 'text-soft-muted hover:text-soft-white'
-                }`}
-              >
-                {t('loginSignIn')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('signup')}
-                className={`h-8 rounded-md text-xs font-semibold transition ${
-                  mode === 'signup'
-                    ? 'bg-gold text-[#0F1629]'
-                    : 'text-soft-muted hover:text-soft-white'
-                }`}
-              >
-                {t('loginSignUp')}
-              </button>
-            </div>
-
-          <form onSubmit={handleLogin} className="space-y-3">
-
-            {mode === 'reset' && (
-              <p className="text-xs text-soft-muted text-center">
-                {t('loginResetCopy')}
-              </p>
-            )}
-
-            <div className="space-y-1">
-              <label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
-                {t('loginEmail')}
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="toni@anclora.es"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
-                {t('loginPassword')}
-              </label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-md bg-navy-surface/70 text-soft-muted hover:bg-navy-hover/70 hover:text-soft-white transition-colors flex items-center justify-center"
-                  aria-label={showPassword ? t('loginHidePassword') : t('loginShowPassword')}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {mode === 'reset' && (
               <div className="space-y-1">
-                <label htmlFor="confirm-password" className="text-xs font-semibold uppercase tracking-wider text-soft-muted ml-1">
-                  Confirmar contraseña
+                <label htmlFor="email" className="text-xs font-semibold text-soft-muted">
+                  {t('loginEmail')}
                 </label>
                 <Input
-                  id="confirm-password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  id="email"
+                  type="email"
+                  placeholder="correo@ejemplo.es"
                   required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10 rounded-2xl"
                 />
+              </div>
+
+              {mode !== 'reset' && (
+                <div className="space-y-1">
+                  <label htmlFor="password" className="text-xs font-semibold text-soft-muted">
+                    {t('loginPassword')}
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10 pr-10 rounded-2xl"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-soft-muted hover:text-gold transition-colors"
+                      aria-label={showPassword ? t('loginHidePassword') : t('loginShowPassword')}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {mode === 'reset' && (
+                <div className="space-y-1">
+                  <label htmlFor="confirm-password" className="text-xs font-semibold text-soft-muted">
+                    {t('loginPassword')}
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="confirm-password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10 rounded-2xl"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {message && (
+                <div className={`rounded-2xl border p-3 text-xs ${isError ? 'border-danger/30 bg-danger/10 text-danger' : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-400'}`} role="alert">
+                  {message}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-10 bg-gold hover:bg-gold-muted text-[#0F1629] font-bold rounded-2xl transition-all"
+              >
+                {loading ? '…' : mode === 'reset' ? t('loginPassword') : t('loginSignIn')}
+              </Button>
+            </form>
+
+            {mode !== 'reset' && (
+              <div className="mt-1.5 text-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={loading}
+                  onClick={handleForgotPassword}
+                  className="text-xs text-soft-muted hover:text-gold p-0 h-auto"
+                >
+                  {t('loginForgot')}
+                </Button>
               </div>
             )}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-10 bg-gold hover:bg-gold-muted text-[#0F1629] font-bold rounded-xl transition-all shadow-gold-glow hover:shadow-gold-glow/40"
-            >
-              {loading ? '…' : mode === 'login' ? t('loginSignIn') : mode === 'signup' ? t('loginSignUp') : t('loginPassword')}
-            </Button>
-
-            {mode !== 'reset' && (
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={loading}
-                onClick={handleForgotPassword}
-                className="w-full h-9 text-soft-muted hover:text-soft-white"
-              >
-                {t('loginForgot')}
-              </Button>
+            {mode === 'login' && (
+              <div className="mt-1.5 rounded-2xl border border-soft-subtle/20 bg-navy-darker/40 px-4 py-2 text-center">
+                <p className="text-xs text-soft-muted">
+                  {t('loginNoAccount')}{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="font-semibold text-gold hover:text-gold-muted transition"
+                  >
+                    {t('loginSignUp')}
+                  </button>
+                </p>
+              </div>
             )}
 
-            {showOAuthSection ? (
+            {mode === 'signup' && (
+              <div className="mt-1.5 text-center">
+                <button
+                  type="button"
+                  onClick={() => setMode('login')}
+                  className="text-xs text-soft-muted hover:text-gold transition"
+                >
+                  {t('loginBackToSignIn')}
+                </button>
+              </div>
+            )}
+
+            {showOAuthSection && mode !== 'reset' ? (
               <>
-                <div className="relative py-1">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-soft-subtle/20" />
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="px-3 text-[10px] uppercase tracking-widest text-soft-muted bg-navy-surface">
-                      {t('loginSocialSeparator')}
-                    </span>
-                  </div>
+                <div className="my-2.5 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-soft-subtle/20" />
+                  <span className="text-[10px] uppercase tracking-widest text-soft-muted">{t('loginSocialSeparator')}</span>
+                  <div className="h-px flex-1 bg-soft-subtle/20" />
                 </div>
 
                 <div className={`grid gap-2 ${isGoogleAuthEnabled && isGithubAuthEnabled ? 'grid-cols-2' : 'grid-cols-1'}`}>
@@ -438,7 +445,7 @@ export default function LoginPage() {
                       variant="outline"
                       disabled={loading}
                       onClick={() => handleOAuth('google')}
-                      className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
+                      className="h-9 border-soft-subtle/30 text-soft-white hover:bg-white/5 rounded-2xl text-xs"
                     >
                       {t('loginGoogle')}
                     </Button>
@@ -449,7 +456,7 @@ export default function LoginPage() {
                       variant="outline"
                       disabled={loading}
                       onClick={() => handleOAuth('github')}
-                      className="h-10 border-soft-subtle/30 text-soft-white hover:bg-white/5"
+                      className="h-9 border-soft-subtle/30 text-soft-white hover:bg-white/5 rounded-2xl text-xs"
                     >
                       {t('loginGithub')}
                     </Button>
@@ -457,32 +464,27 @@ export default function LoginPage() {
                 </div>
               </>
             ) : (
-              <div>
-                <div className="flex items-center gap-3 my-3">
-                  <div className="h-px flex-1 bg-soft-subtle/20" />
-                  <span className="text-[10px] uppercase tracking-widest text-soft-muted">{t('loginSocialSeparator')}</span>
-                  <div className="h-px flex-1 bg-soft-subtle/20" />
+              !showOAuthSection && mode !== 'reset' && (
+                <div>
+                  <div className="my-2.5 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-soft-subtle/20" />
+                    <span className="text-[10px] uppercase tracking-widest text-soft-muted">{t('loginSocialSeparator')}</span>
+                    <div className="h-px flex-1 bg-soft-subtle/20" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button disabled className="h-9 rounded-2xl border border-soft-subtle/20 text-xs text-soft-muted opacity-50 cursor-not-allowed">{t('loginGoogle')}</button>
+                    <button disabled className="h-9 rounded-2xl border border-soft-subtle/20 text-xs text-soft-muted opacity-50 cursor-not-allowed">{t('loginGithub')}</button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button disabled className="h-10 rounded-xl border border-soft-subtle/20 text-xs text-soft-muted opacity-50 cursor-not-allowed">{t('loginGoogle')}</button>
-                  <button disabled className="h-10 rounded-xl border border-soft-subtle/20 text-xs text-soft-muted opacity-50 cursor-not-allowed">{t('loginGithub')}</button>
-                </div>
-              </div>
+              )
             )}
 
-            {message && (
-              <p className={`text-center text-sm ${isError ? 'text-danger' : 'text-emerald-400'}`}>
-                {message}
-              </p>
-            )}
-
-            <p className="mt-4 text-center text-[10px] leading-relaxed text-soft-muted">
+            <p className="mt-2 text-center text-[10px] leading-relaxed text-soft-muted">
               {t('loginLegalPrefix')}{' '}
               <a href="/terms" className="underline underline-offset-2 hover:text-gold">{t('loginTerms')}</a>
               {' '}{t('loginLegalMiddle')}{' '}
               <a href="/privacy" className="underline underline-offset-2 hover:text-gold">{t('loginPrivacy')}</a>.
             </p>
-          </form>
           </div>
         </Card>
       </motion.div>
