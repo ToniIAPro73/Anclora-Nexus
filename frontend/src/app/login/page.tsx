@@ -368,7 +368,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-11 pr-10"
+                  className="bg-navy-darker/50 border-soft-subtle/20 focus:border-gold focus:ring-1 focus:ring-gold/30 text-soft-white h-10 pr-10"
                 />
                 <button
                   type="button"
@@ -475,7 +475,6 @@ export default function LoginPage() {
                 {message}
               </p>
             )}
-          </form>
 
             <p className="mt-4 text-center text-[10px] leading-relaxed text-soft-muted">
               {t('loginLegalPrefix')}{' '}
