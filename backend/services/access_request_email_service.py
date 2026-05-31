@@ -4,6 +4,7 @@ import logging
 from html import escape
 from typing import Any, Dict
 
+from backend.config import settings
 from backend.services.email_delivery_service import get_email_transport_summary, send_email_native
 
 logger = logging.getLogger(__name__)
@@ -13,6 +14,8 @@ def _product_label(record: Dict[str, Any]) -> str:
     product = str(record.get("product") or "").strip().lower()
     if product == "data_lab":
         return "Data Lab"
+    if product == "syncxml":
+        return "SyncXML"
     return "Synergi"
 
 
@@ -50,20 +53,36 @@ def build_access_request_approved_email(record: Dict[str, Any]) -> Dict[str, str
     product = _product_label(record)
     full_name = _full_name(record)
     subject = f"Anclora {product} · Access request approved"
+
+    extra_text = ""
+    extra_html = ""
+    if product == "SyncXML":
+        pwd = settings.SYNCXML_ADMIN_PASSWORD or "NOT_CONFIGURED"
+        url = settings.SYNCXML_APP_URL
+        extra_text = f"\n\nYou can now access the pilot at {url} using the shared password: {pwd}\n"
+        extra_html = f"<p style='margin:0 0 24px;color:#d4af37;line-height:1.7;font-size:16px;'>You can now access the pilot at <a href='{url}' style='color:#d4af37;'>{url}</a> using the shared password: <strong>{pwd}</strong></p>"
+    else:
+        extra_text = (
+            "\nOur team will send the next steps or access link when they apply. "
+            "No external account has been created automatically by this approval.\n"
+        )
+        extra_html = (
+            "<p style='margin:0 0 24px;color:#d8dfd6;line-height:1.7;font-size:15px;'>"
+            "Our team will send the next steps or access link when they apply. "
+            "No external account has been created automatically by this approval."
+            "</p>"
+        )
+
     text = (
         f"Hello {full_name},\n\n"
-        f"Your request for Anclora {product} has been approved.\n"
-        "Our team will send the next steps or access link when they apply. "
-        "No external account has been created automatically by this approval.\n\n"
+        f"Your request for Anclora {product} has been approved."
+        f"{extra_text}\n"
         "Regards,\nAnclora"
     )
     html = _html_shell(
         title=f"Your {product} request has been approved",
         intro=f"Hello {full_name}, your request for Anclora {product} has been approved.",
-        body=(
-            "Our team will send the next steps or access link when they apply. "
-            "No external account has been created automatically by this approval."
-        ),
+        body=extra_html,
     )
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
 
@@ -91,6 +110,25 @@ def build_access_request_rejected_email(record: Dict[str, Any]) -> Dict[str, str
         body=f"Thank you for your interest in Anclora {product}.{reason_html}",
     )
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
+
+
+def build_access_request_fallback_admin_email(record: Dict[str, Any]) -> Dict[str, str]:
+    product = _product_label(record)
+    email = _email_to(record)
+    subject = f"ACTION REQUIRED: Validation failed for {product} lead"
+    text = (
+        f"Hello Admin,\n\n"
+        f"The automated AI validation failed for the new {product} lead: {email}.\n"
+        "Please review this request manually in the Nexus dashboard.\n\n"
+        "Regards,\nAnclora Nexus"
+    )
+    html = _html_shell(
+        title="Validation Fallback Triggered",
+        intro=f"Automated validation failed for {email}.",
+        body="Please review this request manually in the Nexus dashboard.",
+    )
+    admin_email = settings.ADMIN_EMAIL
+    return {"to": admin_email, "subject": subject, "text": text, "html": html}
 
 
 class AccessRequestEmailService:

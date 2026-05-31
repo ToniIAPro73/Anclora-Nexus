@@ -60,6 +60,15 @@ class Settings(BaseSettings):
     N8N_WEBHOOK_URL: Optional[str] = None
     N8N_API_KEY: Optional[str] = None
 
+    # SyncXML Pilot Settings
+    SYNCXML_ADMIN_PASSWORD: Optional[str] = None
+    SYNCXML_APP_URL: str = "https://anclora-syncxml.vercel.app"
+    ADMIN_EMAIL: str = "toni@anclora.com"
+    NEXUS_INTERNAL_API_KEY: Optional[str] = None
+
+    # Hermes Worker Settings
+    HERMES_WORKER_URL: str = "http://localhost:8787"
+
     # Legacy compatibility - deprecated
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
