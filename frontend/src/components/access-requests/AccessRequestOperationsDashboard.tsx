@@ -171,7 +171,7 @@ export function AccessRequestOperationsDashboard({
           <Breakdown
             title={t('accessRequestsAnalyticsByProduct')}
             values={analytics.requests_by_product}
-            labels={{ synergi: 'Synergi', data_lab: 'Data Lab' }}
+            labels={{ synergi: 'Synergi', data_lab: 'Data Lab', syncxml: 'SyncXML' }}
             t={t}
           />
           <Breakdown
@@ -181,6 +181,7 @@ export function AccessRequestOperationsDashboard({
               landing: 'accessRequestsSourceLanding',
               synergi_app: 'accessRequestsSourceSynergiApp',
               data_lab_app: 'accessRequestsSourceDataLabApp',
+              syncxml_landing: 'accessRequestsSourceSyncXmlLanding',
             }}
             t={t}
           />

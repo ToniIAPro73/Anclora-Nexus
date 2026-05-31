@@ -87,6 +87,42 @@ def build_access_request_approved_email(record: Dict[str, Any]) -> Dict[str, str
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
 
 
+def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Dict[str, Any]) -> Dict[str, str]:
+    full_name = _full_name(record)
+    login_url = settings.SYNCXML_LOGIN_URL or settings.SYNCXML_APP_URL
+    email = str(credentials.get("email") or _email_to(record))
+    temporary_password = str(credentials.get("temporaryPassword") or "")
+    expires_at = credentials.get("expiresAt") or "según condiciones del piloto"
+    subject = "Anclora SyncXML · Acceso al piloto controlado"
+    text = (
+        f"Hola {full_name},\n\n"
+        "Tu solicitud encaja con el alcance actual del piloto controlado de Anclora SyncXML.\n\n"
+        f"Acceso: {login_url}\n"
+        f"Email autorizado: {email}\n"
+        f"Contraseña temporal: {temporary_password}\n"
+        f"Caducidad/revisión: {expires_at}\n\n"
+        "Límites del piloto:\n"
+        "- Usa solo datos sintéticos o anonimizados.\n"
+        "- No subas datos reales de huéspedes.\n"
+        "- No hay envío automático a SES.HOSPEDAJES en esta fase.\n"
+        "- El piloto no constituye asesoramiento legal ni garantiza cumplimiento normativo definitivo.\n"
+        "- El acceso es limitado, revocable y revisable.\n\n"
+        "Gracias,\nAnclora"
+    )
+    html = _html_shell(
+        title="Acceso al piloto controlado de SyncXML",
+        intro=f"Hola {full_name}, tu solicitud encaja con el alcance actual del piloto controlado.",
+        body=(
+            f"Accede en {login_url}. Email autorizado: {email}. "
+            f"Contraseña temporal: {temporary_password}. "
+            "Usa solo datos sintéticos o anonimizados; no subas datos reales de huéspedes. "
+            "No hay envío automático a SES.HOSPEDAJES ni garantía legal definitiva. "
+            "El acceso es limitado, revocable y revisable."
+        ),
+    )
+    return {"to": email, "subject": subject, "text": text, "html": html}
+
+
 def build_access_request_rejected_email(record: Dict[str, Any]) -> Dict[str, str]:
     product = _product_label(record)
     full_name = _full_name(record)
@@ -108,6 +144,23 @@ def build_access_request_rejected_email(record: Dict[str, Any]) -> Dict[str, str
             "We will not move forward with access at this stage."
         ),
         body=f"Thank you for your interest in Anclora {product}.{reason_html}",
+    )
+    return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
+
+
+def build_syncxml_more_info_email(record: Dict[str, Any], message: str) -> Dict[str, str]:
+    full_name = _full_name(record)
+    subject = "Anclora SyncXML · Necesitamos aclarar tu solicitud"
+    text = (
+        f"Hola {full_name},\n\n"
+        f"{message}\n\n"
+        "Recuerda que esta fase funciona solo con datos sintéticos o anonimizados y sin envío automático a SES.HOSPEDAJES.\n\n"
+        "Gracias,\nAnclora"
+    )
+    html = _html_shell(
+        title="Necesitamos aclarar tu solicitud",
+        intro=f"Hola {full_name}, antes de confirmar el acceso necesitamos aclarar algunos detalles.",
+        body=f"{message} Recuerda que esta fase funciona solo con datos sintéticos o anonimizados y sin envío automático a SES.HOSPEDAJES.",
     )
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
 
@@ -139,6 +192,12 @@ class AccessRequestEmailService:
         if status == "rejected":
             return build_access_request_rejected_email(record)
         raise ValueError(f"Unsupported access request decision status: {status}")
+
+    def build_syncxml_acceptance_email(self, record: Dict[str, Any], credentials: Dict[str, Any]) -> Dict[str, str]:
+        return build_syncxml_pilot_acceptance_email(record, credentials)
+
+    def build_syncxml_more_info_email(self, record: Dict[str, Any], message: str) -> Dict[str, str]:
+        return build_syncxml_more_info_email(record, message)
 
     def send_decision_email(self, record: Dict[str, Any]) -> Dict[str, Any]:
         mail = self.build_decision_email(record)

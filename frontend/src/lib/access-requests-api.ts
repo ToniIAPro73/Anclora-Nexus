@@ -1,7 +1,7 @@
 import { authFetch } from './auth-fetch'
 
-export type AccessRequestProduct = 'synergi' | 'data_lab'
-export type AccessRequestSource = 'landing' | 'synergi_app' | 'data_lab_app'
+export type AccessRequestProduct = 'synergi' | 'data_lab' | 'syncxml'
+export type AccessRequestSource = 'landing' | 'synergi_app' | 'data_lab_app' | 'syncxml_landing'
 export type AccessRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
 export type AccessRequestDecisionStatus = AccessRequestStatus
 export type AccessRequestProvisioningStatus = 'not_started' | 'invite_ready' | 'provisioning_pending' | 'not_applicable'

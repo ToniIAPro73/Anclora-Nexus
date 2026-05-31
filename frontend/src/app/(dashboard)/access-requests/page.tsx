@@ -293,6 +293,7 @@ export default function AccessRequestsPage() {
                 <option value="">{t('accessRequestsAllProducts')}</option>
                 <option value="synergi">Synergi</option>
                 <option value="data_lab">Data Lab</option>
+                <option value="syncxml">SyncXML</option>
               </select>
             </label>
             <label>
@@ -302,6 +303,7 @@ export default function AccessRequestsPage() {
                 <option value="landing">{t('accessRequestsSourceLanding')}</option>
                 <option value="synergi_app">{t('accessRequestsSourceSynergiApp')}</option>
                 <option value="data_lab_app">{t('accessRequestsSourceDataLabApp')}</option>
+                <option value="syncxml_landing">{t('accessRequestsSourceSyncXmlLanding')}</option>
               </select>
             </label>
             <label>

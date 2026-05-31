@@ -1,4 +1,3 @@
-import asyncio
 from fastapi import APIRouter, Depends, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from backend.config import settings
@@ -13,7 +12,8 @@ def get_api_key(api_key: str = Security(api_key_header)):
         raise HTTPException(status_code=403, detail="Missing API Key")
     # Expecting "Bearer <KEY>"
     token = api_key.replace("Bearer ", "").strip()
-    if token != settings.NEXUS_INTERNAL_API_KEY:
+    expected = settings.SYNCXML_WEBHOOK_SECRET or settings.NEXUS_INTERNAL_API_KEY
+    if not expected or token != expected:
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return token
 
@@ -23,6 +23,5 @@ async def syncxml_pilot_webhook(payload: dict, api_key: str = Depends(get_api_ke
     Internal webhook for SyncXML pilot requests.
     Bypasses captcha and rate limits, assuming source is trusted.
     """
-    # Fire and forget: process lead in background
-    asyncio.create_task(syncxml_pilot_service.process_incoming_lead(payload))
-    return {"status": "accepted"}
+    result = await syncxml_pilot_service.process_incoming_lead(payload)
+    return {"status": "accepted", "request_id": result.get("id") if result else None}

@@ -1,11 +1,12 @@
 'use client'
 import { useState } from 'react'
 import { useStore, Task } from '@/lib/store' // Added Task type import
-import { ArrowLeft, Check, Clock, Calendar, ChevronLeft, ChevronRight, Trash2, Edit2, Plus } from 'lucide-react'
+import { ArrowLeft, Check, Clock, Calendar, ChevronLeft, ChevronRight, Trash2, Edit2, Plus, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useI18n } from '@/lib/i18n'
 import TaskFormModal from '@/components/modals/TaskFormModal'
+import { approveSyncXmlPilot, rejectSyncXmlPilot, requestMoreInfoSyncXmlPilot } from '@/lib/syncxml-pilot-api'
 
 export default function TasksPage() {
   const tasks = useStore((state) => state.tasks)
@@ -100,45 +101,50 @@ export default function TasksPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="flex items-center gap-3 p-4 rounded-xl bg-navy-deep/40 border border-soft-subtle hover:border-gold/30 transition-all cursor-pointer group"
-                    onClick={() => toggleTask(task.id)}
+                    className="p-4 rounded-xl bg-navy-deep/40 border border-soft-subtle hover:border-gold/30 transition-all cursor-pointer group"
+                    onClick={() => {
+                      if (task.task_type !== 'syncxml_pilot_review') toggleTask(task.id)
+                    }}
                   >
-                    <div className="w-6 h-6 rounded-md border-2 border-soft-subtle group-hover:border-gold/50 flex items-center justify-center transition-colors flex-shrink-0">
-                      {/* Empty checkbox */}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-soft-white group-hover:text-gold transition-colors">
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Calendar className="w-3 h-3 text-soft-muted" />
-                        <span className="text-xs text-soft-muted uppercase tracking-wider">
-                          {task.due_time}
-                        </span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-md border-2 border-soft-subtle group-hover:border-gold/50 flex items-center justify-center transition-colors flex-shrink-0">
+                        {/* Empty checkbox */}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-soft-white group-hover:text-gold transition-colors">
+                          {task.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Calendar className="w-3 h-3 text-soft-muted" />
+                          <span className="text-xs text-soft-muted uppercase tracking-wider">
+                            {task.due_time}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEdit(task)
+                          }}
+                          className="p-2 text-soft-muted/50 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all shrink-0"
+                          title="Editar tarea"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (window.confirm('¿Eliminar esta tarea?')) deleteTask(task.id)
+                          }}
+                          className="p-2 text-soft-muted/50 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all shrink-0"
+                          title="Eliminar tarea"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEdit(task)
-                        }}
-                        className="p-2 text-soft-muted/50 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all shrink-0"
-                        title="Editar tarea"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          if (window.confirm('¿Eliminar esta tarea?')) deleteTask(task.id)
-                        }}
-                        className="p-2 text-soft-muted/50 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all shrink-0"
-                        title="Eliminar tarea"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {task.task_type === 'syncxml_pilot_review' ? <SyncXmlPilotTaskPanel task={task} /> : null}
                   </motion.div>
                 ))
               )}
@@ -259,6 +265,141 @@ export default function TasksPage() {
         onClose={() => setIsModalOpen(false)}
         editTask={editingTask}
       />
+    </div>
+  )
+}
+
+function readPath(source: unknown, path: string[]): unknown {
+  return path.reduce<unknown>((value, key) => {
+    if (!value || typeof value !== 'object') return undefined
+    return (value as Record<string, unknown>)[key]
+  }, source)
+}
+
+function text(value: unknown, fallback = 'No especificado') {
+  if (typeof value === 'string' && value.trim()) return value
+  if (typeof value === 'number') return String(value)
+  return fallback
+}
+
+function SyncXmlPilotTaskPanel({ task }: { task: Task }) {
+  const [mode, setMode] = useState<'idle' | 'reject' | 'more-info'>('idle')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [internalReason, setInternalReason] = useState('')
+  const [userReason, setUserReason] = useState('En esta fase estamos aceptando únicamente casos que encajan con una validación controlada muy concreta. Tu solicitud no encaja suficientemente con el alcance actual del piloto o requiere condiciones que todavía no ofrecemos.')
+  const [message, setMessage] = useState('Gracias por tu interés en Anclora SyncXML. Antes de confirmar el acceso al piloto necesitamos aclarar algunos detalles sobre tu caso de uso y confirmar que la prueba se realizará solo con datos sintéticos o anonimizados.')
+
+  const metadata = task.metadata || {}
+  const accessRequest = readPath(metadata, ['access_request']) || {}
+  const aiReview = readPath(metadata, ['ai_review']) || {}
+  const requestId = task.entity_id || text(readPath(accessRequest, ['id']), '')
+  const email = text(readPath(accessRequest, ['email']))
+  const fullName = text(readPath(accessRequest, ['full_name']))
+  const company = text(readPath(accessRequest, ['company']))
+  const accommodation = text(readPath(accessRequest, ['profile_type']))
+  const volume = text(readPath(accessRequest, ['metadata', 'estimatedMonthlyReservations']))
+  const mainPain = text(readPath(accessRequest, ['service_summary']))
+  const score = text(readPath(aiReview, ['score']), 'Sin score')
+  const decision = text(readPath(aiReview, ['decision']), 'Sin recomendación')
+  const flags = Array.isArray(readPath(aiReview, ['riskFlags'])) ? readPath(aiReview, ['riskFlags']) as unknown[] : []
+  const credentialStatus = text(readPath(metadata, ['credential_status']), 'Pendiente')
+  const emailStatus = text(readPath(metadata, ['email_status']), 'Pendiente')
+  const errorMessage = text(readPath(metadata, ['error_message']), '')
+
+  async function run(action: 'approve' | 'reject' | 'more-info') {
+    setError(null)
+    if (!requestId) {
+      setError('Falta entity_id/request id para operar esta solicitud.')
+      return
+    }
+    if (action === 'approve' && !window.confirm(`¿Aprobar este piloto y enviar credenciales a ${email}?`)) return
+    if (action === 'reject' && (!internalReason.trim() || !userReason.trim())) {
+      setError('El rechazo requiere motivo interno y motivo visible para usuario.')
+      return
+    }
+    if (action === 'more-info' && !message.trim()) {
+      setError('La solicitud de más información requiere mensaje.')
+      return
+    }
+    setBusy(true)
+    try {
+      if (action === 'approve') await approveSyncXmlPilot(requestId, {})
+      if (action === 'reject') await rejectSyncXmlPilot(requestId, { internal_reason: internalReason, user_reason: userReason })
+      if (action === 'more-info') await requestMoreInfoSyncXmlPilot(requestId, { message })
+      window.location.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-gold/20 bg-gold/5 p-4" onClick={(event) => event.stopPropagation()}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-gold">
+          SyncXML · Piloto controlado
+        </span>
+        {flags.length ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[11px] text-amber-300">
+            <AlertTriangle className="h-3 w-3" />
+            Riesgo revisable
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-4 grid gap-3 text-xs text-soft-muted sm:grid-cols-2">
+        <Info label="Nombre" value={fullName} />
+        <Info label="Email" value={email} />
+        <Info label="Empresa" value={company} />
+        <Info label="Alojamiento" value={accommodation} />
+        <Info label="Volumen estimado" value={volume} />
+        <Info label="Score Hermes" value={score} />
+        <Info label="Recomendación Hermes" value={decision} />
+        <Info label="Credenciales" value={credentialStatus} />
+        <Info label="Email" value={emailStatus} />
+        {errorMessage ? <Info label="Error" value={errorMessage} /> : null}
+      </div>
+      <div className="mt-3">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-soft-muted">Problema declarado</p>
+        <p className="mt-1 text-sm text-soft-white">{mainPain}</p>
+      </div>
+      {flags.length ? (
+        <p className="mt-3 text-xs text-amber-300">Flags: {flags.map(String).join(', ')}</p>
+      ) : null}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button className="btn-create" disabled={busy} onClick={() => run('approve')}>Aprobar piloto</button>
+        <button className="rounded-lg border border-red-400/30 px-3 py-2 text-sm font-bold text-red-300 hover:bg-red-500/10" disabled={busy} onClick={() => setMode(mode === 'reject' ? 'idle' : 'reject')}>Rechazar piloto</button>
+        <button className="rounded-lg border border-blue-400/30 px-3 py-2 text-sm font-bold text-blue-300 hover:bg-blue-500/10" disabled={busy} onClick={() => setMode(mode === 'more-info' ? 'idle' : 'more-info')}>Solicitar más información</button>
+      </div>
+
+      {mode === 'reject' ? (
+        <div className="mt-4 grid gap-3">
+          <textarea className="ui-input min-h-20 py-2" value={internalReason} onChange={(event) => setInternalReason(event.target.value)} placeholder="Motivo interno" />
+          <textarea className="ui-input min-h-24 py-2" value={userReason} onChange={(event) => setUserReason(event.target.value)} placeholder="Motivo visible para usuario" />
+          <button className="btn-create justify-center" disabled={busy} onClick={() => run('reject')}>Confirmar rechazo y enviar email</button>
+        </div>
+      ) : null}
+
+      {mode === 'more-info' ? (
+        <div className="mt-4 grid gap-3">
+          <textarea className="ui-input min-h-24 py-2" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Mensaje para el usuario" />
+          <button className="btn-create justify-center" disabled={busy} onClick={() => run('more-info')}>Enviar solicitud de más información</button>
+        </div>
+      ) : null}
+
+      {error ? <p className="mt-3 text-sm text-red-300" role="alert">{error}</p> : null}
+    </div>
+  )
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-soft-muted">{label}</p>
+      <p className="mt-1 text-sm text-soft-white">{value}</p>
     </div>
   )
 }

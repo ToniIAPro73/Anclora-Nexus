@@ -30,6 +30,11 @@ export interface Task {
   title: string
   due_time: string
   status: 'pending' | 'done'
+  task_type?: string
+  origin?: string
+  entity_type?: string
+  entity_id?: string
+  metadata?: Record<string, unknown>
 }
 
 export interface Property {
@@ -878,7 +883,12 @@ export const useStore = create<AppState>((set) => ({
             id: String(t.id),
             title: String(t.title || t.name || t.summary || 'Tarea sin título'),
             due_time: t.due_date ? new Date(String(t.due_date)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '09:00',
-            status: t.status === 'done' ? 'done' : 'pending'
+            status: t.status === 'done' ? 'done' : 'pending',
+            task_type: t.task_type ? String(t.task_type) : undefined,
+            origin: t.origin ? String(t.origin) : undefined,
+            entity_type: t.entity_type ? String(t.entity_type) : undefined,
+            entity_id: t.entity_id ? String(t.entity_id) : undefined,
+            metadata: typeof t.metadata === 'object' && t.metadata !== null ? t.metadata as Record<string, unknown> : undefined,
           })))
         })
       }
