@@ -30,6 +30,7 @@ app.add_middleware(
 
 from .routes.automation import router as automation_router
 from .routes.access_requests import router as access_requests_router
+from .routes.syncxml_pilot import router as syncxml_pilot_router
 from .routes.intelligence import router as intelligence_router
 from .routes.ingestion import router as ingestion_router
 from .routes.leads import router as leads_router
@@ -48,6 +49,9 @@ app.include_router(automation_router, prefix="/api/automation", tags=["Automatio
 
 # Include internal access request review routes
 app.include_router(access_requests_router, prefix="/api/access-requests", tags=["Access Requests"])
+
+# Include SyncXML controlled pilot manual actions
+app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["SyncXML Pilot"])
 
 # Include Prospection & Buyer Matching routes
 app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospection"])

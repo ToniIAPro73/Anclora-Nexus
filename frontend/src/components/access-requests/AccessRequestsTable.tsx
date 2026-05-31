@@ -15,7 +15,9 @@ interface AccessRequestsTableProps {
 }
 
 export function productLabel(product: AccessRequestProduct): string {
-  return product === 'data_lab' ? 'Data Lab' : 'Synergi'
+  if (product === 'data_lab') return 'Data Lab'
+  if (product === 'syncxml') return 'SyncXML'
+  return 'Synergi'
 }
 
 export function statusLabel(status: AccessRequestStatus, t: Translate): string {
@@ -33,6 +35,7 @@ export function sourceLabel(source: AccessRequestSource, t: Translate): string {
     landing: 'accessRequestsSourceLanding',
     synergi_app: 'accessRequestsSourceSynergiApp',
     data_lab_app: 'accessRequestsSourceDataLabApp',
+    syncxml_landing: 'accessRequestsSourceSyncXmlLanding',
   }
   return t(labels[source])
 }

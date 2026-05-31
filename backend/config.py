@@ -63,11 +63,17 @@ class Settings(BaseSettings):
     # SyncXML Pilot Settings
     SYNCXML_ADMIN_PASSWORD: Optional[str] = None
     SYNCXML_APP_URL: str = "https://anclora-syncxml.vercel.app"
+    SYNCXML_LOGIN_URL: str = "https://anclora-syncxml.vercel.app/login"
+    SYNCXML_WEBHOOK_SECRET: Optional[str] = None
+    SYNCXML_INTERNAL_API_URL: str = "https://anclora-syncxml.vercel.app/api/internal/pilot-users"
+    SYNCXML_INTERNAL_API_SECRET: Optional[str] = None
     ADMIN_EMAIL: str = "toni@anclora.com"
+    ADMIN_EMAILS: str = "antonio@anclora.com"
     NEXUS_INTERNAL_API_KEY: Optional[str] = None
 
     # Hermes Worker Settings
     HERMES_WORKER_URL: str = "http://localhost:8787"
+    HERMES_WORKER_API_KEY: Optional[str] = None
 
     # Legacy compatibility - deprecated
     OPENAI_API_KEY: Optional[str] = None
