@@ -11,6 +11,7 @@ async function readJsonOrThrow(response: Response) {
 export async function approveSyncXmlPilot(requestId: string, payload: { admin_notes?: string; rotatePassword?: boolean; expiresAt?: string | null } = {}) {
   const response = await authFetch(`/api/syncxml-pilot/${requestId}/approve`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
   return readJsonOrThrow(response)
@@ -19,6 +20,7 @@ export async function approveSyncXmlPilot(requestId: string, payload: { admin_no
 export async function rejectSyncXmlPilot(requestId: string, payload: { internal_reason: string; user_reason: string }) {
   const response = await authFetch(`/api/syncxml-pilot/${requestId}/reject`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
   return readJsonOrThrow(response)
@@ -27,6 +29,7 @@ export async function rejectSyncXmlPilot(requestId: string, payload: { internal_
 export async function requestMoreInfoSyncXmlPilot(requestId: string, payload: { message: string }) {
   const response = await authFetch(`/api/syncxml-pilot/${requestId}/request-more-info`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
   return readJsonOrThrow(response)
