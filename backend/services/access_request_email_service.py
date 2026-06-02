@@ -40,7 +40,7 @@ def _syncxml_app_url() -> str:
 
 
 def _syncxml_logo_url() -> str:
-    return f"{_syncxml_app_url()}/brand/logo-anclora-syncxml.png"
+    return f"{_syncxml_app_url()}/brand/logo-anclora-syncxml-email.png"
 
 
 def _html_p(text: str) -> str:
