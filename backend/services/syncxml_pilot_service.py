@@ -198,8 +198,6 @@ class SyncXmlPilotService:
             return "rejected"
         if any(term in text for term in risky_terms):
             return "pending"
-        if decision == "approve" and score >= 85 and not flags:
-            return "approved"
         if decision == "reject" and score <= 25 and flags:
             return "rejected"
         return "pending"

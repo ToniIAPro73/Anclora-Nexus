@@ -27,62 +27,158 @@ def _email_to(record: Dict[str, Any]) -> str:
     return str(record.get("email") or "").strip()
 
 
-def _html_shell(*, title: str, intro: str, body: str) -> str:
+BRAND_BG = "#070A12"
+BRAND_SURFACE = "#101827"
+BRAND_SURFACE_ELEVATED = "#151F32"
+BRAND_ACCENT = "#BFA46A"
+BRAND_TEXT = "#F8FAFC"
+BRAND_MUTED = "#A8B3C7"
+
+
+def _syncxml_app_url() -> str:
+    return (settings.SYNCXML_APP_URL or "https://anclora-syncxml.vercel.app").rstrip("/")
+
+
+def _syncxml_logo_url() -> str:
+    return f"{_syncxml_app_url()}/brand/logo-anclora-syncxml.png"
+
+
+def _html_p(text: str) -> str:
+    return f"<p style='margin:0 0 16px;color:{BRAND_MUTED};font-size:15px;line-height:22px;'>{escape(text)}</p>"
+
+
+def _detail_row(label: str, value: Any) -> str:
+    normalized = str(value or "").strip() or "No especificado"
+    return (
+        "<tr>"
+        f"<td style='padding:8px 0;color:{BRAND_MUTED};font-size:13px;line-height:18px;width:190px;'>{escape(label)}</td>"
+        f"<td style='padding:8px 0;color:{BRAND_TEXT};font-size:14px;line-height:20px;font-weight:700;'>{escape(normalized)}</td>"
+        "</tr>"
+    )
+
+
+def _detail_table(rows: list[tuple[str, Any]]) -> str:
+    return (
+        f"<table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='margin:18px 0 0;border-collapse:collapse;border-top:1px solid rgba(191,164,106,0.34);'>"
+        + "".join(_detail_row(label, value) for label, value in rows)
+        + "</table>"
+    )
+
+
+def _pill(label: str) -> str:
+    return (
+        f"<span style='display:inline-block;margin:0 0 12px;padding:6px 10px;border:1px solid rgba(191,164,106,0.42);"
+        f"border-radius:999px;color:{BRAND_ACCENT};font-size:12px;line-height:16px;font-weight:800;'>"
+        f"{escape(label)}</span>"
+    )
+
+
+def _button(label: str, href: str) -> str:
+    return (
+        f"<a href='{escape(href)}' style='display:inline-block;margin:8px 0 18px;padding:12px 18px;"
+        f"border-radius:999px;background:{BRAND_ACCENT};color:#111827;text-decoration:none;"
+        f"font-size:14px;line-height:18px;font-weight:850;'>{escape(label)}</a>"
+    )
+
+
+def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclora SyncXML") -> str:
     return f"""
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="font-family:Arial,Helvetica,sans-serif;background:#071f2b;padding:32px 12px;color:#f7f4ea;">
+      <!doctype html>
+      <html lang="es">
+      <body style="margin:0;padding:0;background:{BRAND_BG};font-family:Inter,Segoe UI,Arial,sans-serif;color:{BRAND_TEXT};">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:{BRAND_BG};padding:32px 16px;color:{BRAND_TEXT};border-collapse:collapse;">
         <tr>
           <td align="center">
-            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:680px;background:#0a3241;border:1px solid rgba(212,175,55,0.22);border-radius:20px;">
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:720px;border-collapse:collapse;">
               <tr>
-                <td style="padding:32px;">
-                  <p style="margin:0 0 10px;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:#d4af37;">Anclora Nexus</p>
-                  <h1 style="margin:0 0 18px;font-size:28px;line-height:1.2;color:#f7f4ea;">{escape(title)}</h1>
-                  <p style="margin:0 0 22px;color:#d8dfd6;line-height:1.7;font-size:16px;">{escape(intro)}</p>
-                  <p style="margin:0 0 24px;color:#d8dfd6;line-height:1.7;font-size:15px;">{escape(body)}</p>
-                  <p style="margin:0;color:#d4af37;line-height:1.8;">Anclora</p>
+                <td style="padding:0 0 18px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                    <tr>
+                      <td style="padding-right:12px;">
+                        <img src="{escape(_syncxml_logo_url())}" width="48" height="48" alt="Anclora SyncXML" style="display:block;width:48px;height:48px;border-radius:8px;object-fit:contain;">
+                      </td>
+                      <td>
+                        <div style="color:{BRAND_TEXT};font-size:18px;line-height:24px;font-weight:850;">Anclora SyncXML</div>
+                        <div style="color:{BRAND_MUTED};font-size:13px;line-height:18px;">Piloto controlado</div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="border:1px solid rgba(255,255,255,0.10);border-radius:8px;background:{BRAND_SURFACE};overflow:hidden;">
+                  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;">
+                    <tr>
+                      <td style="padding:28px 28px 10px;background:{BRAND_SURFACE_ELEVATED};border-bottom:1px solid rgba(255,255,255,0.08);">
+                        {_pill(eyebrow)}
+                        <h1 style="margin:0;color:{BRAND_TEXT};font-size:24px;line-height:31px;font-weight:850;letter-spacing:0;">{escape(title)}</h1>
+                        <p style="margin:10px 0 0;color:{BRAND_MUTED};font-size:15px;line-height:22px;">{escape(intro)}</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:24px 28px 28px;">
+                        {body_html}
+                        <p style="margin:20px 0 0;color:{BRAND_ACCENT};font-size:14px;line-height:22px;font-weight:700;">Anclora</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:16px 4px 0;color:{BRAND_MUTED};font-size:12px;line-height:18px;">
+                  Email transaccional de Anclora SyncXML. El piloto es limitado, revocable y revisable.
                 </td>
               </tr>
             </table>
           </td>
         </tr>
       </table>
+      </body>
+      </html>
     """
 
 
 def build_access_request_approved_email(record: Dict[str, Any]) -> Dict[str, str]:
     product = _product_label(record)
     full_name = _full_name(record)
-    subject = f"Anclora {product} · Access request approved"
+    subject = f"Anclora {product} · Solicitud aprobada"
 
     extra_text = ""
     extra_html = ""
     if product == "SyncXML":
         pwd = settings.SYNCXML_ADMIN_PASSWORD or "NOT_CONFIGURED"
-        url = settings.SYNCXML_APP_URL
-        extra_text = f"\n\nYou can now access the pilot at {url} using the shared password: {pwd}\n"
-        extra_html = f"<p style='margin:0 0 24px;color:#d4af37;line-height:1.7;font-size:16px;'>You can now access the pilot at <a href='{url}' style='color:#d4af37;'>{url}</a> using the shared password: <strong>{pwd}</strong></p>"
+        url = _syncxml_app_url()
+        extra_text = f"\n\nPuedes acceder al piloto en {url} usando la contraseña compartida: {pwd}\n"
+        extra_html = (
+            _button("Acceder a Anclora SyncXML", url)
+            + _detail_table([
+                ("URL de acceso", url),
+                ("Contraseña compartida", pwd),
+                ("Estado", "Acceso aprobado"),
+            ])
+            + _html_p("Usa solo datos sintéticos o anonimizados. El piloto no incluye envío automático a SES.HOSPEDAJES ni garantía legal definitiva.")
+        )
     else:
         extra_text = (
-            "\nOur team will send the next steps or access link when they apply. "
-            "No external account has been created automatically by this approval.\n"
+            "\nNuestro equipo enviará los siguientes pasos cuando apliquen. "
+            "No se ha creado ninguna cuenta externa automáticamente con esta aprobación.\n"
         )
         extra_html = (
-            "<p style='margin:0 0 24px;color:#d8dfd6;line-height:1.7;font-size:15px;'>"
-            "Our team will send the next steps or access link when they apply. "
-            "No external account has been created automatically by this approval."
-            "</p>"
+            _html_p("Nuestro equipo enviará los siguientes pasos cuando apliquen.")
+            + _html_p("No se ha creado ninguna cuenta externa automáticamente con esta aprobación.")
         )
 
     text = (
-        f"Hello {full_name},\n\n"
-        f"Your request for Anclora {product} has been approved."
+        f"Hola {full_name},\n\n"
+        f"Tu solicitud para Anclora {product} ha sido aprobada."
         f"{extra_text}\n"
-        "Regards,\nAnclora"
+        "Gracias,\nAnclora"
     )
     html = _html_shell(
-        title=f"Your {product} request has been approved",
-        intro=f"Hello {full_name}, your request for Anclora {product} has been approved.",
-        body=extra_html,
+        title=f"Solicitud aprobada",
+        intro=f"Hola {full_name}, tu solicitud para Anclora {product} ha sido aprobada.",
+        body_html=extra_html,
+        eyebrow="Acceso aprobado",
     )
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
 
@@ -109,16 +205,29 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
         "- El acceso es limitado, revocable y revisable.\n\n"
         "Gracias,\nAnclora"
     )
+    body_html = (
+        _button("Acceder al piloto", login_url)
+        + _detail_table([
+            ("URL de acceso", login_url),
+            ("Email autorizado", email),
+            ("Contraseña temporal", temporary_password),
+            ("Caducidad/revisión", expires_at),
+        ])
+        + "<div style='margin-top:20px;padding:16px;border:1px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.035);'>"
+        + f"<div style='color:{BRAND_ACCENT};font-size:12px;line-height:16px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;'>Límites del piloto</div>"
+        + f"<ul style='margin:10px 0 0;padding-left:18px;color:{BRAND_MUTED};font-size:14px;line-height:22px;'>"
+        + "<li>Usa solo datos sintéticos o anonimizados.</li>"
+        + "<li>No subas datos reales de huéspedes.</li>"
+        + "<li>No hay envío automático a SES.HOSPEDAJES en esta fase.</li>"
+        + "<li>No constituye asesoramiento legal ni garantía normativa definitiva.</li>"
+        + "<li>El acceso es limitado, revocable y revisable.</li>"
+        + "</ul></div>"
+    )
     html = _html_shell(
         title="Acceso al piloto controlado de SyncXML",
         intro=f"Hola {full_name}, tu solicitud encaja con el alcance actual del piloto controlado.",
-        body=(
-            f"Accede en {login_url}. Email autorizado: {email}. "
-            f"Contraseña temporal: {temporary_password}. "
-            "Usa solo datos sintéticos o anonimizados; no subas datos reales de huéspedes. "
-            "No hay envío automático a SES.HOSPEDAJES ni garantía legal definitiva. "
-            "El acceso es limitado, revocable y revisable."
-        ),
+        body_html=body_html,
+        eyebrow="Acceso aprobado",
     )
     return {"to": email, "subject": subject, "text": text, "html": html}
 
@@ -127,23 +236,32 @@ def build_access_request_rejected_email(record: Dict[str, Any]) -> Dict[str, str
     product = _product_label(record)
     full_name = _full_name(record)
     reason = str(record.get("rejection_reason") or "").strip()
-    reason_text = f"\nReason: {reason}\n" if reason else "\n"
-    reason_html = f" Reason: {reason}" if reason else ""
-    subject = f"Anclora {product} · Access request reviewed"
+    reason_text = f"\nMotivo: {reason}\n" if reason else "\n"
+    subject = f"Anclora {product} · Solicitud revisada"
     text = (
-        f"Hello {full_name},\n\n"
-        f"We reviewed your request for Anclora {product}. "
-        "We will not move forward with access at this stage."
+        f"Hola {full_name},\n\n"
+        f"Hemos revisado tu solicitud para Anclora {product}. "
+        "En esta fase no avanzaremos con el acceso al piloto."
         f"{reason_text}\n"
-        "Regards,\nAnclora"
+        "Gracias,\nAnclora"
+    )
+    body_html = (
+        _html_p(f"Hemos revisado tu solicitud para Anclora {product}. En esta fase no avanzaremos con el acceso al piloto.")
+        + (
+            "<div style='margin-top:18px;padding:16px;border:1px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.035);'>"
+            + f"<div style='color:{BRAND_ACCENT};font-size:12px;line-height:16px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;'>Motivo</div>"
+            + f"<div style='margin-top:8px;color:{BRAND_TEXT};font-size:14px;line-height:21px;'>{escape(reason)}</div>"
+            + "</div>"
+            if reason
+            else _html_p("Gracias por tu interés. Si cambia el alcance del piloto, podremos valorar de nuevo casos similares.")
+        )
+        + _html_p("El piloto controlado se limita a casos que encajan con pruebas sobre datos sintéticos o anonimizados y sin uso productivo oficial.")
     )
     html = _html_shell(
-        title=f"Your {product} request has been reviewed",
-        intro=(
-            f"Hello {full_name}, we reviewed your request for Anclora {product}. "
-            "We will not move forward with access at this stage."
-        ),
-        body=f"Thank you for your interest in Anclora {product}.{reason_html}",
+        title="Solicitud revisada",
+        intro=f"Hola {full_name}, hemos completado la revisión de tu solicitud.",
+        body_html=body_html,
+        eyebrow="Revisión completada",
     )
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
 
@@ -160,7 +278,11 @@ def build_syncxml_more_info_email(record: Dict[str, Any], message: str) -> Dict[
     html = _html_shell(
         title="Necesitamos aclarar tu solicitud",
         intro=f"Hola {full_name}, antes de confirmar el acceso necesitamos aclarar algunos detalles.",
-        body=f"{message} Recuerda que esta fase funciona solo con datos sintéticos o anonimizados y sin envío automático a SES.HOSPEDAJES.",
+        body_html=(
+            _html_p(message)
+            + _html_p("Recuerda que esta fase funciona solo con datos sintéticos o anonimizados y sin envío automático a SES.HOSPEDAJES.")
+        ),
+        eyebrow="Información adicional",
     )
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
 
@@ -178,7 +300,8 @@ def build_access_request_fallback_admin_email(record: Dict[str, Any]) -> Dict[st
     html = _html_shell(
         title="Validation Fallback Triggered",
         intro=f"Automated validation failed for {email}.",
-        body="Please review this request manually in the Nexus dashboard.",
+        body_html=_html_p("Please review this request manually in the Nexus dashboard."),
+        eyebrow="Revisión manual",
     )
     admin_email = settings.ADMIN_EMAIL
     return {"to": admin_email, "subject": subject, "text": text, "html": html}
