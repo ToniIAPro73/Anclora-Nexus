@@ -387,7 +387,13 @@ class SyncXmlPilotService:
                     timeout=15.0,
                 )
             if not response.is_success:
-                return {"ok": False, "error": f"SyncXML returned {response.status_code}"}
+                detail = response.text[:500]
+                logger.warning(
+                    "SyncXML pilot user creation failed: status=%s body=%s",
+                    response.status_code,
+                    detail,
+                )
+                return {"ok": False, "error": f"SyncXML returned {response.status_code}: {detail}"}
             credentials = response.json()
             credentials.setdefault("expiresAt", expires_at)
             return credentials
@@ -416,10 +422,10 @@ class SyncXmlPilotService:
         return {**(record.get("metadata") or {}), **updates}
 
     def _now_iso(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
     def _default_credentials_expires_at(self) -> str:
-        return (datetime.now(timezone.utc) + timedelta(days=DEFAULT_TEMPORARY_PASSWORD_DAYS)).isoformat()
+        return (datetime.now(timezone.utc) + timedelta(days=DEFAULT_TEMPORARY_PASSWORD_DAYS)).isoformat().replace("+00:00", "Z")
 
 
 syncxml_pilot_service = SyncXmlPilotService()
