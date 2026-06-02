@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     INTERNAL_AUDIT_SECRET: Optional[str] = None
 
     # Native email transport (BL-next-03)
+    RESEND_API_KEY: Optional[str] = None
+    RESEND_FROM: Optional[str] = None
+    RESEND_REPLY_TO: Optional[str] = None
     SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
     SMTP_USERNAME: Optional[str] = None
