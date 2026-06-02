@@ -15,6 +15,8 @@ from backend.api.routes.command_center import router as command_center_router
 from backend.api.routes.deal_margin import router as deal_margin_router
 from backend.api.routes.source_observatory import router as source_observatory_router
 from backend.api.routes.sellers import router as sellers_router
+from backend.api.routes.access_requests import router as access_requests_router
+from backend.api.routes.syncxml_pilot import router as syncxml_pilot_router
 from backend.api.internal_webhooks import router as internal_webhooks_router
 
 app = FastAPI(title="Anclora Nexus API", version="0.1.0")
@@ -43,6 +45,8 @@ app.include_router(command_center_router, prefix="/api/command-center", tags=["C
 app.include_router(deal_margin_router, prefix="/api/deal-margin", tags=["Deal Margin"])
 app.include_router(source_observatory_router, prefix="/api/source-observatory", tags=["Source Observatory"])
 app.include_router(sellers_router, prefix="/api/sellers", tags=["Sellers"])
+app.include_router(access_requests_router, prefix="/api/access-requests", tags=["Access Requests"])
+app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["SyncXML Pilot"])
 app.include_router(internal_webhooks_router)
 
 @app.get("/health")
