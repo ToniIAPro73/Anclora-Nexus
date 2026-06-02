@@ -78,6 +78,28 @@ async def test_list_access_requests_route(app):
 
 
 @pytest.mark.anyio
+async def test_list_access_requests_accepts_empty_lifecycle(app):
+    with patch("backend.api.routes.access_requests.access_request_service") as mock_service:
+        mock_service.list_requests = AsyncMock(
+            return_value=[
+                {
+                    **access_request_response(),
+                    "product": "syncxml",
+                    "source": "syncxml_landing",
+                    "lifecycle": {},
+                }
+            ]
+        )
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.get("/api/access-requests?status=pending&product=syncxml")
+
+    assert response.status_code == 200
+    assert response.json()[0]["product"] == "syncxml"
+    assert response.json()[0]["lifecycle"] is None
+
+
+@pytest.mark.anyio
 async def test_get_access_request_route(app):
     with patch("backend.api.routes.access_requests.access_request_service") as mock_service:
         mock_service.get_request = AsyncMock(return_value=access_request_response("request-1"))
