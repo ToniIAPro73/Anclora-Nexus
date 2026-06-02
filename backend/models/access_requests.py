@@ -247,6 +247,13 @@ class AccessRequestResponse(BaseModel):
     decision_email: Optional[DecisionEmailResult] = None
     lifecycle: Optional[AccessRequestLifecycleResponse] = None
 
+    @field_validator("lifecycle", mode="before")
+    @classmethod
+    def normalize_empty_lifecycle(cls, value: Any) -> Any:
+        if value == {}:
+            return None
+        return value
+
 class AccessRequestAuditEventResponse(BaseModel):
     id: str
     timestamp: Optional[str] = None
