@@ -25,7 +25,7 @@ def assert_non_empty_bodies(payload: dict) -> None:
 
 def assert_syncxml_premium_shell(payload: dict) -> None:
     assert "Anclora SyncXML" in payload["html"]
-    assert "logo-anclora-syncxml.png" in payload["html"]
+    assert "logo-anclora-syncxml-email.png" in payload["html"]
     assert "#070A12" in payload["html"]
     assert "#BFA46A" in payload["html"]
 
