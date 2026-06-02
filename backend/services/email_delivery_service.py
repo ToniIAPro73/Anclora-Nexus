@@ -9,16 +9,40 @@ from backend.config import settings
 
 
 def get_email_transport_summary() -> Dict[str, Any]:
-    enabled = bool(
-        (settings.SMTP_HOST or "").strip()
-        and (settings.SMTP_FROM_EMAIL or "").strip()
-    )
+    resend_enabled = bool((settings.RESEND_API_KEY or "").strip() and (settings.RESEND_FROM or "").strip())
+    smtp_enabled = bool((settings.SMTP_HOST or "").strip() and (settings.SMTP_FROM_EMAIL or "").strip())
+    enabled = resend_enabled or smtp_enabled
     return {
         "native_email_enabled": enabled,
-        "provider": "smtp" if enabled else "mailto",
-        "from_email": settings.SMTP_FROM_EMAIL,
+        "provider": "resend" if resend_enabled else "smtp" if smtp_enabled else "mailto",
+        "from_email": settings.RESEND_FROM or settings.SMTP_FROM_EMAIL,
         "from_name": settings.SMTP_FROM_NAME,
-        "reply_to": settings.SMTP_REPLY_TO,
+        "reply_to": settings.RESEND_REPLY_TO or settings.SMTP_REPLY_TO,
+    }
+
+
+def _send_with_resend(*, to_email: str, subject: str, body: str, html: Optional[str] = None) -> Dict[str, Any]:
+    import resend
+
+    resend.api_key = settings.RESEND_API_KEY
+    params: resend.Emails.SendParams = {
+        "from": str(settings.RESEND_FROM),
+        "to": [to_email],
+        "subject": subject,
+        "text": body,
+    }
+    if html:
+        params["html"] = html
+    if settings.RESEND_REPLY_TO or settings.SMTP_REPLY_TO:
+        params["reply_to"] = settings.RESEND_REPLY_TO or settings.SMTP_REPLY_TO
+
+    result = resend.Emails.send(params)
+    message_id = result.get("id") if isinstance(result, dict) else None
+    return {
+        "provider": "resend",
+        "message_id": message_id,
+        "from_email": settings.RESEND_FROM,
+        "reply_to": settings.RESEND_REPLY_TO or settings.SMTP_REPLY_TO,
     }
 
 
@@ -26,6 +50,9 @@ def send_email_native(*, to_email: str, subject: str, body: str, html: Optional[
     transport = get_email_transport_summary()
     if not transport["native_email_enabled"]:
         raise RuntimeError("Native email transport is not configured")
+
+    if transport["provider"] == "resend":
+        return _send_with_resend(to_email=to_email, subject=subject, body=body, html=html)
 
     message = EmailMessage()
     message["To"] = to_email
