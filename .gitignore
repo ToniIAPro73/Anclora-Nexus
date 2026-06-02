@@ -60,3 +60,4 @@ credentials.json
 
 # Local Codex MCP/config
 .codex/
+.vercel

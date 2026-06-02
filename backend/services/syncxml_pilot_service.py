@@ -1,4 +1,6 @@
 import logging
+import re
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 import httpx
@@ -10,6 +12,13 @@ from backend.services.email_delivery_service import send_email_native
 from backend.services.supabase_service import supabase_service
 
 logger = logging.getLogger(__name__)
+
+PRODUCTION_OR_REAL_DATA_PATTERN = re.compile(
+    r"(datos reales|dato real|producci[oó]n|productivo|env[ií]o autom[aá]tico|ses autom[aá]tico|ministerio|ses\.hospedajes|hu[eé]spedes reales|viajeros reales)",
+    re.IGNORECASE,
+)
+INSUFFICIENT_VALUES = {"", "no especificado", "n/a", "na", "none", "null"}
+DEFAULT_TEMPORARY_PASSWORD_DAYS = 7
 
 
 class SyncXmlPilotPayload(BaseModel):
@@ -70,6 +79,11 @@ def _manual_review_result(reason: str) -> Dict[str, Any]:
     }
 
 
+def _is_insufficient(value: Optional[str]) -> bool:
+    normalized = (value or "").strip().lower()
+    return normalized in INSUFFICIENT_VALUES or len(normalized) < 4
+
+
 class SyncXmlPilotService:
     async def process_incoming_lead(self, data: Dict[str, Any]):
         try:
@@ -123,18 +137,18 @@ class SyncXmlPilotService:
                 raise RuntimeError("Failed to persist SyncXML lead")
             record = result.data[0]
 
-            hermes_result = await self._score_with_hermes(record["id"], payload)
-            final_status = self._decide_status(payload, hermes_result)
+            review_result = self._score_locally(payload)
+            final_status = self._decide_status(payload, review_result)
             update_data = {
                 "status": final_status,
                 "metadata": {
                     **record_data["metadata"],
-                    "ai_review": hermes_result,
+                    "ai_review": review_result,
                     "review_mode": "automatic" if final_status in {"approved", "rejected"} else "manual_review",
                 },
             }
             if final_status == "rejected":
-                update_data["rejection_reason"] = hermes_result.get("emailReasonUser") or "Fuera del alcance actual del piloto."
+                update_data["rejection_reason"] = review_result.get("emailReasonUser") or "Fuera del alcance actual del piloto."
 
             updated = (
                 supabase_service.client.table("access_requests")
@@ -145,48 +159,68 @@ class SyncXmlPilotService:
             record = updated.data[0] if updated.data else {**record, **update_data}
 
             if final_status == "pending":
-                await self._create_review_task(record, hermes_result)
+                await self._create_review_task(record, review_result)
                 if not payload.raw.get("adminEmailSentBySyncxml"):
                     self._send_safely(build_access_request_fallback_admin_email(record), record, "manual_review_email_failed")
-            elif final_status in {"approved", "rejected"}:
+            elif final_status == "approved":
+                approval = await self._approve_with_credentials(
+                    record,
+                    SyncXmlApprovePayload(),
+                    reviewer_id="system:syncxml_local_score",
+                )
+                return approval["record"]
+            elif final_status == "rejected":
                 ok = self._send_safely(access_request_email_service.build_decision_email(record), record, "decision_email_failed")
                 if not ok:
-                    await self._create_review_task(record, {**hermes_result, "riskFlags": ["decision_email_failed"]})
+                    await self._create_review_task(record, {**review_result, "riskFlags": ["decision_email_failed"]})
 
             return record
         except Exception as exc:
             logger.error("Error processing SyncXML lead: %s", exc)
             raise
 
-    async def _score_with_hermes(self, request_id: str, payload: SyncXmlPilotPayload) -> Dict[str, Any]:
-        try:
-            async with httpx.AsyncClient() as client:
-                headers = {}
-                if settings.HERMES_WORKER_API_KEY:
-                    headers["x-api-key"] = settings.HERMES_WORKER_API_KEY
-                response = await client.post(
-                    f"{settings.HERMES_WORKER_URL.rstrip('/')}/api/syncxml/pilot/validate",
-                    json={
-                        "requestId": request_id,
-                        "type": "syncxml_pilot_validation",
-                        "language": payload.locale,
-                        "payload": payload.model_dump(mode="json"),
-                        "constraints": [
-                            "Pilot only",
-                            "Synthetic or anonymized data only",
-                            "No automatic SES.HOSPEDAJES submission",
-                            "No legal compliance claims",
-                            "Return strict JSON only",
-                        ],
-                    },
-                    headers=headers,
-                    timeout=15.0,
-                )
-                response.raise_for_status()
-                return response.json()
-        except Exception as exc:
-            logger.warning("Hermes validation failed for %s: %s", payload.email, exc)
-            return _manual_review_result("hermes_unavailable")
+    def _score_locally(self, payload: SyncXmlPilotPayload) -> Dict[str, Any]:
+        if not payload.acceptsPilotConditions or not payload.acceptsSyntheticOrAnonymizedData:
+            return {
+                "decision": "reject",
+                "score": 10,
+                "riskFlags": ["pilot_conditions_not_accepted"],
+                "reasonInternal": "No acepta las condiciones mínimas del piloto o el uso con datos sintéticos/anonimizados.",
+                "emailReasonUser": "Tu solicitud no encaja con las condiciones mínimas del piloto controlado.",
+                "recommendedNextAction": "reject_pilot",
+            }
+
+        operational_text = " ".join([
+            payload.currentWorkflow,
+            payload.mainPain,
+            payload.wantsToValidate or "",
+        ])
+        if PRODUCTION_OR_REAL_DATA_PATTERN.search(operational_text):
+            return {
+                "decision": "manual_review",
+                "score": 45,
+                "riskFlags": ["production_or_real_data_requested"],
+                "reasonInternal": "La solicitud menciona datos reales, producción o envío automático a SES.HOSPEDAJES.",
+                "emailReasonUser": "Tu solicitud requiere aclaración porque el piloto no permite datos reales ni envíos oficiales automáticos.",
+                "recommendedNextAction": "manual_review",
+            }
+
+        if any(_is_insufficient(value) for value in [
+            payload.accommodationType,
+            payload.estimatedMonthlyReservations,
+            payload.currentWorkflow,
+            payload.mainPain,
+        ]):
+            return _manual_review_result("insufficient_operational_context")
+
+        return {
+            "decision": "approve",
+            "score": 88,
+            "riskFlags": [],
+            "reasonInternal": "Caso compatible con validación controlada Excel/XLSX a XML y acepta datos sintéticos o anonimizados.",
+            "emailReasonUser": "Tu caso encaja con el alcance actual del piloto controlado.",
+            "recommendedNextAction": "approve_pilot",
+        }
 
     def _decide_status(self, payload: SyncXmlPilotPayload, ai: Dict[str, Any]) -> str:
         flags = ai.get("riskFlags") or []
@@ -199,7 +233,9 @@ class SyncXmlPilotService:
             return "rejected"
         if any(term in text for term in risky_terms):
             return "pending"
-        if decision == "reject" and score <= 25 and flags:
+        if decision == "approve" and score >= 85 and not flags:
+            return "approved"
+        if decision == "reject" and score <= 20 and flags:
             return "rejected"
         return "pending"
 
@@ -252,11 +288,14 @@ class SyncXmlPilotService:
 
     async def approve_manual(self, org_id: str, request_id: str, reviewer_id: str, payload: SyncXmlApprovePayload) -> Dict[str, Any]:
         record = await self._get_syncxml_request(org_id, request_id)
+        return await self._approve_with_credentials(record, payload, reviewer_id=str(reviewer_id))
+
+    async def _approve_with_credentials(self, record: Dict[str, Any], payload: SyncXmlApprovePayload, reviewer_id: str) -> Dict[str, Any]:
         pending = self._merge_metadata(record, {
             "final_decision": "approved_pending_credentials",
             "credential_status": "pending",
             "email_status": "pending",
-            "decided_by": str(reviewer_id),
+            "decided_by": reviewer_id,
         })
         self._update_request(record["id"], {"status": "pending", "metadata": pending, "admin_notes": payload.admin_notes})
 
@@ -274,7 +313,7 @@ class SyncXmlPilotService:
 
         updated_record = self._update_request(record["id"], {
             "status": "approved",
-            "reviewed_by": str(reviewer_id),
+            "reviewed_by": reviewer_id,
             "reviewed_at": self._now_iso(),
             "metadata": self._merge_metadata(record, {
                 "final_decision": "approved",
@@ -330,6 +369,7 @@ class SyncXmlPilotService:
     async def _create_syncxml_user(self, record: Dict[str, Any], payload: SyncXmlApprovePayload) -> Dict[str, Any]:
         if not settings.SYNCXML_INTERNAL_API_SECRET:
             return {"ok": False, "error": "SYNCXML_INTERNAL_API_SECRET is not configured"}
+        expires_at = payload.expiresAt or self._default_credentials_expires_at()
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -339,7 +379,7 @@ class SyncXmlPilotService:
                         "email": record["email"],
                         "name": record.get("full_name") or record["email"],
                         "role": "pilot_user",
-                        "expiresAt": payload.expiresAt,
+                        "expiresAt": expires_at,
                         "source": "anclora-nexus",
                         "rotatePassword": payload.rotatePassword,
                     },
@@ -348,7 +388,9 @@ class SyncXmlPilotService:
                 )
             if not response.is_success:
                 return {"ok": False, "error": f"SyncXML returned {response.status_code}"}
-            return response.json()
+            credentials = response.json()
+            credentials.setdefault("expiresAt", expires_at)
+            return credentials
         except Exception as exc:
             return {"ok": False, "error": str(exc)}
 
@@ -374,9 +416,10 @@ class SyncXmlPilotService:
         return {**(record.get("metadata") or {}), **updates}
 
     def _now_iso(self) -> str:
-        from datetime import datetime, timezone
-
         return datetime.now(timezone.utc).isoformat()
+
+    def _default_credentials_expires_at(self) -> str:
+        return (datetime.now(timezone.utc) + timedelta(days=DEFAULT_TEMPORARY_PASSWORD_DAYS)).isoformat()
 
 
 syncxml_pilot_service = SyncXmlPilotService()
