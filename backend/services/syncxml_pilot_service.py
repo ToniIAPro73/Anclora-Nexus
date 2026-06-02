@@ -146,7 +146,8 @@ class SyncXmlPilotService:
 
             if final_status == "pending":
                 await self._create_review_task(record, hermes_result)
-                self._send_safely(build_access_request_fallback_admin_email(record), record, "manual_review_email_failed")
+                if not payload.raw.get("adminEmailSentBySyncxml"):
+                    self._send_safely(build_access_request_fallback_admin_email(record), record, "manual_review_email_failed")
             elif final_status in {"approved", "rejected"}:
                 ok = self._send_safely(access_request_email_service.build_decision_email(record), record, "decision_email_failed")
                 if not ok:

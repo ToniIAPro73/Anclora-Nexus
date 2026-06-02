@@ -8,9 +8,26 @@ from backend.services.email_delivery_service import get_email_transport_summary,
 def test_resend_transport_is_preferred_when_configured(monkeypatch):
     monkeypatch.setattr(settings, "RESEND_API_KEY", "re_test")
     monkeypatch.setattr(settings, "RESEND_FROM", "Anclora SyncXML <piloto@anclora.com>")
+    monkeypatch.setattr(settings, "RESEND_FROM_EMAIL", None)
     monkeypatch.setattr(settings, "RESEND_REPLY_TO", "antonio@anclora.com")
     monkeypatch.setattr(settings, "SMTP_HOST", "smtp.example.com")
     monkeypatch.setattr(settings, "SMTP_FROM_EMAIL", "smtp@example.com")
+
+    summary = get_email_transport_summary()
+
+    assert summary["native_email_enabled"] is True
+    assert summary["provider"] == "resend"
+    assert summary["from_email"] == "Anclora SyncXML <piloto@anclora.com>"
+    assert summary["reply_to"] == "antonio@anclora.com"
+
+
+def test_resend_transport_accepts_render_from_email_alias(monkeypatch):
+    monkeypatch.setattr(settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(settings, "RESEND_FROM", None)
+    monkeypatch.setattr(settings, "RESEND_FROM_EMAIL", "Anclora SyncXML <piloto@anclora.com>")
+    monkeypatch.setattr(settings, "RESEND_REPLY_TO", "antonio@anclora.com")
+    monkeypatch.setattr(settings, "SMTP_HOST", None)
+    monkeypatch.setattr(settings, "SMTP_FROM_EMAIL", None)
 
     summary = get_email_transport_summary()
 
@@ -33,6 +50,7 @@ def test_send_email_native_uses_resend_sdk(monkeypatch):
     monkeypatch.setitem(sys.modules, "resend", fake_resend)
     monkeypatch.setattr(settings, "RESEND_API_KEY", "re_test")
     monkeypatch.setattr(settings, "RESEND_FROM", "Anclora SyncXML <piloto@anclora.com>")
+    monkeypatch.setattr(settings, "RESEND_FROM_EMAIL", None)
     monkeypatch.setattr(settings, "RESEND_REPLY_TO", "antonio@anclora.com")
 
     result = send_email_native(

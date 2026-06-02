@@ -8,14 +8,19 @@ from typing import Any, Dict, Optional
 from backend.config import settings
 
 
+def _resend_from() -> Optional[str]:
+    return settings.RESEND_FROM or settings.RESEND_FROM_EMAIL
+
+
 def get_email_transport_summary() -> Dict[str, Any]:
-    resend_enabled = bool((settings.RESEND_API_KEY or "").strip() and (settings.RESEND_FROM or "").strip())
+    resend_from = _resend_from()
+    resend_enabled = bool((settings.RESEND_API_KEY or "").strip() and (resend_from or "").strip())
     smtp_enabled = bool((settings.SMTP_HOST or "").strip() and (settings.SMTP_FROM_EMAIL or "").strip())
     enabled = resend_enabled or smtp_enabled
     return {
         "native_email_enabled": enabled,
         "provider": "resend" if resend_enabled else "smtp" if smtp_enabled else "mailto",
-        "from_email": settings.RESEND_FROM or settings.SMTP_FROM_EMAIL,
+        "from_email": resend_from or settings.SMTP_FROM_EMAIL,
         "from_name": settings.SMTP_FROM_NAME,
         "reply_to": settings.RESEND_REPLY_TO or settings.SMTP_REPLY_TO,
     }
@@ -25,8 +30,9 @@ def _send_with_resend(*, to_email: str, subject: str, body: str, html: Optional[
     import resend
 
     resend.api_key = settings.RESEND_API_KEY
+    resend_from = _resend_from()
     params: resend.Emails.SendParams = {
-        "from": str(settings.RESEND_FROM),
+        "from": str(resend_from),
         "to": [to_email],
         "subject": subject,
         "text": body,
@@ -41,7 +47,7 @@ def _send_with_resend(*, to_email: str, subject: str, body: str, html: Optional[
     return {
         "provider": "resend",
         "message_id": message_id,
-        "from_email": settings.RESEND_FROM,
+        "from_email": resend_from,
         "reply_to": settings.RESEND_REPLY_TO or settings.SMTP_REPLY_TO,
     }
 
