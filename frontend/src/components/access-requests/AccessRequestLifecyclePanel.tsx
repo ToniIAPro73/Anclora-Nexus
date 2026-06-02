@@ -28,7 +28,8 @@ function formatDate(value?: string | null): string {
   }).format(date)
 }
 
-function lifecycleLabel(prefix: string, value: string, t: Translate): string {
+function lifecycleLabel(prefix: string, value: string | null | undefined, t: Translate): string {
+  if (!value) return '-'
   const key = `${prefix}${value
     .split('_')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -76,7 +77,7 @@ export function AccessRequestLifecyclePanel({
         <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-500/30 dark:bg-navy-surface/50 dark:text-rose-200">
           {error}
         </div>
-      ) : lifecycle ? (
+      ) : lifecycle?.decision_status && lifecycle?.provisioning_status && lifecycle?.email_status ? (
         <>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <Field

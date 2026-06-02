@@ -124,7 +124,7 @@ async def test_syncxml_user_creation_defaults_temporary_password_to_seven_days()
 
     assert credentials["expiresAt"] == sent["json"]["expiresAt"]
     assert sent["json"]["expiresAt"]
-    expires_at = datetime.fromisoformat(sent["json"]["expiresAt"])
+    expires_at = datetime.fromisoformat(sent["json"]["expiresAt"].replace("Z", "+00:00"))
     remaining = expires_at - datetime.now(timezone.utc)
     assert 6 <= remaining.days <= 7
     assert sent["json"]["rotatePassword"] is False
