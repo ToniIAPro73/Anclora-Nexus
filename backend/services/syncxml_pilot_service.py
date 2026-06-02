@@ -162,7 +162,7 @@ class SyncXmlPilotService:
             async with httpx.AsyncClient() as client:
                 headers = {}
                 if settings.HERMES_WORKER_API_KEY:
-                    headers["Authorization"] = f"Bearer {settings.HERMES_WORKER_API_KEY}"
+                    headers["x-api-key"] = settings.HERMES_WORKER_API_KEY
                 response = await client.post(
                     f"{settings.HERMES_WORKER_URL.rstrip('/')}/api/syncxml/pilot/validate",
                     json={
