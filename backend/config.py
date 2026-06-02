@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     # Native email transport (BL-next-03)
     RESEND_API_KEY: Optional[str] = None
     RESEND_FROM: Optional[str] = None
+    RESEND_FROM_EMAIL: Optional[str] = None
     RESEND_REPLY_TO: Optional[str] = None
     SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
