@@ -71,7 +71,7 @@ def test_reconcile_operational_alerts_resolves_missing_candidates() -> None:
 
     with patch.object(service, "_table_exists", return_value=True), \
          patch("backend.services.automation_service.get_territorial_sync_status", return_value={"status": "ready"}), \
-         patch("backend.services.automation_service.get_territorial_pipeline_status", return_value={"status": "ready", "last_success_at": "2026-03-10T10:00:00+00:00"}), \
+         patch("backend.services.automation_service.get_territorial_pipeline_status", return_value={"status": "ready", "last_success_at": "2026-06-03T09:00:00+00:00"}), \
          patch("backend.services.automation_service.source_observatory_service.get_overview", new=AsyncMock(return_value=ObservatoryOverviewResponse(
              scope=ScopeMetadata(org_id="org-1", role="owner"),
              summary=ObservatorySummary(

@@ -6,7 +6,7 @@ def test_cloud_ops_summary_reports_runtime_and_heartbeats(monkeypatch) -> None:
         "backend.services.cloud_ops_service.get_territorial_sync_status",
         lambda: {
             "status": "ready",
-            "generated_at": "2026-03-11T08:00:00+00:00",
+            "generated_at": "2026-06-03T08:00:00+00:00",
             "freshness_hours": 96,
             "freshness_state": "fresh",
             "warnings": [],
@@ -19,8 +19,8 @@ def test_cloud_ops_summary_reports_runtime_and_heartbeats(monkeypatch) -> None:
         lambda: {
             "status": "success",
             "message": "ok",
-            "started_at": "2026-03-11T08:10:00+00:00",
-            "finished_at": "2026-03-11T08:12:00+00:00",
+            "started_at": "2026-06-03T08:10:00+00:00",
+            "finished_at": "2026-06-03T08:12:00+00:00",
             "retry_count": 1,
             "stats": {"signals_received": 3},
         },
@@ -30,8 +30,8 @@ def test_cloud_ops_summary_reports_runtime_and_heartbeats(monkeypatch) -> None:
         lambda: {
             "status": "warning",
             "message": "snapshot fallback",
-            "started_at": "2026-03-11T08:15:00+00:00",
-            "finished_at": "2026-03-11T08:16:00+00:00",
+            "started_at": "2026-06-03T08:15:00+00:00",
+            "finished_at": "2026-06-03T08:16:00+00:00",
             "source_selected": "snapshot:seller-signals",
             "attempts": [
                 {"status": "failed"},

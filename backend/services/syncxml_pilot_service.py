@@ -231,12 +231,21 @@ class SyncXmlPilotService:
 
         if not payload.acceptsPilotConditions or not payload.acceptsSyntheticOrAnonymizedData:
             return "rejected"
+        
+        # Risk detection: always manual review
         if any(term in text for term in risky_terms):
             return "pending"
+        
+        # Clean case: check for auto-approve flag
         if decision == "approve" and score >= 85 and not flags:
-            return "approved"
+            if settings.SYNCXML_PILOT_AUTO_APPROVE:
+                return "approved"
+            else:
+                return "pending" # Force manual review if auto-approve is disabled
+        
         if decision == "reject" and score <= 20 and flags:
             return "rejected"
+        
         return "pending"
 
     async def _create_review_task(self, record: Dict[str, Any], ai: Dict[str, Any]) -> None:

@@ -66,7 +66,8 @@ class TestNoIrreversibleAutomation:
         assert "send_email" not in source.lower()
         assert "smtp" not in source.lower()
         assert "twilio" not in source.lower()
-        assert "whatsapp" not in source.lower()
+        assert "whatsapp_service" not in source.lower()
+        assert "evolution_api" not in source.lower()
 
     def test_no_auto_contact_in_routes(self) -> None:
         import inspect

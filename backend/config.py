@@ -74,6 +74,7 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str = "toni@anclora.com"
     ADMIN_EMAILS: str = "antonio@anclora.com"
     NEXUS_INTERNAL_API_KEY: Optional[str] = None
+    SYNCXML_PILOT_AUTO_APPROVE: bool = False
 
     # Hermes Worker Settings
     HERMES_WORKER_URL: str = "http://localhost:8787"
