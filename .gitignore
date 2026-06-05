@@ -57,6 +57,10 @@ ops/statefox-playwright-profile/
 ops/release-gate-latest.json
 
 credentials.json
+.mineru/
+mineru-output/
+parsed-documents/
+uploads/
 
 # Local Codex MCP/config
 .codex/
