@@ -34,6 +34,8 @@ class SyncXmlPilotPayload(BaseModel):
     wantsToValidate: str = Field(default="", max_length=1200)
     acceptsSyntheticOrAnonymizedData: bool
     acceptsPilotConditions: bool
+    usesRealGuestData: bool = False
+    needsSesAutomaticSubmission: bool = False
     locale: str = "es"
     source: str = "syncxml_landing"
     raw: Dict[str, Any] = Field(default_factory=dict)
@@ -88,8 +90,8 @@ class SyncXmlPilotService:
     async def process_incoming_lead(self, data: Dict[str, Any]):
         try:
             payload = SyncXmlPilotPayload.model_validate(data)
-        except ValidationError as exc:
-            logger.warning("Invalid SyncXML pilot payload: %s", exc)
+        except ValidationError:
+            logger.warning("Invalid SyncXML pilot payload: schema validation failed")
             raise
 
         org_id = settings.LEGACY_SINGLE_TENANT_ORG_ID or settings.PUBLIC_CTA_ORG_ID
@@ -176,8 +178,49 @@ class SyncXmlPilotService:
 
             return record
         except Exception as exc:
-            logger.error("Error processing SyncXML lead: %s", exc)
+            logger.error("Error processing SyncXML lead: request failed internally")
             raise
+
+    async def _score_lead(self, payload: SyncXmlPilotPayload) -> Dict[str, Any]:
+        if not settings.HERMES_WORKER_URL or not settings.HERMES_WORKER_API_KEY:
+            logger.info("Hermes not configured for SyncXML, falling back to local scoring.")
+            return self._score_locally(payload)
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{settings.HERMES_WORKER_URL.rstrip('/')}/api/syncxml/pilot/validate",
+                    json={
+                        "type": "syncxml_pilot_validation",
+                        "request": {
+                            "name": payload.name,
+                            "email": str(payload.email),
+                            "company": payload.companyName,
+                            "propertyCount": 1,
+                            "currentWorkflow": payload.currentWorkflow,
+                            "usesRealGuestData": payload.usesRealGuestData,
+                            "needsSesAutomaticSubmission": payload.needsSesAutomaticSubmission,
+                            "message": payload.mainPain + " " + payload.wantsToValidate,
+                            "locale": payload.locale
+                        }
+                    },
+                    headers={"Authorization": f"Bearer {settings.HERMES_WORKER_API_KEY}"},
+                    timeout=15.0,
+                )
+            if response.is_success:
+                hermes_data = response.json()
+                return {
+                    "decision": hermes_data.get("decision", "manual_review"),
+                    "score": hermes_data.get("score", 0),
+                    "riskFlags": hermes_data.get("flags", []),
+                    "reasonInternal": hermes_data.get("reason", "Scored by Hermes"),
+                    "emailReasonUser": "Tu solicitud ha sido revisada por nuestro asistente.",
+                    "recommendedNextAction": hermes_data.get("recommendedNextAction", "manual_review"),
+                }
+            logger.warning("Hermes returned %s, falling back to local scoring", response.status_code)
+        except Exception as exc:
+            logger.warning("Hermes request failed: %s, falling back to local scoring", exc)
+        return self._score_locally(payload)
 
     def _score_locally(self, payload: SyncXmlPilotPayload) -> Dict[str, Any]:
         if not payload.acceptsPilotConditions or not payload.acceptsSyntheticOrAnonymizedData:
@@ -231,21 +274,12 @@ class SyncXmlPilotService:
 
         if not payload.acceptsPilotConditions or not payload.acceptsSyntheticOrAnonymizedData:
             return "rejected"
-        
-        # Risk detection: always manual review
         if any(term in text for term in risky_terms):
             return "pending"
-        
-        # Clean case: check for auto-approve flag
         if decision == "approve" and score >= 85 and not flags:
-            if settings.SYNCXML_PILOT_AUTO_APPROVE:
-                return "approved"
-            else:
-                return "pending" # Force manual review if auto-approve is disabled
-        
+            return "approved"
         if decision == "reject" and score <= 20 and flags:
             return "rejected"
-        
         return "pending"
 
     async def _create_review_task(self, record: Dict[str, Any], ai: Dict[str, Any]) -> None:
@@ -281,7 +315,7 @@ class SyncXmlPilotService:
             send_email_native(**self._email_kwargs(email_data))
             return True
         except Exception as exc:
-            logger.warning("SyncXML email failed for %s: %s", record.get("email"), exc)
+            logger.warning("SyncXML email failed for request %s: %s", record.get("id"), exc)
             try:
                 supabase_service.client.table("access_requests").update({
                     "metadata": {
