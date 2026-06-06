@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { BrandLogo } from '@/components/brand/BrandLogo'
-import { normalizeNextPath, type PrivatePortalKey } from '@/lib/private-area-access'
+import { normalizeNextPath } from '@/lib/private-area-access'
 import { useI18n } from '@/lib/i18n'
 
 function resolveAppUrl() {
@@ -60,12 +60,6 @@ export default function LoginPage() {
     if (typeof window === 'undefined') return '/dashboard'
     const params = new URLSearchParams(window.location.search)
     return normalizeNextPath(params.get('next'), '/dashboard')
-  })
-  const [portalKey] = useState<PrivatePortalKey | null>(() => {
-    if (typeof window === 'undefined') return null
-    const params = new URLSearchParams(window.location.search)
-    const portal = params.get('portal')
-    return portal === 'agent' ? 'agent' : null
   })
   const particles: Particle[] = [...Array(12)].map((_, i) => ({
     id: i,
