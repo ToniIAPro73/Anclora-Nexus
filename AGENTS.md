@@ -273,3 +273,19 @@ cd frontend && npm test
 - `sdd/` contiene los Software Design Documents por feature
 - Antes de crear un nuevo archivo, verificar si ya existe algo similar
 - Preferir editar código existente antes de crear nuevos archivos
+
+<!-- ANCLORA-GLOBAL-AGENT-MEMORY-START -->
+## Memoria global Anclora obligatoria
+
+Antes de modificar este repositorio, todo agente IA debe leer:
+
+1. `.anclora/global/GLOBAL_AGENT_WORKFLOW.md`, si existe
+2. `.anclora/global/GLOBAL_GIT_WORKFLOW.md`, si existe
+3. `.anclora/global/GLOBAL_SECURITY_RULES.md`, si existe
+4. `.anclora/AGENT_PROJECT_CONTEXT.md`
+5. `.anclora/GIT_WORKFLOW.md`
+6. `.anclora/SECURITY_RULES.md`
+7. `MEMORY.md`
+
+Regla base: No trabajar directamente en `development`, `staging` ni `production`.
+<!-- ANCLORA-GLOBAL-AGENT-MEMORY-END -->
