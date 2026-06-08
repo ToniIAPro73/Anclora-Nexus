@@ -19,6 +19,7 @@ PRODUCTION_OR_REAL_DATA_PATTERN = re.compile(
 )
 INSUFFICIENT_VALUES = {"", "no especificado", "n/a", "na", "none", "null"}
 DEFAULT_TEMPORARY_PASSWORD_DAYS = 7
+REAL_WRITE_BLOCK_REASON = "REAL_SUPABASE_WRITE_BLOCKED"
 
 
 class SyncXmlPilotPayload(BaseModel):
@@ -87,6 +88,31 @@ def _is_insufficient(value: Optional[str]) -> bool:
 
 
 class SyncXmlPilotService:
+    def _is_non_production_environment(self) -> bool:
+        return (settings.APP_ENV or "development").lower() != "production" or (settings.SYNCXML_ENV or "development").lower() != "production"
+
+    def _allow_real_supabase_write(self) -> bool:
+        return bool(settings.ALLOW_REAL_SUPABASE_WRITE)
+
+    def _is_staging_safety_mode(self) -> bool:
+        return (
+            self._is_non_production_environment()
+            or not self._allow_real_supabase_write()
+            or bool(settings.USE_SYNTHETIC_DATA_ONLY)
+        )
+
+    def _block_real_write_reason(self, action: str) -> Dict[str, Any]:
+        return {
+            "ok": False,
+            "blocked": True,
+            "reason": REAL_WRITE_BLOCK_REASON,
+            "action": action,
+            "environment": settings.APP_ENV,
+            "syncxmlEnvironment": settings.SYNCXML_ENV,
+            "allowRealSupabaseWrite": self._allow_real_supabase_write(),
+            "useSyntheticDataOnly": bool(settings.USE_SYNTHETIC_DATA_ONLY),
+        }
+
     async def process_incoming_lead(self, data: Dict[str, Any]):
         try:
             payload = SyncXmlPilotPayload.model_validate(data)
@@ -96,6 +122,15 @@ class SyncXmlPilotService:
 
         org_id = settings.LEGACY_SINGLE_TENANT_ORG_ID or settings.PUBLIC_CTA_ORG_ID
         metadata = payload.model_dump(mode="json")
+        review_result = await self._score_lead(payload)
+        final_status = self._decide_status(payload, review_result)
+
+        if self._is_staging_safety_mode():
+            blocked = self._block_real_write_reason("process_incoming_lead")
+            blocked["decision"] = final_status
+            blocked["ai_review"] = review_result
+            return blocked
+
         record_data = {
             "org_id": org_id,
             "product": "syncxml",
@@ -116,6 +151,7 @@ class SyncXmlPilotService:
                 **metadata,
                 "request_type": "syncxml_pilot",
                 "review_mode": "ai_review_pending",
+                "ai_review": review_result,
             },
         }
 
@@ -139,8 +175,6 @@ class SyncXmlPilotService:
                 raise RuntimeError("Failed to persist SyncXML lead")
             record = result.data[0]
 
-            review_result = self._score_locally(payload)
-            final_status = self._decide_status(payload, review_result)
             update_data = {
                 "status": final_status,
                 "metadata": {
@@ -277,12 +311,17 @@ class SyncXmlPilotService:
         if any(term in text for term in risky_terms):
             return "pending"
         if decision == "approve" and score >= 85 and not flags:
-            return "approved"
+            if settings.SYNCXML_PILOT_AUTO_APPROVE and not self._is_staging_safety_mode():
+                return "approved"
+            return "pending"
         if decision == "reject" and score <= 20 and flags:
             return "rejected"
         return "pending"
 
     async def _create_review_task(self, record: Dict[str, Any], ai: Dict[str, Any]) -> None:
+        if self._is_staging_safety_mode():
+            logger.info("Blocked SyncXML review task creation in safety mode")
+            return
         payload = {
             "org_id": record.get("org_id") or settings.PUBLIC_CTA_ORG_ID,
             "title": f"Revisar piloto SyncXML · {record.get('email')}",
@@ -330,10 +369,14 @@ class SyncXmlPilotService:
             return False
 
     async def approve_manual(self, org_id: str, request_id: str, reviewer_id: str, payload: SyncXmlApprovePayload) -> Dict[str, Any]:
+        if self._is_staging_safety_mode():
+            return self._block_real_write_reason("approve_manual")
         record = await self._get_syncxml_request(org_id, request_id)
         return await self._approve_with_credentials(record, payload, reviewer_id=str(reviewer_id))
 
     async def _approve_with_credentials(self, record: Dict[str, Any], payload: SyncXmlApprovePayload, reviewer_id: str) -> Dict[str, Any]:
+        if self._is_staging_safety_mode():
+            return self._block_real_write_reason("approve_with_credentials")
         pending = self._merge_metadata(record, {
             "final_decision": "approved_pending_credentials",
             "credential_status": "pending",
@@ -376,6 +419,8 @@ class SyncXmlPilotService:
         return {"ok": sent, "status": "approved" if sent else "approved_email_failed", "record": final_record}
 
     async def reject_manual(self, org_id: str, request_id: str, reviewer_id: str, payload: SyncXmlRejectPayload) -> Dict[str, Any]:
+        if self._is_staging_safety_mode():
+            return self._block_real_write_reason("reject_manual")
         record = await self._get_syncxml_request(org_id, request_id)
         updated = self._update_request(record["id"], {
             "status": "rejected",
@@ -394,6 +439,8 @@ class SyncXmlPilotService:
         return {"ok": sent, "status": "rejected" if sent else "rejected_email_failed", "record": final}
 
     async def request_more_info_manual(self, org_id: str, request_id: str, reviewer_id: str, payload: SyncXmlMoreInfoPayload) -> Dict[str, Any]:
+        if self._is_staging_safety_mode():
+            return self._block_real_write_reason("request_more_info_manual")
         record = await self._get_syncxml_request(org_id, request_id)
         updated = self._update_request(record["id"], {
             "status": "pending",
@@ -410,6 +457,8 @@ class SyncXmlPilotService:
         return {"ok": sent, "status": "more_info_requested" if sent else "more_info_email_failed", "record": final}
 
     async def _create_syncxml_user(self, record: Dict[str, Any], payload: SyncXmlApprovePayload) -> Dict[str, Any]:
+        if self._is_staging_safety_mode():
+            return self._block_real_write_reason("create_syncxml_user")
         if not settings.SYNCXML_INTERNAL_API_SECRET:
             return {"ok": False, "error": "SYNCXML_INTERNAL_API_SECRET is not configured"}
         expires_at = payload.expiresAt or self._default_credentials_expires_at()
@@ -458,6 +507,9 @@ class SyncXmlPilotService:
         return result.data[0]
 
     def _update_request(self, request_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self._is_staging_safety_mode():
+            blocked = self._block_real_write_reason("update_access_request")
+            return {**data, **blocked}
         result = supabase_service.client.table("access_requests").update(data).eq("id", request_id).execute()
         return result.data[0] if result.data else data
 
