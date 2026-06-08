@@ -3,6 +3,11 @@
 Configure these variables in Render/Vercel/local backend environment.
 
 ```env
+APP_ENV=staging
+SYNCXML_ENV=staging
+ALLOW_REAL_SUPABASE_WRITE=false
+USE_SYNTHETIC_DATA_ONLY=true
+SYNCXML_PILOT_AUTO_APPROVE=false
 RESEND_API_KEY=
 RESEND_FROM=
 RESEND_REPLY_TO=
@@ -35,7 +40,14 @@ python3 backend/scripts/smoke_syncxml_pilot_task.py
 ALLOW_REAL_SUPABASE_WRITE=true python3 backend/scripts/smoke_syncxml_pilot_task.py
 ```
 
-Real Supabase writes are blocked unless `ALLOW_REAL_SUPABASE_WRITE=true`.
+Real Supabase writes are blocked unless all of these are true:
+
+- `APP_ENV=production`
+- `SYNCXML_ENV=production`
+- `ALLOW_REAL_SUPABASE_WRITE=true`
+- `USE_SYNTHETIC_DATA_ONLY=false`
+
+In staging, preview and development, keep `SYNCXML_PILOT_AUTO_APPROVE=false` and treat the flow as review-only.
 
 Deployment checklist:
 
@@ -45,7 +57,7 @@ Deployment checklist:
 4. Check `/health` on Nexus and `/ready` on Hermes.
 5. Submit a pilot request from SyncXML.
 6. Verify `access_requests` and `tasks.task_type=syncxml_pilot_review`.
-7. Approve manually in Nexus.
-8. Confirm SyncXML creates `PilotUser`.
-9. Confirm acceptance email contains `/login`, email and temporary password.
+7. Approve manually in Nexus only in an environment explicitly allowed for real writes.
+8. Confirm SyncXML creates `PilotUser` only after those guards are intentionally enabled.
+9. Confirm acceptance email contains `/login`, email and temporary password only in the approved real-write flow.
 10. Confirm login succeeds.
