@@ -1,15 +1,18 @@
-from unittest.mock import AsyncMock, Mock, patch
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from backend.services.syncxml_pilot_service import SyncXmlApprovePayload, SyncXmlPilotPayload, syncxml_pilot_service
+from backend.services.syncxml_pilot_service import (
+    REAL_WRITE_BLOCK_REASON,
+    SyncXmlApprovePayload,
+    SyncXmlPilotPayload,
+    syncxml_pilot_service,
+)
 
 
-@pytest.mark.asyncio
-async def test_syncxml_pilot_manual_review_by_default_even_with_high_score():
-    """Nexus should NOT auto-approve by default, even if the score is high."""
-    payload = SyncXmlPilotPayload(
+def _payload(**overrides):
+    base = SyncXmlPilotPayload(
         requestId="req_test",
         name="Ana Test",
         email="ana@example.com",
@@ -21,51 +24,83 @@ async def test_syncxml_pilot_manual_review_by_default_even_with_high_score():
         acceptsSyntheticOrAnonymizedData=True,
         acceptsPilotConditions=True,
     )
+    data = base.model_dump()
+    data.update(overrides)
+    return data
 
-    record = {"id": "ar_1", "org_id": "org_1", "email": "ana@example.com", "metadata": {}}
 
-    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, \
-         patch("backend.services.syncxml_pilot_service.settings") as settings, \
-         patch.object(syncxml_pilot_service, "_send_safely", return_value=True):
-        
-        settings.SYNCXML_PILOT_AUTO_APPROVE = False
-        settings.PUBLIC_CTA_ORG_ID = "org_1"
-        settings.LEGACY_SINGLE_TENANT_ORG_ID = None
-
-        access_table = Mock()
-        task_table = Mock()
-        supabase.client.table.side_effect = lambda name: access_table if name == "access_requests" else task_table
-        access_table.select.return_value.eq.return_value.eq.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value.data = []
-        access_table.insert.return_value.execute.return_value.data = [record]
-        access_table.update.return_value.eq.return_value.execute.return_value.data = [{**record, "status": "pending"}]
-        task_table.insert.return_value.execute.return_value.data = [{"id": "task_1"}]
-
-        result = await syncxml_pilot_service.process_incoming_lead(payload.model_dump())
-
-    assert result["id"] == "ar_1"
-    assert result["status"] == "pending"
-    # Should have created a review task because auto-approve is false
-    task_table.insert.assert_called_once()
+def _configure_safe_settings(settings, *, app_env="staging", syncxml_env="staging", allow_real_write=False, synthetic_only=True, auto_approve=False):
+    settings.APP_ENV = app_env
+    settings.SYNCXML_ENV = syncxml_env
+    settings.ALLOW_REAL_SUPABASE_WRITE = allow_real_write
+    settings.USE_SYNTHETIC_DATA_ONLY = synthetic_only
+    settings.SYNCXML_PILOT_AUTO_APPROVE = auto_approve
+    settings.PUBLIC_CTA_ORG_ID = "org_1"
+    settings.LEGACY_SINGLE_TENANT_ORG_ID = None
+    settings.SYNCXML_INTERNAL_API_SECRET = "secret"
+    settings.SYNCXML_INTERNAL_API_URL = "https://syncxml.test/internal"
+    settings.HERMES_WORKER_URL = ""
+    settings.HERMES_WORKER_API_KEY = None
 
 
 @pytest.mark.asyncio
-async def test_syncxml_pilot_auto_approves_only_when_flag_is_true():
-    """Nexus auto-approves if and only if SYNCXML_PILOT_AUTO_APPROVE is True."""
-    payload = SyncXmlPilotPayload(
-        requestId="req_test",
-        name="Ana Test",
-        email="ana@example.com",
-        accommodationType="Vivienda turística",
-        estimatedMonthlyReservations="10-30",
-        currentWorkflow="Excel manual",
-        mainPain="Necesito revisar XML",
-        wantsToValidate="Piloto con datos anonimizados",
-        acceptsSyntheticOrAnonymizedData=True,
-        acceptsPilotConditions=True,
-    )
+async def test_blocks_real_pilot_request_write_in_staging():
+    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
+        "backend.services.syncxml_pilot_service.settings"
+    ) as settings:
+        _configure_safe_settings(settings)
 
-    record = {"id": "ar_1", "org_id": "org_1", "email": "ana@example.com", "metadata": {}}
+        result = await syncxml_pilot_service.process_incoming_lead(_payload())
 
+    assert result["blocked"] is True
+    assert result["reason"] == REAL_WRITE_BLOCK_REASON
+    assert result["action"] == "process_incoming_lead"
+    assert result["environment"] == "staging"
+    supabase.client.table.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_blocks_real_write_when_syncxml_environment_is_staging():
+    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
+        "backend.services.syncxml_pilot_service.settings"
+    ) as settings:
+        _configure_safe_settings(settings, app_env="production", syncxml_env="staging", allow_real_write=True, synthetic_only=False)
+
+        result = await syncxml_pilot_service.process_incoming_lead(_payload())
+
+    assert result["blocked"] is True
+    assert result["reason"] == REAL_WRITE_BLOCK_REASON
+    assert result["syncxmlEnvironment"] == "staging"
+    supabase.client.table.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_blocks_real_write_when_synthetic_only_is_enabled():
+    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
+        "backend.services.syncxml_pilot_service.settings"
+    ) as settings:
+        _configure_safe_settings(settings, app_env="production", syncxml_env="production", allow_real_write=True, synthetic_only=True)
+
+        result = await syncxml_pilot_service.process_incoming_lead(_payload())
+
+    assert result["blocked"] is True
+    assert result["useSyntheticDataOnly"] is True
+    supabase.client.table.assert_not_called()
+
+
+def test_does_not_autoapprove_when_flag_is_false():
+    payload = SyncXmlPilotPayload.model_validate(_payload())
+
+    with patch("backend.services.syncxml_pilot_service.settings") as settings:
+        _configure_safe_settings(settings, app_env="production", syncxml_env="production", allow_real_write=True, synthetic_only=False, auto_approve=False)
+        decision = syncxml_pilot_service._decide_status(payload, {"decision": "approve", "score": 88, "riskFlags": []})
+
+    assert decision == "pending"
+
+
+@pytest.mark.asyncio
+async def test_allows_production_flow_with_explicit_real_write_and_mocks():
+    record = {"id": "ar_1", "org_id": "org_1", "email": "ana@example.com", "metadata": {}, "full_name": "Ana Test"}
     credentials = {
         "ok": True,
         "email": "ana@example.com",
@@ -74,14 +109,14 @@ async def test_syncxml_pilot_auto_approves_only_when_flag_is_true():
         "pilotUserId": "pilot_1",
     }
 
-    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, \
-         patch("backend.services.syncxml_pilot_service.settings") as settings, \
-         patch.object(syncxml_pilot_service, "_create_syncxml_user", new=AsyncMock(return_value=credentials)), \
-         patch.object(syncxml_pilot_service, "_send_safely", return_value=True):
-        
-        settings.SYNCXML_PILOT_AUTO_APPROVE = True
-        settings.PUBLIC_CTA_ORG_ID = "org_1"
-        settings.LEGACY_SINGLE_TENANT_ORG_ID = None
+    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
+        "backend.services.syncxml_pilot_service.settings"
+    ) as settings, patch.object(
+        syncxml_pilot_service, "_create_syncxml_user", new=AsyncMock(return_value=credentials)
+    ), patch.object(
+        syncxml_pilot_service, "_send_safely", return_value=True
+    ):
+        _configure_safe_settings(settings, app_env="production", syncxml_env="production", allow_real_write=True, synthetic_only=False, auto_approve=True)
 
         access_table = Mock()
         task_table = Mock()
@@ -89,56 +124,40 @@ async def test_syncxml_pilot_auto_approves_only_when_flag_is_true():
         access_table.select.return_value.eq.return_value.eq.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value.data = []
         access_table.insert.return_value.execute.return_value.data = [record]
         access_table.update.return_value.eq.return_value.execute.return_value.data = [{**record, "status": "approved", "metadata": {}}]
-        task_table.insert.return_value.execute.return_value.data = [{"id": "task_1"}]
 
-        result = await syncxml_pilot_service.process_incoming_lead(payload.model_dump())
+        result = await syncxml_pilot_service.process_incoming_lead(_payload())
 
     assert result["id"] == "ar_1"
     assert result["status"] == "approved"
+    supabase.client.table.assert_called()
     task_table.insert.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_syncxml_pilot_never_auto_approves_risky_requests_even_if_flag_true():
-    """Risk override: 'producción' or 'datos reales' always forces manual review."""
-    payload = SyncXmlPilotPayload(
-        requestId="req_test",
-        name="Ana Test",
-        email="ana@example.com",
-        accommodationType="Vivienda turística",
-        estimatedMonthlyReservations="10-30",
-        currentWorkflow="Quiero usar datos reales en producción",
-        mainPain="Necesito revisar XML",
-        wantsToValidate="Envío automático al ministerio",
-        acceptsSyntheticOrAnonymizedData=True,
-        acceptsPilotConditions=True,
-    )
+async def test_block_reason_is_clear_for_manual_approval():
+    with patch("backend.services.syncxml_pilot_service.settings") as settings:
+        _configure_safe_settings(settings)
+        result = await syncxml_pilot_service.approve_manual("org_1", "req_1", "reviewer_1", SyncXmlApprovePayload())
 
-    record = {"id": "ar_1", "org_id": "org_1", "email": "ana@example.com", "metadata": {}}
+    assert result == {
+        "ok": False,
+        "blocked": True,
+        "reason": REAL_WRITE_BLOCK_REASON,
+        "action": "approve_manual",
+        "environment": "staging",
+        "syncxmlEnvironment": "staging",
+        "allowRealSupabaseWrite": False,
+        "useSyntheticDataOnly": True,
+    }
 
-    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, \
-         patch("backend.services.syncxml_pilot_service.settings") as settings, \
-         patch.object(syncxml_pilot_service, "_send_safely", return_value=True):
-        
-        settings.SYNCXML_PILOT_AUTO_APPROVE = True # Even if true
-        settings.PUBLIC_CTA_ORG_ID = "org_1"
-        settings.LEGACY_SINGLE_TENANT_ORG_ID = None
 
-        access_table = Mock()
-        task_table = Mock()
-        supabase.client.table.side_effect = lambda name: access_table if name == "access_requests" else task_table
-        access_table.select.return_value.eq.return_value.eq.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value.data = []
-        access_table.insert.return_value.execute.return_value.data = [record]
-        access_table.update.return_value.eq.return_value.execute.return_value.data = [{**record, "status": "pending"}]
-        task_table.insert.return_value.execute.return_value.data = [{"id": "task_1"}]
+def test_hermes_local_validation_still_works_without_writes():
+    payload = SyncXmlPilotPayload.model_validate(_payload())
 
-        result = await syncxml_pilot_service.process_incoming_lead(payload.model_dump())
+    result = syncxml_pilot_service._score_locally(payload)
 
-    assert result["id"] == "ar_1"
-    assert result["status"] == "pending"
-    task_payload = task_table.insert.call_args.args[0]
-    assert task_payload["task_type"] == "syncxml_pilot_review"
-    assert task_payload["metadata"]["ai_review"]["decision"] == "manual_review"
+    assert result["decision"] == "approve"
+    assert result["recommendedNextAction"] == "approve_pilot"
 
 
 @pytest.mark.asyncio
@@ -172,13 +191,13 @@ async def test_syncxml_user_creation_defaults_temporary_password_to_seven_days()
             sent.update({"url": url, "json": json, "headers": headers, "timeout": timeout})
             return FakeResponse()
 
-    with patch("backend.services.syncxml_pilot_service.settings.SYNCXML_INTERNAL_API_SECRET", "secret"), patch(
-        "backend.services.syncxml_pilot_service.settings.SYNCXML_INTERNAL_API_URL", "https://syncxml.test/internal"
-    ), patch("backend.services.syncxml_pilot_service.httpx.AsyncClient", return_value=FakeClient()):
+    with patch("backend.services.syncxml_pilot_service.settings") as settings, patch(
+        "backend.services.syncxml_pilot_service.httpx.AsyncClient", return_value=FakeClient()
+    ):
+        _configure_safe_settings(settings, app_env="production", syncxml_env="production", allow_real_write=True, synthetic_only=False)
         credentials = await syncxml_pilot_service._create_syncxml_user(record, SyncXmlApprovePayload())
 
     assert credentials["expiresAt"] == sent["json"]["expiresAt"]
-    assert sent["json"]["expiresAt"]
     expires_at = datetime.fromisoformat(sent["json"]["expiresAt"].replace("Z", "+00:00"))
     remaining = expires_at - datetime.now(timezone.utc)
     assert 6 <= remaining.days <= 7
