@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Anclora Nexus"
     VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
+    APP_ENV: str = "development"
+    SYNCXML_ENV: str = "development"
+    ALLOW_REAL_SUPABASE_WRITE: bool = False
+    USE_SYNTHETIC_DATA_ONLY: bool = False
     
     # Supabase Settings
     SUPABASE_URL: str

@@ -68,7 +68,18 @@ export async function fetchUserAndOrg() {
       orgId: selectedMembership?.org_id || null,
     }
   } catch (error) {
-    console.error('Error fetching user and org:', error)
+    const isDynamicServerUsage =
+      error instanceof Error &&
+      ('digest' in error || 'description' in error) &&
+      (
+        String((error as { digest?: unknown }).digest ?? '').includes('DYNAMIC_SERVER_USAGE') ||
+        String((error as { description?: unknown }).description ?? '').includes('Dynamic server usage')
+      )
+
+    if (!isDynamicServerUsage) {
+      console.error('Error fetching user and org:', error)
+    }
+
     return { user: null, membership: null, orgId: null }
   }
 }
