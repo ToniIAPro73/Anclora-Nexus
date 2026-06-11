@@ -5,7 +5,9 @@ pydantic-settings
 email-validator
 supabase
 python-dotenv
+python-multipart
 sqlalchemy
 httpx
 langgraph
 resend
+cryptography
