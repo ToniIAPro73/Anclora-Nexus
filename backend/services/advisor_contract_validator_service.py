@@ -73,6 +73,86 @@ class AdvisorContractValidatorService:
         except Exception as exc:
             return {**SAFE_FAILURE_RESULT, "error": str(exc)}
 
+    async def validate_legal_document(
+        self,
+        *,
+        document_text: str,
+        document_type: str,
+        canonical_template: Optional[str] = None,
+        jurisdiction: str = "España",
+        language: str = "es",
+        document_id: Optional[str] = None,
+        org_id: Optional[str] = None,
+        metadata: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Call the Advisor AI /api/legal-documents/validate endpoint.
+
+        Provides diff-aware validation against a canonical template when available.
+        Falls back to SAFE_FAILURE_RESULT on any network or parsing error.
+        """
+        if not self.base_url:
+            return {**SAFE_FAILURE_RESULT, "error": "ADVISOR_AI_BASE_URL not configured"}
+
+        payload: dict[str, Any] = {
+            "documentText": document_text,
+            "documentType": document_type,
+            "jurisdiction": jurisdiction,
+            "language": language,
+            "metadata": metadata or {},
+        }
+        if canonical_template:
+            payload["canonicalTemplate"] = canonical_template
+        if document_id:
+            payload["documentId"] = document_id
+        if org_id:
+            payload["orgId"] = org_id
+
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+            headers["X-Anclora-Internal-Key"] = self.api_key
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+                response = await client.post(
+                    f"{self.base_url}/api/legal-documents/validate",
+                    json=payload,
+                    headers=headers,
+                )
+            response.raise_for_status()
+            data = response.json()
+            if not isinstance(data, dict):
+                raise ValueError("Advisor AI returned a non-object response")
+            return self._normalize_legal_document_response(data)
+        except Exception as exc:
+            return {**SAFE_FAILURE_RESULT, "error": str(exc)}
+
+    def _normalize_legal_document_response(self, data: dict[str, Any]) -> dict[str, Any]:
+        findings = data.get("findings") if isinstance(data.get("findings"), list) else []
+        required_actions = data.get("required_actions") if isinstance(data.get("required_actions"), list) else []
+        sources = data.get("sources") if isinstance(data.get("sources"), list) else []
+        differences = data.get("differences") if isinstance(data.get("differences"), list) else []
+        missing_clauses = data.get("missing_clauses") if isinstance(data.get("missing_clauses"), list) else []
+
+        return {
+            "status": data.get("status") if data.get("status") in {"ok", "review_required", "error"} else "review_required",
+            "block_signing": bool(data.get("block_signing")),
+            "risk_level": data.get("risk_level") or "medium",
+            "review_requirement": data.get("review_requirement") or "recommended",
+            "confidence": float(data.get("confidence") or 0.0),
+            "summary": str(data.get("summary") or "Validacion completada por Advisor AI."),
+            "findings": findings,
+            "required_actions": [str(item) for item in required_actions],
+            "missing_clauses": missing_clauses,
+            "differences": differences,
+            "legal_disclaimer": str(data.get("legal_disclaimer") or SAFE_FAILURE_RESULT["legal_disclaimer"]),
+            "sources": sources,
+            "document_id": data.get("document_id"),
+            "validation_timestamp": data.get("validation_timestamp"),
+            "rag_sources_used": int(data.get("rag_sources_used") or 0),
+            "advisor_available": True,
+        }
+
     def _normalize_response(self, data: dict[str, Any]) -> dict[str, Any]:
         findings = data.get("findings") if isinstance(data.get("findings"), list) else []
         required_actions = data.get("required_actions") if isinstance(data.get("required_actions"), list) else []
