@@ -84,6 +84,17 @@ class Settings(BaseSettings):
     HERMES_WORKER_URL: str = "http://localhost:8787"
     HERMES_WORKER_API_KEY: Optional[str] = None
 
+    # Real Estate DMS / signatures / Advisor AI
+    NEXUS_DOCUMENT_ENCRYPTION_KEY: Optional[str] = None
+    NEXUS_DMS_BUCKET: str = "dms"
+    NEXUS_DMS_MAX_UPLOAD_BYTES: int = 25 * 1024 * 1024
+    DOCUSEAL_WEBHOOK_SECRET: Optional[str] = None
+    DOCUSEAL_API_KEY: Optional[str] = None
+    DOCUSEAL_API_URL: str = "https://api.docuseal.com"
+    ADVISOR_AI_BASE_URL: Optional[str] = None
+    ADVISOR_AI_INTERNAL_API_KEY: Optional[str] = None
+    ADVISOR_AI_TIMEOUT_SECONDS: float = 12.0
+
     # Legacy compatibility - deprecated
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
