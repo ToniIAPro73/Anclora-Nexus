@@ -22,6 +22,7 @@ from backend.api.routes.dms_templates import router as dms_templates_router
 from backend.api.routes.dms_generated import router as dms_generated_router
 from backend.api.routes.dms_legal_review import router as dms_legal_review_router
 from backend.api.routes.dms_versions import router as dms_versions_router
+from backend.api.routes.dms_retention import router as dms_retention_router
 from backend.api.internal_webhooks import router as internal_webhooks_router
 
 app = FastAPI(title="Anclora Nexus API", version="0.1.0")
@@ -66,6 +67,7 @@ app.include_router(dms_templates_router, prefix="/api/dms/templates", tags=["DMS
 app.include_router(dms_generated_router, prefix="/api/dms", tags=["DMS Generated"])
 app.include_router(dms_legal_review_router, prefix="/api/dms", tags=["DMS Legal Review"])
 app.include_router(dms_versions_router, prefix="/api/dms", tags=["DMS Versions"])
+app.include_router(dms_retention_router, prefix="/api/dms/retention", tags=["DMS Retention"])
 app.include_router(internal_webhooks_router)
 
 @app.get("/health")
