@@ -10,6 +10,7 @@ import {
   listDealFolders,
   listDocuments,
   uploadDocument,
+  validateDocument,
   type DealDocument,
   type DealFolder,
   type OperationType,
