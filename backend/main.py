@@ -22,14 +22,23 @@ from backend.api.internal_webhooks import router as internal_webhooks_router
 
 app = FastAPI(title="Anclora Nexus API", version="0.1.0")
 
-# CORS Configuration
+import os as _os
+
+_CORS_ORIGINS = [
+    o.strip()
+    for o in _os.environ.get(
+        "CORS_ALLOWED_ORIGINS",
+        "https://anclora-nexus-frontend.vercel.app,http://localhost:3000",
+    ).split(",")
+    if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    # Dev mode: permissive CORS to avoid localhost origin drift issues.
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=_CORS_ORIGINS,
+    allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type", "X-Org-Id"],
 )
 
 # Register Routes
