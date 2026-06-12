@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -30,6 +30,9 @@ class DocumentCategory(str, Enum):
     dni_nie_pasaporte = "dni_nie_pasaporte"
     certificado_deuda_cero = "certificado_deuda_cero"
     certificado_comunidad = "certificado_comunidad"
+    contrato_compraventa = "contrato_compraventa"
+    kyc_cliente = "kyc_cliente"
+    documento_firmado = "documento_firmado"
 
 
 class ComplianceStatus(str, Enum):
@@ -68,10 +71,30 @@ class DocumentUploadRequest(BaseModel):
 
 
 class SignatureFlowCreate(BaseModel):
-    document_id: UUID
     signer_email: str
     signer_name: str
     signer_role: SignerRole
+
+
+class DocumentValidationRequest(BaseModel):
+    contract_type: Optional[str] = None
+    operation_type: Optional[OperationType] = None
+    jurisdiction: str = "ES-IB"
+    language: str = "es"
+    text: Optional[str] = None
+    metadata: dict[str, Any] = {}
+
+
+class DocumentValidationResult(BaseModel):
+    status: str
+    block_signing: bool
+    confidence: float = 0.0
+    summary: str
+    findings: list[dict[str, Any]] = []
+    required_actions: list[str] = []
+    missing_documents: list[str] = []
+    legal_disclaimer: str = ""
+    sources: list[dict[str, Any]] = []
 
 
 class DocuSealWebhookPayload(BaseModel):
