@@ -173,7 +173,7 @@ export default function DmsPage() {
 
   return (
     <div className="h-full p-6 overflow-y-auto">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-5">
+      <div className="max-w-screen-2xl mx-auto flex flex-col gap-5">
 
         {/* Header */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-soft-subtle/50">
@@ -370,7 +370,7 @@ export default function DmsPage() {
                           type="button"
                           onClick={() => void handleValidate(document.id)}
                           disabled={immutable || busy === `validate-${document.id}`}
-                          className={`btn-action !h-10 ${busy === `validate-${document.id}` ? 'cursor-wait opacity-70' : ''}`}
+                          className={`btn-action h-10! ${busy === `validate-${document.id}` ? 'cursor-wait opacity-70' : ''}`}
                         >
                           {busy === `validate-${document.id}`
                             ? <RefreshCw className="w-4 h-4 animate-spin" />
@@ -381,7 +381,7 @@ export default function DmsPage() {
                           type="button"
                           onClick={() => void handleSendToSignature(document)}
                           disabled={rejected || immutable || busy === `sign-${document.id}`}
-                          className={`btn-action !h-10 disabled:opacity-40 disabled:cursor-not-allowed ${busy === `sign-${document.id}` ? 'cursor-wait opacity-70' : ''}`}
+                          className={`btn-action h-10! disabled:opacity-40 disabled:cursor-not-allowed ${busy === `sign-${document.id}` ? 'cursor-wait opacity-70' : ''}`}
                         >
                           {busy === `sign-${document.id}`
                             ? <RefreshCw className="w-4 h-4 animate-spin" />
