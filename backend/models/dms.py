@@ -32,7 +32,36 @@ class DocumentCategory(str, Enum):
     certificado_comunidad = "certificado_comunidad"
     contrato_compraventa = "contrato_compraventa"
     kyc_cliente = "kyc_cliente"
+    # Deprecated: use DocumentStatus.signed + immutable=true on document_versions instead
     documento_firmado = "documento_firmado"
+
+
+class DocumentOrigin(str, Enum):
+    """Where the document came from."""
+    external = "external"       # uploaded by a user
+    generated = "generated"     # produced from a template
+    template = "template"       # the master template itself
+
+
+class DocumentStatus(str, Enum):
+    """Lifecycle state of a deal document or generated document."""
+    draft = "draft"
+    review_required = "review_required"
+    approved = "approved"
+    signed = "signed"
+    archived = "archived"
+
+
+class TemplateDocumentType(str, Enum):
+    """Canonical document types used in the template library."""
+    arras_penitenciales = "arras_penitenciales"
+    contrato_compraventa = "contrato_compraventa"
+    contrato_temporada = "contrato_temporada"
+    contrato_alquiler_turistico = "contrato_alquiler_turistico"
+    kyc_cliente = "kyc_cliente"
+    mandato_exclusiva = "mandato_exclusiva"
+    oferta_compra = "oferta_compra"
+    generico = "generico"
 
 
 class ComplianceStatus(str, Enum):
@@ -68,6 +97,7 @@ class DocumentUploadRequest(BaseModel):
     folder_id: UUID
     title: str
     document_category: DocumentCategory
+    origin: DocumentOrigin = DocumentOrigin.external
 
 
 class SignatureFlowCreate(BaseModel):
