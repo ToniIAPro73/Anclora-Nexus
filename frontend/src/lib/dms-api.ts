@@ -1,5 +1,4 @@
 import supabase from './supabase'
-import { buildBackendUrl } from './backend-url'
 
 async function getJsonHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession()
@@ -16,9 +15,11 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   }
 }
 
+// DMS calls use the Next.js rewrite proxy (/api/* → Render backend) to avoid
+// CORS issues when NEXT_PUBLIC_API_URL points to an absolute Render URL.
 async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = await getJsonHeaders()
-  const res = await fetch(buildBackendUrl(path), {
+  const res = await fetch(path, {
     ...options,
     headers: { ...headers, ...(options.headers as Record<string, string> || {}) },
   })
@@ -97,7 +98,7 @@ export async function uploadDocument(payload: {
   form.append('document_category', payload.documentCategory)
   form.append('file', payload.file)
 
-  const res = await fetch(buildBackendUrl('/api/dms/documents/upload'), {
+  const res = await fetch('/api/dms/documents/upload', {
     method: 'POST',
     headers,
     body: form,
