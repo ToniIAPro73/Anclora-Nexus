@@ -3,12 +3,11 @@
 import re
 from typing import Any
 
-from backend.services.supabase_service import supabase_service
-
 # Patterns that indicate a field is still unfilled
 _PLACEHOLDER_PATTERNS = [
     re.compile(r"\[.*?\]"),
-    re.compile(r"\{[A-Z_]+\}"),    # uppercase keys only to avoid JSON false positives
+    re.compile(r"\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\}"),  # unfilled {{ field_key }} tokens
+    re.compile(r"\{[A-Z_]+\}"),                       # {UPPERCASE_VAR} style
     re.compile(r"___+"),
     re.compile(r"<<<.*?>>>"),
     re.compile(r"\bXXXX+\b", re.IGNORECASE),
@@ -93,6 +92,7 @@ def generate_from_template(
 
 def fetch_template_required_fields(template_version_id: str, org_id: str) -> list[dict[str, Any]]:
     """Return the list of required field definitions for a template version."""
+    from backend.services.supabase_service import supabase_service  # lazy import
     response = (
         supabase_service.client
         .table("document_template_fields")
