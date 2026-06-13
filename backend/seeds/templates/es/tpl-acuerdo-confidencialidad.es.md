@@ -51,10 +51,11 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 ## Firmas
 
-| Parte | Nombre | Firma | Fecha |
-|-------|--------|-------|-------|
-| Parte Divulgadora | {{ party_1.fullname }} | _____________ | {{ document.generated_at }} |
-| Parte Receptora | {{ party_2.fullname }} | _____________ | {{ document.generated_at }} |
+| Parte             | Nombre                 | Firma          | Fecha                       |
+| ----------------- | ---------------------- | -------------- | --------------------------- |
+| Parte Divulgadora | {{ party_1.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Parte Receptora   | {{ party_2.fullname }} | ******\_****** | {{ document.generated_at }} |
 
 ---
-*Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
+
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal
