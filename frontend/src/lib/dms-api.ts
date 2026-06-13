@@ -206,7 +206,7 @@ export async function listTemplates(params?: {
   const qs = params
     ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined) as [string, string][]).toString()
     : ''
-  return apiRequest(`/api/dms/templates${qs}`)
+  return apiRequest(`/api/dms/templates/${qs}`)
 }
 
 export async function createTemplate(payload: {
