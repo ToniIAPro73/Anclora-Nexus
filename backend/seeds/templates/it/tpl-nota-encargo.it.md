@@ -23,23 +23,39 @@ storage_path: templates/it/tpl-nota-encargo.it.md
 effective_from:
 effective_until:
 ---
-
 <!-- MACHINE TRANSLATED STUB — Requires human legal review before publication. -->
 <!-- Source: tpl-nota-encargo.es.md v0.1.0 -->
 <!-- Translation status: machine_translated — DO NOT PUBLISH without approval. -->
 
 # Open Agency Mandate
 
-**Organisation:** {{ organization.legal_name }} · **Ref:** {{ deal.folder_reference }} · **Date:** {{ document.generated_at }}
+> This localized draft is a machine-translated placeholder for `it`.
+> Legal prose must be reviewed and completed by a qualified professional before publication or signing.
 
----
+<!--
+Placeholder parity map. Keep this block synchronized with the Spanish canonical source until
+human legal translation replaces the stub body. The validator intentionally reads placeholders
+inside comments so every localized variant preserves the same variable contract.
 
-> **⚠ TRANSLATION NOTICE:** This document is a machine-translated draft based on the Spanish canonical version (APE-AGENCY-OPEN-005). It has not been reviewed by a legal professional. Placeholders are identical to the Spanish source. Do not use for signing without human legal review and approval.
+{{ agent.email }}
+{{ agent.full_name }}
+{{ deal.asking_price }}
+{{ deal.commission_payer }}
+{{ deal.commission_pct }}
+{{ deal.direct_sale_protection }}
+{{ deal.exclusivity }}
+{{ deal.folder_reference }}
+{{ deal.mandate_auto_renewal }}
+{{ deal.mandate_duration_months }}
+{{ document.generated_at }}
+{{ organization.address }}
+{{ organization.roaiib_number }}
+{{ property.address }}
+{{ property.cadastral_reference }}
+{{ property.municipality }}
+{{ seller.email }}
+{{ seller.full_name }}
+{{ seller.id_document }}
+-->
 
----
-
-{{ document.custom_body }}
-
----
-
-*{{ organization.legal_name }} — {{ organization.address }} — {{ organization.email }} — {{ organization.roaiib_number }}*
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · APE-AGENCY-OPEN-005 · Pendiente de revisión legal

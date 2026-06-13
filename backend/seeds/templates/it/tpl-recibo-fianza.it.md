@@ -23,23 +23,35 @@ storage_path: templates/it/tpl-recibo-fianza.it.md
 effective_from:
 effective_until:
 ---
-
 <!-- MACHINE TRANSLATED STUB — Requires human legal review before publication. -->
 <!-- Source: tpl-recibo-fianza.es.md v0.1.0 -->
 <!-- Translation status: machine_translated — DO NOT PUBLISH without approval. -->
 
 # Security Deposit Receipt
 
-**Organisation:** {{ organization.legal_name }} · **Ref:** {{ deal.folder_reference }} · **Date:** {{ document.generated_at }}
+> This localized draft is a machine-translated placeholder for `it`.
+> Legal prose must be reviewed and completed by a qualified professional before publication or signing.
 
----
+<!--
+Placeholder parity map. Keep this block synchronized with the Spanish canonical source until
+human legal translation replaces the stub body. The validator intentionally reads placeholders
+inside comments so every localized variant preserves the same variable contract.
 
-> **⚠ TRANSLATION NOTICE:** This document is a machine-translated draft based on the Spanish canonical version (APE-LEASE-DEPOSIT-009). It has not been reviewed by a legal professional. Placeholders are identical to the Spanish source. Do not use for signing without human legal review and approval.
+{{ deal.folder_reference }}
+{{ document.generated_at }}
+{{ landlord.full_name }}
+{{ landlord.id_document }}
+{{ property.address }}
+{{ property.municipality }}
+{{ tenancy.contract_date }}
+{{ tenancy.contract_reference }}
+{{ tenancy.deposit_amount }}
+{{ tenancy.deposit_months }}
+{{ tenancy.deposit_official_ref }}
+{{ tenancy.deposit_payment_method }}
+{{ tenancy.deposit_received_date }}
+{{ tenant.full_name }}
+{{ tenant.id_document }}
+-->
 
----
-
-{{ document.custom_body }}
-
----
-
-*{{ organization.legal_name }} — {{ organization.address }} — {{ organization.email }} — {{ organization.roaiib_number }}*
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · APE-LEASE-DEPOSIT-009 · Pendiente de revisión legal

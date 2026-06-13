@@ -23,23 +23,55 @@ storage_path: templates/de/tpl-acta-entrega-llaves.de.md
 effective_from:
 effective_until:
 ---
-
 <!-- MACHINE TRANSLATED STUB — Requires human legal review before publication. -->
 <!-- Source: tpl-acta-entrega-llaves.es.md v0.1.0 -->
 <!-- Translation status: machine_translated — DO NOT PUBLISH without approval. -->
 
 # Schlüsselübergabeprotokoll
 
-**Organisation:** {{ organization.legal_name }} · **Ref:** {{ deal.folder_reference }} · **Date:** {{ document.generated_at }}
+> This localized draft is a machine-translated placeholder for `de`.
+> Legal prose must be reviewed and completed by a qualified professional before publication or signing.
 
----
+<!--
+Placeholder parity map. Keep this block synchronized with the Spanish canonical source until
+human legal translation replaces the stub body. The validator intentionally reads placeholders
+inside comments so every localized variant preserves the same variable contract.
 
-> **⚠ TRANSLATION NOTICE:** This document is a machine-translated draft based on the Spanish canonical version (APE-HANDOVER-010). It has not been reviewed by a legal professional. Placeholders are identical to the Spanish source. Do not use for signing without human legal review and approval.
+{{ agent.full_name }}
+{{ buyer.full_name }}
+{{ buyer.id_document }}
+{{ deal.folder_reference }}
+{{ deal.origin_contract_date }}
+{{ deal.origin_contract_type }}
+{{ delivery.datetime }}
+{{ delivery.observations }}
+{{ document.generated_at }}
+{{ keys.card_notes }}
+{{ keys.card_qty }}
+{{ keys.garage_notes }}
+{{ keys.garage_qty }}
+{{ keys.mailbox_notes }}
+{{ keys.mailbox_qty }}
+{{ keys.main_door_notes }}
+{{ keys.main_door_qty }}
+{{ keys.other_notes }}
+{{ keys.other_qty }}
+{{ keys.remote_notes }}
+{{ keys.remote_qty }}
+{{ property.address }}
+{{ property.delivery_condition }}
+{{ property.municipality }}
+{{ seller.full_name }}
+{{ seller.id_document }}
+{{ supply.electricity_company }}
+{{ supply.electricity_contract }}
+{{ supply.electricity_reading }}
+{{ supply.gas_company }}
+{{ supply.gas_contract }}
+{{ supply.gas_reading }}
+{{ supply.water_company }}
+{{ supply.water_contract }}
+{{ supply.water_reading }}
+-->
 
----
-
-{{ document.custom_body }}
-
----
-
-*{{ organization.legal_name }} — {{ organization.address }} — {{ organization.email }} — {{ organization.roaiib_number }}*
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · APE-HANDOVER-010 · Pendiente de revisión legal

@@ -524,44 +524,125 @@ async def get_document_workspace(
 @router.post("/webhooks/docuseal")
 async def docuseal_webhook(
     request: Request,
-    x_docuseal_signature: str = Header(...),
+    x_docuseal_signature: Optional[str] = Header(None, alias="x-docuseal-signature"),
 ):
     body = await request.body()
-    secret = (settings.DOCUSEAL_WEBHOOK_SECRET or os.environ.get("DOCUSEAL_WEBHOOK_SECRET", "")).encode()
-    if not secret:
-        raise HTTPException(status_code=500, detail="DocuSeal webhook secret not configured")
-    computed = hmac.new(secret, body, hashlib.sha256).hexdigest()
-    if not hmac.compare_digest(computed, x_docuseal_signature):
-        raise HTTPException(status_code=401)
+    secret = (getattr(settings, "DOCUSEAL_WEBHOOK_SECRET", None) or os.environ.get("DOCUSEAL_WEBHOOK_SECRET", "")).encode()
+    # Verify HMAC when secret is configured
+    if secret and x_docuseal_signature:
+        computed = hmac.new(secret, body, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(computed, x_docuseal_signature):
+            raise HTTPException(status_code=401, detail="Invalid webhook signature")
 
-    payload = DocuSealWebhookPayload(**await request.json())
-    if payload.status == "completed" and payload.envelope_id:
-        flows = (
+    data = await request.json()
+    payload = DocuSealWebhookPayload(**data)
+
+    is_completed = payload.status in ("completed", "signed") or payload.event in ("submission.completed",)
+    is_declined = payload.status == "declined" or payload.event in ("submission.declined",)
+    is_expired = payload.status == "expired" or payload.event in ("submission.expired",)
+
+    if not payload.envelope_id:
+        return {"ok": True, "skipped": "no envelope_id"}
+
+    # Find the flow in the CLM table. New rows use external_submission_id;
+    # legacy rows created by the older endpoint stored DocuSeal's id as
+    # external_envelope_id.
+    flow = None
+    lookup_pairs = [
+        ("external_submission_id", payload.envelope_id),
+        ("external_submission_id", payload.submission_id),
+        ("external_envelope_id", payload.envelope_id),
+        ("external_envelope_id", payload.submission_id),
+    ]
+    for field, value in lookup_pairs:
+        if not value:
+            continue
+        flows_q = (
             _table("document_signature_flows")
             .select("*")
-            .eq("external_envelope_id", payload.envelope_id)
+            .eq(field, value)
             .limit(1)
             .execute()
         )
-        flow = flows.data[0] if flows.data else None
-        _table("document_signature_flows").update({
-            "flow_status": "signed",
-            "signing_timestamp": payload.signing_timestamp.isoformat() if payload.signing_timestamp else None,
-            "ip_address": payload.ip_address,
-            "signed_document_path": payload.document_url,
-        }).eq("external_envelope_id", payload.envelope_id).execute()
-        if flow:
-            document = _fetch_one("deal_documents", str(flow["org_id"]), str(flow["document_id"]))
+        if flows_q.data:
+            flow = flows_q.data[0]
+            break
+
+    new_flow_status = "signed" if is_completed else ("declined" if is_declined else ("expired" if is_expired else None))
+    if new_flow_status is None:
+        return {"ok": True, "skipped": f"unhandled status: {payload.status}"}
+
+    ts_str = payload.signing_timestamp.isoformat() if payload.signing_timestamp else datetime.now(timezone.utc).isoformat()
+    audit_entry = {
+        "event": payload.event or payload.status,
+        "signer_email": payload.signer_email,
+        "ip_address": payload.ip_address,
+        "timestamp": ts_str,
+    }
+
+    # Download the signed PDF from DocuSeal and store in Supabase
+    signed_path: Optional[str] = None
+    if is_completed and payload.document_url:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=30) as client:
+                dl_resp = await client.get(payload.document_url)
+                dl_resp.raise_for_status()
+                pdf_bytes = dl_resp.content
+            if flow:
+                bucket = os.environ.get("NEXUS_SIGNED_DOCUMENT_BUCKET", "dms-signed")
+                signed_path = f"{flow.get('org_id', 'org')}/{flow.get('generated_document_id', 'doc')}/signed_{uuid4()}.pdf"
+                supabase_service.client.storage.from_(bucket).upload(
+                    signed_path, pdf_bytes, {"content-type": "application/pdf", "upsert": "true"}
+                )
+        except Exception:
+            pass  # Non-fatal — we still update the flow status
+
+    # Update the CLM flow row
+    update_payload: dict[str, Any] = {
+        "flow_status": new_flow_status,
+        "completed_at": ts_str if is_completed else None,
+    }
+    if signed_path:
+        update_payload["signed_document_storage_path"] = signed_path
+    if flow:
+        flow_id = flow.get("id")
+        existing_trail = flow.get("audit_trail") or []
+        if isinstance(existing_trail, list):
+            existing_trail = existing_trail + [audit_entry]
+        else:
+            existing_trail = [audit_entry]
+        update_payload["audit_trail"] = existing_trail
+        _table("document_signature_flows").update(update_payload).eq("id", flow_id).execute()
+
+        # Update generated_document status
+        gen_doc_id = flow.get("generated_document_id")
+        if gen_doc_id:
+            doc_new_status = "signed" if is_completed else "review_required"
+            _table("generated_documents").update({"status": doc_new_status}).eq("id", gen_doc_id).execute()
+            # Mark version as immutable on completion
+            if is_completed and flow.get("document_version_id"):
+                _table("document_versions").update({
+                    "immutable": True,
+                    "signature_status": "signed",
+                }).eq("id", flow["document_version_id"]).execute()
+
+        # Legacy deal_documents rows still need immutable metadata once signed.
+        legacy_document_id = flow.get("document_id")
+        if is_completed and legacy_document_id:
+            document = _fetch_one("deal_documents", str(flow["org_id"]), str(legacy_document_id))
             if document:
                 _update_document_metadata(
                     document,
                     {
                         "immutable": True,
-                        "signed_at": payload.signing_timestamp.isoformat() if payload.signing_timestamp else None,
+                        "signed_at": ts_str,
                         "signed_ip_address": payload.ip_address,
+                        "signed_document_path": signed_path or payload.document_url,
                     },
                 )
-    return {"ok": True}
+
+    return {"ok": True, "flow_status": new_flow_status, "signed_path": signed_path}
 
 
 # ── Template library ──────────────────────────────────────────────────────────
@@ -900,43 +981,158 @@ async def mark_party_kyc_verified(
 @router.get("/folders/{folder_id}/available-templates", response_model=list[dict])
 async def list_available_templates(
     folder_id: UUID,
+    phase: Optional[str] = None,
+    language: Optional[str] = None,
     _membership: dict = Depends(require_dms_membership),
     org_id: str = Depends(get_org_id),
 ):
-    folder = _require_folder(folder_id, org_id, "id,org_id,operation_type")
+    """Return published templates applicable to this folder, filtered by operation type,
+    language (with es fallback), phase, and jurisdiction."""
+    folder = _require_folder(folder_id, org_id, "id,org_id,operation_type,language,jurisdiction")
+    operation = folder.get("operation_type", "general")
+    folder_lang = language or folder.get("language") or "es"
+    jurisdiction = folder.get("jurisdiction") or "ES-IB"
+
+    # Fetch all published templates accessible to this org (system + org-owned)
     templates = (
         _table("document_templates")
         .select("*")
-        .eq("org_id", org_id)
-        .eq("status", "published")
+        .in_("status", ["published"])
         .execute()
         .data or []
     )
-    operation = folder.get("operation_type")
-    allowed_by_operation = {
-        "compraventa": {"arras_penitenciales", "contrato_compraventa", "mandato_exclusiva", "oferta_compra", "kyc_cliente", "nota_encargo", "reserva", "acuerdo_confidencialidad", "generico"},
-        "alquiler_temporada": {"contrato_temporada", "contrato_arrendamiento", "mandato_exclusiva", "kyc_cliente", "nota_encargo", "recibo_fianza", "acta_entrega_llaves", "acuerdo_confidencialidad", "generico"},
-        "alquiler_turistico": {"contrato_alquiler_turistico", "mandato_exclusiva", "kyc_cliente", "acta_entrega_llaves", "acuerdo_confidencialidad", "generico"},
+    # Include only org-owned or system templates
+    templates = [
+        t for t in templates
+        if t.get("org_id") == org_id or t.get("system_template") is True or t.get("is_global") is True
+    ]
+
+    # Legacy type → operation mapping for templates created before migration 003
+    _legacy_op_map: dict[str, set[str]] = {
+        "arras_penitenciales": {"compraventa"},
+        "contrato_compraventa": {"compraventa"},
+        "oferta_compra": {"compraventa"},
+        "contrato_reserva_senal": {"compraventa"},
+        "nota_encargo": {"compraventa", "captacion_intermediacion"},
+        "contrato_temporada": {"alquiler_temporada"},
+        "contrato_arrendamiento": {"alquiler_residencial"},
+        "contrato_alquiler_turistico": {"alquiler_turistico"},
+        "recibo_fianza": {"alquiler_temporada", "alquiler_residencial", "alquiler_turistico"},
+        "acta_entrega_llaves": {"compraventa", "alquiler_temporada", "alquiler_residencial", "alquiler_turistico"},
+        "mandato_exclusiva": {"compraventa", "captacion_intermediacion"},
+        "kyc_identificacion_cliente": {"compraventa", "captacion_intermediacion", "alquiler_temporada", "alquiler_residencial", "alquiler_turistico", "compliance"},
+        "acuerdo_confidencialidad": {"compraventa", "captacion_intermediacion"},
+        "generico": set(),  # matches all
+        "hoja_visita": {"compraventa", "captacion_intermediacion"},
+        "inventario_estado_inmueble": {"alquiler_temporada", "alquiler_residencial", "alquiler_turistico"},
+        "informacion_privacidad_cliente": set(),
+        "declaracion_origen_fondos": {"compraventa", "compliance"},
     }
-    allowed = allowed_by_operation.get(operation, set())
+
+    language_fallback_chain = [folder_lang]
+    if folder_lang != "es":
+        language_fallback_chain.append("es")
+
     rows: list[dict[str, Any]] = []
     for template in templates:
-        if allowed and template.get("template_document_type") not in allowed:
+        # ── Operation type filter ────────────────────────────────────────────────
+        tpl_ops: list[str] = template.get("operation_types") or []
+        tpl_type = template.get("template_document_type", "")
+        if tpl_ops:
+            if operation not in tpl_ops and "general" not in tpl_ops:
+                continue
+        else:
+            # Fall back to legacy mapping
+            legacy_ops = _legacy_op_map.get(tpl_type, set())
+            if legacy_ops and operation not in legacy_ops:
+                continue
+
+        # ── Phase filter (optional param) ────────────────────────────────────────
+        if phase and template.get("phase") and template["phase"] not in (phase, "general"):
             continue
-        versions = (
-            _table("document_template_versions")
-            .select("*")
-            .eq("template_id", str(template["id"]))
-            .eq("org_id", org_id)
-            .order("version_number", desc=True)
-            .limit(1)
-            .execute()
-            .data or []
-        )
-        version = versions[0] if versions else None
-        if version and version.get("status") not in {None, "published"}:
+
+        # ── Jurisdiction filter ───────────────────────────────────────────────────
+        tpl_jurisdiction = template.get("jurisdiction")
+        if tpl_jurisdiction and tpl_jurisdiction not in {jurisdiction, "ES"}:
             continue
-        rows.append({**template, "latest_version": version})
+
+        # ── Vigencia (effective dates) ────────────────────────────────────────────
+        today = datetime.now(timezone.utc).date().isoformat()
+        if template.get("effective_until") and template["effective_until"] < today:
+            continue
+        if template.get("effective_from") and template["effective_from"] > today:
+            continue
+
+        # ── Find best language version ────────────────────────────────────────────
+        best_version = None
+        language_used = None
+        language_fallback_applied = False
+
+        for try_lang in language_fallback_chain:
+            lang_versions_q = (
+                _table("document_template_versions")
+                .select("*")
+                .eq("template_id", str(template["id"]))
+                .eq("org_id", org_id)
+            )
+            if "language" in (
+                _table("document_template_versions")
+                .select("language")
+                .eq("template_id", str(template["id"]))
+                .eq("org_id", org_id)
+                .limit(1)
+                .execute()
+                .data[0] if (
+                    _table("document_template_versions")
+                    .select("language")
+                    .eq("template_id", str(template["id"]))
+                    .eq("org_id", org_id)
+                    .limit(1)
+                    .execute()
+                    .data
+                ) else {}
+            ):
+                lang_versions_q = lang_versions_q.eq("language", try_lang)
+
+            versions = (
+                lang_versions_q
+                .order("version_number", desc=True)
+                .limit(1)
+                .execute()
+                .data or []
+            )
+            if versions:
+                v = versions[0]
+                ts = v.get("translation_status", "")
+                legal_ok = v.get("legal_review_status") in {"approved", None, ""}
+                translation_ok = try_lang == "es" or ts in {"approved", "published", "approved_source", None, ""}
+                if legal_ok and translation_ok:
+                    best_version = v
+                    language_used = try_lang
+                    language_fallback_applied = try_lang != folder_lang
+                    break
+
+        if not best_version:
+            # Include template anyway but mark as no usable version
+            rows.append({
+                **template,
+                "latest_version": None,
+                "language_used": None,
+                "language_fallback_applied": False,
+                "has_usable_version": False,
+            })
+            continue
+
+        rows.append({
+            **template,
+            "latest_version": best_version,
+            "language_used": language_used,
+            "language_fallback_applied": language_fallback_applied,
+            "has_usable_version": True,
+        })
+
+    # Sort: has_usable_version first, then by template_document_type
+    rows.sort(key=lambda r: (not r.get("has_usable_version"), r.get("template_document_type", "")))
     return rows
 
 
@@ -1194,9 +1390,11 @@ async def create_manual_review_decision(
     version = _generated_document_version(document)
     if not version:
         raise HTTPException(status_code=404, detail="Document version not found")
-    allowed = {"approved", "review_required", "rejected"}
+    allowed = {"approved", "approved_with_conditions", "review_required", "changes_required", "rejected"}
     if body.decision not in allowed:
-        raise HTTPException(status_code=422, detail="Invalid legal review decision")
+        raise HTTPException(status_code=422, detail=f"Invalid legal review decision. Allowed: {sorted(allowed)}")
+    # Determine if signing should be blocked
+    blocks = body.block_signing or body.decision in {"rejected", "changes_required", "review_required"}
     payload = {
         "org_id": org_id,
         "generated_document_id": str(document_id),
@@ -1205,16 +1403,24 @@ async def create_manual_review_decision(
         "status": body.decision,
         "decision": body.decision,
         "notes": body.notes,
-        "block_signing": body.block_signing or body.decision != "approved",
+        "block_signing": blocks,
         "reviewer_id": str(current_user.id),
         "decided_at": datetime.now(timezone.utc).isoformat(),
     }
     row = (_table("legal_review_decisions").insert(payload).execute().data or [payload])[0]
     _table("document_versions").update({
         "validation_status": body.decision,
-        "advisor_validation": {"manual": True, "notes": body.notes, "block_signing": payload["block_signing"]},
+        "advisor_validation": {"manual": True, "notes": body.notes, "block_signing": blocks},
     }).eq("id", str(version["id"])).eq("org_id", org_id).execute()
-    _table("generated_documents").update({"status": body.decision}).eq("id", str(document_id)).eq("org_id", org_id).execute()
+    # Map CLM decision to document status
+    _doc_status_map = {
+        "approved": "approved",
+        "approved_with_conditions": "approved",
+        "review_required": "review_required",
+        "changes_required": "review_required",
+        "rejected": "review_required",
+    }
+    _table("generated_documents").update({"status": _doc_status_map[body.decision]}).eq("id", str(document_id)).eq("org_id", org_id).execute()
     return row
 
 
@@ -1284,18 +1490,30 @@ async def create_generated_signature_flow(
     if not provider_token:
         raise HTTPException(status_code=503, detail="DocuSeal provider is not configured")
     envelope_id = f"docuseal-{uuid4()}"
+
+    # Normalize signers list — accept either CLM (signers[]) or legacy single-signer fields
+    signers_json: list[dict] = []
+    if body.signers:
+        signers_json = [{"email": s.email, "name": s.name, "role": s.role} for s in body.signers]
+    elif body.signer_email:
+        signers_json = [{"email": body.signer_email, "name": body.signer_name or "", "role": body.signer_role.value if body.signer_role else "signer"}]
+
     payload = {
         "generated_document_id": str(document_id),
         "document_version_id": str(version["id"]),
         "org_id": org_id,
         "external_provider": "docuseal",
         "external_envelope_id": envelope_id,
-        "signer_email": body.signer_email,
-        "signer_name": body.signer_name,
-        "signer_role": body.signer_role.value,
+        "signing_level": body.signing_level,
+        "signers": signers_json,
+        # Legacy single-signer compat columns
+        "signer_email": signers_json[0]["email"] if signers_json else None,
+        "signer_name": signers_json[0]["name"] if signers_json else None,
+        "signer_role": signers_json[0]["role"] if signers_json else None,
         "flow_status": "sent",
+        "initiated_by": str(current_user.id),
     }
-    row = (_table("generated_document_signature_flows").insert(payload).execute().data or [payload])[0]
+    row = (_table("document_signature_flows").insert(payload).execute().data or [payload])[0]
     _table("document_versions").update({"signature_status": "sent"}).eq("id", str(version["id"])).eq("org_id", org_id).execute()
     _audit_access(org_id, str(current_user.id), "dms_generated_signature_flow_created", str(document_id), {"envelope_id": envelope_id})
     return row
@@ -1328,3 +1546,165 @@ async def get_generated_document_legacy_alias(
     org_id: str = Depends(get_org_id),
 ):
     return await get_generated_document(document_id, _membership, org_id)
+
+
+# ── Dossier exports ───────────────────────────────────────────────────────────
+
+@router.post("/folders/{folder_id}/exports", response_model=dict, status_code=status.HTTP_201_CREATED)
+async def create_dossier_export(
+    folder_id: UUID,
+    body: dict,
+    _membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+    current_user: Any = Depends(get_current_user),
+):
+    """Request a dossier export for a deal folder.
+
+    Body (all optional):
+      include_audit: bool
+      include_drafts: bool
+      include_personal_data: bool
+      include_external_documents: bool
+      encrypt_zip: bool
+    """
+    folder = _require_folder(folder_id, org_id, "id,org_id,folder_reference")
+    export_id = str(uuid4())
+    payload = {
+        "id": export_id,
+        "folder_id": str(folder_id),
+        "org_id": org_id,
+        "export_status": "pending",
+        "is_encrypted": bool(body.get("encrypt_zip", False)),
+        "options": {
+            "include_audit": bool(body.get("include_audit", True)),
+            "include_drafts": bool(body.get("include_drafts", False)),
+            "include_personal_data": bool(body.get("include_personal_data", True)),
+            "include_external_documents": bool(body.get("include_external_documents", True)),
+            "encrypt_zip": bool(body.get("encrypt_zip", False)),
+        },
+        "manifest": {},
+        "requested_by": str(current_user.id),
+    }
+    result = (_table("dossier_exports").insert(payload).execute().data or [payload])[0]
+    _audit_access(org_id, str(current_user.id), "dms_dossier_export_requested", export_id, {
+        "folder_id": str(folder_id),
+        "folder_reference": folder.get("folder_reference"),
+    })
+    return {
+        **result,
+        "_note": "Export queued. Status will update asynchronously. Check GET /exports/{id} for progress.",
+    }
+
+
+@router.get("/folders/{folder_id}/exports", response_model=list[dict])
+async def list_dossier_exports(
+    folder_id: UUID,
+    _membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+):
+    _require_folder(folder_id, org_id, "id")
+    exports = (
+        _table("dossier_exports")
+        .select("*")
+        .eq("folder_id", str(folder_id))
+        .eq("org_id", org_id)
+        .order("created_at", desc=True)
+        .execute()
+        .data or []
+    )
+    return exports
+
+
+@router.get("/folders/{folder_id}/exports/{export_id}", response_model=dict)
+async def get_dossier_export(
+    folder_id: UUID,
+    export_id: UUID,
+    _membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+):
+    _require_folder(folder_id, org_id, "id")
+    export = _fetch_one("dossier_exports", org_id, str(export_id))
+    if not export or export.get("folder_id") != str(folder_id):
+        raise HTTPException(status_code=404, detail="Export not found")
+    return export
+
+
+@router.get("/folders/{folder_id}/exports/{export_id}/download")
+async def download_dossier_export(
+    folder_id: UUID,
+    export_id: UUID,
+    _membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+    current_user: Any = Depends(get_current_user),
+):
+    """Download a ready dossier export ZIP.
+    Returns 425 (Too Early) if the export is still building."""
+    _require_folder(folder_id, org_id, "id")
+    export = _fetch_one("dossier_exports", org_id, str(export_id))
+    if not export or export.get("folder_id") != str(folder_id):
+        raise HTTPException(status_code=404, detail="Export not found")
+    if export.get("export_status") not in {"ready"}:
+        raise HTTPException(
+            status_code=425,
+            detail=f"Export not ready (status: {export.get('export_status', 'pending')})",
+        )
+    storage_path = export.get("storage_path")
+    if not storage_path:
+        raise HTTPException(status_code=404, detail="Export file not found")
+    try:
+        bucket = os.environ.get("NEXUS_DOSSIER_EXPORT_BUCKET", "dms-exports-temp")
+        content = supabase_service.client.storage.from_(bucket).download(storage_path)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Download failed: {exc}") from exc
+    _audit_access(org_id, str(current_user.id), "dms_dossier_export_downloaded", str(export_id), {
+        "folder_id": str(folder_id),
+    })
+    folder_ref = _require_folder(folder_id, org_id, "folder_reference").get("folder_reference", str(folder_id))
+    filename = f"APE-{folder_ref}.zip"
+    return StreamingResponse(
+        content=iter([content]),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ── Missing fields preview (before generation) ────────────────────────────────
+
+@router.post("/folders/{folder_id}/preview-missing-fields", response_model=dict)
+async def preview_missing_fields(
+    folder_id: UUID,
+    body: dict,
+    _membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+    current_user: Any = Depends(get_current_user),
+):
+    """Resolve variables for a given template_version_id and return missing fields
+    without generating the document. Useful for the guided wizard step."""
+    from backend.services.document_template_rendering_service import compute_missing_fields
+
+    template_version_id = body.get("template_version_id")
+    if not template_version_id:
+        raise HTTPException(status_code=422, detail="template_version_id required")
+
+    folder = _require_folder(folder_id, org_id)
+    parties = _list_folder_parties(folder_id, org_id)
+    template_version = _fetch_latest_template_version(UUID(str(template_version_id)), org_id)
+    property_row = _fetch_one("properties", org_id, str(folder["property_id"])) if folder.get("property_id") else None
+    organization = _fetch_one("organizations", org_id, org_id) or {"id": org_id}
+
+    from backend.services.document_template_rendering_service import build_template_context
+    ctx = build_template_context(
+        folder=folder,
+        parties=parties,
+        property_row=property_row,
+        organization=organization,
+        agent={"id": str(current_user.id)},
+    )
+    canonical_text = template_version.get("canonical_text") or ""
+    missing = compute_missing_fields(canonical_text, ctx, overrides=body.get("overrides", {}))
+    return {
+        "template_version_id": str(template_version_id),
+        "missing_fields": missing,
+        "is_complete": len(missing) == 0,
+        "total_placeholders": len(missing),
+    }

@@ -23,23 +23,53 @@ storage_path: templates/it/tpl-declaracion-origen-fondos.it.md
 effective_from:
 effective_until:
 ---
-
 <!-- MACHINE TRANSLATED STUB — Requires human legal review before publication. -->
 <!-- Source: tpl-declaracion-origen-fondos.es.md v0.1.0 -->
 <!-- Translation status: machine_translated — DO NOT PUBLISH without approval. -->
 
 # Declaration of Source of Funds
 
-**Organisation:** {{ organization.legal_name }} · **Ref:** {{ deal.folder_reference }} · **Date:** {{ document.generated_at }}
+> This localized draft is a machine-translated placeholder for `it`.
+> Legal prose must be reviewed and completed by a qualified professional before publication or signing.
 
----
+<!--
+Placeholder parity map. Keep this block synchronized with the Spanish canonical source until
+human legal translation replaces the stub body. The validator intentionally reads placeholders
+inside comments so every localized variant preserves the same variable contract.
 
-> **⚠ TRANSLATION NOTICE:** This document is a machine-translated draft based on the Spanish canonical version (APE-COMPLIANCE-SOF-018). It has not been reviewed by a legal professional. Placeholders are identical to the Spanish source. Do not use for signing without human legal review and approval.
+{{ buyer.address }}
+{{ buyer.company_cif }}
+{{ buyer.company_name }}
+{{ buyer.email }}
+{{ buyer.full_name }}
+{{ buyer.id_document }}
+{{ buyer.is_company }}
+{{ buyer.nationality }}
+{{ buyer.phone }}
+{{ deal.deposit_amount }}
+{{ deal.folder_reference }}
+{{ deal.operation_type }}
+{{ deal.price }}
+{{ document.generated_at }}
+{{ organization.address }}
+{{ organization.email }}
+{{ organization.legal_name }}
+{{ organization.roaiib_number }}
+{{ party_1.full_name }}
+{{ party_1.id_document }}
+{{ property.address }}
+{{ property.municipality }}
+{{ sof.bank_account_last4 }}
+{{ sof.bank_name }}
+{{ sof.business_activity }}
+{{ sof.inheritance_date }}
+{{ sof.inheritance_notary }}
+{{ sof.mortgage_amount }}
+{{ sof.mortgage_bank }}
+{{ sof.other_description }}
+{{ sof.pep_details }}
+{{ sof.property_sale_date }}
+{{ sof.property_sale_reference }}
+-->
 
----
-
-{{ document.custom_body }}
-
----
-
-*{{ organization.legal_name }} — {{ organization.address }} — {{ organization.email }} — {{ organization.roaiib_number }}*
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · APE-COMPLIANCE-SOF-018 · Pendiente de revisión legal

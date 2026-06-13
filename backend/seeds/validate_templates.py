@@ -56,6 +56,7 @@ CANONICAL_PREFIXES = {
     "organization", "agent", "deal", "property",
     "buyer", "seller", "landlord", "tenant", "guest",
     "party_1", "party_2", "document", "sof", "inventory",
+    "booking", "delivery", "keys", "nda", "supply", "tenancy",
 }
 
 # Placeholders legacy (permitidos pero deprecados)

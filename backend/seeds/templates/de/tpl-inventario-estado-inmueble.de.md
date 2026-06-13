@@ -23,23 +23,60 @@ storage_path: templates/de/tpl-inventario-estado-inmueble.de.md
 effective_from:
 effective_until:
 ---
-
 <!-- MACHINE TRANSLATED STUB — Requires human legal review before publication. -->
 <!-- Source: tpl-inventario-estado-inmueble.es.md v0.1.0 -->
 <!-- Translation status: machine_translated — DO NOT PUBLISH without approval. -->
 
 # Inventar und Zustandsbericht
 
-**Organisation:** {{ organization.legal_name }} · **Ref:** {{ deal.folder_reference }} · **Date:** {{ document.generated_at }}
+> This localized draft is a machine-translated placeholder for `de`.
+> Legal prose must be reviewed and completed by a qualified professional before publication or signing.
 
----
+<!--
+Placeholder parity map. Keep this block synchronized with the Spanish canonical source until
+human legal translation replaces the stub body. The validator intentionally reads placeholders
+inside comments so every localized variant preserves the same variable contract.
 
-> **⚠ TRANSLATION NOTICE:** This document is a machine-translated draft based on the Spanish canonical version (APE-INVENTORY-016). It has not been reviewed by a legal professional. Placeholders are identical to the Spanish source. Do not use for signing without human legal review and approval.
+{{ agent.full_name }}
+{{ deal.folder_reference }}
+{{ document.generated_at }}
+{{ inventory.agua_lectura }}
+{{ inventory.bano1_estado }}
+{{ inventory.bano1_obs }}
+{{ inventory.cocina_estado }}
+{{ inventory.cocina_obs }}
+{{ inventory.dorm1_estado }}
+{{ inventory.dorm1_obs }}
+{{ inventory.dorm2_estado }}
+{{ inventory.dorm2_obs }}
+{{ inventory.entrada_estado }}
+{{ inventory.entrada_obs }}
+{{ inventory.gas_lectura }}
+{{ inventory.internet_estado }}
+{{ inventory.llaves_buzon }}
+{{ inventory.llaves_principal }}
+{{ inventory.luz_lectura }}
+{{ inventory.mandos_garaje }}
+{{ inventory.mobiliario_detalle }}
+{{ inventory.observaciones_generales }}
+{{ inventory.salon_estado }}
+{{ inventory.salon_obs }}
+{{ inventory.tarjetas_acceso }}
+{{ inventory.terraza_estado }}
+{{ inventory.terraza_obs }}
+{{ landlord.full_name }}
+{{ landlord.id_document }}
+{{ organization.address }}
+{{ organization.email }}
+{{ organization.legal_name }}
+{{ organization.roaiib_number }}
+{{ property.address }}
+{{ property.cadastral_reference }}
+{{ property.municipality }}
+{{ property.postal_code }}
+{{ property.registry_reference }}
+{{ tenant.full_name }}
+{{ tenant.id_document }}
+-->
 
----
-
-{{ document.custom_body }}
-
----
-
-*{{ organization.legal_name }} — {{ organization.address }} — {{ organization.email }} — {{ organization.roaiib_number }}*
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · APE-INVENTORY-016 · Pendiente de revisión legal

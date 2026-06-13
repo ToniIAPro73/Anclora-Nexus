@@ -23,23 +23,37 @@ storage_path: templates/nl/tpl-mandato-exclusiva.nl.md
 effective_from:
 effective_until:
 ---
-
 <!-- MACHINE TRANSLATED STUB — Requires human legal review before publication. -->
 <!-- Source: tpl-mandato-exclusiva.es.md v0.1.0 -->
 <!-- Translation status: machine_translated — DO NOT PUBLISH without approval. -->
 
 # Exclusive Agency Mandate
 
-**Organisation:** {{ organization.legal_name }} · **Ref:** {{ deal.folder_reference }} · **Date:** {{ document.generated_at }}
+> This localized draft is a machine-translated placeholder for `nl`.
+> Legal prose must be reviewed and completed by a qualified professional before publication or signing.
 
----
+<!--
+Placeholder parity map. Keep this block synchronized with the Spanish canonical source until
+human legal translation replaces the stub body. The validator intentionally reads placeholders
+inside comments so every localized variant preserves the same variable contract.
 
-> **⚠ TRANSLATION NOTICE:** This document is a machine-translated draft based on the Spanish canonical version (APE-AGENCY-EXCL-011). It has not been reviewed by a legal professional. Placeholders are identical to the Spanish source. Do not use for signing without human legal review and approval.
+{{ agent.full_name }}
+{{ deal.asking_price }}
+{{ deal.commission_pct }}
+{{ deal.exclusivity_months }}
+{{ deal.exclusivity_notice_days }}
+{{ deal.exclusivity_renewal }}
+{{ deal.folder_reference }}
+{{ deal.minimum_price }}
+{{ deal.post_exclusivity_protection_months }}
+{{ document.generated_at }}
+{{ organization.roaiib_number }}
+{{ property.address }}
+{{ property.cadastral_reference }}
+{{ property.municipality }}
+{{ seller.email }}
+{{ seller.full_name }}
+{{ seller.id_document }}
+-->
 
----
-
-{{ document.custom_body }}
-
----
-
-*{{ organization.legal_name }} — {{ organization.address }} — {{ organization.email }} — {{ organization.roaiib_number }}*
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · APE-AGENCY-EXCL-011 · Pendiente de revisión legal

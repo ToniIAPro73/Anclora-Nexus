@@ -3,7 +3,7 @@
 from typing import Any, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from backend.api.deps import get_current_user, get_org_id
@@ -187,3 +187,38 @@ async def list_review_decisions(
         .execute()
     )
     return response.data or []
+
+
+# ── Legal review queue (org-wide) ─────────────────────────────────────────────
+
+@router.get("/legal-review/queue")
+async def list_legal_review_queue(
+    status: Optional[str] = Query(None, description="Filter by review status (pending, approved, rejected, ...)"),
+    limit: int = Query(50, ge=1, le=200),
+    membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+):
+    """Return all legal review decisions for the org, enriched with document metadata."""
+    q = (
+        _table("legal_review_decisions")
+        .select(
+            "id,generated_document_id,review_type,status,risk_level,block_signing,"
+            "reviewer_id,notes,decided_at,created_at,"
+            "generated_documents!legal_review_decisions_generated_document_id_fkey("
+            "id,title,status,folder_id,language"
+            ")"
+        )
+        .eq("org_id", org_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+    )
+    if status:
+        q = q.eq("status", status)
+    rows = q.execute().data or []
+
+    # Flatten nested document join
+    result = []
+    for row in rows:
+        doc = row.pop("generated_documents", None) or {}
+        result.append({**row, "document": doc if doc else None})
+    return result

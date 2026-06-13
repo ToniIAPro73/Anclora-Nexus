@@ -23,23 +23,44 @@ storage_path: templates/it/tpl-kyc-identificacion-cliente.it.md
 effective_from:
 effective_until:
 ---
-
 <!-- MACHINE TRANSLATED STUB — Requires human legal review before publication. -->
 <!-- Source: tpl-kyc-identificacion-cliente.es.md v0.1.0 -->
 <!-- Translation status: machine_translated — DO NOT PUBLISH without approval. -->
 
 # KYC — Client Identification
 
-**Organisation:** {{ organization.legal_name }} · **Ref:** {{ deal.folder_reference }} · **Date:** {{ document.generated_at }}
+> This localized draft is a machine-translated placeholder for `it`.
+> Legal prose must be reviewed and completed by a qualified professional before publication or signing.
 
----
+<!--
+Placeholder parity map. Keep this block synchronized with the Spanish canonical source until
+human legal translation replaces the stub body. The validator intentionally reads placeholders
+inside comments so every localized variant preserves the same variable contract.
 
-> **⚠ TRANSLATION NOTICE:** This document is a machine-translated draft based on the Spanish canonical version (APE-COMPLIANCE-KYC-012). It has not been reviewed by a legal professional. Placeholders are identical to the Spanish source. Do not use for signing without human legal review and approval.
+{{ agent.full_name }}
+{{ buyer.address }}
+{{ buyer.birth_date }}
+{{ buyer.cash_amount }}
+{{ buyer.company_name }}
+{{ buyer.company_tax_id }}
+{{ buyer.email }}
+{{ buyer.estimated_wealth }}
+{{ buyer.full_name }}
+{{ buyer.funds_documents }}
+{{ buyer.funds_origin }}
+{{ buyer.id_document }}
+{{ buyer.id_expiry }}
+{{ buyer.id_type }}
+{{ buyer.income_range }}
+{{ buyer.is_pep }}
+{{ buyer.mortgage_bank }}
+{{ buyer.nationality }}
+{{ buyer.phone }}
+{{ buyer.professional_activity }}
+{{ buyer.tax_country }}
+{{ buyer.tax_id }}
+{{ deal.folder_reference }}
+{{ document.generated_at }}
+-->
 
----
-
-{{ document.custom_body }}
-
----
-
-*{{ organization.legal_name }} — {{ organization.address }} — {{ organization.email }} — {{ organization.roaiib_number }}*
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · APE-COMPLIANCE-KYC-012 · Pendiente de revisión legal

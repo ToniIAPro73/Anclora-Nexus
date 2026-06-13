@@ -23,23 +23,54 @@ storage_path: templates/sv/tpl-arras-penitenciales.sv.md
 effective_from:
 effective_until:
 ---
-
 <!-- MACHINE TRANSLATED STUB — Requires human legal review before publication. -->
 <!-- Source: tpl-arras-penitenciales.es.md v0.1.0 -->
 <!-- Translation status: machine_translated — DO NOT PUBLISH without approval. -->
 
 # Preliminary Purchase Deposit Agreement (Arras)
 
-**Organisation:** {{ organization.legal_name }} · **Ref:** {{ deal.folder_reference }} · **Date:** {{ document.generated_at }}
+> This localized draft is a machine-translated placeholder for `sv`.
+> Legal prose must be reviewed and completed by a qualified professional before publication or signing.
 
----
+<!--
+Placeholder parity map. Keep this block synchronized with the Spanish canonical source until
+human legal translation replaces the stub body. The validator intentionally reads placeholders
+inside comments so every localized variant preserves the same variable contract.
 
-> **⚠ TRANSLATION NOTICE:** This document is a machine-translated draft based on the Spanish canonical version (APE-SALE-ARRAS-001). It has not been reviewed by a legal professional. Placeholders are identical to the Spanish source. Do not use for signing without human legal review and approval.
+{{ agent.email }}
+{{ agent.full_name }}
+{{ buyer.email }}
+{{ buyer.full_name }}
+{{ buyer.id_document }}
+{{ deal.deposit_amount }}
+{{ deal.deposit_payment_method }}
+{{ deal.folder_reference }}
+{{ deal.notary_address }}
+{{ deal.notary_name }}
+{{ deal.price_total }}
+{{ deal.signing_deadline }}
+{{ deal.signing_place }}
+{{ document.generated_at }}
+{{ organization.legal_name }}
+{{ organization.roaiib_number }}
+{{ property.address }}
+{{ property.cadastral_reference }}
+{{ property.community_debt_certificate }}
+{{ property.description }}
+{{ property.energy_certificate }}
+{{ property.energy_rating }}
+{{ property.habitation_cert_expiry }}
+{{ property.habitation_certificate }}
+{{ property.ibi_status }}
+{{ property.ite_certificate }}
+{{ property.mortgage_pending }}
+{{ property.municipality }}
+{{ property.registered_area }}
+{{ property.registry_office }}
+{{ property.registry_record }}
+{{ seller.email }}
+{{ seller.full_name }}
+{{ seller.id_document }}
+-->
 
----
-
-{{ document.custom_body }}
-
----
-
-*{{ organization.legal_name }} — {{ organization.address }} — {{ organization.email }} — {{ organization.roaiib_number }}*
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · APE-SALE-ARRAS-001 · Pendiente de revisión legal
