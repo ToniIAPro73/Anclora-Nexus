@@ -98,8 +98,9 @@ def test_validate_legal_document_happy_path(monkeypatch):
     assert result["risk_level"] == "low"
     assert result["rag_sources_used"] == 3
     assert FakeAsyncClient.calls[0].url == "https://advisor.test/api/legal-documents/validate"
-    assert FakeAsyncClient.calls[0].json["documentText"].startswith("Contrato")
-    assert "canonicalTemplate" not in FakeAsyncClient.calls[0].json
+    assert FakeAsyncClient.calls[0].json["currentText"].startswith("Contrato")
+    assert "canonicalText" not in FakeAsyncClient.calls[0].json
+    assert FakeAsyncClient.calls[0].headers["x-advisor-internal-api-key"] == "internal-key"
 
 
 def test_validate_legal_document_sends_canonical_template(monkeypatch):
@@ -123,8 +124,8 @@ def test_validate_legal_document_sends_canonical_template(monkeypatch):
         language="es",
     ))
 
-    assert "canonicalTemplate" in FakeAsyncClient.calls[0].json
-    assert FakeAsyncClient.calls[0].json["canonicalTemplate"] == "Contrato canónico de arras."
+    assert "canonicalText" in FakeAsyncClient.calls[0].json
+    assert FakeAsyncClient.calls[0].json["canonicalText"] == "Contrato canónico de arras."
 
 
 def test_validate_legal_document_safe_failure_no_url():
@@ -137,7 +138,7 @@ def test_validate_legal_document_safe_failure_no_url():
 
     assert result["status"] == "review_required"
     assert result["advisor_available"] is False
-    assert result["block_signing"] is False
+    assert result["block_signing"] is True
 
 
 def test_validate_legal_document_safe_failure_network_error(monkeypatch):
@@ -165,6 +166,7 @@ def test_validate_legal_document_safe_failure_network_error(monkeypatch):
 
     assert result["status"] == "review_required"
     assert result["advisor_available"] is False
+    assert result["block_signing"] is True
     assert "error" in result
 
 
