@@ -27,6 +27,7 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
     const error = await res.json().catch(() => ({ detail: res.statusText }))
     throw new Error(error.detail || `DMS API error: ${res.status}`)
   }
+  if (res.status === 204) return undefined as T
   return res.json()
 }
 
@@ -37,6 +38,9 @@ export interface DealFolder {
   id: string
   org_id: string
   operation_type: OperationType
+  property_id?: string | null
+  client_lead_id?: string | null
+  seller_id?: string | null
   folder_status: string
   created_at?: string
 }
@@ -174,6 +178,7 @@ export interface TemplateVersion {
   sha256_hash: string
   canonical_text?: string
   change_summary?: string
+  status?: TemplateStatus
   immutable: boolean
   created_at?: string
 }
@@ -256,6 +261,15 @@ export interface FolderParty {
   org_id: string
   party_role: PartyRole
   full_name: string
+  lead_id?: string
+  seller_id?: string
+  company_id?: string
+  contact_id?: string
+  source_entity?: string
+  source_id?: string
+  is_primary: boolean
+  signing_order?: number
+  representation_capacity?: string
   dni_nie_passport?: string
   email?: string
   phone?: string
@@ -269,6 +283,16 @@ export interface FolderParty {
   created_at?: string
 }
 
+export interface PartyCandidate {
+  id: string
+  entity_type: 'lead' | 'seller' | 'company' | 'contact'
+  label: string
+  email?: string
+  phone?: string
+  role_hint?: PartyRole
+  payload: Record<string, unknown>
+}
+
 export async function listParties(folderId: string): Promise<FolderParty[]> {
   return apiRequest(`/api/dms/folders/${folderId}/parties`)
 }
@@ -276,6 +300,15 @@ export async function listParties(folderId: string): Promise<FolderParty[]> {
 export async function createParty(folderId: string, payload: {
   party_role: PartyRole
   full_name: string
+  lead_id?: string
+  seller_id?: string
+  company_id?: string
+  contact_id?: string
+  source_entity?: string
+  source_id?: string
+  is_primary?: boolean
+  signing_order?: number
+  representation_capacity?: string
   dni_nie_passport?: string
   email?: string
   phone?: string
@@ -291,6 +324,24 @@ export async function createParty(folderId: string, payload: {
   })
 }
 
+export async function updateParty(folderId: string, partyId: string, payload: Partial<FolderParty>): Promise<FolderParty> {
+  return apiRequest(`/api/dms/folders/${folderId}/parties/${partyId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteParty(folderId: string, partyId: string): Promise<void> {
+  await apiRequest(`/api/dms/folders/${folderId}/parties/${partyId}`, { method: 'DELETE' })
+}
+
+export async function listPartyCandidates(params?: { q?: string; entity_type?: string }): Promise<PartyCandidate[]> {
+  const qs = params
+    ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== '') as [string, string][]).toString()
+    : ''
+  return apiRequest(`/api/dms/party-candidates${qs}`)
+}
+
 // ── Generated documents ────────────────────────────────────────────────────────
 
 export type DocumentStatus = 'draft' | 'review_required' | 'approved' | 'signed' | 'archived'
@@ -304,16 +355,32 @@ export interface GeneratedDocument {
   status: DocumentStatus
   generation_payload: Record<string, unknown>
   storage_path?: string
+  docx_storage_path?: string
+  pdf_storage_path?: string
+  preview_storage_path?: string
+  variable_snapshot?: Record<string, unknown>
+  current_version_id?: string
   generated_at?: string
   created_at?: string
+}
+
+export interface GeneratedDocumentEnvelope {
+  document: GeneratedDocument
+  version?: Record<string, unknown>
+  preview?: string
+  download_urls?: { docx: string; pdf: string }
+}
+
+export async function listAvailableTemplates(folderId: string): Promise<Array<DocumentTemplate & { latest_version?: TemplateVersion }>> {
+  return apiRequest(`/api/dms/folders/${folderId}/available-templates`)
 }
 
 export async function generateDocument(folderId: string, payload: {
   template_version_id: string
   title: string
   generation_payload: Record<string, unknown>
-}): Promise<GeneratedDocument> {
-  return apiRequest(`/api/dms/folders/${folderId}/generate`, {
+}): Promise<GeneratedDocumentEnvelope> {
+  return apiRequest(`/api/dms/folders/${folderId}/generate-document`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -323,27 +390,58 @@ export async function listGeneratedDocuments(folderId: string): Promise<Generate
   return apiRequest(`/api/dms/folders/${folderId}/generated`)
 }
 
-export async function getGeneratedDocument(generatedId: string): Promise<GeneratedDocument> {
-  return apiRequest(`/api/dms/${generatedId}`)
+export async function getGeneratedDocument(generatedId: string): Promise<GeneratedDocumentEnvelope> {
+  return apiRequest(`/api/dms/generated-documents/${generatedId}`)
+}
+
+export async function editGeneratedDocument(generatedId: string, payload: {
+  edited_text: string
+  title?: string
+  change_summary?: string
+}): Promise<Record<string, unknown>> {
+  return apiRequest(`/api/dms/generated-documents/${generatedId}/versions`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }
 
 // ── Legal review ───────────────────────────────────────────────────────────────
 
 export async function triggerAutoReview(generatedId: string, payload: {
-  document_text: string
-  document_type?: string
-  canonical_template?: string
   jurisdiction?: string
   language?: string
+  reviewer_notes?: string
 }): Promise<Record<string, unknown>> {
-  return apiRequest(`/api/dms/generated/${generatedId}/review/auto`, {
+  return apiRequest(`/api/dms/generated-documents/${generatedId}/validate`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })
 }
 
 export async function listReviewDecisions(generatedId: string): Promise<Record<string, unknown>[]> {
-  return apiRequest(`/api/dms/generated/${generatedId}/review`)
+  return apiRequest(`/api/dms/generated-documents/${generatedId}/review-decisions`)
+}
+
+export async function createManualReviewDecision(generatedId: string, payload: {
+  decision: 'approved' | 'review_required' | 'rejected'
+  notes?: string
+  block_signing?: boolean
+}): Promise<Record<string, unknown>> {
+  return apiRequest(`/api/dms/generated-documents/${generatedId}/review-decisions`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function createGeneratedSignatureFlow(generatedId: string, payload: {
+  signer_email: string
+  signer_name: string
+  signer_role: 'buyer' | 'seller' | 'agent' | 'witness'
+}): Promise<SignatureFlow> {
+  return apiRequest(`/api/dms/generated-documents/${generatedId}/signature-flows`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }
 
 // ── Retention policies ─────────────────────────────────────────────────────────
