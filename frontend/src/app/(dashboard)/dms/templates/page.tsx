@@ -15,14 +15,28 @@ import {
 
 const TEMPLATE_TYPES: { value: TemplateDocumentType; label: string }[] = [
   { value: 'arras_penitenciales', label: 'Arras penitenciales' },
-  { value: 'contrato_compraventa', label: 'Contrato compraventa' },
-  { value: 'contrato_temporada', label: 'Contrato temporada' },
-  { value: 'contrato_alquiler_turistico', label: 'Contrato alquiler turístico' },
-  { value: 'kyc_cliente', label: 'KYC cliente' },
-  { value: 'mandato_exclusiva', label: 'Mandato exclusiva' },
-  { value: 'oferta_compra', label: 'Oferta compra' },
+  { value: 'contrato_compraventa', label: 'Contrato de compraventa' },
+  { value: 'oferta_compra', label: 'Oferta de compra' },
+  { value: 'reserva', label: 'Contrato de reserva / señal' },
+  { value: 'nota_encargo', label: 'Nota de encargo' },
+  { value: 'contrato_temporada', label: 'Contrato de temporada' },
+  { value: 'contrato_arrendamiento', label: 'Contrato de arrendamiento' },
+  { value: 'contrato_alquiler_turistico', label: 'Contrato de alquiler turístico' },
+  { value: 'recibo_fianza', label: 'Recibo de fianza' },
+  { value: 'acta_entrega_llaves', label: 'Acta de entrega de llaves' },
+  { value: 'mandato_exclusiva', label: 'Mandato de exclusiva' },
+  { value: 'kyc_cliente', label: 'KYC — Identificación de cliente' },
+  { value: 'acuerdo_confidencialidad', label: 'Acuerdo de confidencialidad' },
   { value: 'generico', label: 'Genérico' },
 ]
+
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
+  return (
+    <label className="text-[10px] font-semibold uppercase tracking-wider text-soft-muted">
+      {label}{required && <span className="ml-0.5 text-gold">*</span>}
+    </label>
+  )
+}
 
 function statusClass(status: string): string {
   if (status === 'published') return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
@@ -117,10 +131,16 @@ export default function DmsTemplatesPage() {
           <aside className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4">
             <h2 className="mb-4 font-display text-lg text-soft-white">Nueva plantilla</h2>
             <div className="grid gap-3">
-              <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre de plantilla" className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2 text-sm text-soft-white placeholder:text-soft-muted/50" />
-              <select value={templateType} onChange={(event) => setTemplateType(event.target.value as TemplateDocumentType)} className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2 text-sm text-soft-white">
-                {TEMPLATE_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
+              <div className="grid gap-1.5">
+                <FieldLabel label="Nombre" required />
+                <input value={name} onChange={(event) => setName(event.target.value)} placeholder="—" className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2.5 text-sm text-soft-white placeholder:text-soft-muted/40 focus:border-blue-light/60 focus:outline-none" />
+              </div>
+              <div className="grid gap-1.5">
+                <FieldLabel label="Tipo de documento" required />
+                <select value={templateType} onChange={(event) => setTemplateType(event.target.value as TemplateDocumentType)} className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2.5 text-sm text-soft-white focus:border-blue-light/60 focus:outline-none">
+                  {TEMPLATE_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                </select>
+              </div>
               <button type="button" onClick={() => void handleCreate()} disabled={busy === 'create'} className="btn-action justify-center">
                 <Plus className="h-4 w-4" />
                 Crear borrador
@@ -129,10 +149,16 @@ export default function DmsTemplatesPage() {
 
             <h2 className="mb-4 mt-8 font-display text-lg text-soft-white">Subir versión</h2>
             <div className="grid gap-3">
-              <select value={uploadTemplateId} onChange={(event) => setUploadTemplateId(event.target.value)} className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2 text-sm text-soft-white">
-                {templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
-              </select>
-              <input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2 text-sm text-soft-muted" />
+              <div className="grid gap-1.5">
+                <FieldLabel label="Plantilla" required />
+                <select value={uploadTemplateId} onChange={(event) => setUploadTemplateId(event.target.value)} className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2.5 text-sm text-soft-white focus:border-blue-light/60 focus:outline-none">
+                  {templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
+                </select>
+              </div>
+              <div className="grid gap-1.5">
+                <FieldLabel label="Archivo" required />
+                <input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2 text-sm text-soft-muted file:mr-3 file:rounded-lg file:border-0 file:bg-navy-deep file:px-3 file:py-1 file:text-xs file:text-soft-muted" />
+              </div>
               <button type="button" onClick={() => void handleUpload()} disabled={busy === 'upload'} className="btn-action justify-center">
                 <UploadCloud className="h-4 w-4" />
                 Subir versión
