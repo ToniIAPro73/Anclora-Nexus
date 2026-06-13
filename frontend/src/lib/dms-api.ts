@@ -25,7 +25,11 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
   })
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(error.detail || `DMS API error: ${res.status}`)
+    const detail = error.detail
+    const message = Array.isArray(detail)
+      ? detail.map((d: { loc?: unknown[]; msg?: string }) => [d.loc?.join('.'), d.msg].filter(Boolean).join(': ')).join('; ')
+      : typeof detail === 'string' ? detail : `DMS API error: ${res.status}`
+    throw new Error(message)
   }
   if (res.status === 204) return undefined as T
   return res.json()
@@ -202,7 +206,7 @@ export async function listTemplates(params?: {
   const qs = params
     ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined) as [string, string][]).toString()
     : ''
-  return apiRequest(`/api/dms/templates/${qs}`)
+  return apiRequest(`/api/dms/templates${qs}`)
 }
 
 export async function createTemplate(payload: {
