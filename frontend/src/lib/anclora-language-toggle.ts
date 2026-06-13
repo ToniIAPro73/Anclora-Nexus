@@ -12,12 +12,12 @@ export type AncloraLocaleMeta = {
 }
 
 export const INTERNAL_LOCALES: AncloraInternalLocale[] = ['es', 'ca', 'en', 'de']
-export const ACTIVE_NEXUS_LOCALES: NexusLanguage[] = ['es', 'en', 'de']
+export const ACTIVE_NEXUS_LOCALES: NexusLanguage[] = ['es', 'en', 'de', 'ca']
 export const DEFAULT_NEXUS_LOCALE: NexusLanguage = 'es'
 
 export const ANCLORA_INTERNAL_LOCALE_META: Record<AncloraInternalLocale, AncloraLocaleMeta> = {
   es: { code: 'es', short: 'ES', nativeName: 'Español', englishName: 'Spanish', status: 'active' },
-  ca: { code: 'ca', short: 'CA', nativeName: 'Català', englishName: 'Catalan', status: 'pending-copy' },
+  ca: { code: 'ca', short: 'CA', nativeName: 'Català', englishName: 'Catalan', status: 'active' },
   en: { code: 'en', short: 'EN', nativeName: 'English', englishName: 'English', status: 'active' },
   de: { code: 'de', short: 'DE', nativeName: 'Deutsch', englishName: 'German', status: 'active' },
 }
