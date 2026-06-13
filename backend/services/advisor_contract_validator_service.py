@@ -9,7 +9,7 @@ from backend.config import settings
 
 SAFE_FAILURE_RESULT: dict[str, Any] = {
     "status": "review_required",
-    "block_signing": False,
+    "block_signing": True,
     "confidence": 0.0,
     "summary": "Advisor AI no esta disponible; la validacion queda pendiente.",
     "findings": [],
@@ -79,6 +79,9 @@ class AdvisorContractValidatorService:
         document_text: str,
         document_type: str,
         canonical_template: Optional[str] = None,
+        template_version_id: Optional[str] = None,
+        operation_type: Optional[str] = None,
+        variable_snapshot: Optional[dict[str, Any]] = None,
         jurisdiction: str = "España",
         language: str = "es",
         document_id: Optional[str] = None,
@@ -94,14 +97,19 @@ class AdvisorContractValidatorService:
             return {**SAFE_FAILURE_RESULT, "error": "ADVISOR_AI_BASE_URL not configured"}
 
         payload: dict[str, Any] = {
-            "documentText": document_text,
+            "currentText": document_text,
             "documentType": document_type,
             "jurisdiction": jurisdiction,
             "language": language,
+            "variableSnapshot": variable_snapshot or {},
             "metadata": metadata or {},
         }
         if canonical_template:
-            payload["canonicalTemplate"] = canonical_template
+            payload["canonicalText"] = canonical_template
+        if template_version_id:
+            payload["templateVersionId"] = template_version_id
+        if operation_type:
+            payload["operationType"] = operation_type
         if document_id:
             payload["documentId"] = document_id
         if org_id:
@@ -111,6 +119,8 @@ class AdvisorContractValidatorService:
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
             headers["X-Anclora-Internal-Key"] = self.api_key
+            headers["x-advisor-internal-api-key"] = self.api_key
+            headers["x-advisor-caller"] = "nexus"
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
@@ -135,8 +145,8 @@ class AdvisorContractValidatorService:
         missing_clauses = data.get("missing_clauses") if isinstance(data.get("missing_clauses"), list) else []
 
         return {
-            "status": data.get("status") if data.get("status") in {"ok", "review_required", "error"} else "review_required",
-            "block_signing": bool(data.get("block_signing")),
+            "status": data.get("status") if data.get("status") in {"ok", "approved", "approved_with_warnings", "review_required", "rejected", "error"} else "review_required",
+            "block_signing": bool(data.get("block_signing") or data.get("status") in {"rejected", "error"}),
             "risk_level": data.get("risk_level") or "medium",
             "review_requirement": data.get("review_requirement") or "recommended",
             "confidence": float(data.get("confidence") or 0.0),

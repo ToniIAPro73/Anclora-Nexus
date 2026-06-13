@@ -168,6 +168,15 @@ class FieldType(str, Enum):
 class PartyCreate(BaseModel):
     party_role: PartyRole
     full_name: str
+    lead_id: Optional[UUID] = None
+    seller_id: Optional[UUID] = None
+    company_id: Optional[UUID] = None
+    contact_id: Optional[UUID] = None
+    source_entity: Optional[str] = None
+    source_id: Optional[UUID] = None
+    is_primary: bool = False
+    signing_order: Optional[int] = None
+    representation_capacity: Optional[str] = None
     dni_nie_passport: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -178,12 +187,43 @@ class PartyCreate(BaseModel):
     company_cif: Optional[str] = None
 
 
+class PartyUpdate(BaseModel):
+    party_role: Optional[PartyRole] = None
+    full_name: Optional[str] = None
+    lead_id: Optional[UUID] = None
+    seller_id: Optional[UUID] = None
+    company_id: Optional[UUID] = None
+    contact_id: Optional[UUID] = None
+    source_entity: Optional[str] = None
+    source_id: Optional[UUID] = None
+    is_primary: Optional[bool] = None
+    signing_order: Optional[int] = None
+    representation_capacity: Optional[str] = None
+    dni_nie_passport: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    nationality: Optional[str] = None
+    is_company: Optional[bool] = None
+    company_name: Optional[str] = None
+    company_cif: Optional[str] = None
+
+
 class PartyResponse(BaseModel):
     id: UUID
     folder_id: UUID
     org_id: UUID
     party_role: str
     full_name: str
+    lead_id: Optional[UUID] = None
+    seller_id: Optional[UUID] = None
+    company_id: Optional[UUID] = None
+    contact_id: Optional[UUID] = None
+    source_entity: Optional[str] = None
+    source_id: Optional[UUID] = None
+    is_primary: bool = False
+    signing_order: Optional[int] = None
+    representation_capacity: Optional[str] = None
     dni_nie_passport: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -224,6 +264,35 @@ class GeneratedDocumentCreate(BaseModel):
     template_version_id: UUID
     title: str
     generation_payload: dict[str, Any] = {}
+    output_format: str = "docx_pdf"
+
+
+class GeneratedDocumentEdit(BaseModel):
+    title: Optional[str] = None
+    edited_text: str
+    change_summary: Optional[str] = None
+
+
+class LegalReviewRequest(BaseModel):
+    jurisdiction: str = "España"
+    language: str = "es"
+    reviewer_notes: Optional[str] = None
+
+
+class ManualLegalReviewDecision(BaseModel):
+    decision: str
+    notes: Optional[str] = None
+    block_signing: bool = False
+
+
+class PartyCandidateResponse(BaseModel):
+    id: UUID
+    entity_type: str
+    label: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    role_hint: Optional[str] = None
+    payload: dict[str, Any] = {}
 
 
 class GeneratedDocumentResponse(BaseModel):
