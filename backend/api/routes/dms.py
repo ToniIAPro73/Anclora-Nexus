@@ -583,6 +583,7 @@ async def list_templates(
 
 
 @router.post("/templates/", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.post("/templates", response_model=dict, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 async def create_template(
     body: TemplateCreate,
     _membership: dict = Depends(require_dms_membership),
