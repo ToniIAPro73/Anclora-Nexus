@@ -34,6 +34,7 @@ class QueryBuilder:
         self.filters = []
         self.insert_payload = None
         self.update_payload = None
+        self.delete_mode = False
 
     def select(self, *_args, **_kwargs):
         return self
@@ -44,6 +45,10 @@ class QueryBuilder:
 
     def update(self, payload):
         self.update_payload = payload
+        return self
+
+    def delete(self):
+        self.delete_mode = True
         return self
 
     def eq(self, key, value):
@@ -65,6 +70,10 @@ class QueryBuilder:
             row for row in self.rows
             if all(str(row.get(key)) == value for key, value in self.filters)
         ]
+        if self.delete_mode:
+            for row in list(matched):
+                self.rows.remove(row)
+            return SimpleNamespace(data=matched)
         if self.update_payload is not None:
             for row in matched:
                 row.update(self.update_payload)
@@ -101,6 +110,17 @@ class SupabaseClientStub:
             "properties": [],
             "leads": [],
             "nexus_sellers": [],
+            "companies": [],
+            "contacts": [],
+            "organizations": [],
+            "document_templates": [],
+            "document_template_versions": [],
+            "document_template_fields": [],
+            "deal_folder_parties": [],
+            "generated_documents": [],
+            "document_versions": [],
+            "legal_review_decisions": [],
+            "generated_document_signature_flows": [],
             "audit_log": [],
         }
         self.storage_data = {}
@@ -153,6 +173,26 @@ def add_document(stub: SupabaseClientStub, folder_id: str, status: str = "pendin
 
 def test_create_folder_returns_uuid(monkeypatch) -> None:
     stub = install_stub(monkeypatch, SupabaseClientStub())
+    lead_id = str(uuid4())
+    stub.tables["leads"].append({"id": lead_id, "org_id": ORG_ID, "full_name": "Cliente"})
+
+    response = client.post(
+        "/api/dms/folders",
+        json={
+            "property_id": None,
+            "client_lead_id": lead_id,
+            "seller_id": None,
+            "operation_type": "compraventa",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"]
+    assert stub.tables["real_estate_deal_folders"][0]["org_id"] == ORG_ID
+
+
+def test_create_folder_requires_primary_client(monkeypatch) -> None:
+    install_stub(monkeypatch, SupabaseClientStub())
 
     response = client.post(
         "/api/dms/folders",
@@ -164,9 +204,7 @@ def test_create_folder_returns_uuid(monkeypatch) -> None:
         },
     )
 
-    assert response.status_code == 200
-    assert response.json()["id"]
-    assert stub.tables["real_estate_deal_folders"][0]["org_id"] == ORG_ID
+    assert response.status_code == 422
 
 
 def test_create_folder_without_permissions_rejected(monkeypatch) -> None:
@@ -388,3 +426,111 @@ def test_docuseal_webhook_valid_hmac_updates_signed(monkeypatch) -> None:
     assert response.json() == {"ok": True}
     assert stub.tables["document_signature_flows"][0]["flow_status"] == "signed"
     assert stub.tables["deal_documents"][0]["legal_metadata"]["immutable"] is True
+
+
+def test_generate_document_requires_operation_parties(monkeypatch) -> None:
+    stub = install_stub(monkeypatch, SupabaseClientStub())
+    folder_id = add_folder(stub)
+    stub.tables["real_estate_deal_folders"][0]["client_lead_id"] = str(uuid4())
+    template_id = str(uuid4())
+    version_id = str(uuid4())
+    stub.tables["document_templates"].append({
+        "id": template_id,
+        "org_id": ORG_ID,
+        "name": "Contrato",
+        "template_document_type": "contrato_compraventa",
+        "status": "published",
+    })
+    stub.tables["document_template_versions"].append({
+        "id": version_id,
+        "org_id": ORG_ID,
+        "template_id": template_id,
+        "version_number": 1,
+        "status": "published",
+        "canonical_text": "Contrato {{ buyer_name }}",
+    })
+
+    response = client.post(
+        f"/api/dms/folders/{folder_id}/generate-document",
+        json={"template_version_id": version_id, "title": "Contrato", "generation_payload": {}},
+    )
+
+    assert response.status_code == 422
+    assert "missing_party_roles" in response.json()["detail"]
+
+
+def test_generate_document_resolves_party_variables(monkeypatch) -> None:
+    stub = install_stub(monkeypatch, SupabaseClientStub())
+    folder_id = add_folder(stub)
+    template_id = str(uuid4())
+    version_id = str(uuid4())
+    stub.tables["deal_folder_parties"].extend([
+        {
+            "id": str(uuid4()),
+            "folder_id": folder_id,
+            "org_id": ORG_ID,
+            "party_role": "buyer",
+            "full_name": "Ana Buyer",
+            "email": "ana@example.com",
+            "is_primary": True,
+            "is_company": False,
+            "kyc_verified": False,
+            "created_at": "2026-06-13T00:00:00Z",
+            "updated_at": "2026-06-13T00:00:00Z",
+        },
+        {
+            "id": str(uuid4()),
+            "folder_id": folder_id,
+            "org_id": ORG_ID,
+            "party_role": "seller",
+            "full_name": "Luis Seller",
+            "email": "luis@example.com",
+            "is_primary": False,
+            "is_company": False,
+            "kyc_verified": False,
+            "created_at": "2026-06-13T00:00:00Z",
+            "updated_at": "2026-06-13T00:00:00Z",
+        },
+    ])
+    stub.tables["document_templates"].append({
+        "id": template_id,
+        "org_id": ORG_ID,
+        "name": "Contrato",
+        "template_document_type": "contrato_compraventa",
+        "status": "published",
+    })
+    stub.tables["document_template_versions"].append({
+        "id": version_id,
+        "org_id": ORG_ID,
+        "template_id": template_id,
+        "version_number": 1,
+        "status": "published",
+        "canonical_text": "Contrato entre {{ buyer_name }} y {{ seller_name }}",
+    })
+    stub.tables["document_template_fields"].extend([
+        {
+            "template_version_id": version_id,
+            "field_key": "buyer_name",
+            "label": "Comprador",
+            "required": True,
+            "source_path": "buyer.full_name",
+        },
+        {
+            "template_version_id": version_id,
+            "field_key": "seller_name",
+            "label": "Vendedor",
+            "required": True,
+            "source_path": "seller.full_name",
+        },
+    ])
+
+    response = client.post(
+        f"/api/dms/folders/{folder_id}/generate-document",
+        json={"template_version_id": version_id, "title": "Contrato", "generation_payload": {}},
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert "Ana Buyer" in body["preview"]
+    assert body["document"]["current_version_id"]
+    assert stub.tables["document_versions"][0]["validation_status"] == "pending"

@@ -89,4 +89,4 @@ def test_advisor_validator_degrades_when_not_configured():
 
     assert result["status"] == "review_required"
     assert result["advisor_available"] is False
-    assert result["block_signing"] is False
+    assert result["block_signing"] is True
