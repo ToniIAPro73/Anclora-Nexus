@@ -21,11 +21,11 @@ storage_path: templates/es/tpl-generico.es.md
 
 ## Partes
 
-| Rol | Nombre completo | Identificación | Email |
-|-----|----------------|---------------|-------|
+| Rol                      | Nombre completo        | Identificación            | Email               |
+| ------------------------ | ---------------------- | ------------------------- | ------------------- |
 | {{ party_1.role_label }} | {{ party_1.fullname }} | {{ party_1.id_document }} | {{ party_1.email }} |
 | {{ party_2.role_label }} | {{ party_2.fullname }} | {{ party_2.id_document }} | {{ party_2.email }} |
-| Agente Anclora | {{ agent.fullname }} | — | {{ agent.email }} |
+| Agente Anclora           | {{ agent.fullname }}   | —                         | {{ agent.email }}   |
 
 ---
 
@@ -46,11 +46,12 @@ storage_path: templates/es/tpl-generico.es.md
 
 ## Firmas
 
-| Parte | Nombre | Firma | Fecha |
-|-------|--------|-------|-------|
-| {{ party_1.role_label }} | {{ party_1.fullname }} | _____________ | {{ document.generated_at }} |
-| {{ party_2.role_label }} | {{ party_2.fullname }} | _____________ | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | _____________ | {{ document.generated_at }} |
+| Parte                    | Nombre                 | Firma          | Fecha                       |
+| ------------------------ | ---------------------- | -------------- | --------------------------- |
+| {{ party_1.role_label }} | {{ party_1.fullname }} | ******\_****** | {{ document.generated_at }} |
+| {{ party_2.role_label }} | {{ party_2.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Agente Anclora           | {{ agent.fullname }}   | ******\_****** | {{ document.generated_at }} |
 
 ---
-*Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
+
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal

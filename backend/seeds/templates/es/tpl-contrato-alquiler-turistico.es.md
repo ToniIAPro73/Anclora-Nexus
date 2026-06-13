@@ -23,11 +23,11 @@ storage_path: templates/es/tpl-contrato-alquiler-turistico.es.md
 
 ## 1. Partes
 
-| Rol | Nombre | Identificación | Email |
-|-----|--------|---------------|-------|
+| Rol                | Nombre                  | Identificación             | Email                |
+| ------------------ | ----------------------- | -------------------------- | -------------------- |
 | Propietario/Gestor | {{ landlord.fullname }} | {{ landlord.id_document }} | {{ landlord.email }} |
-| Huésped | {{ guest.fullname }} | {{ guest.id_document }} | {{ guest.email }} |
-| Agente | {{ agent.fullname }} | — | {{ agent.email }} |
+| Huésped            | {{ guest.fullname }}    | {{ guest.id_document }}    | {{ guest.email }}    |
+| Agente             | {{ agent.fullname }}    | —                          | {{ agent.email }}    |
 
 ## 2. Inmueble y Licencias
 
@@ -74,10 +74,11 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 ## Firmas
 
-| Parte | Nombre | Firma | Fecha |
-|-------|--------|-------|-------|
-| Propietario/Gestor | {{ landlord.fullname }} | _____________ | {{ document.generated_at }} |
-| Huésped | {{ guest.fullname }} | _____________ | {{ document.generated_at }} |
+| Parte              | Nombre                  | Firma          | Fecha                       |
+| ------------------ | ----------------------- | -------------- | --------------------------- |
+| Propietario/Gestor | {{ landlord.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Huésped            | {{ guest.fullname }}    | ******\_****** | {{ document.generated_at }} |
 
 ---
-*Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
+
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal
