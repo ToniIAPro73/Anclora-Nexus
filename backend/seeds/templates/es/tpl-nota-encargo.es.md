@@ -66,10 +66,11 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 ## Firmas
 
-| Parte | Nombre | Firma | Fecha |
-|-------|--------|-------|-------|
-| Propietario | {{ seller.fullname }} | _____________ | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | _____________ | {{ document.generated_at }} |
+| Parte          | Nombre                | Firma          | Fecha                       |
+| -------------- | --------------------- | -------------- | --------------------------- |
+| Propietario    | {{ seller.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.fullname }}  | ******\_****** | {{ document.generated_at }} |
 
 ---
-*Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
+
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal

@@ -23,11 +23,11 @@ storage_path: templates/es/tpl-contrato-arrendamiento.es.md
 
 ## 1. Partes
 
-| Rol | Nombre | Identificación | Email |
-|-----|--------|---------------|-------|
-| Arrendador | {{ landlord.fullname }} | {{ landlord.id_document }} | {{ landlord.email }} |
-| Arrendatario | {{ tenant.fullname }} | {{ tenant.id_document }} | {{ tenant.email }} |
-| Agente | {{ agent.fullname }} | — | {{ agent.email }} |
+| Rol          | Nombre                  | Identificación             | Email                |
+| ------------ | ----------------------- | -------------------------- | -------------------- |
+| Arrendador   | {{ landlord.fullname }} | {{ landlord.id_document }} | {{ landlord.email }} |
+| Arrendatario | {{ tenant.fullname }}   | {{ tenant.id_document }}   | {{ tenant.email }}   |
+| Agente       | {{ agent.fullname }}    | —                          | {{ agent.email }}    |
 
 ## 2. Inmueble
 
@@ -73,11 +73,12 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 ## Firmas
 
-| Parte | Nombre | Firma | Fecha |
-|-------|--------|-------|-------|
-| Arrendador | {{ landlord.fullname }} | _____________ | {{ document.generated_at }} |
-| Arrendatario | {{ tenant.fullname }} | _____________ | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | _____________ | {{ document.generated_at }} |
+| Parte          | Nombre                  | Firma          | Fecha                       |
+| -------------- | ----------------------- | -------------- | --------------------------- |
+| Arrendador     | {{ landlord.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Arrendatario   | {{ tenant.fullname }}   | ******\_****** | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.fullname }}    | ******\_****** | {{ document.generated_at }} |
 
 ---
-*Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
+
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal
