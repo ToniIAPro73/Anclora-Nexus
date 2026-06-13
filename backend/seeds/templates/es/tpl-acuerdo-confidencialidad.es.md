@@ -1,16 +1,28 @@
 ---
 template_key: acuerdo-confidencialidad
 template_family: acuerdo-confidencialidad
-display_name: "Acuerdo de confidencialidad"
+ape_code: APE-NDA-013
+display_name: "Acuerdo de Confidencialidad (NDA)"
 operation_type: general
+phase: negociacion
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-acuerdo-confidencialidad.es.md
+effective_from:
+effective_until:
 ---
-
 # Acuerdo de Confidencialidad (NDA)
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)

@@ -1,16 +1,28 @@
 ---
 template_key: kyc-identificacion-cliente
 template_family: kyc-identificacion-cliente
-display_name: "KYC — Identificación de cliente"
-operation_type: compliance
+ape_code: APE-COMPLIANCE-KYC-012
+display_name: "Formulario KYC — Identificación y Perfil de Cliente"
+operation_type: general
+phase: onboarding
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-kyc-identificacion-cliente.es.md
+effective_from:
+effective_until:
 ---
-
 # Formulario KYC — Identificación y Perfil de Cliente
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -23,7 +35,7 @@ storage_path: templates/es/tpl-kyc-identificacion-cliente.es.md
 
 ## 1. Datos del Cliente
 
-- **Nombre completo:** {{ buyer.fullname }}
+- **Nombre completo:** {{ buyer.full_name }}
 - **Fecha de nacimiento:** {{ buyer.birth_date }}
 - **Nacionalidad:** {{ buyer.nationality }}
 - **Documento de identificación:** {{ buyer.id_type }} — Nº: {{ buyer.id_document }} — Caducidad: {{ buyer.id_expiry }}
@@ -57,8 +69,8 @@ El cliente declara que los datos anteriores son verídicos y completos, que los 
 
 | Parte          | Nombre               | Firma          | Fecha                       |
 | -------------- | -------------------- | -------------- | --------------------------- |
-| Cliente        | {{ buyer.fullname }} | ******\_****** | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Cliente        | {{ buyer.full_name }} | ******\_****** | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.full_name }} | ******\_****** | {{ document.generated_at }} |
 
 ---
 

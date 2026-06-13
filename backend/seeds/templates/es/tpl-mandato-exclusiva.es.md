@@ -1,16 +1,28 @@
 ---
 template_key: mandato-exclusiva
 template_family: mandato-exclusiva
-display_name: "Mandato de exclusiva"
-operation_type: captacion
+ape_code: APE-AGENCY-EXCL-011
+display_name: "Mandato de Intermediación en Exclusiva"
+operation_type: captacion_intermediacion
+phase: captacion
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-mandato-exclusiva.es.md
+effective_from:
+effective_until:
 ---
-
 # Mandato de Intermediación en Exclusiva
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -21,9 +33,9 @@ storage_path: templates/es/tpl-mandato-exclusiva.es.md
 
 ## 1. Partes
 
-- **Propietario / Mandante:** {{ seller.fullname }} — {{ seller.id_document }} — {{ seller.email }}
+- **Propietario / Mandante:** {{ seller.full_name }} — {{ seller.id_document }} — {{ seller.email }}
 - **Agencia:** Anclora Private Estates — ROAIIB nº {{ organization.roaiib_number }}
-- **Agente responsable:** {{ agent.fullname }}
+- **Agente responsable:** {{ agent.full_name }}
 
 ## 2. Inmueble
 
@@ -66,8 +78,8 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 | Parte          | Nombre                | Firma          | Fecha                       |
 | -------------- | --------------------- | -------------- | --------------------------- |
-| Propietario    | {{ seller.fullname }} | ******\_****** | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }}  | ******\_****** | {{ document.generated_at }} |
+| Propietario    | {{ seller.full_name }} | ******\_****** | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.full_name }}  | ******\_****** | {{ document.generated_at }} |
 
 ---
 

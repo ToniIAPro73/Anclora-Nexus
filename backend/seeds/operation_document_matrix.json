@@ -1,0 +1,476 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "generated_at": "2026-06-13",
+    "jurisdiction": "ES-IB",
+    "description": "Matriz de documentos requeridos por tipo de operación y fase. No constituye asesoramiento jurídico. Requiere revisión profesional por operación concreta.",
+    "rule_types": {
+      "generable": "Plantilla generada desde el sistema CLM",
+      "external_required": "Documento externo requerido por ley o práctica estándar",
+      "evidence": "Evidencia de cierre o cumplimiento",
+      "optional": "Opcional a criterio del asesor",
+      "recommended": "Recomendado por buenas prácticas"
+    }
+  },
+  "operations": {
+    "compraventa": {
+      "label": "Compraventa",
+      "phases": {
+        "onboarding": {
+          "documents": [
+            {
+              "template_key": "kyc-identificacion-cliente",
+              "ape_code": "APE-COMPLIANCE-KYC-012",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": ["buyer", "seller"],
+              "notes": "Obligatorio ley 10/2010 PBC"
+            },
+            {
+              "template_key": "informacion-privacidad-cliente",
+              "ape_code": "APE-PRIVACY-017",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "Obligatorio RGPD y LOPDGDD"
+            }
+          ]
+        },
+        "captacion": {
+          "documents": [
+            {
+              "template_key": "nota-encargo",
+              "ape_code": "APE-AGENCY-OPEN-005",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["seller"],
+              "notes": "Alternativa a mandato exclusiva"
+            },
+            {
+              "template_key": "mandato-exclusiva",
+              "ape_code": "APE-AGENCY-EXCL-011",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["seller"],
+              "notes": "Si se pacta exclusividad"
+            },
+            {
+              "document_category": "nota_simple",
+              "rule_type": "external_required",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "Nota simple del Registro de la Propiedad"
+            }
+          ]
+        },
+        "due_diligence": {
+          "documents": [
+            {
+              "template_key": "acuerdo-confidencialidad",
+              "ape_code": "APE-NDA-013",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["buyer", "seller"],
+              "notes": "Recomendado para operaciones HNWI"
+            },
+            {
+              "document_category": "certificado_eficiencia_energetica",
+              "rule_type": "external_required",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "Obligatorio para transmisión/alquiler"
+            },
+            {
+              "document_category": "cedula_habitabilidad",
+              "rule_type": "external_required",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "Obligatorio en Baleares"
+            }
+          ]
+        },
+        "visita": {
+          "documents": [
+            {
+              "template_key": "hoja-visita",
+              "ape_code": "APE-VISIT-015",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["buyer"],
+              "notes": "Prueba de presentación exclusiva"
+            }
+          ]
+        },
+        "negociacion": {
+          "documents": [
+            {
+              "template_key": "oferta-compra",
+              "ape_code": "APE-SALE-OFFER-003",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["buyer"],
+              "notes": "Oferta formal del comprador"
+            }
+          ]
+        },
+        "reserva": {
+          "documents": [
+            {
+              "template_key": "contrato-reserva-senal",
+              "ape_code": "APE-SALE-RESERVE-004",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["buyer", "seller"],
+              "notes": "Alternativa a arras"
+            }
+          ]
+        },
+        "precontractual": {
+          "documents": [
+            {
+              "template_key": "arras-penitenciales",
+              "ape_code": "APE-SALE-ARRAS-001",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["buyer", "seller"],
+              "notes": "Contrato de arras penitenciales art. 1454 CC"
+            },
+            {
+              "template_key": "declaracion-origen-fondos",
+              "ape_code": "APE-COMPLIANCE-SOF-018",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": ["buyer"],
+              "notes": "Obligatorio ley 10/2010 PBC para comprador"
+            }
+          ]
+        },
+        "contrato": {
+          "documents": [
+            {
+              "template_key": "contrato-compraventa",
+              "ape_code": "APE-SALE-PRIVATE-002",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["buyer", "seller"],
+              "notes": "Contrato privado previo a escritura"
+            }
+          ]
+        },
+        "firma": {
+          "documents": [
+            {
+              "document_category": "escritura_publica",
+              "rule_type": "external_required",
+              "is_blocking": true,
+              "roles": ["buyer", "seller"],
+              "notes": "Escritura notarial de compraventa"
+            }
+          ]
+        },
+        "entrega": {
+          "documents": [
+            {
+              "template_key": "acta-entrega-llaves",
+              "ape_code": "APE-HANDOVER-010",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["buyer", "seller"],
+              "notes": "Acta de entrega de llaves y posesión"
+            }
+          ]
+        }
+      }
+    },
+    "alquiler_temporada": {
+      "label": "Alquiler de Temporada",
+      "phases": {
+        "onboarding": {
+          "documents": [
+            {
+              "template_key": "kyc-identificacion-cliente",
+              "ape_code": "APE-COMPLIANCE-KYC-012",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": ["landlord", "tenant"],
+              "notes": "Identificación partes"
+            },
+            {
+              "template_key": "informacion-privacidad-cliente",
+              "ape_code": "APE-PRIVACY-017",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "RGPD"
+            }
+          ]
+        },
+        "captacion": {
+          "documents": [
+            {
+              "template_key": "nota-encargo",
+              "ape_code": "APE-AGENCY-OPEN-005",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord"],
+              "notes": "Encargo de gestión del alquiler"
+            }
+          ]
+        },
+        "contrato": {
+          "documents": [
+            {
+              "template_key": "contrato-temporada",
+              "ape_code": "APE-LEASE-SEASON-006",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": ["landlord", "tenant"],
+              "notes": "LAU art. 3.2 — uso distinto de vivienda habitual"
+            },
+            {
+              "template_key": "recibo-fianza",
+              "ape_code": "APE-LEASE-DEPOSIT-009",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord", "tenant"],
+              "notes": "Recibo fianza LAU"
+            }
+          ]
+        },
+        "entrega": {
+          "documents": [
+            {
+              "template_key": "inventario-estado-inmueble",
+              "ape_code": "APE-INVENTORY-016",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord", "tenant"],
+              "notes": "Inventario entrada"
+            },
+            {
+              "template_key": "acta-entrega-llaves",
+              "ape_code": "APE-HANDOVER-010",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord", "tenant"],
+              "notes": "Entrega de llaves"
+            }
+          ]
+        }
+      }
+    },
+    "alquiler_turistico": {
+      "label": "Alquiler Turístico",
+      "phases": {
+        "onboarding": {
+          "documents": [
+            {
+              "template_key": "informacion-privacidad-cliente",
+              "ape_code": "APE-PRIVACY-017",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "RGPD obligatorio"
+            }
+          ]
+        },
+        "contrato": {
+          "documents": [
+            {
+              "template_key": "contrato-alquiler-turistico",
+              "ape_code": "APE-TOUR-STAY-008",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": ["landlord", "guest"],
+              "notes": "Decreto 20/2015 CAIB para ETV"
+            },
+            {
+              "template_key": "recibo-fianza",
+              "ape_code": "APE-LEASE-DEPOSIT-009",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord", "guest"],
+              "notes": "Depósito de garantía"
+            }
+          ]
+        },
+        "entrega": {
+          "documents": [
+            {
+              "template_key": "inventario-estado-inmueble",
+              "ape_code": "APE-INVENTORY-016",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord", "guest"],
+              "notes": "Estado del inmueble"
+            },
+            {
+              "template_key": "acta-entrega-llaves",
+              "ape_code": "APE-HANDOVER-010",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord", "guest"],
+              "notes": "Entrega de llaves y accesos"
+            }
+          ]
+        }
+      }
+    },
+    "alquiler_residencial": {
+      "label": "Arrendamiento de Vivienda",
+      "phases": {
+        "onboarding": {
+          "documents": [
+            {
+              "template_key": "kyc-identificacion-cliente",
+              "ape_code": "APE-COMPLIANCE-KYC-012",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": ["landlord", "tenant"],
+              "notes": "Identificación"
+            }
+          ]
+        },
+        "contrato": {
+          "documents": [
+            {
+              "template_key": "contrato-arrendamiento",
+              "ape_code": "APE-LEASE-HOME-007",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": ["landlord", "tenant"],
+              "notes": "LAU Título II vivienda habitual"
+            },
+            {
+              "template_key": "recibo-fianza",
+              "ape_code": "APE-LEASE-DEPOSIT-009",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord", "tenant"],
+              "notes": "Fianza art. 36 LAU"
+            }
+          ]
+        },
+        "entrega": {
+          "documents": [
+            {
+              "template_key": "inventario-estado-inmueble",
+              "ape_code": "APE-INVENTORY-016",
+              "rule_type": "recommended",
+              "is_blocking": false,
+              "roles": ["landlord", "tenant"],
+              "notes": "Estado del inmueble entrada"
+            },
+            {
+              "template_key": "acta-entrega-llaves",
+              "ape_code": "APE-HANDOVER-010",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["landlord", "tenant"],
+              "notes": "Entrega de llaves"
+            }
+          ]
+        }
+      }
+    },
+    "captacion_intermediacion": {
+      "label": "Captación e Intermediación",
+      "phases": {
+        "onboarding": {
+          "documents": [
+            {
+              "template_key": "informacion-privacidad-cliente",
+              "ape_code": "APE-PRIVACY-017",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "RGPD"
+            }
+          ]
+        },
+        "captacion": {
+          "documents": [
+            {
+              "template_key": "nota-encargo",
+              "ape_code": "APE-AGENCY-OPEN-005",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["seller"],
+              "notes": "Nota de encargo abierto"
+            },
+            {
+              "template_key": "mandato-exclusiva",
+              "ape_code": "APE-AGENCY-EXCL-011",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["seller"],
+              "notes": "Si se pacta exclusividad"
+            }
+          ]
+        },
+        "visita": {
+          "documents": [
+            {
+              "template_key": "hoja-visita",
+              "ape_code": "APE-VISIT-015",
+              "rule_type": "generable",
+              "is_blocking": false,
+              "roles": ["buyer"],
+              "notes": "Registro de visita"
+            }
+          ]
+        }
+      }
+    },
+    "compliance": {
+      "label": "Compliance",
+      "phases": {
+        "onboarding": {
+          "documents": [
+            {
+              "template_key": "kyc-identificacion-cliente",
+              "ape_code": "APE-COMPLIANCE-KYC-012",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "KYC inicial"
+            },
+            {
+              "template_key": "declaracion-origen-fondos",
+              "ape_code": "APE-COMPLIANCE-SOF-018",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "Origen de fondos ley 10/2010"
+            },
+            {
+              "template_key": "informacion-privacidad-cliente",
+              "ape_code": "APE-PRIVACY-017",
+              "rule_type": "generable",
+              "is_blocking": true,
+              "roles": [],
+              "notes": "RGPD"
+            }
+          ]
+        }
+      }
+    },
+    "general": {
+      "label": "General",
+      "phases": {
+        "general": {
+          "documents": [
+            {
+              "template_key": "generico",
+              "ape_code": "APE-GENERIC-014",
+              "rule_type": "optional",
+              "is_blocking": false,
+              "roles": [],
+              "notes": "Documento libre para cualquier comunicación"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

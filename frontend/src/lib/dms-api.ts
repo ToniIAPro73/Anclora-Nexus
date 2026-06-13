@@ -163,9 +163,13 @@ export type TemplateDocumentType =
   | 'recibo_fianza'
   | 'acta_entrega_llaves'
   | 'acuerdo_confidencialidad'
+  | 'inventario_estado'
+  | 'hoja_visita'
+  | 'declaracion_fondos'
+  | 'informacion_privacidad'
   | 'generico'
 
-export type TemplateStatus = 'draft' | 'published' | 'deprecated'
+export type TemplateStatus = 'draft' | 'published' | 'deprecated' | 'review_required'
 
 export interface DocumentTemplate {
   id: string
@@ -432,10 +436,18 @@ export async function listReviewDecisions(generatedId: string): Promise<Record<s
   return apiRequest(`/api/dms/generated-documents/${generatedId}/review-decisions`)
 }
 
+export type ReviewDecisionType =
+  | 'approved'
+  | 'approved_with_conditions'
+  | 'review_required'
+  | 'changes_required'
+  | 'rejected'
+
 export async function createManualReviewDecision(generatedId: string, payload: {
-  decision: 'approved' | 'review_required' | 'rejected'
+  decision: ReviewDecisionType
   notes?: string
   block_signing?: boolean
+  version_id?: string | null
 }): Promise<Record<string, unknown>> {
   return apiRequest(`/api/dms/generated-documents/${generatedId}/review-decisions`, {
     method: 'POST',
@@ -443,11 +455,20 @@ export async function createManualReviewDecision(generatedId: string, payload: {
   })
 }
 
+export interface SignerEntry {
+  email: string
+  name: string
+  role?: string
+}
+
 export async function createGeneratedSignatureFlow(generatedId: string, payload: {
-  signer_email: string
-  signer_name: string
-  signer_role: 'buyer' | 'seller' | 'agent' | 'witness'
-}): Promise<SignatureFlow> {
+  signing_level?: string
+  signers?: SignerEntry[]
+  // Legacy single-signer fields
+  signer_email?: string
+  signer_name?: string
+  signer_role?: 'buyer' | 'seller' | 'agent' | 'witness'
+}): Promise<Record<string, unknown>> {
   return apiRequest(`/api/dms/generated-documents/${generatedId}/signature-flows`, {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -479,4 +500,63 @@ export async function createRetentionPolicy(payload: {
     method: 'POST',
     body: JSON.stringify(payload),
   })
+}
+
+export async function downloadGeneratedDocument(
+  documentId: string,
+  format: 'docx' | 'pdf' | 'txt' = 'pdf',
+): Promise<Blob | string> {
+  const headers = await getJsonHeaders()
+  const res = await fetch(`/api/dms/generated-documents/${documentId}/download?format=${format}`, {
+    headers,
+    credentials: 'include',
+  })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  if (format === 'txt') return res.text()
+  return res.blob()
+}
+
+export async function listGeneratedDocumentVersions(
+  documentId: string,
+): Promise<Record<string, unknown>[]> {
+  return apiRequest(`/api/dms/generated-documents/${documentId}/versions`)
+}
+
+export async function previewMissingFields(
+  folderId: string,
+  payload: { template_version_id: string; overrides?: Record<string, string> },
+): Promise<{ missing_fields: string[]; is_complete: boolean; total_placeholders: number }> {
+  return apiRequest(`/api/dms/folders/${folderId}/preview-missing-fields`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function createDossierExport(
+  folderId: string,
+  options: {
+    include_audit?: boolean
+    include_drafts?: boolean
+    include_personal_data?: boolean
+    include_external_documents?: boolean
+    encrypt_zip?: boolean
+  } = {},
+): Promise<Record<string, unknown>> {
+  return apiRequest(`/api/dms/folders/${folderId}/exports`, {
+    method: 'POST',
+    body: JSON.stringify(options),
+  })
+}
+
+export async function listDossierExports(
+  folderId: string,
+): Promise<Record<string, unknown>[]> {
+  return apiRequest(`/api/dms/folders/${folderId}/exports`)
+}
+
+export async function getDossierExport(
+  folderId: string,
+  exportId: string,
+): Promise<Record<string, unknown>> {
+  return apiRequest(`/api/dms/folders/${folderId}/exports/${exportId}`)
 }

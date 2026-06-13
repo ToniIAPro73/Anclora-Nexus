@@ -1,16 +1,28 @@
 ---
 template_key: contrato-temporada
 template_family: contrato-temporada
-display_name: "Contrato de temporada"
+ape_code: APE-LEASE-SEASON-006
+display_name: "Contrato de Arrendamiento de Temporada"
 operation_type: alquiler_temporada
+phase: contrato
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-contrato-temporada.es.md
+effective_from:
+effective_until:
 ---
-
 # Contrato de Arrendamiento de Temporada
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -25,9 +37,9 @@ storage_path: templates/es/tpl-contrato-temporada.es.md
 
 | Rol | Nombre | Identificación | Domicilio habitual |
 |-----|--------|---------------|-------------------|
-| Arrendador | {{ landlord.fullname }} | {{ landlord.id_document }} | {{ landlord.permanent_address }} |
-| Arrendatario | {{ tenant.fullname }} | {{ tenant.id_document }} | {{ tenant.permanent_address }} |
-| Agente | {{ agent.fullname }} | — | {{ organization.address }} |
+| Arrendador | {{ landlord.full_name }} | {{ landlord.id_document }} | {{ landlord.permanent_address }} |
+| Arrendatario | {{ tenant.full_name }} | {{ tenant.id_document }} | {{ tenant.permanent_address }} |
+| Agente | {{ agent.full_name }} | — | {{ organization.address }} |
 
 ## 2. Inmueble
 
@@ -77,9 +89,9 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 | Parte | Nombre | Firma | Fecha |
 |-------|--------|-------|-------|
-| Arrendador | {{ landlord.fullname }} | _____________ | {{ document.generated_at }} |
-| Arrendatario | {{ tenant.fullname }} | _____________ | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | _____________ | {{ document.generated_at }} |
+| Arrendador | {{ landlord.full_name }} | _____________ | {{ document.generated_at }} |
+| Arrendatario | {{ tenant.full_name }} | _____________ | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.full_name }} | _____________ | {{ document.generated_at }} |
 
 ---
 *Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*

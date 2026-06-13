@@ -423,7 +423,8 @@ def test_docuseal_webhook_valid_hmac_updates_signed(monkeypatch) -> None:
     )
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True}
+    assert response.json().get("ok") is True
+    assert response.json().get("flow_status") == "signed"
     assert stub.tables["document_signature_flows"][0]["flow_status"] == "signed"
     assert stub.tables["deal_documents"][0]["legal_metadata"]["immutable"] is True
 

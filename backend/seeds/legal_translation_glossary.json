@@ -1,0 +1,228 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "generated_at": "2026-06-13",
+    "jurisdiction": "ES-IB",
+    "description": "Glosario de equivalencias controladas para términos jurídicos en las traducciones de plantillas. No sustituye revisión jurídica certificada. Las traducciones son orientativas.",
+    "source_language": "es",
+    "target_languages": ["ca", "de", "en", "sv", "fr", "it", "da", "nl", "no", "pt"]
+  },
+  "terms": [
+    {
+      "key": "arras_penitenciales",
+      "es": "Arras penitenciales",
+      "note_es": "Figura del art. 1454 CC español. El incumplimiento del comprador implica pérdida; del vendedor, devolución por duplicado.",
+      "translations": {
+        "ca": "Arres penitencials",
+        "de": "Vorvertragliche Anzahlung (Arras) — kein direktes deutsches Äquivalent, dem § 336 BGB-Reugeld ähnlich",
+        "en": "Preliminary deposit agreement (penal deposit) — no direct common law equivalent",
+        "sv": "Förhandsdeposition med förverkandevillkor",
+        "fr": "Arrhes (avec clause pénale bilatérale)",
+        "it": "Caparra penitenziale (art. 1386 c.c. italiano — analoga)",
+        "da": "Handpengaftale med strafvilkår",
+        "nl": "Voortijdige aanbetaling met schadevergoedingsclausule",
+        "no": "Forhåndsdepositumsavtale med straff",
+        "pt": "Sinal penitencial (art. 441º CC português — análogo)"
+      },
+      "explanation_required": true
+    },
+    {
+      "key": "contrato_privado_compraventa",
+      "es": "Contrato privado de compraventa",
+      "note_es": "Contrato vinculante previo a escritura pública notarial. No trasmite el dominio pero obliga a ambas partes.",
+      "translations": {
+        "ca": "Contracte privat de compravenda",
+        "de": "Privater Kaufvertrag (notarielle Beurkundung in Deutschland Pflicht — andere Rechtsfolgen)",
+        "en": "Private purchase agreement (pre-completion contract)",
+        "sv": "Privat köpeavtal",
+        "fr": "Compromis de vente (avant acte authentique)",
+        "it": "Compromesso / preliminare di vendita",
+        "da": "Privat købskontrakt",
+        "nl": "Koopovereenkomst (voor notariële akte)",
+        "no": "Foreløpig kjøpskontrakt",
+        "pt": "Contrato-promessa de compra e venda"
+      },
+      "explanation_required": false
+    },
+    {
+      "key": "escritura_publica",
+      "es": "Escritura pública de compraventa",
+      "note_es": "Documento notarial que formaliza la transmisión del dominio. Obligatoria para inscripción registral.",
+      "translations": {
+        "ca": "Escriptura pública de compravenda",
+        "de": "Notarielle Kaufvertragsurkunde (Pflichtform in Deutschland)",
+        "en": "Notarial deed of sale (escritura pública — mandatory in Spain for land registry)",
+        "sv": "Notariell köpehandling (lagfartshandling)",
+        "fr": "Acte notarié de vente",
+        "it": "Rogito notarile",
+        "da": "Notariel skøde",
+        "nl": "Notariële akte van levering",
+        "no": "Notarielt skjøte",
+        "pt": "Escritura pública de compra e venda"
+      },
+      "explanation_required": true
+    },
+    {
+      "key": "nota_encargo",
+      "es": "Nota de encargo / intermediación abierta",
+      "note_es": "Mandato no exclusivo otorgado al agente para comercialización del inmueble. El vendedor puede operar con otras agencias.",
+      "translations": {
+        "ca": "Nota d'encàrrec / intermediació oberta",
+        "de": "Maklervollmacht (ohne Exklusivität)",
+        "en": "Non-exclusive listing agreement",
+        "sv": "Icke-exklusivt mäklaruppdrag",
+        "fr": "Mandat simple de vente",
+        "it": "Incarico di mediazione non esclusivo",
+        "da": "Ikke-eksklusiv mægleraftale",
+        "nl": "Niet-exclusieve verkoopopdracht",
+        "no": "Ikke-eksklusivt megleroppdraksavtale",
+        "pt": "Mandato de mediação não exclusivo"
+      },
+      "explanation_required": false
+    },
+    {
+      "key": "mandato_exclusiva",
+      "es": "Mandato de exclusiva",
+      "note_es": "El propietario se compromete a no encargar la venta a ninguna otra agencia durante el período pactado.",
+      "translations": {
+        "ca": "Mandat d'exclusiva",
+        "de": "Alleinauftrag (Makleralleinauftrag)",
+        "en": "Exclusive agency mandate (sole agency agreement)",
+        "sv": "Exklusivt mäklaruppdrag",
+        "fr": "Mandat exclusif de vente",
+        "it": "Incarico in esclusiva",
+        "da": "Eksklusivt mægleroppdrag",
+        "nl": "Exclusieve verkoopopdracht",
+        "no": "Eksklusivt megleroppdraksavtale",
+        "pt": "Mandato em exclusividade"
+      },
+      "explanation_required": false
+    },
+    {
+      "key": "fianza_lau",
+      "es": "Fianza (LAU art. 36)",
+      "note_es": "Depósito obligatorio equivalente a una mensualidad en arrendamiento de vivienda o dos en uso distinto. El arrendador la deposita en el organismo autonómico.",
+      "translations": {
+        "ca": "Fiança (LAU art. 36)",
+        "de": "Mietkaution (gem. LAU Art. 36 — spanisches Mietrecht, keine direkte dt. Entsprechung für Hinterlegungspflicht)",
+        "en": "Tenancy deposit (LAU art. 36 — mandatory deposit held by regional authority, different from UK DPS)",
+        "sv": "Hyresdeposition (LAU art. 36 — spansk lagkrav)",
+        "fr": "Dépôt de garantie (art. 36 LAU — régime espagnol)",
+        "it": "Deposito cauzionale (art. 36 LAU — obbligatorio per legge spagnola)",
+        "da": "Lejedeposit (LAU art. 36 — spansk lov)",
+        "nl": "Borgsom (LAU art. 36 — Spaans recht)",
+        "no": "Depositum (LAU art. 36 — spansk leierett)",
+        "pt": "Caução (LAU art. 36 — direito espanhol)"
+      },
+      "explanation_required": true
+    },
+    {
+      "key": "registro_propiedad",
+      "es": "Registro de la Propiedad",
+      "note_es": "Registro público donde se inscriben los derechos reales sobre inmuebles. La inscripción no es constitutiva pero es necesaria para oponibilidad frente a terceros.",
+      "translations": {
+        "ca": "Registre de la Propietat",
+        "de": "Grundbuch (spanisches Grundbuch — ähnlich deutschem System, aber Eintragung kein Pflichtakt)",
+        "en": "Spanish Land Registry (Registro de la Propiedad — registration protects against third parties)",
+        "sv": "Fastighetsregister (spanskt)",
+        "fr": "Registre foncier espagnol (Registro de la Propiedad)",
+        "it": "Conservatoria dei registri immobiliari (spagnola)",
+        "da": "Ejendomsregister (spansk)",
+        "nl": "Kadaster (Spaans eigendomsregister)",
+        "no": "Eiendomsregister (spansk)",
+        "pt": "Registo Predial (espanhol)"
+      },
+      "explanation_required": true
+    },
+    {
+      "key": "referencia_catastral",
+      "es": "Referencia catastral",
+      "note_es": "Código alfanumérico de 20 dígitos que identifica unívocamente cada parcela en el Catastro Inmobiliario español.",
+      "translations": {
+        "ca": "Referència cadastral",
+        "de": "Katasterreferenz (span. 20-stelliger Code — kein direktes deutsches Äquivalent)",
+        "en": "Cadastral reference number (Spain — 20-digit property ID in Spanish Land Cadastre)",
+        "sv": "Katasternummer (spanskt)",
+        "fr": "Référence cadastrale (espagnole)",
+        "it": "Riferimento catastale (spagnolo)",
+        "da": "Katasterreference (spansk)",
+        "nl": "Kadastrale referentie (Spaans)",
+        "no": "Katastreferanse (spansk)",
+        "pt": "Referência Cadastral (espanhola)"
+      },
+      "explanation_required": true
+    },
+    {
+      "key": "cedula_habitabilidad",
+      "es": "Cédula de habitabilidad",
+      "note_es": "Licencia autonómica que certifica que una vivienda cumple los requisitos mínimos de habitabilidad. Obligatoria para transmisión o alquiler en Baleares.",
+      "translations": {
+        "ca": "Cèdula d'habitabilitat",
+        "de": "Bewohnbarkeitszertifikat (Balearen-spezifisch — Pflichtdokument für Vermietung/Verkauf)",
+        "en": "Habitation certificate (cédula de habitabilidad — Balearic Islands requirement for sale/rental)",
+        "sv": "Beboelighetsintyg (Balearerna — obligatoriskt vid försäljning/uthyrning)",
+        "fr": "Certificat d'habitabilité (îles Baléares — exigé pour vente/location)",
+        "it": "Certificato di abitabilità (Isole Baleari)",
+        "da": "Beboelighedscertifikat (Balearerne)",
+        "nl": "Bewoonbaarheidscertificaat (Balearen)",
+        "no": "Beboelighetsattest (Balearene)",
+        "pt": "Licença de Habitabilidade (Baleares)"
+      },
+      "explanation_required": true
+    },
+    {
+      "key": "pbc_prevencion_blanqueo",
+      "es": "Prevención del blanqueo de capitales (PBC)",
+      "note_es": "Marco normativo de la Ley 10/2010 de 28 de abril. Los agentes inmobiliarios son sujetos obligados para operaciones superiores a determinados umbrales.",
+      "translations": {
+        "ca": "Prevenció del blanqueig de capitals (PBC)",
+        "de": "Geldwäscheprävention (spanisches Recht — Gesetz 10/2010, Immobilienmakler als Verpflichtete)",
+        "en": "Anti-money laundering (AML) — Spanish Law 10/2010, real estate agents as obliged entities",
+        "sv": "Penningtvättsförebyggande åtgärder (spansk lag 10/2010)",
+        "fr": "Lutte contre le blanchiment de capitaux (LCB-FT) — loi espagnole 10/2010",
+        "it": "Prevenzione del riciclaggio di denaro (legge spagnola 10/2010)",
+        "da": "Forebyggelse af hvidvask (spansk lov 10/2010)",
+        "nl": "Witwaspreventie (Spaanse wet 10/2010)",
+        "no": "Forebygging av hvitvasking (spansk lov 10/2010)",
+        "pt": "Prevenção do Branqueamento de Capitais (PBC) — Lei espanhola 10/2010"
+      },
+      "explanation_required": true
+    },
+    {
+      "key": "roaiib",
+      "es": "ROAIIB (Registro Oficial de Agentes Inmobiliarios de las Islas Baleares)",
+      "note_es": "Registro autonómico obligatorio para el ejercicio de la intermediación inmobiliaria en las Islas Baleares.",
+      "translations": {
+        "ca": "ROAIIB (Registre Oficial d'Agents Immobiliaris de les Illes Balears)",
+        "de": "ROAIIB — offizielles Immobilienmaklerregister der Balearen (Pflichtregistrierung auf den Balearen)",
+        "en": "ROAIIB — Official Balearic Islands Real Estate Agent Register (mandatory for licensed agents)",
+        "sv": "ROAIIB — officiellt fastighetsregister, Balearerna",
+        "fr": "ROAIIB — registre officiel des agents immobiliers des Baléares",
+        "it": "ROAIIB — registro ufficiale degli agenti immobiliari delle Isole Baleari",
+        "da": "ROAIIB — officielt ejendomsmæglerregister, Balearerne",
+        "nl": "ROAIIB — officieel makelaarsregister Balearen",
+        "no": "ROAIIB — offisielt eiendomsmegler-register, Balearene",
+        "pt": "ROAIIB — Registo Oficial de Agentes Imobiliários das Ilhas Baleares"
+      },
+      "explanation_required": true
+    },
+    {
+      "key": "contrato_temporada",
+      "es": "Arrendamiento de temporada (LAU art. 3.2)",
+      "note_es": "Arrendamiento para uso distinto del de vivienda habitual. No aplica la LAU Título II sino el Título III. Mayor libertad de pactos.",
+      "translations": {
+        "ca": "Arrendament de temporada (LAU art. 3.2)",
+        "de": "Saison-/Zeitraummietvertrag (nach span. LAU Art. 3.2 — kein Äquivalent im deutschen Mietrecht)",
+        "en": "Seasonal rental (LAU art. 3.2 — non-residential lease, more flexible than standard residential tenancy)",
+        "sv": "Säsonghyresavtal (LAU art. 3.2 — spanskt arrendebegrepp)",
+        "fr": "Location saisonnière (LAU art. 3.2 — bail à usage autre que résidence principale)",
+        "it": "Locazione stagionale (LAU art. 3.2 — uso diverso da abitazione principale)",
+        "da": "Sæsonudlejning (LAU art. 3.2 — spansk lejelovgivning)",
+        "nl": "Seizoensverhuur (LAU art. 3.2 — Spaans huurrecht)",
+        "no": "Sesongleie (LAU art. 3.2 — spansk husleierett)",
+        "pt": "Arrendamento de temporada (LAU art. 3.2 — direito espanhol)"
+      },
+      "explanation_required": true
+    }
+  ]
+}

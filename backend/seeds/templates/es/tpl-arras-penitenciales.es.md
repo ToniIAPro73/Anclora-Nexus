@@ -1,16 +1,28 @@
 ---
 template_key: arras-penitenciales
 template_family: arras-penitenciales
-display_name: "Arras penitenciales"
+ape_code: APE-SALE-ARRAS-001
+display_name: "Contrato de Arras Penitenciales"
 operation_type: compraventa
+phase: precontractual
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-arras-penitenciales.es.md
+effective_from:
+effective_until:
 ---
-
 # Contrato de Arras Penitenciales
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -23,9 +35,9 @@ storage_path: templates/es/tpl-arras-penitenciales.es.md
 
 | Rol | Nombre completo | NIF/NIE/Pasaporte | Email |
 |-----|----------------|------------------|-------|
-| Comprador | {{ buyer.fullname }} | {{ buyer.id_document }} | {{ buyer.email }} |
-| Vendedor | {{ seller.fullname }} | {{ seller.id_document }} | {{ seller.email }} |
-| Agente Anclora | {{ agent.fullname }} | — | {{ agent.email }} |
+| Comprador | {{ buyer.full_name }} | {{ buyer.id_document }} | {{ buyer.email }} |
+| Vendedor | {{ seller.full_name }} | {{ seller.id_document }} | {{ seller.email }} |
+| Agente Anclora | {{ agent.full_name }} | — | {{ agent.email }} |
 
 ---
 
@@ -78,9 +90,9 @@ Para cualquier controversia derivada del presente contrato, las partes se somete
 
 | Parte | Nombre | Firma | Lugar y Fecha |
 |-------|--------|-------|---------------|
-| Comprador | {{ buyer.fullname }} | _____________ | {{ deal.signing_place }}, {{ document.generated_at }} |
-| Vendedor | {{ seller.fullname }} | _____________ | {{ deal.signing_place }}, {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | _____________ | {{ deal.signing_place }}, {{ document.generated_at }} |
+| Comprador | {{ buyer.full_name }} | _____________ | {{ deal.signing_place }}, {{ document.generated_at }} |
+| Vendedor | {{ seller.full_name }} | _____________ | {{ deal.signing_place }}, {{ document.generated_at }} |
+| Agente Anclora | {{ agent.full_name }} | _____________ | {{ deal.signing_place }}, {{ document.generated_at }} |
 
 ---
 *Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
