@@ -1,16 +1,28 @@
 ---
 template_key: oferta-compra
 template_family: oferta-compra
-display_name: "Oferta de compra"
+ape_code: APE-SALE-OFFER-003
+display_name: "Oferta de Compra"
 operation_type: compraventa
+phase: negociacion
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-oferta-compra.es.md
+effective_from:
+effective_until:
 ---
-
 # Oferta de Compra
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -21,10 +33,10 @@ storage_path: templates/es/tpl-oferta-compra.es.md
 
 ## 1. Partes
 
-- **Oferente (Comprador):** {{ buyer.fullname }} — {{ buyer.id_document }} — {{ buyer.email }}
+- **Oferente (Comprador):** {{ buyer.full_name }} — {{ buyer.id_document }} — {{ buyer.email }}
 - **Inmueble ofertado:** {{ property.address }}, {{ property.municipality }}, Illes Balears
-- **Propietario actual:** {{ seller.fullname }}
-- **Agente Anclora:** {{ agent.fullname }} — ROAIIB nº {{ organization.roaiib_number }}
+- **Propietario actual:** {{ seller.full_name }}
+- **Agente Anclora:** {{ agent.full_name }} — ROAIIB nº {{ organization.roaiib_number }}
 
 ---
 
@@ -52,9 +64,9 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 | Parte                 | Nombre                | Firma          | Fecha                       |
 | --------------------- | --------------------- | -------------- | --------------------------- |
-| Oferente              | {{ buyer.fullname }}  | ******\_****** | {{ document.generated_at }} |
-| Vendedor (aceptación) | {{ seller.fullname }} | ******\_****** | ******\_******              |
-| Agente Anclora        | {{ agent.fullname }}  | ******\_****** | {{ document.generated_at }} |
+| Oferente              | {{ buyer.full_name }}  | ******\_****** | {{ document.generated_at }} |
+| Vendedor (aceptación) | {{ seller.full_name }} | ******\_****** | ******\_******              |
+| Agente Anclora        | {{ agent.full_name }}  | ******\_****** | {{ document.generated_at }} |
 
 ---
 

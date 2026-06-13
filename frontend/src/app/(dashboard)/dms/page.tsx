@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   CheckCircle2,
   ChevronDown,
@@ -12,9 +13,11 @@ import {
   RefreshCw,
   Search,
   Send,
+  Sparkles,
   UserPlus,
   X,
 } from 'lucide-react'
+import { GenerateDocumentWizard } from '@/components/dms/GenerateDocumentWizard'
 
 import {
   createDealFolder,
@@ -175,6 +178,7 @@ function GhostBtn({ href, children }: { href: string; children: React.ReactNode 
 
 export default function DmsPage() {
   const { t } = useI18n()
+  const router = useRouter()
   const leads = useStore((state) => state.leads)
   const initialize = useStore((state) => state.initialize)
 
@@ -246,6 +250,7 @@ export default function DmsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('parties')
   const [showAddParty, setShowAddParty] = useState(false)
   const [showGenerateForm, setShowGenerateForm] = useState(false)
+  const [showWizard, setShowWizard] = useState(false)
   const [partyName, setPartyName] = useState('')
   const [partyEmail, setPartyEmail] = useState('')
   const [partyRole, setPartyRole] = useState<PartyRole>('buyer')
@@ -389,6 +394,7 @@ export default function DmsPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
+    <>
     <div className="flex h-full flex-col overflow-hidden">
 
       {/* ── Page header ─────────────────────────────────────────────────────── */}
@@ -731,12 +737,11 @@ export default function DmsPage() {
                       {templates.length > 0 && (
                         <button
                           type="button"
-                          onClick={() => setShowGenerateForm((v) => !v)}
+                          onClick={() => setShowWizard(true)}
                           className="btn-action"
                         >
-                          <FilePlus2 className="h-4 w-4" />
+                          <Sparkles className="h-4 w-4" />
                           {t('dmsGenerateSection')}
-                          {showGenerateForm ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         </button>
                       )}
                     </div>
@@ -797,9 +802,10 @@ export default function DmsPage() {
                             </div>
                             <button
                               type="button"
-                              onClick={() => { setSelectedTemplateVersionId(tpl.latest_version?.id || ''); setShowGenerateForm(true) }}
+                              onClick={() => { setSelectedTemplateVersionId(tpl.latest_version?.id || ''); setShowWizard(true) }}
                               className="shrink-0 rounded-xl border border-soft-subtle px-3 py-1.5 text-xs text-soft-muted transition-all hover:border-gold/40 hover:text-gold"
                             >
+                              <Sparkles className="inline h-3 w-3 mr-1" />
                               {t('dmsGenerateBtn')}
                             </button>
                           </article>
@@ -881,5 +887,26 @@ export default function DmsPage() {
 
       </div>
     </div>
+
+    {/* ── Generate Document Wizard ── */}
+    {showWizard && selectedFolderId && (
+      <GenerateDocumentWizard
+        folderId={selectedFolderId}
+        templates={templates.map((t) => ({
+          id: t.id,
+          name: t.name,
+          template_document_type: t.template_document_type,
+          latest_version: t.latest_version,
+          has_usable_version: !!t.latest_version?.id,
+        }))}
+        onSuccess={(docId) => {
+          setShowWizard(false)
+          void loadFolders()
+          router.push(`/dms/documents/${docId}`)
+        }}
+        onClose={() => setShowWizard(false)}
+      />
+    )}
+    </>
   )
 }

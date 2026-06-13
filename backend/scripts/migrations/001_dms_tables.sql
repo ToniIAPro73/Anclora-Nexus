@@ -1,6 +1,8 @@
+-- Idempotent: safe to re-run on an already-migrated database.
+
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TABLE real_estate_deal_folders (
+CREATE TABLE IF NOT EXISTS real_estate_deal_folders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id UUID NOT NULL,
     property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
@@ -13,7 +15,7 @@ CREATE TABLE real_estate_deal_folders (
     CONSTRAINT fk_organization FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
 
-CREATE TABLE deal_documents (
+CREATE TABLE IF NOT EXISTS deal_documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     folder_id UUID NOT NULL REFERENCES real_estate_deal_folders(id) ON DELETE CASCADE,
     org_id UUID NOT NULL,
@@ -32,7 +34,7 @@ CREATE TABLE deal_documents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE document_signature_flows (
+CREATE TABLE IF NOT EXISTS document_signature_flows (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     document_id UUID NOT NULL REFERENCES deal_documents(id) ON DELETE CASCADE,
     org_id UUID NOT NULL,
@@ -53,14 +55,17 @@ ALTER TABLE real_estate_deal_folders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deal_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE document_signature_flows ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS deal_folders_isolation ON real_estate_deal_folders;
 CREATE POLICY deal_folders_isolation ON real_estate_deal_folders
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS documents_isolation ON deal_documents;
 CREATE POLICY documents_isolation ON deal_documents
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS signature_flows_isolation ON document_signature_flows;
 CREATE POLICY signature_flows_isolation ON document_signature_flows
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));

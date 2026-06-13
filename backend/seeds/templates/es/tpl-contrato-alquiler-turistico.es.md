@@ -1,16 +1,28 @@
 ---
 template_key: contrato-alquiler-turistico
 template_family: contrato-alquiler-turistico
-display_name: "Contrato de alquiler turístico"
+ape_code: APE-TOUR-STAY-008
+display_name: "Contrato de Explotación de Alquiler Turístico (ETV)"
 operation_type: alquiler_turistico
+phase: contrato
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-contrato-alquiler-turistico.es.md
+effective_from:
+effective_until:
 ---
-
 # Contrato de Explotación de Alquiler Turístico (ETV)
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -25,9 +37,9 @@ storage_path: templates/es/tpl-contrato-alquiler-turistico.es.md
 
 | Rol                | Nombre                  | Identificación             | Email                |
 | ------------------ | ----------------------- | -------------------------- | -------------------- |
-| Propietario/Gestor | {{ landlord.fullname }} | {{ landlord.id_document }} | {{ landlord.email }} |
-| Huésped            | {{ guest.fullname }}    | {{ guest.id_document }}    | {{ guest.email }}    |
-| Agente             | {{ agent.fullname }}    | —                          | {{ agent.email }}    |
+| Propietario/Gestor | {{ landlord.full_name }} | {{ landlord.id_document }} | {{ landlord.email }} |
+| Huésped            | {{ guest.full_name }}    | {{ guest.id_document }}    | {{ guest.email }}    |
+| Agente             | {{ agent.full_name }}    | —                          | {{ agent.email }}    |
 
 ## 2. Inmueble y Licencias
 
@@ -76,8 +88,8 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 | Parte              | Nombre                  | Firma          | Fecha                       |
 | ------------------ | ----------------------- | -------------- | --------------------------- |
-| Propietario/Gestor | {{ landlord.fullname }} | ******\_****** | {{ document.generated_at }} |
-| Huésped            | {{ guest.fullname }}    | ******\_****** | {{ document.generated_at }} |
+| Propietario/Gestor | {{ landlord.full_name }} | ******\_****** | {{ document.generated_at }} |
+| Huésped            | {{ guest.full_name }}    | ******\_****** | {{ document.generated_at }} |
 
 ---
 
