@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Optional
 
 import httpx
@@ -20,6 +21,25 @@ SAFE_FAILURE_RESULT: dict[str, Any] = {
     "advisor_available": False,
 }
 
+_PENDING_PLACEHOLDER_RE = re.compile(r"\{\{[^}]+\}\}")
+_MIN_RAG_SOURCES = 2
+_DIVERGENCE_DIFF_THRESHOLD = 5  # More than this many differences → divergent
+
+
+def _detect_pending_placeholders(text: str) -> list[str]:
+    return _PENDING_PLACEHOLDER_RE.findall(text)
+
+
+def _has_critical_divergence(differences: list[Any]) -> bool:
+    if not isinstance(differences, list):
+        return False
+    critical_types = {"deleted_clause", "missing_clause", "critical_change"}
+    critical_count = sum(
+        1 for d in differences
+        if isinstance(d, dict) and d.get("type") in critical_types
+    )
+    return critical_count > _DIVERGENCE_DIFF_THRESHOLD or len(differences) > _DIVERGENCE_DIFF_THRESHOLD * 2
+
 
 class AdvisorContractValidatorService:
     def __init__(
@@ -32,6 +52,71 @@ class AdvisorContractValidatorService:
         self.api_key = api_key if api_key is not None else settings.ADVISOR_AI_INTERNAL_API_KEY
         self.timeout_seconds = timeout_seconds or settings.ADVISOR_AI_TIMEOUT_SECONDS
 
+    def _pre_validate(self, document_text: str) -> Optional[dict[str, Any]]:
+        """Gate checks applied before calling Advisor AI.
+
+        Returns a blocking result dict if the document must not proceed,
+        or None if pre-validation passes.
+        """
+        pending = _detect_pending_placeholders(document_text)
+        if pending:
+            return {
+                **SAFE_FAILURE_RESULT,
+                "advisor_available": False,
+                "status": "review_required",
+                "block_signing": True,
+                "summary": (
+                    f"El documento contiene {len(pending)} marcador(es) sin completar: "
+                    f"{', '.join(pending[:5])}{'…' if len(pending) > 5 else ''}. "
+                    "Rellena todos los campos antes de continuar."
+                ),
+                "gate_blocked_reason": "pending_placeholders",
+                "pending_placeholders": pending,
+            }
+        return None
+
+    def _apply_post_gates(self, result: dict[str, Any]) -> dict[str, Any]:
+        """Post-process Advisor AI result and enforce CLM gates.
+
+        Gates applied after receiving an AI response:
+        - critical risk_level → force block_signing
+        - divergent translation (too many differences) → force block_signing + human review
+        - insufficient RAG sources → flag human_review_recommended
+        """
+        risk_level = result.get("risk_level", "medium")
+        differences = result.get("differences", [])
+        rag_sources = int(result.get("rag_sources_used") or 0)
+        required_actions: list[str] = list(result.get("required_actions") or [])
+        flags: list[str] = list(result.get("gate_flags") or [])
+
+        # Gate 1: Critical risk level → block signing
+        if risk_level == "critical":
+            result = {**result, "block_signing": True, "status": "review_required"}
+            flags.append("critical_risk")
+            required_actions.append(
+                "Riesgo crítico detectado. Se requiere revisión jurídica humana antes de firmar."
+            )
+
+        # Gate 2: Divergent translation or excessive differences → block signing
+        if _has_critical_divergence(differences):
+            result = {**result, "block_signing": True, "status": "review_required"}
+            flags.append("divergent_translation")
+            required_actions.append(
+                f"Se detectaron {len(differences)} diferencias significativas respecto a la plantilla canónica. "
+                "Revisa la traducción o el contenido antes de enviar a firma."
+            )
+
+        # Gate 3: Insufficient RAG sources → recommend human review (non-blocking)
+        if rag_sources < _MIN_RAG_SOURCES and result.get("advisor_available"):
+            flags.append("insufficient_rag_sources")
+            required_actions.append(
+                "La validación automática se realizó con fuentes jurídicas limitadas. "
+                "Se recomienda revisión humana adicional."
+            )
+            result = {**result, "human_review_recommended": True}
+
+        return {**result, "required_actions": required_actions, "gate_flags": flags}
+
     async def validate_contract(
         self,
         *,
@@ -42,6 +127,10 @@ class AdvisorContractValidatorService:
         language: str,
         metadata: dict[str, Any],
     ) -> dict[str, Any]:
+        pre = self._pre_validate(contract_text)
+        if pre is not None:
+            return pre
+
         if not self.base_url:
             return {**SAFE_FAILURE_RESULT, "error": "ADVISOR_AI_BASE_URL not configured"}
 
@@ -68,8 +157,21 @@ class AdvisorContractValidatorService:
             response.raise_for_status()
             data = response.json()
             if not isinstance(data, dict):
-                raise ValueError("Advisor AI returned a non-object response")
-            return self._normalize_response(data)
+                # Invalid JSON shape → treat as unavailable, not as approval
+                return {
+                    **SAFE_FAILURE_RESULT,
+                    "error": "Advisor AI returned a non-object response",
+                    "gate_blocked_reason": "invalid_json_shape",
+                }
+            result = self._normalize_response(data)
+            return self._apply_post_gates(result)
+        except httpx.TimeoutException as exc:
+            # Timeout must never silently approve
+            return {
+                **SAFE_FAILURE_RESULT,
+                "error": f"Advisor AI timeout: {exc}",
+                "gate_blocked_reason": "timeout",
+            }
         except Exception as exc:
             return {**SAFE_FAILURE_RESULT, "error": str(exc)}
 
@@ -91,8 +193,14 @@ class AdvisorContractValidatorService:
         """Call the Advisor AI /api/legal-documents/validate endpoint.
 
         Provides diff-aware validation against a canonical template when available.
+        Pre-validates for pending placeholders before calling AI.
         Falls back to SAFE_FAILURE_RESULT on any network or parsing error.
+        Post-applies CLM gates: critical risk, divergent translation, insufficient sources.
         """
+        pre = self._pre_validate(document_text)
+        if pre is not None:
+            return pre
+
         if not self.base_url:
             return {**SAFE_FAILURE_RESULT, "error": "ADVISOR_AI_BASE_URL not configured"}
 
@@ -132,8 +240,19 @@ class AdvisorContractValidatorService:
             response.raise_for_status()
             data = response.json()
             if not isinstance(data, dict):
-                raise ValueError("Advisor AI returned a non-object response")
-            return self._normalize_legal_document_response(data)
+                return {
+                    **SAFE_FAILURE_RESULT,
+                    "error": "Advisor AI returned a non-object response",
+                    "gate_blocked_reason": "invalid_json_shape",
+                }
+            result = self._normalize_legal_document_response(data)
+            return self._apply_post_gates(result)
+        except httpx.TimeoutException as exc:
+            return {
+                **SAFE_FAILURE_RESULT,
+                "error": f"Advisor AI timeout: {exc}",
+                "gate_blocked_reason": "timeout",
+            }
         except Exception as exc:
             return {**SAFE_FAILURE_RESULT, "error": str(exc)}
 

@@ -1,16 +1,28 @@
 ---
 template_key: contrato-reserva-senal
 template_family: contrato-reserva-senal
-display_name: "Contrato de reserva / señal"
+ape_code: APE-SALE-RESERVE-004
+display_name: "Contrato de Reserva / Señal"
 operation_type: compraventa
+phase: reserva
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-contrato-reserva-senal.es.md
+effective_from:
+effective_until:
 ---
-
 # Contrato de Reserva / Señal
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -23,9 +35,9 @@ storage_path: templates/es/tpl-contrato-reserva-senal.es.md
 
 | Rol       | Nombre                | Identificación           | Email              |
 | --------- | --------------------- | ------------------------ | ------------------ |
-| Comprador | {{ buyer.fullname }}  | {{ buyer.id_document }}  | {{ buyer.email }}  |
-| Vendedor  | {{ seller.fullname }} | {{ seller.id_document }} | {{ seller.email }} |
-| Agente    | {{ agent.fullname }}  | —                        | {{ agent.email }}  |
+| Comprador | {{ buyer.full_name }}  | {{ buyer.id_document }}  | {{ buyer.email }}  |
+| Vendedor  | {{ seller.full_name }} | {{ seller.id_document }} | {{ seller.email }} |
+| Agente    | {{ agent.full_name }}  | —                        | {{ agent.email }}  |
 
 ## 2. Inmueble Reservado
 
@@ -56,9 +68,9 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 | Parte          | Nombre                | Firma          | Fecha                       |
 | -------------- | --------------------- | -------------- | --------------------------- |
-| Comprador      | {{ buyer.fullname }}  | ******\_****** | {{ document.generated_at }} |
-| Vendedor       | {{ seller.fullname }} | ******\_****** | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }}  | ******\_****** | {{ document.generated_at }} |
+| Comprador      | {{ buyer.full_name }}  | ******\_****** | {{ document.generated_at }} |
+| Vendedor       | {{ seller.full_name }} | ******\_****** | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.full_name }}  | ******\_****** | {{ document.generated_at }} |
 
 ---
 

@@ -52,6 +52,7 @@ yarn-error.log*
 next-env.d.ts
 
 # local ops artifacts
+/artifacts/
 ops/statefox-live-capture.json
 ops/statefox-playwright-profile/
 ops/release-gate-latest.json
