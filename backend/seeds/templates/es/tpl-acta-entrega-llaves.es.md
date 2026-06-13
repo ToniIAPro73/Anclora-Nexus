@@ -1,16 +1,28 @@
 ---
 template_key: acta-entrega-llaves
 template_family: acta-entrega-llaves
-display_name: "Acta de entrega de llaves"
-operation_type: entrega
+ape_code: APE-HANDOVER-010
+display_name: "Acta de Entrega y Recepción de Llaves"
+operation_type: compraventa
+phase: entrega
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-acta-entrega-llaves.es.md
+effective_from:
+effective_until:
 ---
-
 # Acta de Entrega y Recepción de Llaves
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -21,9 +33,9 @@ storage_path: templates/es/tpl-acta-entrega-llaves.es.md
 
 ## 1. Partes
 
-- **Transmitente:** {{ seller.fullname }} — {{ seller.id_document }}
-- **Receptor:** {{ buyer.fullname }} — {{ buyer.id_document }}
-- **Agente Anclora:** {{ agent.fullname }}
+- **Transmitente:** {{ seller.full_name }} — {{ seller.id_document }}
+- **Receptor:** {{ buyer.full_name }} — {{ buyer.id_document }}
+- **Agente Anclora:** {{ agent.full_name }}
 - **Contrato de origen:** {{ deal.origin_contract_type }} de fecha {{ deal.origin_contract_date }}
 
 ## 2. Inmueble
@@ -60,9 +72,9 @@ storage_path: templates/es/tpl-acta-entrega-llaves.es.md
 
 | Parte          | Nombre                | Firma          | Fecha y Hora            |
 | -------------- | --------------------- | -------------- | ----------------------- |
-| Transmitente   | {{ seller.fullname }} | ******\_****** | {{ delivery.datetime }} |
-| Receptor       | {{ buyer.fullname }}  | ******\_****** | {{ delivery.datetime }} |
-| Agente Anclora | {{ agent.fullname }}  | ******\_****** | {{ delivery.datetime }} |
+| Transmitente   | {{ seller.full_name }} | ******\_****** | {{ delivery.datetime }} |
+| Receptor       | {{ buyer.full_name }}  | ******\_****** | {{ delivery.datetime }} |
+| Agente Anclora | {{ agent.full_name }}  | ******\_****** | {{ delivery.datetime }} |
 
 ---
 

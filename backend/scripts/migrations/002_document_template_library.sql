@@ -1,10 +1,11 @@
 -- Migration 002: Document Template Library
 -- Additive only — no existing tables or rows are modified.
+-- Idempotent: safe to re-run on an already-migrated database.
 -- Rollback: DROP TABLE ... CASCADE for the 9 tables below.
 
 -- ── 1. Master templates ────────────────────────────────────────────────────────
 
-CREATE TABLE document_templates (
+CREATE TABLE IF NOT EXISTS document_templates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
@@ -27,7 +28,7 @@ CREATE TABLE document_templates (
 
 -- ── 2. Template versions (immutable once published) ───────────────────────────
 
-CREATE TABLE document_template_versions (
+CREATE TABLE IF NOT EXISTS document_template_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     template_id UUID NOT NULL REFERENCES document_templates(id) ON DELETE CASCADE,
     org_id UUID NOT NULL,
@@ -47,7 +48,7 @@ CREATE TABLE document_template_versions (
 
 -- ── 3. Template variable fields ───────────────────────────────────────────────
 
-CREATE TABLE document_template_fields (
+CREATE TABLE IF NOT EXISTS document_template_fields (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     template_version_id UUID NOT NULL REFERENCES document_template_versions(id) ON DELETE CASCADE,
     org_id UUID NOT NULL,
@@ -66,7 +67,7 @@ CREATE TABLE document_template_fields (
 
 -- ── 4. Deal folder parties ────────────────────────────────────────────────────
 
-CREATE TABLE deal_folder_parties (
+CREATE TABLE IF NOT EXISTS deal_folder_parties (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     folder_id UUID NOT NULL REFERENCES real_estate_deal_folders(id) ON DELETE CASCADE,
     org_id UUID NOT NULL,
@@ -90,7 +91,7 @@ CREATE TABLE deal_folder_parties (
 
 -- ── 5. Generated documents ────────────────────────────────────────────────────
 
-CREATE TABLE generated_documents (
+CREATE TABLE IF NOT EXISTS generated_documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     folder_id UUID NOT NULL REFERENCES real_estate_deal_folders(id) ON DELETE CASCADE,
     org_id UUID NOT NULL,
@@ -112,7 +113,7 @@ CREATE TABLE generated_documents (
 
 -- ── 6. Generated document versions (tracks edits after generation) ─────────────
 
-CREATE TABLE document_versions (
+CREATE TABLE IF NOT EXISTS document_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     generated_document_id UUID NOT NULL REFERENCES generated_documents(id) ON DELETE CASCADE,
     org_id UUID NOT NULL,
@@ -130,7 +131,7 @@ CREATE TABLE document_versions (
 
 -- ── 7. Change sets (diff between versions) ───────────────────────────────────
 
-CREATE TABLE document_change_sets (
+CREATE TABLE IF NOT EXISTS document_change_sets (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id UUID NOT NULL,
     from_version_id UUID REFERENCES document_versions(id) ON DELETE SET NULL,
@@ -142,7 +143,7 @@ CREATE TABLE document_change_sets (
 
 -- ── 8. Legal review decisions ─────────────────────────────────────────────────
 
-CREATE TABLE legal_review_decisions (
+CREATE TABLE IF NOT EXISTS legal_review_decisions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     generated_document_id UUID NOT NULL REFERENCES generated_documents(id) ON DELETE CASCADE,
     org_id UUID NOT NULL,
@@ -161,7 +162,7 @@ CREATE TABLE legal_review_decisions (
 
 -- ── 9. Retention policies ─────────────────────────────────────────────────────
 
-CREATE TABLE document_retention_policies (
+CREATE TABLE IF NOT EXISTS document_retention_policies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     template_document_type TEXT,           -- NULL means applies to all types in org
@@ -184,6 +185,7 @@ ALTER TABLE document_change_sets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE legal_review_decisions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE document_retention_policies ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS templates_isolation ON document_templates;
 CREATE POLICY templates_isolation ON document_templates
     FOR ALL USING (
         is_global = TRUE OR
@@ -191,48 +193,56 @@ CREATE POLICY templates_isolation ON document_templates
     )
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS template_versions_isolation ON document_template_versions;
 CREATE POLICY template_versions_isolation ON document_template_versions
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS template_fields_isolation ON document_template_fields;
 CREATE POLICY template_fields_isolation ON document_template_fields
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS parties_isolation ON deal_folder_parties;
 CREATE POLICY parties_isolation ON deal_folder_parties
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS generated_docs_isolation ON generated_documents;
 CREATE POLICY generated_docs_isolation ON generated_documents
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS doc_versions_isolation ON document_versions;
 CREATE POLICY doc_versions_isolation ON document_versions
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS change_sets_isolation ON document_change_sets;
 CREATE POLICY change_sets_isolation ON document_change_sets
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS legal_review_isolation ON legal_review_decisions;
 CREATE POLICY legal_review_isolation ON legal_review_decisions
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
+DROP POLICY IF EXISTS retention_policies_isolation ON document_retention_policies;
 CREATE POLICY retention_policies_isolation ON document_retention_policies
     FOR ALL USING (org_id = (SELECT current_setting('app.current_org_id', true)::uuid))
     WITH CHECK (org_id = (SELECT current_setting('app.current_org_id', true)::uuid));
 
 -- ── Indexes ───────────────────────────────────────────────────────────────────
 
-CREATE INDEX idx_document_templates_org ON document_templates(org_id);
-CREATE INDEX idx_document_templates_type ON document_templates(template_document_type);
-CREATE INDEX idx_template_versions_template ON document_template_versions(template_id);
-CREATE INDEX idx_template_fields_version ON document_template_fields(template_version_id);
-CREATE INDEX idx_folder_parties_folder ON deal_folder_parties(folder_id);
-CREATE INDEX idx_generated_docs_folder ON generated_documents(folder_id);
-CREATE INDEX idx_generated_docs_status ON generated_documents(status);
-CREATE INDEX idx_doc_versions_generated ON document_versions(generated_document_id);
-CREATE INDEX idx_change_sets_to_version ON document_change_sets(to_version_id);
-CREATE INDEX idx_legal_review_generated ON legal_review_decisions(generated_document_id);
-CREATE INDEX idx_retention_policies_org ON document_retention_policies(org_id);
+CREATE INDEX IF NOT EXISTS idx_document_templates_org ON document_templates(org_id);
+CREATE INDEX IF NOT EXISTS idx_document_templates_type ON document_templates(template_document_type);
+CREATE INDEX IF NOT EXISTS idx_template_versions_template ON document_template_versions(template_id);
+CREATE INDEX IF NOT EXISTS idx_template_fields_version ON document_template_fields(template_version_id);
+CREATE INDEX IF NOT EXISTS idx_folder_parties_folder ON deal_folder_parties(folder_id);
+CREATE INDEX IF NOT EXISTS idx_generated_docs_folder ON generated_documents(folder_id);
+CREATE INDEX IF NOT EXISTS idx_generated_docs_status ON generated_documents(status);
+CREATE INDEX IF NOT EXISTS idx_doc_versions_generated ON document_versions(generated_document_id);
+CREATE INDEX IF NOT EXISTS idx_change_sets_to_version ON document_change_sets(to_version_id);
+CREATE INDEX IF NOT EXISTS idx_legal_review_generated ON legal_review_decisions(generated_document_id);
+CREATE INDEX IF NOT EXISTS idx_retention_policies_org ON document_retention_policies(org_id);

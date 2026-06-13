@@ -1,16 +1,28 @@
 ---
 template_key: contrato-compraventa
 template_family: contrato-compraventa
-display_name: "Contrato de compraventa"
+ape_code: APE-SALE-PRIVATE-002
+display_name: "Contrato Privado de Compraventa"
 operation_type: compraventa
+phase: contrato
 jurisdiction: ES-IB
 language: es
-version: 0.1-draft
+locale: es-ES
+version: 0.1.0
+status: draft
 legal_review_status: pending
+translation_status: approved_source
+source_language: es
+source_version: 0.1.0
 brand: Anclora Private Estates
+requires_legal_review: true
+requires_advisor_validation: true
+signable: true
+system_template: true
 storage_path: templates/es/tpl-contrato-compraventa.es.md
+effective_from:
+effective_until:
 ---
-
 # Contrato Privado de Compraventa
 
 ![Logo Anclora Private Estates](ANCLORA_LOGO_PLACEHOLDER)
@@ -23,9 +35,9 @@ storage_path: templates/es/tpl-contrato-compraventa.es.md
 
 | Rol | Nombre completo | NIF/NIE/Pasaporte | Domicilio |
 |-----|----------------|------------------|-----------|
-| Comprador | {{ buyer.fullname }} | {{ buyer.id_document }} | {{ buyer.address }} |
-| Vendedor | {{ seller.fullname }} | {{ seller.id_document }} | {{ seller.address }} |
-| Agente Anclora | {{ agent.fullname }} | — | {{ organization.address }} |
+| Comprador | {{ buyer.full_name }} | {{ buyer.id_document }} | {{ buyer.address }} |
+| Vendedor | {{ seller.full_name }} | {{ seller.id_document }} | {{ seller.address }} |
+| Agente Anclora | {{ agent.full_name }} | — | {{ organization.address }} |
 
 ---
 
@@ -78,9 +90,9 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 | Parte | Nombre | Firma | Fecha |
 |-------|--------|-------|-------|
-| Comprador | {{ buyer.fullname }} | _____________ | {{ document.generated_at }} |
-| Vendedor | {{ seller.fullname }} | _____________ | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | _____________ | {{ document.generated_at }} |
+| Comprador | {{ buyer.full_name }} | _____________ | {{ document.generated_at }} |
+| Vendedor | {{ seller.full_name }} | _____________ | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.full_name }} | _____________ | {{ document.generated_at }} |
 
 ---
 *Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*

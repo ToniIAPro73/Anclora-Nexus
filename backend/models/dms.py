@@ -106,10 +106,20 @@ class DocumentUploadRequest(BaseModel):
     origin: DocumentOrigin = DocumentOrigin.external
 
 
+class SignerEntry(BaseModel):
+    email: str
+    name: str
+    role: str = "signer"
+
+
 class SignatureFlowCreate(BaseModel):
-    signer_email: str
-    signer_name: str
-    signer_role: SignerRole
+    # Legacy single-signer fields
+    signer_email: Optional[str] = None
+    signer_name: Optional[str] = None
+    signer_role: Optional[SignerRole] = None
+    # CLM multi-signer fields
+    signing_level: str = "simple"
+    signers: list[SignerEntry] = []
 
 
 class DocumentValidationRequest(BaseModel):
