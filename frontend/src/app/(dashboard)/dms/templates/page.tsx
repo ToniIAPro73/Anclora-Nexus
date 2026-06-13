@@ -472,7 +472,7 @@ export default function DmsTemplatesPage() {
                 <select
                   value={templateType}
                   onChange={(e) => setTemplateType(e.target.value as TemplateDocumentType)}
-                  className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2.5 text-sm text-soft-white focus:border-blue-light/60 focus:outline-none"
+                  className="ui-select text-sm"
                 >
                   {TEMPLATE_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </select>
@@ -494,7 +494,7 @@ export default function DmsTemplatesPage() {
                 <select
                   value={uploadTemplateId}
                   onChange={(e) => setUploadTemplateId(e.target.value)}
-                  className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2.5 text-sm text-soft-white focus:border-blue-light/60 focus:outline-none"
+                  className="ui-select text-sm"
                 >
                   {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
@@ -525,7 +525,7 @@ export default function DmsTemplatesPage() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="rounded-lg border border-border-subtle bg-surface-base px-2 py-1.5 text-xs text-soft-white focus:outline-none"
+            className="ui-select min-w-64 text-sm"
           >
             <option value="">Todos los tipos</option>
             {TEMPLATE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -533,7 +533,7 @@ export default function DmsTemplatesPage() {
           <select
             value={filterLang}
             onChange={(e) => setFilterLang(e.target.value)}
-            className="rounded-lg border border-border-subtle bg-surface-base px-2 py-1.5 text-xs text-soft-white focus:outline-none"
+            className="ui-select min-w-48 text-sm"
           >
             <option value="">Todos los idiomas</option>
             {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
@@ -541,7 +541,7 @@ export default function DmsTemplatesPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded-lg border border-border-subtle bg-surface-base px-2 py-1.5 text-xs text-soft-white focus:outline-none"
+            className="ui-select min-w-48 text-sm"
           >
             <option value="">Todos los estados</option>
             <option value="draft">Borrador</option>
