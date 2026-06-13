@@ -30,6 +30,7 @@ const LOCALE_BY_LANGUAGE = {
   es: 'es-ES',
   en: 'en-GB',
   de: 'de-DE',
+  ca: 'ca-ES',
 } as const
 
 function statusChip(status: FeedChannelSummary['status']): { labelKey: 'feedHealthy' | 'feedWarnings' | 'feedBlocked'; cls: string } {

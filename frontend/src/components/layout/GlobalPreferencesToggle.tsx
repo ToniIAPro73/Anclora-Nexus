@@ -88,6 +88,31 @@ const preferenceCopy = {
       imperial: 'Quadratfuß - ft² / Acre - ac',
     },
   },
+  ca: {
+    trigger: 'Preferències globals',
+    dialog: 'Ajustos de preferències globals',
+    eyebrow: 'Ajustos',
+    title: 'Preferències',
+    close: 'Tancar preferències',
+    language: 'Idioma',
+    currency: 'Moneda',
+    units: 'Unitats de mesura',
+    pending: 'Pendent',
+    save: 'Desar i tancar',
+    currencyLabels: {
+      EUR: 'Euro',
+      USD: 'Dòlar nord-americà',
+      GBP: 'Lliura esterlina',
+      CHF: 'Franc suís',
+      SEK: 'Corona sueca',
+      DKK: 'Corona danesa',
+      NOK: 'Corona noruega',
+    },
+    unitLabels: {
+      metric: 'Metre quadrat - m² / Hectàrea - ha',
+      imperial: 'Peu quadrat - ft² / Acre - ac',
+    },
+  },
 } as const
 
 export function GlobalPreferencesToggle() {
