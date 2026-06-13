@@ -34,6 +34,7 @@ class RetentionPolicyCreate(BaseModel):
 
 
 @router.get("/")
+@router.get("", include_in_schema=False)
 async def list_retention_policies(
     membership: dict = Depends(require_dms_membership),
     org_id: str = Depends(get_org_id),
@@ -49,6 +50,7 @@ async def list_retention_policies(
 
 
 @router.post("/")
+@router.post("", include_in_schema=False)
 async def create_retention_policy(
     body: RetentionPolicyCreate,
     membership: dict = Depends(require_dms_membership),

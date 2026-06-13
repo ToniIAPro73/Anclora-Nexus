@@ -212,7 +212,7 @@ export async function listTemplates(params?: {
   const qs = params
     ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined) as [string, string][]).toString()
     : ''
-  return apiRequest(`/api/dms/templates/${qs}`)
+  return apiRequest(`/api/dms/templates${qs}`)
 }
 
 export async function createTemplate(payload: {
@@ -222,7 +222,7 @@ export async function createTemplate(payload: {
   jurisdiction?: string
   language?: string
 }): Promise<DocumentTemplate> {
-  return apiRequest('/api/dms/templates/', {
+  return apiRequest('/api/dms/templates', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -467,7 +467,7 @@ export interface RetentionPolicy {
 }
 
 export async function listRetentionPolicies(): Promise<RetentionPolicy[]> {
-  return apiRequest('/api/dms/retention/')
+  return apiRequest('/api/dms/retention')
 }
 
 export async function createRetentionPolicy(payload: {
@@ -475,7 +475,7 @@ export async function createRetentionPolicy(payload: {
   retention_days?: number
   auto_archive?: boolean
 }): Promise<RetentionPolicy> {
-  return apiRequest('/api/dms/retention/', {
+  return apiRequest('/api/dms/retention', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
