@@ -7,7 +7,7 @@ const labels = {
   es: { terms: 'Términos del servicio', privacy: 'Política de privacidad', legal: 'Aviso legal', rights: 'Todos los derechos reservados.', brand: 'Anclora Nexus forma parte del ecosistema operativo de Anclora Group.' },
   en: { terms: 'Terms of service', privacy: 'Privacy policy', legal: 'Legal notice', rights: 'All rights reserved.', brand: 'Anclora Nexus is part of the Anclora Group operational ecosystem.' },
   de: { terms: 'Nutzungsbedingungen', privacy: 'Datenschutzerklärung', legal: 'Impressum', rights: 'Alle Rechte vorbehalten.', brand: 'Anclora Nexus ist Teil des operativen Ökosystems von Anclora Group.' },
-  ru: { terms: 'Условия сервиса', privacy: 'Политика конфиденциальности', legal: 'Правовая информация', rights: 'Все права защищены.', brand: 'Anclora Nexus является частью операционной экосистемы Anclora Group.' },
+  ca: { terms: 'Termes del servei', privacy: 'Política de privacitat', legal: 'Avís legal', rights: 'Tots els drets reservats.', brand: "Anclora Nexus forma part de l'ecosistema operatiu d'Anclora Group." },
 }
 
 export function LegalFooter() {

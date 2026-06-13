@@ -11,6 +11,7 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
   es: 'es-ES',
   en: 'en-US',
   de: 'de-DE',
+  ca: 'ca-ES',
 }
 
 type IntelligencePack = {
