@@ -1,9 +1,19 @@
-'use client'
-'use client'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, FileJson, FileText, Loader2, PlayCircle, RotateCcw, ShieldAlert, UploadCloud } from 'lucide-react'
-import { useI18n } from '@/lib/i18n'
+"use client";
+"use client";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  FileJson,
+  FileText,
+  Loader2,
+  PlayCircle,
+  RotateCcw,
+  ShieldAlert,
+  UploadCloud,
+} from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import {
   getFeedChannelConfig,
   getFeedWorkspace,
@@ -17,128 +27,159 @@ import {
   type FeedRunItem,
   type FeedValidationIssue,
   type FeedValidationResponse,
-} from '@/lib/feed-orchestrator-api'
+} from "@/lib/feed-orchestrator-api";
 
 const CHANNEL_LABELS: Record<FeedChannelName, string> = {
-  idealista: 'Idealista',
-  fotocasa: 'Fotocasa',
-  rightmove: 'Rightmove',
-  kyero: 'Kyero',
-}
+  idealista: "Idealista",
+  fotocasa: "Fotocasa",
+  rightmove: "Rightmove",
+  kyero: "Kyero",
+};
 
 const LOCALE_BY_LANGUAGE = {
-  es: 'es-ES',
-  en: 'en-GB',
-  de: 'de-DE',
-  ca: 'ca-ES',
-} as const
+  es: "es-ES",
+  en: "en-GB",
+  de: "de-DE",
+  ca: "ca-ES",
+} as const;
 
-function statusChip(status: FeedChannelSummary['status']): { labelKey: 'feedHealthy' | 'feedWarnings' | 'feedBlocked'; cls: string } {
-  if (status === 'healthy') return { labelKey: 'feedHealthy', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' }
-  if (status === 'warning') return { labelKey: 'feedWarnings', cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' }
-  return { labelKey: 'feedBlocked', cls: 'bg-red-500/15 text-red-300 border-red-500/30' }
+function statusChip(status: FeedChannelSummary["status"]): {
+  labelKey: "feedHealthy" | "feedWarnings" | "feedBlocked";
+  cls: string;
+} {
+  if (status === "healthy")
+    return {
+      labelKey: "feedHealthy",
+      cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+    };
+  if (status === "warning")
+    return {
+      labelKey: "feedWarnings",
+      cls: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    };
+  return {
+    labelKey: "feedBlocked",
+    cls: "bg-red-500/15 text-red-300 border-red-500/30",
+  };
 }
 
 export default function FeedOrchestratorPage() {
-  const { t, language } = useI18n()
-  const [loading, setLoading] = useState(true)
-  const [workspace, setWorkspace] = useState<Awaited<ReturnType<typeof getFeedWorkspace>> | null>(null)
-  const [runs, setRuns] = useState<FeedRunItem[]>([])
-  const [selectedChannel, setSelectedChannel] = useState<FeedChannelName>('idealista')
-  const [validation, setValidation] = useState<FeedValidationResponse | null>(null)
-  const [channelConfig, setChannelConfig] = useState<FeedChannelConfig | null>(null)
-  const [configEnabled, setConfigEnabled] = useState(true)
-  const [configMaxItems, setConfigMaxItems] = useState(100)
-  const [busy, setBusy] = useState<Record<string, boolean>>({})
-  const [message, setMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [onlyActiveChannels, setOnlyActiveChannels] = useState(false)
+  const { t, language } = useI18n();
+  const [loading, setLoading] = useState(true);
+  const [workspace, setWorkspace] = useState<Awaited<
+    ReturnType<typeof getFeedWorkspace>
+  > | null>(null);
+  const [runs, setRuns] = useState<FeedRunItem[]>([]);
+  const [selectedChannel, setSelectedChannel] =
+    useState<FeedChannelName>("idealista");
+  const [validation, setValidation] = useState<FeedValidationResponse | null>(
+    null,
+  );
+  const [channelConfig, setChannelConfig] = useState<FeedChannelConfig | null>(
+    null,
+  );
+  const [configEnabled, setConfigEnabled] = useState(true);
+  const [configMaxItems, setConfigMaxItems] = useState(100);
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [onlyActiveChannels, setOnlyActiveChannels] = useState(false);
 
   const loadData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
       const [workspaceRes, runsRes] = await Promise.all([
         getFeedWorkspace(),
         listFeedRuns({ limit: 20 }),
-      ])
-      setWorkspace(workspaceRes)
-      setRuns(runsRes.items)
+      ]);
+      setWorkspace(workspaceRes);
+      setRuns(runsRes.items);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : t('feedLoadError')
-      setError(msg)
+      const msg = e instanceof Error ? e.message : t("feedLoadError");
+      setError(msg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [t])
+  }, [t]);
 
   useEffect(() => {
-    void loadData()
-  }, [loadData, t])
+    void loadData();
+  }, [loadData, t]);
 
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const cfg = await getFeedChannelConfig(selectedChannel)
-        setChannelConfig(cfg)
-        setConfigEnabled(cfg.is_enabled)
-        setConfigMaxItems(cfg.max_items_per_run)
+        const cfg = await getFeedChannelConfig(selectedChannel);
+        setChannelConfig(cfg);
+        setConfigEnabled(cfg.is_enabled);
+        setConfigMaxItems(cfg.max_items_per_run);
       } catch {
-        setChannelConfig(null)
+        setChannelConfig(null);
       }
-    }
-    void loadConfig()
-  }, [selectedChannel])
+    };
+    void loadConfig();
+  }, [selectedChannel]);
 
   useEffect(() => {
-    if (!workspace?.channels?.length) return
-    const exists = workspace.channels.some((c) => c.channel === selectedChannel)
+    if (!workspace?.channels?.length) return;
+    const exists = workspace.channels.some(
+      (c) => c.channel === selectedChannel,
+    );
     if (!exists) {
-      setSelectedChannel(workspace.channels[0].channel)
-      return
+      setSelectedChannel(workspace.channels[0].channel);
+      return;
     }
     if (onlyActiveChannels) {
-      const selected = workspace.channels.find((c) => c.channel === selectedChannel)
+      const selected = workspace.channels.find(
+        (c) => c.channel === selectedChannel,
+      );
       if (selected && !selected.is_enabled) {
-        const firstActive = workspace.channels.find((c) => c.is_enabled)
-        if (firstActive) setSelectedChannel(firstActive.channel)
+        const firstActive = workspace.channels.find((c) => c.is_enabled);
+        if (firstActive) setSelectedChannel(firstActive.channel);
       }
     }
-  }, [workspace?.channels, selectedChannel, onlyActiveChannels])
+  }, [workspace?.channels, selectedChannel, onlyActiveChannels]);
 
-  const runAction = useCallback(async (key: string, action: () => Promise<void>) => {
-    setBusy((prev) => ({ ...prev, [key]: true }))
-    setMessage(null)
-    setError(null)
-    try {
-      await action()
-      await loadData()
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : t('feedActionError')
-      setError(msg)
-    } finally {
-      setBusy((prev) => ({ ...prev, [key]: false }))
-    }
-  }, [loadData, t])
+  const runAction = useCallback(
+    async (key: string, action: () => Promise<void>) => {
+      setBusy((prev) => ({ ...prev, [key]: true }));
+      setMessage(null);
+      setError(null);
+      try {
+        await action();
+        await loadData();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : t("feedActionError");
+        setError(msg);
+      } finally {
+        setBusy((prev) => ({ ...prev, [key]: false }));
+      }
+    },
+    [loadData, t],
+  );
 
   const selectedSummary = useMemo(
     () => workspace?.channels.find((c) => c.channel === selectedChannel),
     [workspace?.channels, selectedChannel],
-  )
+  );
 
   const visibleChannels = useMemo(
-    () => (workspace?.channels || []).filter((c) => (onlyActiveChannels ? c.is_enabled : true)),
+    () =>
+      (workspace?.channels || []).filter((c) =>
+        onlyActiveChannels ? c.is_enabled : true,
+      ),
     [workspace?.channels, onlyActiveChannels],
-  )
+  );
 
   const selectedIssues = useMemo<FeedValidationIssue[]>(
     () => validation?.issues || [],
     [validation?.issues],
-  )
+  );
 
   return (
     <div className="h-full p-6 overflow-y-auto">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-5">
+      <div className="max-w-360 mx-auto flex flex-col gap-5">
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-soft-subtle/50">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -148,19 +189,19 @@ export default function FeedOrchestratorPage() {
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               </Link>
-              <h1 className="page-title">{t('feedOrchestratorTitle')}</h1>
+              <h1 className="page-title">{t("feedOrchestratorTitle")}</h1>
             </div>
-            <p className="page-subtitle">
-              {t('feedOrchestratorSubtitle')}
-            </p>
+            <p className="page-subtitle">{t("feedOrchestratorSubtitle")}</p>
           </div>
           <button
             type="button"
             onClick={() => void loadData()}
             className="btn-action"
           >
-            <span className="btn-action-emoji" aria-hidden="true">⟳</span>
-            {loading ? t('loading') : t('refresh')}
+            <span className="btn-action-emoji" aria-hidden="true">
+              ⟳
+            </span>
+            {loading ? t("loading") : t("refresh")}
           </button>
         </section>
 
@@ -177,27 +218,35 @@ export default function FeedOrchestratorPage() {
 
         <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="kpi-label">{t('feedChannels')}</p>
-            <p className="kpi-value text-gold">{workspace?.totals.channels ?? 0}</p>
+            <p className="kpi-label">{t("feedChannels")}</p>
+            <p className="kpi-value text-gold">
+              {workspace?.totals.channels ?? 0}
+            </p>
           </article>
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="kpi-label">{t('feedCandidates')}</p>
-            <p className="kpi-value text-gold">{workspace?.totals.candidates ?? 0}</p>
+            <p className="kpi-label">{t("feedCandidates")}</p>
+            <p className="kpi-value text-gold">
+              {workspace?.totals.candidates ?? 0}
+            </p>
           </article>
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="kpi-label">{t('feedReadyToPublish')}</p>
-            <p className="kpi-value text-emerald-300">{workspace?.totals.ready ?? 0}</p>
+            <p className="kpi-label">{t("feedReadyToPublish")}</p>
+            <p className="kpi-value text-emerald-300">
+              {workspace?.totals.ready ?? 0}
+            </p>
           </article>
           <article className="rounded-xl border border-soft-subtle bg-navy-surface/40 p-4">
-            <p className="kpi-label">{t('feedValidationErrors')}</p>
-            <p className="kpi-value text-red-300">{workspace?.totals.errors ?? 0}</p>
+            <p className="kpi-label">{t("feedValidationErrors")}</p>
+            <p className="kpi-value text-red-300">
+              {workspace?.totals.errors ?? 0}
+            </p>
           </article>
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
           <article className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0">
             <header className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="section-title">{t('feedChannels')}</h2>
+              <h2 className="section-title">{t("feedChannels")}</h2>
               <div className="flex items-center gap-2">
                 <label className="ui-checkbox-row px-3 py-2 text-xs">
                   <input
@@ -206,19 +255,25 @@ export default function FeedOrchestratorPage() {
                     onChange={(e) => setOnlyActiveChannels(e.target.checked)}
                     className="ui-checkbox"
                   />
-                  {t('feedOnlyActive')}
+                  {t("feedOnlyActive")}
                 </label>
-                <span className="text-xs text-soft-muted">{visibleChannels.length}</span>
+                <span className="text-xs text-soft-muted">
+                  {visibleChannels.length}
+                </span>
               </div>
             </header>
 
-            <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="space-y-2 max-h-140 overflow-y-auto pr-1 custom-scrollbar">
               {visibleChannels.map((channel) => {
-                const chip = statusChip(channel.status)
-                const isSelected = selectedChannel === channel.channel
-                const ratio = channel.total_candidates > 0
-                  ? Math.round((channel.ready_to_publish / channel.total_candidates) * 100)
-                  : 0
+                const chip = statusChip(channel.status);
+                const isSelected = selectedChannel === channel.channel;
+                const ratio =
+                  channel.total_candidates > 0
+                    ? Math.round(
+                        (channel.ready_to_publish / channel.total_candidates) *
+                          100,
+                      )
+                    : 0;
                 return (
                   <button
                     key={channel.channel}
@@ -226,35 +281,48 @@ export default function FeedOrchestratorPage() {
                     onClick={() => setSelectedChannel(channel.channel)}
                     className={`w-full text-left rounded-xl border p-3 transition-all ${
                       isSelected
-                        ? 'border-gold/50 bg-gold/5'
-                        : 'border-soft-subtle/50 bg-navy-deep/25 hover:border-blue-light/40'
+                        ? "border-gold/50 bg-gold/5"
+                        : "border-soft-subtle/50 bg-navy-deep/25 hover:border-blue-light/40"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-soft-white">{CHANNEL_LABELS[channel.channel]}</p>
+                      <p className="text-sm font-semibold text-soft-white">
+                        {CHANNEL_LABELS[channel.channel]}
+                      </p>
                       <div className="flex items-center gap-1.5">
                         {!channel.is_enabled && (
                           <span className="rounded-full border border-red-500/40 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">
-                            {t('feedDisabled')}
+                            {t("feedDisabled")}
                           </span>
                         )}
-                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${chip.cls}`}>{t(chip.labelKey)}</span>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${chip.cls}`}
+                        >
+                          {t(chip.labelKey)}
+                        </span>
                       </div>
                     </div>
                     <div className="mt-2 flex items-center gap-2 text-xs text-soft-muted">
-                      {channel.format === 'xml' ? <FileText className="w-3.5 h-3.5" /> : <FileJson className="w-3.5 h-3.5" />}
+                      {channel.format === "xml" ? (
+                        <FileText className="w-3.5 h-3.5" />
+                      ) : (
+                        <FileJson className="w-3.5 h-3.5" />
+                      )}
                       <span>{channel.format.toUpperCase()}</span>
                       <span>•</span>
-                      <span>{channel.ready_to_publish}/{channel.total_candidates} {t('feedReadyLabel')}</span>
+                      <span>
+                        {channel.ready_to_publish}/{channel.total_candidates}{" "}
+                        {t("feedReadyLabel")}
+                      </span>
                     </div>
                     <div className="mt-2 h-1.5 rounded bg-navy-surface overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-blue-light to-gold"
+                        className="h-full bg-linear-to-r from-blue-light to-gold"
                         style={{ width: `${ratio}%` }}
                       />
                     </div>
                   </button>
-                )
+                );
               })}
               {loading && (
                 <div className="flex items-center justify-center py-10 text-soft-muted">
@@ -268,96 +336,183 @@ export default function FeedOrchestratorPage() {
             <header className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="section-title">
-                  {selectedSummary ? CHANNEL_LABELS[selectedSummary.channel] : t('feedChannel')}
+                  {selectedSummary
+                    ? CHANNEL_LABELS[selectedSummary.channel]
+                    : t("feedChannel")}
                 </h2>
-                <p className="text-xs text-soft-muted">{t('feedValidationAndPublishing')}</p>
+                <p className="text-xs text-soft-muted">
+                  {t("feedValidationAndPublishing")}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   disabled={Boolean(busy[`validate-${selectedChannel}`])}
-                  onClick={() => void runAction(`validate-${selectedChannel}`, async () => {
-                    const result = await validateFeedChannel(selectedChannel)
-                    setValidation(result)
-                    setMessage(t('feedValidationCompleted').replace('{{channel}}', CHANNEL_LABELS[selectedChannel]))
-                  })}
+                  onClick={() =>
+                    void runAction(`validate-${selectedChannel}`, async () => {
+                      const result = await validateFeedChannel(selectedChannel);
+                      setValidation(result);
+                      setMessage(
+                        t("feedValidationCompleted").replace(
+                          "{{channel}}",
+                          CHANNEL_LABELS[selectedChannel],
+                        ),
+                      );
+                    })
+                  }
                   className="px-3 py-2 rounded-lg border border-blue-light/40 text-blue-light hover:bg-blue-light/10 text-sm font-semibold disabled:opacity-50"
                 >
-                  {busy[`validate-${selectedChannel}`] ? t('feedValidating') : t('feedValidate')}
+                  {busy[`validate-${selectedChannel}`]
+                    ? t("feedValidating")
+                    : t("feedValidate")}
                 </button>
                 <button
                   type="button"
-                  disabled={Boolean(busy[`publish-${selectedChannel}`]) || !configEnabled}
-                  onClick={() => void runAction(`publish-${selectedChannel}`, async () => {
-                    const result = await publishFeedChannel(selectedChannel, { dry_run: false, max_items: configMaxItems })
-                    setValidation(null)
-                    setMessage(
-                      t('feedPublishResult')
-                        .replace('{{status}}', result.status)
-                        .replace('{{published}}', String(result.published_count))
-                        .replace('{{rejected}}', String(result.rejected_count)),
-                    )
-                  })}
+                  disabled={
+                    Boolean(busy[`publish-${selectedChannel}`]) ||
+                    !configEnabled
+                  }
+                  onClick={() =>
+                    void runAction(`publish-${selectedChannel}`, async () => {
+                      const result = await publishFeedChannel(selectedChannel, {
+                        dry_run: false,
+                        max_items: configMaxItems,
+                      });
+                      setValidation(null);
+                      setMessage(
+                        t("feedPublishResult")
+                          .replace("{{status}}", result.status)
+                          .replace(
+                            "{{published}}",
+                            String(result.published_count),
+                          )
+                          .replace(
+                            "{{rejected}}",
+                            String(result.rejected_count),
+                          ),
+                      );
+                    })
+                  }
                   className="px-3 py-2 rounded-lg border border-gold/40 bg-gold/10 text-gold hover:bg-gold/20 text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
                 >
-                  {busy[`publish-${selectedChannel}`] ? t('feedPublishing') : <><UploadCloud className="w-4 h-4" /> {t('feedPublish')}</>}
+                  {busy[`publish-${selectedChannel}`] ? (
+                    t("feedPublishing")
+                  ) : (
+                    <>
+                      <UploadCloud className="w-4 h-4" /> {t("feedPublish")}
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"
-                  disabled={Boolean(busy[`dry-${selectedChannel}`]) || !configEnabled}
-                  onClick={() => void runAction(`dry-${selectedChannel}`, async () => {
-                    const result = await publishFeedChannel(selectedChannel, { dry_run: true, max_items: configMaxItems })
-                    setValidation(null)
-                    setMessage(
-                      t('feedDryRunResult')
-                        .replace('{{status}}', result.status)
-                        .replace('{{rejected}}', String(result.rejected_count)),
-                    )
-                  })}
+                  disabled={
+                    Boolean(busy[`dry-${selectedChannel}`]) || !configEnabled
+                  }
+                  onClick={() =>
+                    void runAction(`dry-${selectedChannel}`, async () => {
+                      const result = await publishFeedChannel(selectedChannel, {
+                        dry_run: true,
+                        max_items: configMaxItems,
+                      });
+                      setValidation(null);
+                      setMessage(
+                        t("feedDryRunResult")
+                          .replace("{{status}}", result.status)
+                          .replace(
+                            "{{rejected}}",
+                            String(result.rejected_count),
+                          ),
+                      );
+                    })
+                  }
                   className="px-3 py-2 rounded-lg border border-soft-subtle text-soft-muted hover:text-soft-white hover:border-soft-white/30 text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
                 >
-                  {busy[`dry-${selectedChannel}`] ? t('feedSimulating') : <><PlayCircle className="w-4 h-4" /> {t('feedDryRun')}</>}
+                  {busy[`dry-${selectedChannel}`] ? (
+                    t("feedSimulating")
+                  ) : (
+                    <>
+                      <PlayCircle className="w-4 h-4" /> {t("feedDryRun")}
+                    </>
+                  )}
                 </button>
               </div>
             </header>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 min-h-0">
-              <div className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 min-h-[230px]">
-                <h3 className="text-sm font-semibold text-soft-white mb-2">{t('feedValidationSummary')}</h3>
+              <div className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 min-h-57.5">
+                <h3 className="text-sm font-semibold text-soft-white mb-2">
+                  {t("feedValidationSummary")}
+                </h3>
                 {validation ? (
                   <div className="space-y-2 text-sm">
-                    <p className="page-subtitle">{t('feedCandidates')}: <span className="text-soft-white">{validation.total_candidates}</span></p>
-                    <p className="page-subtitle">{t('feedReadyToPublish')}: <span className="text-emerald-300">{validation.ready_to_publish}</span></p>
-                    <p className="page-subtitle">{t('feedWarnings')}: <span className="text-amber-300">{validation.warnings}</span></p>
-                    <p className="page-subtitle">{t('feedValidationErrors')}: <span className="text-red-300">{validation.errors}</span></p>
+                    <p className="page-subtitle">
+                      {t("feedCandidates")}:{" "}
+                      <span className="text-soft-white">
+                        {validation.total_candidates}
+                      </span>
+                    </p>
+                    <p className="page-subtitle">
+                      {t("feedReadyToPublish")}:{" "}
+                      <span className="text-emerald-300">
+                        {validation.ready_to_publish}
+                      </span>
+                    </p>
+                    <p className="page-subtitle">
+                      {t("feedWarnings")}:{" "}
+                      <span className="text-amber-300">
+                        {validation.warnings}
+                      </span>
+                    </p>
+                    <p className="page-subtitle">
+                      {t("feedValidationErrors")}:{" "}
+                      <span className="text-red-300">{validation.errors}</span>
+                    </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-soft-muted">{t('feedValidationHint')}</p>
+                  <p className="text-sm text-soft-muted">
+                    {t("feedValidationHint")}
+                  </p>
                 )}
               </div>
-              <div className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 min-h-[230px]">
+              <div className="rounded-xl border border-soft-subtle/50 bg-navy-deep/30 p-3 min-h-57.5">
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-soft-white">{t('feedChannelConfig')}</h3>
+                  <h3 className="text-sm font-semibold text-soft-white">
+                    {t("feedChannelConfig")}
+                  </h3>
                   <button
                     type="button"
                     disabled={Boolean(busy[`config-${selectedChannel}`])}
-                    onClick={() => void runAction(`config-${selectedChannel}`, async () => {
-                      const cfg = await updateFeedChannelConfig(selectedChannel, {
-                        is_enabled: configEnabled,
-                        max_items_per_run: configMaxItems,
+                    onClick={() =>
+                      void runAction(`config-${selectedChannel}`, async () => {
+                        const cfg = await updateFeedChannelConfig(
+                          selectedChannel,
+                          {
+                            is_enabled: configEnabled,
+                            max_items_per_run: configMaxItems,
+                          },
+                        );
+                        setChannelConfig(cfg);
+                        setMessage(
+                          t("feedConfigSaved").replace(
+                            "{{channel}}",
+                            CHANNEL_LABELS[selectedChannel],
+                          ),
+                        );
                       })
-                      setChannelConfig(cfg)
-                      setMessage(t('feedConfigSaved').replace('{{channel}}', CHANNEL_LABELS[selectedChannel]))
-                    })}
+                    }
                     className="px-2.5 py-1 rounded-lg border border-gold/40 text-gold hover:bg-gold/10 text-xs font-semibold disabled:opacity-50"
                   >
-                    {busy[`config-${selectedChannel}`] ? t('propertyFormSaving') : t('saveChanges')}
+                    {busy[`config-${selectedChannel}`]
+                      ? t("propertyFormSaving")
+                      : t("saveChanges")}
                   </button>
                 </div>
 
                 <div className="space-y-3 mb-4">
                   <label className="ui-checkbox-row justify-between rounded-lg p-2">
-                    <span className="text-xs text-soft-muted">{t('feedChannelActive')}</span>
+                    <span className="text-xs text-soft-muted">
+                      {t("feedChannelActive")}
+                    </span>
                     <input
                       type="checkbox"
                       checked={configEnabled}
@@ -366,39 +521,64 @@ export default function FeedOrchestratorPage() {
                     />
                   </label>
                   <label className="block rounded-lg border border-soft-subtle/40 p-2">
-                    <span className="text-xs text-soft-muted">{t('feedMaxItemsPerRun')}</span>
+                    <span className="text-xs text-soft-muted">
+                      {t("feedMaxItemsPerRun")}
+                    </span>
                     <input
                       type="number"
                       min={1}
                       max={10000}
                       value={configMaxItems}
-                      onChange={(e) => setConfigMaxItems(Number(e.target.value))}
+                      onChange={(e) =>
+                        setConfigMaxItems(Number(e.target.value))
+                      }
                       className="ui-input mt-1"
                     />
                   </label>
                   {channelConfig && (
                     <p className="text-[11px] text-soft-muted">
-                      {t('feedFormat')}: <span className="text-soft-white">{channelConfig.format.toUpperCase()}</span>
+                      {t("feedFormat")}:{" "}
+                      <span className="text-soft-white">
+                        {channelConfig.format.toUpperCase()}
+                      </span>
                     </p>
                   )}
                 </div>
 
-                <h3 className="text-sm font-semibold text-soft-white mb-2">{t('feedTopIssues')}</h3>
-                <div className="max-h-[220px] overflow-auto pr-1 custom-scrollbar space-y-2">
+                <h3 className="text-sm font-semibold text-soft-white mb-2">
+                  {t("feedTopIssues")}
+                </h3>
+                <div className="max-h-55 overflow-auto pr-1 custom-scrollbar space-y-2">
                   {selectedIssues.length === 0 ? (
-                    <p className="text-sm text-soft-muted">{t('feedNoIssues')}</p>
+                    <p className="text-sm text-soft-muted">
+                      {t("feedNoIssues")}
+                    </p>
                   ) : (
                     selectedIssues.map((issue, idx) => (
-                      <div key={`${issue.property_id}-${issue.field}-${idx}`} className="rounded-lg border border-soft-subtle/50 p-2">
-                        <p className="text-xs text-soft-white font-semibold">{issue.field}</p>
-                        <p className="text-xs text-soft-muted">{issue.message}</p>
+                      <div
+                        key={`${issue.property_id}-${issue.field}-${idx}`}
+                        className="rounded-lg border border-soft-subtle/50 p-2"
+                      >
+                        <p className="text-xs text-soft-white font-semibold">
+                          {issue.field}
+                        </p>
+                        <p className="text-xs text-soft-muted">
+                          {issue.message}
+                        </p>
                         <div className="mt-1 flex items-center gap-2 text-[11px]">
-                          {issue.severity === 'error' ? (
-                            <span className="inline-flex items-center gap-1 text-red-300"><ShieldAlert className="w-3 h-3" /> {t('error')}</span>
+                          {issue.severity === "error" ? (
+                            <span className="inline-flex items-center gap-1 text-red-300">
+                              <ShieldAlert className="w-3 h-3" /> {t("error")}
+                            </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-amber-300"><RotateCcw className="w-3 h-3" /> {t('feedWarning')}</span>
+                            <span className="inline-flex items-center gap-1 text-amber-300">
+                              <RotateCcw className="w-3 h-3" />{" "}
+                              {t("feedWarning")}
+                            </span>
                           )}
-                          <span className="text-xs text-soft-muted">{issue.property_id.slice(0, 8)}</span>
+                          <span className="text-xs text-soft-muted">
+                            {issue.property_id.slice(0, 8)}
+                          </span>
                         </div>
                       </div>
                     ))
@@ -411,44 +591,70 @@ export default function FeedOrchestratorPage() {
 
         <section className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-4 min-h-0 overflow-hidden">
           <header className="mb-3 flex items-center justify-between">
-            <h2 className="section-title">{t('feedRunsHistory')}</h2>
-            <span className="text-xs text-soft-muted">{runs.length} {t('feedRecords')}</span>
+            <h2 className="section-title">{t("feedRunsHistory")}</h2>
+            <span className="text-xs text-soft-muted">
+              {runs.length} {t("feedRecords")}
+            </span>
           </header>
-          <div className="max-h-[240px] overflow-auto pr-1 custom-scrollbar">
+          <div className="max-h-60 overflow-auto pr-1 custom-scrollbar">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-soft-muted border-b border-soft-subtle/40">
-                  <th className="text-left py-2 font-medium">{t('feedChannel')}</th>
-                  <th className="text-left py-2 font-medium">{t('status')}</th>
-                  <th className="text-left py-2 font-medium">{t('feedPublished')}</th>
-                  <th className="text-left py-2 font-medium">{t('feedRejected')}</th>
-                  <th className="text-left py-2 font-medium">{t('date')}</th>
+                  <th className="text-left py-2 font-medium">
+                    {t("feedChannel")}
+                  </th>
+                  <th className="text-left py-2 font-medium">{t("status")}</th>
+                  <th className="text-left py-2 font-medium">
+                    {t("feedPublished")}
+                  </th>
+                  <th className="text-left py-2 font-medium">
+                    {t("feedRejected")}
+                  </th>
+                  <th className="text-left py-2 font-medium">{t("date")}</th>
                 </tr>
               </thead>
               <tbody>
                 {runs.map((run) => (
-                  <tr key={run.run_id} className="border-b border-soft-subtle/20">
-                    <td className="py-2 text-soft-white">{CHANNEL_LABELS[run.channel]}</td>
+                  <tr
+                    key={run.run_id}
+                    className="border-b border-soft-subtle/20"
+                  >
+                    <td className="py-2 text-soft-white">
+                      {CHANNEL_LABELS[run.channel]}
+                    </td>
                     <td className="py-2">
-                      <span className={`px-2 py-0.5 rounded-full text-xs border ${
-                        run.status === 'success'
-                          ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
-                          : run.status === 'error'
-                            ? 'border-red-500/30 bg-red-500/15 text-red-300'
-                            : 'border-amber-500/30 bg-amber-500/15 text-amber-300'
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs border ${
+                          run.status === "success"
+                            ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
+                            : run.status === "error"
+                              ? "border-red-500/30 bg-red-500/15 text-red-300"
+                              : "border-amber-500/30 bg-amber-500/15 text-amber-300"
+                        }`}
+                      >
                         {run.status}
                       </span>
                     </td>
-                    <td className="py-2 text-soft-white">{run.published_count}</td>
-                    <td className="py-2 text-soft-white">{run.rejected_count}</td>
-                    <td className="py-2 text-soft-muted">{new Date(run.generated_at).toLocaleString(LOCALE_BY_LANGUAGE[language])}</td>
+                    <td className="py-2 text-soft-white">
+                      {run.published_count}
+                    </td>
+                    <td className="py-2 text-soft-white">
+                      {run.rejected_count}
+                    </td>
+                    <td className="py-2 text-soft-muted">
+                      {new Date(run.generated_at).toLocaleString(
+                        LOCALE_BY_LANGUAGE[language],
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {runs.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-soft-muted">
-                      {t('feedNoRuns')}
+                    <td
+                      colSpan={5}
+                      className="py-8 text-center text-soft-muted"
+                    >
+                      {t("feedNoRuns")}
                     </td>
                   </tr>
                 )}
@@ -457,10 +663,10 @@ export default function FeedOrchestratorPage() {
           </div>
           <div className="mt-3 text-xs text-soft-muted inline-flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
-            {t('feedRecommendation')}
+            {t("feedRecommendation")}
           </div>
         </section>
       </div>
     </div>
-  )
+  );
 }
