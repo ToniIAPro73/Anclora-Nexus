@@ -567,6 +567,7 @@ async def docuseal_webhook(
 # ── Template library ──────────────────────────────────────────────────────────
 
 @router.get("/templates/", response_model=list[dict])
+@router.get("/templates", response_model=list[dict], include_in_schema=False)
 async def list_templates(
     document_type: Optional[str] = None,
     status: Optional[str] = None,
@@ -912,9 +913,9 @@ async def list_available_templates(
     )
     operation = folder.get("operation_type")
     allowed_by_operation = {
-        "compraventa": {"arras_penitenciales", "contrato_compraventa", "mandato_exclusiva", "oferta_compra", "kyc_cliente"},
-        "alquiler_temporada": {"contrato_temporada", "mandato_exclusiva", "kyc_cliente"},
-        "alquiler_turistico": {"contrato_alquiler_turistico", "mandato_exclusiva", "kyc_cliente"},
+        "compraventa": {"arras_penitenciales", "contrato_compraventa", "mandato_exclusiva", "oferta_compra", "kyc_cliente", "nota_encargo", "reserva", "acuerdo_confidencialidad", "generico"},
+        "alquiler_temporada": {"contrato_temporada", "contrato_arrendamiento", "mandato_exclusiva", "kyc_cliente", "nota_encargo", "recibo_fianza", "acta_entrega_llaves", "acuerdo_confidencialidad", "generico"},
+        "alquiler_turistico": {"contrato_alquiler_turistico", "mandato_exclusiva", "kyc_cliente", "acta_entrega_llaves", "acuerdo_confidencialidad", "generico"},
     }
     allowed = allowed_by_operation.get(operation, set())
     rows: list[dict[str, Any]] = []
@@ -1319,7 +1320,7 @@ async def list_review_decisions_legacy_alias(
     return await list_manual_review_decisions(document_id, _membership, org_id)
 
 
-@router.get("/{document_id}", response_model=dict)
+@router.get("/{document_id:uuid}", response_model=dict)
 async def get_generated_document_legacy_alias(
     document_id: UUID,
     _membership: dict = Depends(require_dms_membership),
