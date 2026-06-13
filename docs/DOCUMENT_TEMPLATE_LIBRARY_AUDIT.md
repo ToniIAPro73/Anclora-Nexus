@@ -45,7 +45,7 @@ on `document_versions` going forward.
 
 Existing endpoints:
 
-```
+```text
 POST   /api/dms/folders
 GET    /api/dms/folders
 GET    /api/dms/folders/{folder_id}

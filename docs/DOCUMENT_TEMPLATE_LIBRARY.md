@@ -11,7 +11,7 @@ untouched.
 
 ## Conceptual Model
 
-```
+```text
 DocumentTemplate (master) 1──* DocumentTemplateVersion (immutable binary + canonical text)
                                     └──* DocumentTemplateField (variable definitions)
 
@@ -99,12 +99,13 @@ Organization ──* DocumentRetentionPolicy (per type or org-level)
 
 Templates use `{{ field_key }}` syntax (case-insensitive whitespace).
 
-```
+```text
 Comprador: {{buyer_name}}, DNI: {{buyer_dni}}
 Precio: {{ sale_price }}
 ```
 
 Rendering rules:
+
 - Known fields are substituted from `generation_payload`
 - Unknown tokens are left in place
 - Defaults from `document_template_fields.default_value` applied automatically
