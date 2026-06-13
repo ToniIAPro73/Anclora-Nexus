@@ -32,7 +32,36 @@ class DocumentCategory(str, Enum):
     certificado_comunidad = "certificado_comunidad"
     contrato_compraventa = "contrato_compraventa"
     kyc_cliente = "kyc_cliente"
+    # Deprecated: use DocumentStatus.signed + immutable=true on document_versions instead
     documento_firmado = "documento_firmado"
+
+
+class DocumentOrigin(str, Enum):
+    """Where the document came from."""
+    external = "external"       # uploaded by a user
+    generated = "generated"     # produced from a template
+    template = "template"       # the master template itself
+
+
+class DocumentStatus(str, Enum):
+    """Lifecycle state of a deal document or generated document."""
+    draft = "draft"
+    review_required = "review_required"
+    approved = "approved"
+    signed = "signed"
+    archived = "archived"
+
+
+class TemplateDocumentType(str, Enum):
+    """Canonical document types used in the template library."""
+    arras_penitenciales = "arras_penitenciales"
+    contrato_compraventa = "contrato_compraventa"
+    contrato_temporada = "contrato_temporada"
+    contrato_alquiler_turistico = "contrato_alquiler_turistico"
+    kyc_cliente = "kyc_cliente"
+    mandato_exclusiva = "mandato_exclusiva"
+    oferta_compra = "oferta_compra"
+    generico = "generico"
 
 
 class ComplianceStatus(str, Enum):
@@ -68,6 +97,7 @@ class DocumentUploadRequest(BaseModel):
     folder_id: UUID
     title: str
     document_category: DocumentCategory
+    origin: DocumentOrigin = DocumentOrigin.external
 
 
 class SignatureFlowCreate(BaseModel):
@@ -106,3 +136,105 @@ class DocuSealWebhookPayload(BaseModel):
     signer_email: Optional[str]
     ip_address: Optional[str]
     signing_timestamp: Optional[datetime]
+
+
+# ── Template library models ────────────────────────────────────────────────────
+
+class PartyRole(str, Enum):
+    buyer = "buyer"
+    seller = "seller"
+    agent = "agent"
+    guarantor = "guarantor"
+    co_buyer = "co_buyer"
+    co_seller = "co_seller"
+    notary = "notary"
+
+
+class TemplateStatus(str, Enum):
+    draft = "draft"
+    published = "published"
+    deprecated = "deprecated"
+
+
+class FieldType(str, Enum):
+    text = "text"
+    number = "number"
+    date = "date"
+    amount = "amount"
+    boolean = "boolean"
+    select = "select"
+
+
+class PartyCreate(BaseModel):
+    party_role: PartyRole
+    full_name: str
+    dni_nie_passport: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    nationality: Optional[str] = None
+    is_company: bool = False
+    company_name: Optional[str] = None
+    company_cif: Optional[str] = None
+
+
+class PartyResponse(BaseModel):
+    id: UUID
+    folder_id: UUID
+    org_id: UUID
+    party_role: str
+    full_name: str
+    dni_nie_passport: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    nationality: Optional[str] = None
+    is_company: bool
+    company_name: Optional[str] = None
+    company_cif: Optional[str] = None
+    kyc_verified: bool
+    kyc_verified_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class TemplateCreate(BaseModel):
+    name: str
+    template_document_type: TemplateDocumentType
+    description: Optional[str] = None
+    jurisdiction: str = "España"
+    language: str = "es"
+
+
+class TemplateVersionCreate(BaseModel):
+    change_summary: Optional[str] = None
+
+
+class TemplateFieldCreate(BaseModel):
+    field_key: str
+    label: str
+    field_type: FieldType = FieldType.text
+    required: bool = True
+    default_value: Optional[str] = None
+    validation_rule: Optional[str] = None
+    source_path: Optional[str] = None
+
+
+class GeneratedDocumentCreate(BaseModel):
+    template_version_id: UUID
+    title: str
+    generation_payload: dict[str, Any] = {}
+
+
+class GeneratedDocumentResponse(BaseModel):
+    id: UUID
+    folder_id: UUID
+    org_id: UUID
+    template_version_id: UUID
+    title: str
+    status: str
+    generation_payload: dict[str, Any]
+    storage_path: Optional[str] = None
+    generated_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime

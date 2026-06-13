@@ -18,6 +18,8 @@ from backend.models.dms import (
     DocuSealWebhookPayload,
     DocumentCategory,
     DocumentValidationRequest,
+    PartyCreate,
+    PartyResponse,
     SignatureFlowCreate,
 )
 from backend.services.advanced_document_parser import AdvancedDocumentParser
@@ -432,3 +434,80 @@ async def docuseal_webhook(
                     },
                 )
     return {"ok": True}
+
+
+# ── Parties ───────────────────────────────────────────────────────────────────
+
+@router.post("/folders/{folder_id}/parties", response_model=PartyResponse)
+async def create_party(
+    folder_id: UUID,
+    body: PartyCreate,
+    membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+):
+    folder = _fetch_one("real_estate_deal_folders", org_id, str(folder_id))
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    payload = {
+        "folder_id": str(folder_id),
+        "org_id": org_id,
+        "party_role": body.party_role.value,
+        "full_name": body.full_name,
+        "dni_nie_passport": body.dni_nie_passport,
+        "email": body.email,
+        "phone": body.phone,
+        "address": body.address,
+        "nationality": body.nationality,
+        "is_company": body.is_company,
+        "company_name": body.company_name,
+        "company_cif": body.company_cif,
+    }
+    response = _table("deal_folder_parties").insert(payload).execute()
+    if not response.data:
+        raise HTTPException(status_code=500, detail="Failed to create party")
+    return response.data[0]
+
+
+@router.get("/folders/{folder_id}/parties", response_model=list[PartyResponse])
+async def list_parties(
+    folder_id: UUID,
+    membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+):
+    folder = _fetch_one("real_estate_deal_folders", org_id, str(folder_id))
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    response = (
+        _table("deal_folder_parties")
+        .select("*")
+        .eq("folder_id", str(folder_id))
+        .eq("org_id", org_id)
+        .order("created_at")
+        .execute()
+    )
+    return response.data or []
+
+
+@router.patch("/folders/{folder_id}/parties/{party_id}/kyc")
+async def mark_party_kyc_verified(
+    folder_id: UUID,
+    party_id: UUID,
+    membership: dict = Depends(require_dms_membership),
+    org_id: str = Depends(get_org_id),
+):
+    party = _fetch_one("deal_folder_parties", org_id, str(party_id))
+    if not party or str(party.get("folder_id")) != str(folder_id):
+        raise HTTPException(status_code=404, detail="Party not found")
+
+    from datetime import timezone
+    now = datetime.now(timezone.utc).isoformat()
+    response = (
+        _table("deal_folder_parties")
+        .update({"kyc_verified": True, "kyc_verified_at": now})
+        .eq("id", str(party_id))
+        .eq("org_id", org_id)
+        .execute()
+    )
+    return response.data[0] if response.data else {"ok": True}
