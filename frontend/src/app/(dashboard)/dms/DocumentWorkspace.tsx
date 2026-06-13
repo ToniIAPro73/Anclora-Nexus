@@ -3,7 +3,9 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-const DocViewer = dynamic(() => import("@iamjariwala/react-doc-viewer"), { ssr: false });
+const DocViewer = dynamic(() => import("@iamjariwala/react-doc-viewer"), {
+  ssr: false,
+});
 
 interface DocumentWorkspaceProps {
   documentId: string;
@@ -38,48 +40,60 @@ export function DocumentWorkspace({
 
   return (
     <div
-      className="flex flex-col lg:flex-row gap-5 h-[85vh] w-full rounded-2xl border border-[var(--border-subtle)] p-4 bg-[var(--navy-surface)]"
+      className="flex h-[85vh] w-full flex-col gap-5 rounded-2xl border border-soft-subtle bg-navy-surface p-4 lg:flex-row"
       data-document-id={documentId}
     >
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-xl font-serif text-[var(--white-soft)]">Revision pre-firma</h2>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-serif text-xl text-soft-white">
+            Revision pre-firma
+          </h2>
           {signatureFlowUrl && !showSignPanel && (
             <button
               onClick={() => setShowSignPanel(true)}
-              className="px-6 h-12 bg-gold hover:bg-gold-muted text-navy-deep font-bold rounded-xl"
+              className="h-12 rounded-xl bg-gold px-6 font-bold text-navy-deep hover:bg-gold-muted"
             >
               Iniciar Firma Electronica
             </button>
           )}
         </div>
-        <div className="flex-1 bg-[var(--navy-deep)] rounded-xl overflow-hidden border border-[var(--border-default)]">
+        <div className="flex-1 overflow-hidden rounded-xl border border-border bg-navy-deep">
           <DocViewer
             documents={[{ uri: documentUrl, fileType }]}
-            config={{ header: { disableHeader: true }, pdfZoom: { defaultZoom: 1.0, zoomJump: 0.2 } }}
+            config={{
+              header: { disableHeader: true },
+              pdfZoom: { defaultZoom: 1.0, zoomJump: 0.2 },
+            }}
           />
         </div>
       </div>
 
       {showSignPanel && signatureFlowUrl && (
-        <div className="w-full lg:w-[450px] flex flex-col bg-[var(--navy-deep)] rounded-xl border border-[var(--border-strong)] overflow-hidden">
-          <div className="flex justify-between items-center p-4 border-b border-[var(--border-subtle)]">
-            <span className="font-serif text-[var(--white-soft)] font-bold">Pasarela de Firma</span>
-            <button onClick={() => setShowSignPanel(false)} className="text-sm text-[var(--text-muted)]">
+        <div className="flex w-full flex-col overflow-hidden rounded-xl border border-soft-subtle bg-navy-deep lg:w-112">
+          <div className="flex items-center justify-between border-b border-soft-subtle p-4">
+            <span className="font-serif font-bold text-soft-white">
+              Pasarela de Firma
+            </span>
+            <button
+              onClick={() => setShowSignPanel(false)}
+              className="text-sm text-soft-muted"
+            >
               Cancelar
             </button>
           </div>
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             <iframe
               src={signatureFlowUrl}
-              className="absolute inset-0 w-full h-full border-none"
+              className="absolute inset-0 h-full w-full border-none"
               title="DocuSeal eSignature"
               allow="camera; geolocation"
               onLoad={() => setIsSignReady(true)}
             />
             {!isSignReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[var(--navy-deep)]">
-                <span className="text-[var(--text-muted)] animate-pulse">Cargando pasarela...</span>
+              <div className="absolute inset-0 flex items-center justify-center bg-navy-deep">
+                <span className="animate-pulse text-soft-muted">
+                  Cargando pasarela...
+                </span>
               </div>
             )}
           </div>

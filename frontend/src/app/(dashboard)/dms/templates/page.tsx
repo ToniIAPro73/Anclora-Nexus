@@ -299,7 +299,7 @@ function TranslationMatrix({ templates }: { templates: DocumentTemplate[] }) {
             const label = TEMPLATE_TYPES.find((t) => t.value === type)?.label ?? type
             return (
               <tr key={type}>
-                <td className="p-3 font-medium text-soft-white truncate max-w-[200px]">{label}</td>
+                <td className="max-w-50 truncate p-3 font-medium text-soft-white">{label}</td>
                 {langs.map((lang) => (
                   <td key={lang} className="p-3 text-center">
                     {available.has(lang)
