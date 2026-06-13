@@ -512,7 +512,12 @@ export default function DmsPage() {
 
               {/* Templates */}
               <div className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5">
-                <h2 className="mb-5 font-display text-lg text-soft-white">{t('dmsTemplatesTitle')}</h2>
+                <div className="mb-5 flex items-center justify-between">
+                  <h2 className="font-display text-lg text-soft-white">{t('dmsTemplatesTitle')}</h2>
+                  <Link href="/dms/templates" className="flex items-center gap-1 text-xs text-blue-light hover:text-blue-light/80 transition-colors">
+                    {t('dmsTemplateLibraryLink')} →
+                  </Link>
+                </div>
 
                 <div className="mb-5 grid gap-4">
                   <div className="grid gap-1.5">
