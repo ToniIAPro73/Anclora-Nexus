@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, Download, FilePlus2, RefreshCw, Send, UserPlus } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Download, FilePlus2, RefreshCw, Search, Send, UserPlus, X } from 'lucide-react'
 
 import {
   createDealFolder,
@@ -24,6 +24,7 @@ import {
   type TemplateVersion,
 } from '@/lib/dms-api'
 import { useI18n } from '@/lib/i18n'
+import { useStore, type Lead } from '@/lib/store'
 
 type TemplateRow = DocumentTemplate & { latest_version?: TemplateVersion }
 
@@ -42,14 +43,123 @@ function FieldLabel({ label, required }: { label: string; required?: boolean }) 
       {required ? (
         <span className="text-amber-400" title="Obligatori / Required">*</span>
       ) : (
-        <span className="text-soft-muted/40 font-normal normal-case tracking-normal">(opt)</span>
+        <span className="font-normal normal-case tracking-normal text-soft-muted/40">(opt)</span>
       )}
     </label>
   )
 }
 
+function LeadCombobox({
+  leads,
+  selectedLeadId,
+  onSelect,
+  disabled,
+}: {
+  leads: Lead[]
+  selectedLeadId: string
+  onSelect: (id: string) => void
+  disabled?: boolean
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const selectedLead = leads.find((l) => l.id === selectedLeadId)
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase().trim()
+    if (!q) return leads.slice(0, 20)
+    return leads
+      .filter(
+        (l) =>
+          l.name?.toLowerCase().includes(q) ||
+          l.email?.toLowerCase().includes(q) ||
+          l.budget?.toLowerCase().includes(q),
+      )
+      .slice(0, 20)
+  }, [leads, query])
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [])
+
+  const handleSelect = (lead: Lead) => {
+    onSelect(lead.id)
+    setQuery('')
+    setOpen(false)
+  }
+
+  const handleClear = () => {
+    onSelect('')
+    setQuery('')
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      {selectedLead ? (
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-blue-light/30 bg-blue-light/5 px-3 py-2.5">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-soft-white">{selectedLead.name}</p>
+            <p className="truncate text-xs text-soft-muted">{selectedLead.email || '—'} · {selectedLead.budget || '—'}</p>
+          </div>
+          {!disabled && (
+            <button type="button" onClick={handleClear} aria-label="Deseleccionar" className="shrink-0 text-soft-muted hover:text-soft-white">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-soft-muted/60" />
+          <input
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
+            onFocus={() => setOpen(true)}
+            placeholder="Buscar por nombre, email o presupuesto..."
+            disabled={disabled}
+            className="w-full rounded-xl border border-soft-subtle bg-navy-darker py-2.5 pl-9 pr-3 text-sm text-soft-white placeholder:text-soft-muted/40 disabled:opacity-40 focus:border-blue-light/60 focus:outline-none"
+          />
+        </div>
+      )}
+
+      {open && !selectedLead && (
+        <div className="absolute z-50 mt-1 w-full rounded-xl border border-soft-subtle bg-navy-deep shadow-xl">
+          {filtered.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-soft-muted">Sin resultados</p>
+          ) : (
+            <ul className="max-h-56 overflow-y-auto py-1">
+              {filtered.map((lead) => (
+                <li key={lead.id}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(lead)}
+                    className="w-full px-4 py-2.5 text-left hover:bg-navy-surface/60"
+                  >
+                    <p className="text-sm font-semibold text-soft-white">{lead.name}</p>
+                    <p className="text-xs text-soft-muted">
+                      {lead.email || '—'} · {lead.budget || '—'} · <span className="capitalize">{lead.status}</span>
+                    </p>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function DmsPage() {
   const { t } = useI18n()
+  const leads = useStore((state) => state.leads)
+  const initialize = useStore((state) => state.initialize)
+
+  useEffect(() => { void initialize() }, [initialize])
 
   const OPERATION_LABELS: Record<OperationType, string> = useMemo(() => ({
     compraventa: t('dmsOpCompraventa'),
@@ -74,6 +184,15 @@ export default function DmsPage() {
     signed: t('dmsStatusSigned'),
     pending: t('dmsStatusPending'),
   }), [t])
+
+  // Active leads (exclude closed) — sorted by priority then name
+  const activeLeads = useMemo(
+    () =>
+      leads
+        .filter((l) => l.status !== 'closed')
+        .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0) || (a.name ?? '').localeCompare(b.name ?? '')),
+    [leads],
+  )
 
   const [folders, setFolders] = useState<DealFolder[]>([])
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
@@ -262,19 +381,18 @@ export default function DmsPage() {
 
               <div className="grid gap-1.5">
                 <FieldLabel label={t('dmsClientLeadIdLabel')} required />
-                <input
-                  value={clientLeadId}
-                  onChange={(event) => setClientLeadId(event.target.value)}
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                  className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2.5 text-sm text-soft-white placeholder:text-soft-muted/40 focus:border-blue-light/60 focus:outline-none"
+                <LeadCombobox
+                  leads={activeLeads}
+                  selectedLeadId={clientLeadId}
+                  onSelect={setClientLeadId}
                 />
               </div>
 
               <button
                 type="button"
                 onClick={() => void handleCreateFolder()}
-                disabled={busy === 'create-folder'}
-                className="btn-action justify-center py-2.5"
+                disabled={busy === 'create-folder' || !clientLeadId}
+                className="btn-action justify-center py-2.5 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <FilePlus2 className="h-4 w-4" />
                 {t('dmsCreateFolderBtn')}
@@ -282,19 +400,22 @@ export default function DmsPage() {
             </div>
 
             <div className="space-y-2">
-              {folders.map((folder) => (
-                <button
-                  key={folder.id}
-                  type="button"
-                  onClick={() => setSelectedFolderId(folder.id)}
-                  className={`w-full rounded-xl border px-4 py-3 text-left transition-all ${folder.id === selectedFolderId ? 'border-gold/40 bg-gold/10 text-gold' : 'border-soft-subtle bg-navy-darker/30 text-soft-white hover:border-blue-light/30'}`}
-                >
-                  <p className="text-sm font-semibold">{OPERATION_LABELS[folder.operation_type as OperationType] ?? folder.operation_type}</p>
-                  <p className="mt-0.5 text-xs text-soft-muted">
-                    {folder.client_lead_id?.slice(0, 8) ?? folder.seller_id?.slice(0, 8) ?? '—'} · #{folder.id.slice(0, 8)}
-                  </p>
-                </button>
-              ))}
+              {folders.map((folder) => {
+                const lead = leads.find((l) => l.id === folder.client_lead_id)
+                return (
+                  <button
+                    key={folder.id}
+                    type="button"
+                    onClick={() => setSelectedFolderId(folder.id)}
+                    className={`w-full rounded-xl border px-4 py-3 text-left transition-all ${folder.id === selectedFolderId ? 'border-gold/40 bg-gold/10 text-gold' : 'border-soft-subtle bg-navy-darker/30 text-soft-white hover:border-blue-light/30'}`}
+                  >
+                    <p className="text-sm font-semibold">{OPERATION_LABELS[folder.operation_type as OperationType] ?? folder.operation_type}</p>
+                    <p className="mt-0.5 text-xs text-soft-muted">
+                      {lead ? lead.name : (folder.client_lead_id?.slice(0, 8) ?? '—')} · #{folder.id.slice(0, 8)}
+                    </p>
+                  </button>
+                )
+              })}
               {!loading && folders.length === 0 && (
                 <p className="py-4 text-center text-sm text-soft-muted">{t('dmsNoFolders')}</p>
               )}
