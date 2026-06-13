@@ -57,10 +57,16 @@ class TemplateDocumentType(str, Enum):
     arras_penitenciales = "arras_penitenciales"
     contrato_compraventa = "contrato_compraventa"
     contrato_temporada = "contrato_temporada"
+    contrato_arrendamiento = "contrato_arrendamiento"
     contrato_alquiler_turistico = "contrato_alquiler_turistico"
     kyc_cliente = "kyc_cliente"
     mandato_exclusiva = "mandato_exclusiva"
     oferta_compra = "oferta_compra"
+    nota_encargo = "nota_encargo"
+    reserva = "reserva"
+    recibo_fianza = "recibo_fianza"
+    acta_entrega_llaves = "acta_entrega_llaves"
+    acuerdo_confidencialidad = "acuerdo_confidencialidad"
     generico = "generico"
 
 
