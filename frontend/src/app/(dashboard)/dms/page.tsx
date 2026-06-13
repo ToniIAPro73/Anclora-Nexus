@@ -177,6 +177,12 @@ export default function DmsPage() {
     notary: t('dmsRoleNotary'),
   }), [t])
 
+  const ROLES_BY_OPERATION: Record<OperationType, PartyRole[]> = {
+    compraventa: ['buyer', 'co_buyer', 'seller', 'co_seller', 'agent', 'guarantor', 'notary'],
+    alquiler_temporada: ['buyer', 'co_buyer', 'seller', 'agent', 'guarantor'],
+    alquiler_turistico: ['buyer', 'seller', 'agent'],
+  }
+
   const STATUS_LABELS: Record<string, string> = useMemo(() => ({
     approved: t('dmsStatusApproved'),
     rejected: t('dmsStatusRejected'),
@@ -430,7 +436,8 @@ export default function DmsPage() {
 
               {/* Parties */}
               <div className="rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5">
-                <h2 className="mb-5 font-display text-lg text-soft-white">{t('dmsPartiesTitle')}</h2>
+                <h2 className="mb-1 font-display text-lg text-soft-white">{t('dmsPartiesTitle')}</h2>
+                <p className="mb-5 text-xs text-soft-muted">{t('dmsPartiesHelperText')}</p>
 
                 <div className="mb-5 grid gap-4">
                   <div className="grid gap-1.5">
@@ -441,8 +448,8 @@ export default function DmsPage() {
                       disabled={!selectedFolder}
                       className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2.5 text-sm text-soft-white disabled:opacity-40 focus:border-blue-light/60 focus:outline-none"
                     >
-                      {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>{label}</option>
+                      {(ROLES_BY_OPERATION[selectedFolder?.operation_type as OperationType ?? operationType] ?? Object.keys(ROLE_LABELS) as PartyRole[]).map((role) => (
+                        <option key={role} value={role}>{ROLE_LABELS[role]}</option>
                       ))}
                     </select>
                   </div>
@@ -556,7 +563,12 @@ export default function DmsPage() {
                     </article>
                   ))}
                   {selectedFolder && templates.length === 0 && (
-                    <p className="py-3 text-sm text-soft-muted">{t('dmsNoTemplates')}</p>
+                    <div className="rounded-xl border border-soft-subtle bg-navy-darker/30 px-4 py-4">
+                      <p className="text-sm text-soft-muted">{t('dmsNoTemplatesHint')}</p>
+                      <Link href="/dms/templates" className="mt-2 inline-block text-xs text-blue-light hover:text-blue-light/80 underline underline-offset-2">
+                        {t('dmsTemplateLibraryLink')} →
+                      </Link>
+                    </div>
                   )}
                 </div>
               </div>
