@@ -55,10 +55,11 @@ El cliente declara que los datos anteriores son verídicos y completos, que los 
 
 ## Firma
 
-| Parte | Nombre | Firma | Fecha |
-|-------|--------|-------|-------|
-| Cliente | {{ buyer.fullname }} | _____________ | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | _____________ | {{ document.generated_at }} |
+| Parte          | Nombre               | Firma          | Fecha                       |
+| -------------- | -------------------- | -------------- | --------------------------- |
+| Cliente        | {{ buyer.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.fullname }} | ******\_****** | {{ document.generated_at }} |
 
 ---
-*Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
+
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal

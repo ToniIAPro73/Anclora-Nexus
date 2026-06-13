@@ -43,10 +43,11 @@ Fianza depositada: Sí / No — Referencia: {{ tenancy.deposit_official_ref }}
 
 ## Firma
 
-| Parte | Nombre | Firma | Fecha |
-|-------|--------|-------|-------|
-| Arrendador (recibe) | {{ landlord.fullname }} | _____________ | {{ document.generated_at }} |
-| Arrendatario (entrega) | {{ tenant.fullname }} | _____________ | {{ document.generated_at }} |
+| Parte                  | Nombre                  | Firma          | Fecha                       |
+| ---------------------- | ----------------------- | -------------- | --------------------------- |
+| Arrendador (recibe)    | {{ landlord.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Arrendatario (entrega) | {{ tenant.fullname }}   | ******\_****** | {{ document.generated_at }} |
 
 ---
-*Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
+
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal

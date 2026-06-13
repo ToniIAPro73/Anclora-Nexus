@@ -21,11 +21,11 @@ storage_path: templates/es/tpl-contrato-reserva-senal.es.md
 
 ## 1. Partes
 
-| Rol | Nombre | Identificación | Email |
-|-----|--------|---------------|-------|
-| Comprador | {{ buyer.fullname }} | {{ buyer.id_document }} | {{ buyer.email }} |
-| Vendedor | {{ seller.fullname }} | {{ seller.id_document }} | {{ seller.email }} |
-| Agente | {{ agent.fullname }} | — | {{ agent.email }} |
+| Rol       | Nombre                | Identificación           | Email              |
+| --------- | --------------------- | ------------------------ | ------------------ |
+| Comprador | {{ buyer.fullname }}  | {{ buyer.id_document }}  | {{ buyer.email }}  |
+| Vendedor  | {{ seller.fullname }} | {{ seller.id_document }} | {{ seller.email }} |
+| Agente    | {{ agent.fullname }}  | —                        | {{ agent.email }}  |
 
 ## 2. Inmueble Reservado
 
@@ -54,11 +54,12 @@ Juzgados y Tribunales de Palma de Mallorca.
 
 ## Firmas
 
-| Parte | Nombre | Firma | Fecha |
-|-------|--------|-------|-------|
-| Comprador | {{ buyer.fullname }} | _____________ | {{ document.generated_at }} |
-| Vendedor | {{ seller.fullname }} | _____________ | {{ document.generated_at }} |
-| Agente Anclora | {{ agent.fullname }} | _____________ | {{ document.generated_at }} |
+| Parte          | Nombre                | Firma          | Fecha                       |
+| -------------- | --------------------- | -------------- | --------------------------- |
+| Comprador      | {{ buyer.fullname }}  | ******\_****** | {{ document.generated_at }} |
+| Vendedor       | {{ seller.fullname }} | ******\_****** | {{ document.generated_at }} |
+| Agente Anclora | {{ agent.fullname }}  | ******\_****** | {{ document.generated_at }} |
 
 ---
-*Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal*
+
+Documento generado por Anclora Nexus DMS · Anclora Private Estates · ES-IB · Pendiente de revisión legal

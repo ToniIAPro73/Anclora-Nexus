@@ -28,9 +28,11 @@ backend/seeds/
 
 1. **Subir los `.md`** al storage privado de Nexus en la ruta `templates/es/`
 2. **Ejecutar el seed SQL** en Supabase:
+
    ```sql
    \i backend/seeds/document_templates_seed.sql
    ```
+
 3. **Estado inicial:** todos los registros quedan en `legal_review_status = 'pending'`
 4. **No publicar** ninguna plantilla sin revisión jurídica humana + validación de Advisor AI
 5. **Publicar** via Biblioteca de plantillas en Nexus → botón "Publicar" → cambia estado a `published`
@@ -40,18 +42,18 @@ backend/seeds/
 
 Todas las plantillas usan `{{ variable }}` resueltas automáticamente desde el expediente:
 
-| Prefijo | Fuente CRM |
-|---------|------------|
-| `buyer.*` | `leads` (rol comprador) |
-| `seller.*` | `nexus_sellers` |
+| Prefijo                   | Fuente CRM                           |
+| ------------------------- | ------------------------------------ |
+| `buyer.*`                 | `leads` (rol comprador)              |
+| `seller.*`                | `nexus_sellers`                      |
 | `tenant.*` / `landlord.*` | `leads` / `nexus_sellers` (alquiler) |
-| `guest.*` | `leads` (ETV) |
-| `property.*` | `properties` |
-| `deal.*` | `realestatedealfolders` |
-| `agent.*` | `profiles` (agente responsable) |
-| `organization.*` | `organizations` |
-| `tenancy.*` | `dealfolderparties` + overrides |
-| `booking.*` | overrides ETV |
+| `guest.*`                 | `leads` (ETV)                        |
+| `property.*`              | `properties`                         |
+| `deal.*`                  | `realestatedealfolders`              |
+| `agent.*`                 | `profiles` (agente responsable)      |
+| `organization.*`          | `organizations`                      |
+| `tenancy.*`               | `dealfolderparties` + overrides      |
+| `booking.*`               | overrides ETV                        |
 
 ## Legislación de referencia
 
