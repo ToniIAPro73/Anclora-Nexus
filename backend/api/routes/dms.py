@@ -81,6 +81,24 @@ def _fetch_org(org_id: str) -> dict[str, Any]:
     return resp.data[0] if resp.data else {"id": org_id}
 
 
+def _fetch_agent_context(user_id: str, org_id: str) -> dict[str, Any]:
+    """Fetch the logged-in user's profile to use as agent context in template rendering."""
+    try:
+        resp = (
+            supabase_service.client.table("user_profiles")
+            .select("id, email, full_name, job_title")
+            .eq("id", user_id)
+            .eq("org_id", org_id)
+            .limit(1)
+            .execute()
+        )
+        if resp.data:
+            return resp.data[0]
+    except Exception:
+        pass
+    return {"id": user_id}
+
+
 def _fetch_one(table: str, org_id: str, record_id: str, columns: str = "*") -> Optional[dict[str, Any]]:
     response = (
         _table(table)
@@ -1247,14 +1265,15 @@ async def generate_document_from_template(
         parties=parties,
         property_row=property_row,
         organization=organization,
-        agent={"id": str(current_user.id)},
+        agent=_fetch_agent_context(str(current_user.id), org_id),
     )
     fields = fetch_template_required_fields(str(template_version["id"]), org_id)
+    vault = folder.get("field_vault") or {}
     rendered = resolve_and_render_template(
         canonical_text=template_version.get("canonical_text") or "",
         template_fields=fields,
         context=context,
-        overrides=body.generation_payload,
+        overrides={**vault, **(body.generation_payload or {})},
     )
     if not rendered.is_complete:
         raise HTTPException(
@@ -1787,10 +1806,12 @@ async def preview_missing_fields(
         parties=parties,
         property_row=property_row,
         organization=organization,
-        agent={"id": str(current_user.id)},
+        agent=_fetch_agent_context(str(current_user.id), org_id),
     )
     canonical_text = template_version.get("canonical_text") or ""
-    missing = compute_missing_fields(canonical_text, ctx, overrides=body.get("overrides", {}))
+    vault = folder.get("field_vault") or {}
+    overrides = {**vault, **body.get("overrides", {})}
+    missing = compute_missing_fields(canonical_text, ctx, overrides=overrides)
     return {
         "template_version_id": str(template_version_id),
         "missing_fields": missing,
