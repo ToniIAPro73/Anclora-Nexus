@@ -577,3 +577,19 @@ export async function getDossierExport(
 ): Promise<Record<string, unknown>> {
   return apiRequest(`/api/dms/folders/${folderId}/exports/${exportId}`)
 }
+
+export async function getFolderFieldVault(
+  folderId: string,
+): Promise<Record<string, string>> {
+  return apiRequest(`/api/dms/folders/${folderId}/field-vault`)
+}
+
+export async function putFolderFieldVault(
+  folderId: string,
+  values: Record<string, string>,
+): Promise<Record<string, string>> {
+  return apiRequest(`/api/dms/folders/${folderId}/field-vault`, {
+    method: 'PUT',
+    body: JSON.stringify(values),
+  })
+}
