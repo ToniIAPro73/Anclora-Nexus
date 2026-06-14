@@ -182,26 +182,38 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
                       No hay plantillas disponibles para este expediente.
                     </p>
                   ) : (
-                    templates.map((tpl) => (
+                    templates.map((tpl) => {
+                      const hasVersion = Boolean(tpl.latest_version?.id);
+                      const isSelected = selectedTemplateId === tpl.id;
+                      return (
                       <button
                         key={tpl.id}
-                        onClick={() => setSelectedTemplateId(tpl.id)}
-                        className={`w-full flex items-start gap-3 rounded-lg p-3 text-left transition ${
-                          selectedTemplateId === tpl.id
-                            ? "bg-gold-light/10 border border-gold-light/30"
-                            : "border border-transparent hover:bg-surface-elevated"
-                        } ${!tpl.has_usable_version && !tpl.latest_version?.id ? "opacity-40 pointer-events-none" : ""}`}
+                        onClick={() => hasVersion && setSelectedTemplateId(tpl.id)}
+                        disabled={!hasVersion}
+                        title={!hasVersion ? "Esta plantilla no tiene una versión disponible" : undefined}
+                        className={`w-full flex items-start gap-3 rounded-lg border p-3 text-left transition ${
+                          isSelected
+                            ? "border-gold-light/60 bg-gold-light/15"
+                            : "border-border-subtle bg-surface-elevated/70 hover:border-gold-light/30 hover:bg-surface-elevated"
+                        } ${!hasVersion ? "cursor-not-allowed border-border-subtle/60 bg-surface-base/70" : ""}`}
                       >
-                        <FileText className={`mt-0.5 h-4 w-4 shrink-0 ${selectedTemplateId === tpl.id ? "text-gold-light" : "text-soft-subtle"}`} />
+                        <FileText className={`mt-0.5 h-4 w-4 shrink-0 ${isSelected ? "text-gold-light" : "text-soft-muted"}`} />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-soft-white truncate">{tpl.name}</p>
+                          <p className={`truncate text-sm font-semibold ${hasVersion ? "text-soft-white" : "text-soft-muted"}`}>
+                            {tpl.name}
+                          </p>
                           <p className="text-xs text-soft-muted">{tpl.template_document_type ?? ""}</p>
+                          {!hasVersion && (
+                            <p className="mt-1 text-[10px] font-medium text-amber-300">
+                              Sin versión disponible
+                            </p>
+                          )}
                         </div>
-                        {selectedTemplateId === tpl.id && (
+                        {isSelected && (
                           <CheckCircle className="ml-auto h-4 w-4 shrink-0 text-gold-light" />
                         )}
                       </button>
-                    ))
+                    )})
                   )}
                 </div>
               </div>
