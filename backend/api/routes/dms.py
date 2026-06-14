@@ -299,9 +299,8 @@ def _fetch_latest_template_version(template_version_id: UUID | str, org_id: str)
     version = _fetch_one("document_template_versions", org_id, str(template_version_id))
     if not version:
         raise HTTPException(status_code=404, detail="Template version not found")
-    status_value = version.get("status")
-    if status_value and status_value != "published":
-        raise HTTPException(status_code=409, detail="Template version is not published")
+    if version.get("status") == "deprecated":
+        raise HTTPException(status_code=409, detail="Template version is deprecated")
     return version
 
 
