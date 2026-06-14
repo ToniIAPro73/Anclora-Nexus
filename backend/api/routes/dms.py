@@ -75,6 +75,12 @@ def _table(name: str):
     return supabase_service.client.table(name)
 
 
+def _fetch_org(org_id: str) -> dict[str, Any]:
+    """Fetch the organization row by id. organizations has no org_id column."""
+    resp = _table("organizations").select("*").eq("id", org_id).limit(1).execute()
+    return resp.data[0] if resp.data else {"id": org_id}
+
+
 def _fetch_one(table: str, org_id: str, record_id: str, columns: str = "*") -> Optional[dict[str, Any]]:
     response = (
         _table(table)
@@ -1203,7 +1209,7 @@ async def generate_document_from_template(
         raise HTTPException(status_code=404, detail="Template not found")
 
     property_row = _fetch_one("properties", org_id, str(folder["property_id"])) if folder.get("property_id") else None
-    organization = _fetch_one("organizations", org_id, org_id) or {"id": org_id}
+    organization = _fetch_org(org_id)
     context = build_template_context(
         folder=folder,
         parties=parties,
@@ -1741,7 +1747,7 @@ async def preview_missing_fields(
     prerequisite_issues = _generation_prerequisite_issues(folder, parties)
     template_version = _fetch_latest_template_version(UUID(str(template_version_id)), org_id)
     property_row = _fetch_one("properties", org_id, str(folder["property_id"])) if folder.get("property_id") else None
-    organization = _fetch_one("organizations", org_id, org_id) or {"id": org_id}
+    organization = _fetch_org(org_id)
 
     from backend.services.document_template_rendering_service import build_template_context
     ctx = build_template_context(
