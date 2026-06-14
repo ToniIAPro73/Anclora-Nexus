@@ -231,7 +231,6 @@ export function GenerateDocumentWizard({
     prerequisiteIssues.primary_client_required || missingRoles.length,
   );
   const canGenerate =
-    !previewBlocked &&
     !hasPrerequisiteIssues &&
     (missingFields.length === 0 || allFieldsFilled);
 
@@ -394,16 +393,29 @@ export function GenerateDocumentWizard({
                   </div>
                 </div>
               ) : missingFields.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 py-4 text-center">
-                  <CheckCircle className="h-8 w-8 text-green-400" />
-                  <p className="text-sm font-medium text-zinc-100">
-                    Todos los datos están disponibles
-                  </p>
-                  <p className="text-xs text-zinc-400">
-                    El sistema puede generar el documento con los datos del
-                    expediente.
-                  </p>
-                </div>
+                previewBlocked ? (
+                  <div className="flex flex-col items-center gap-2 py-4 text-center">
+                    <AlertTriangle className="h-8 w-8 text-yellow-400" />
+                    <p className="text-sm font-medium text-zinc-100">
+                      No se pudo verificar la plantilla
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      Puedes intentar generar igualmente; el servidor validará
+                      los datos en el momento de la generación.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 py-4 text-center">
+                    <CheckCircle className="h-8 w-8 text-green-400" />
+                    <p className="text-sm font-medium text-zinc-100">
+                      Todos los datos están disponibles
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      El sistema puede generar el documento con los datos del
+                      expediente.
+                    </p>
+                  </div>
+                )
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-start gap-2 rounded-xl border border-yellow-400/20 bg-yellow-400/5 p-3">
@@ -437,7 +449,7 @@ export function GenerateDocumentWizard({
                 </div>
               )}
 
-              {error && (
+              {error && !previewBlocked && (
                 <p className="rounded-lg border border-red-400/20 bg-red-400/5 px-3 py-2 text-xs text-red-400">
                   {error}
                 </p>
