@@ -247,7 +247,6 @@ export function FolderFieldVaultDrawer({
 
       {/* Modal */}
       <div className="relative flex h-[90vh] w-full max-w-4xl flex-col rounded-2xl border border-white/10 bg-[#050a18] shadow-2xl shadow-black/70">
-
         {/* Header */}
         <div className="flex items-start justify-between border-b border-white/10 px-8 py-5">
           <div className="flex items-center gap-4">
@@ -256,19 +255,27 @@ export function FolderFieldVaultDrawer({
             </div>
             <div>
               <h2 className="text-base font-semibold text-zinc-100">
-                {primaryPartyName ?? (
-                  lang === "en" ? "File data"
-                  : lang === "de" ? "Aktendaten"
-                  : lang === "ca" ? "Dades de l'expedient"
-                  : "Datos del expediente"
-                )}
+                {primaryPartyName ??
+                  (lang === "en"
+                    ? "File data"
+                    : lang === "de"
+                      ? "Aktendaten"
+                      : lang === "ca"
+                        ? "Dades de l'expedient"
+                        : "Datos del expediente")}
               </h2>
               <p className="mt-0.5 text-xs text-zinc-500">
                 {operationLabel ?? ""}
                 {operationLabel && totalFields > 0 && " · "}
                 {totalFilled > 0
                   ? `${totalFilled} / ${totalFields} ${lang === "en" ? "fields filled" : lang === "de" ? "Felder ausgefüllt" : lang === "ca" ? "camps emplenats" : "campos rellenos"}`
-                  : lang === "en" ? `${totalFields} fields available` : lang === "de" ? `${totalFields} Felder verfügbar` : lang === "ca" ? `${totalFields} camps disponibles` : `${totalFields} campos disponibles`}
+                  : lang === "en"
+                    ? `${totalFields} fields available`
+                    : lang === "de"
+                      ? `${totalFields} Felder verfügbar`
+                      : lang === "ca"
+                        ? `${totalFields} camps disponibles`
+                        : `${totalFields} campos disponibles`}
               </p>
             </div>
           </div>
@@ -326,12 +333,12 @@ export function FolderFieldVaultDrawer({
                 return (
                   <div
                     key={ns}
-                    className="rounded-xl border border-white/8 bg-white/[0.025] overflow-hidden"
+                    className="rounded-xl border border-white/8 bg-white/2.5 overflow-hidden"
                   >
                     {/* Section header */}
                     <button
                       onClick={() => toggleSection(ns)}
-                      className="flex w-full items-center justify-between px-5 py-3.5 text-left transition hover:bg-white/[0.03]"
+                      className="flex w-full items-center justify-between px-5 py-3.5 text-left transition hover:bg-white/3"
                     >
                       <div className="flex items-center gap-2.5">
                         {isOpen ? (
