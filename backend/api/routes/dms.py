@@ -203,13 +203,49 @@ def _required_roles_for_operation(operation_type: str) -> set[str]:
     return {"buyer"}
 
 
-def _assert_generation_prerequisites(folder: dict[str, Any], parties: list[dict[str, Any]]) -> None:
+def _template_types_for_operation(operation_type: str) -> set[str]:
+    """Return document families that should be generated from a deal folder."""
+    by_operation: dict[str, set[str]] = {
+        "compraventa": {
+            "arras_penitenciales",
+            "contrato_compraventa",
+            "oferta_compra",
+            "contrato_reserva_senal",
+        },
+        "alquiler_temporada": {
+            "contrato_temporada",
+            "recibo_fianza",
+            "acta_entrega_llaves",
+            "inventario_estado_inmueble",
+        },
+        "alquiler_turistico": {
+            "contrato_alquiler_turistico",
+            "recibo_fianza",
+            "acta_entrega_llaves",
+            "inventario_estado_inmueble",
+        },
+    }
+    return by_operation.get(operation_type, set())
+
+
+def _generation_prerequisite_issues(
+    folder: dict[str, Any],
+    parties: list[dict[str, Any]],
+) -> dict[str, Any]:
+    issues: dict[str, Any] = {}
     if not folder.get("client_lead_id") and not folder.get("seller_id") and not _primary_party(parties):
-        raise HTTPException(status_code=422, detail="A primary client is required before generating documents")
+        issues["primary_client_required"] = True
     roles = {party.get("party_role") for party in parties}
     missing = sorted(_required_roles_for_operation(str(folder.get("operation_type"))) - roles)
     if missing:
-        raise HTTPException(status_code=422, detail={"missing_party_roles": missing})
+        issues["missing_party_roles"] = missing
+    return issues
+
+
+def _assert_generation_prerequisites(folder: dict[str, Any], parties: list[dict[str, Any]]) -> None:
+    issues = _generation_prerequisite_issues(folder, parties)
+    if issues:
+        raise HTTPException(status_code=422, detail=issues)
 
 
 def _ensure_party_links_belong_to_org(body: PartyCreate | PartyUpdate, org_id: str) -> None:
@@ -994,9 +1030,10 @@ async def list_available_templates(
     legal validation and signing gates happen after generation.
     """
     folder = _require_folder(folder_id, org_id, "id,org_id,operation_type,language,jurisdiction")
-    operation = folder.get("operation_type", "general")
+    operation = str(folder.get("operation_type") or "general")
     folder_lang = language or folder.get("language") or "es"
     jurisdiction = folder.get("jurisdiction") or "ES-IB"
+    allowed_template_types = _template_types_for_operation(operation)
 
     # Fetch all active templates accessible to this org (system + org-owned).
     templates = (
@@ -1012,7 +1049,9 @@ async def list_available_templates(
         if t.get("org_id") == org_id or t.get("system_template") is True or t.get("is_global") is True
     ]
 
-    # Legacy type → operation mapping for templates created before migration 003
+    # Legacy type → operation mapping for templates created before migration 003.
+    # Folder-scoped generation intentionally uses a stricter family allowlist
+    # above so global/compliance templates do not flood transactional folders.
     _legacy_op_map: dict[str, set[str]] = {
         "arras_penitenciales": {"compraventa"},
         "contrato_compraventa": {"compraventa"},
@@ -1037,12 +1076,18 @@ async def list_available_templates(
     language_fallback_chain = [folder_lang]
     if folder_lang != "es":
         language_fallback_chain.append("es")
+    allowed_languages = set(language_fallback_chain)
 
     rows: list[dict[str, Any]] = []
     for template in templates:
         # ── Operation type filter ────────────────────────────────────────────────
         tpl_ops: list[str] = template.get("operation_types") or []
         tpl_type = template.get("template_document_type", "")
+        if allowed_template_types and tpl_type not in allowed_template_types:
+            continue
+        tpl_language = template.get("language")
+        if tpl_language and tpl_language not in allowed_languages:
+            continue
         if tpl_ops:
             if operation not in tpl_ops and "general" not in tpl_ops:
                 continue
@@ -1696,6 +1741,7 @@ async def preview_missing_fields(
 
     folder = _require_folder(folder_id, org_id)
     parties = _list_folder_parties(folder_id, org_id)
+    prerequisite_issues = _generation_prerequisite_issues(folder, parties)
     template_version = _fetch_latest_template_version(UUID(str(template_version_id)), org_id)
     property_row = _fetch_one("properties", org_id, str(folder["property_id"])) if folder.get("property_id") else None
     organization = _fetch_one("organizations", org_id, org_id) or {"id": org_id}
@@ -1713,6 +1759,7 @@ async def preview_missing_fields(
     return {
         "template_version_id": str(template_version_id),
         "missing_fields": missing,
-        "is_complete": len(missing) == 0,
+        "prerequisite_issues": prerequisite_issues,
+        "is_complete": len(missing) == 0 and not prerequisite_issues,
         "total_placeholders": len(missing),
     }
