@@ -28,7 +28,11 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
     const detail = error.detail
     const message = Array.isArray(detail)
       ? detail.map((d: { loc?: unknown[]; msg?: string }) => [d.loc?.join('.'), d.msg].filter(Boolean).join(': ')).join('; ')
-      : typeof detail === 'string' ? detail : `DMS API error: ${res.status}`
+      : typeof detail === 'string'
+        ? detail
+        : detail && typeof detail === 'object'
+          ? JSON.stringify(detail)
+          : `DMS API error: ${res.status}`
     throw new Error(message)
   }
   if (res.status === 204) return undefined as T
@@ -45,6 +49,7 @@ export interface DealFolder {
   property_id?: string | null
   client_lead_id?: string | null
   seller_id?: string | null
+  language?: string | null
   folder_status: string
   created_at?: string
 }
@@ -385,8 +390,12 @@ export interface GeneratedDocumentEnvelope {
   download_urls?: { docx: string; pdf: string }
 }
 
-export async function listAvailableTemplates(folderId: string): Promise<Array<DocumentTemplate & { latest_version?: TemplateVersion }>> {
-  return apiRequest(`/api/dms/folders/${folderId}/available-templates`)
+export async function listAvailableTemplates(
+  folderId: string,
+  params?: { language?: string },
+): Promise<Array<DocumentTemplate & { latest_version?: TemplateVersion | null }>> {
+  const qs = params?.language ? `?${new URLSearchParams({ language: params.language }).toString()}` : ''
+  return apiRequest(`/api/dms/folders/${folderId}/available-templates${qs}`)
 }
 
 export async function generateDocument(folderId: string, payload: {
@@ -525,7 +534,15 @@ export async function listGeneratedDocumentVersions(
 export async function previewMissingFields(
   folderId: string,
   payload: { template_version_id: string; overrides?: Record<string, string> },
-): Promise<{ missing_fields: string[]; is_complete: boolean; total_placeholders: number }> {
+): Promise<{
+  missing_fields: string[]
+  prerequisite_issues?: {
+    primary_client_required?: boolean
+    missing_party_roles?: string[]
+  }
+  is_complete: boolean
+  total_placeholders: number
+}> {
   return apiRequest(`/api/dms/folders/${folderId}/preview-missing-fields`, {
     method: 'POST',
     body: JSON.stringify(payload),

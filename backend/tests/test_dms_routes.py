@@ -55,6 +55,10 @@ class QueryBuilder:
         self.filters.append((key, str(value)))
         return self
 
+    def in_(self, key, values):
+        self.filters.append((key, {str(value) for value in values}))
+        return self
+
     def order(self, *_args, **_kwargs):
         return self
 
@@ -68,7 +72,10 @@ class QueryBuilder:
 
         matched = [
             row for row in self.rows
-            if all(str(row.get(key)) == value for key, value in self.filters)
+            if all(
+                str(row.get(key)) in value if isinstance(value, set) else str(row.get(key)) == value
+                for key, value in self.filters
+            )
         ]
         if self.delete_mode:
             for row in list(matched):
@@ -458,6 +465,114 @@ def test_generate_document_requires_operation_parties(monkeypatch) -> None:
 
     assert response.status_code == 422
     assert "missing_party_roles" in response.json()["detail"]
+
+
+def test_available_templates_filter_by_operation_and_language(monkeypatch) -> None:
+    stub = install_stub(monkeypatch, SupabaseClientStub())
+    folder_id = add_folder(stub)
+    allowed_template_id = str(uuid4())
+    nda_template_id = str(uuid4())
+    english_template_id = str(uuid4())
+
+    stub.tables["document_templates"].extend([
+        {
+            "id": allowed_template_id,
+            "org_id": ORG_ID,
+            "name": "Arras ES",
+            "template_document_type": "arras_penitenciales",
+            "language": "es",
+            "jurisdiction": "ES-IB",
+            "status": "published",
+        },
+        {
+            "id": nda_template_id,
+            "org_id": ORG_ID,
+            "name": "NDA ES",
+            "template_document_type": "acuerdo_confidencialidad",
+            "language": "es",
+            "jurisdiction": "ES-IB",
+            "status": "published",
+        },
+        {
+            "id": english_template_id,
+            "org_id": ORG_ID,
+            "name": "Arras EN",
+            "template_document_type": "arras_penitenciales",
+            "language": "en",
+            "jurisdiction": "ES-IB",
+            "status": "published",
+        },
+    ])
+    stub.tables["document_template_versions"].extend([
+        {
+            "id": str(uuid4()),
+            "org_id": ORG_ID,
+            "template_id": allowed_template_id,
+            "version_number": 1,
+            "status": "published",
+            "language": "es",
+            "canonical_text": "Arras {{ buyer.full_name }}",
+        },
+        {
+            "id": str(uuid4()),
+            "org_id": ORG_ID,
+            "template_id": nda_template_id,
+            "version_number": 1,
+            "status": "published",
+            "language": "es",
+            "canonical_text": "NDA",
+        },
+        {
+            "id": str(uuid4()),
+            "org_id": ORG_ID,
+            "template_id": english_template_id,
+            "version_number": 1,
+            "status": "published",
+            "language": "en",
+            "canonical_text": "Earnest money",
+        },
+    ])
+
+    response = client.get(f"/api/dms/folders/{folder_id}/available-templates?language=es")
+
+    assert response.status_code == 200
+    rows = response.json()
+    assert [row["name"] for row in rows] == ["Arras ES"]
+    assert rows[0]["latest_version"]["language"] == "es"
+
+
+def test_preview_missing_fields_reports_generation_prerequisites(monkeypatch) -> None:
+    stub = install_stub(monkeypatch, SupabaseClientStub())
+    folder_id = add_folder(stub)
+    stub.tables["real_estate_deal_folders"][0]["client_lead_id"] = str(uuid4())
+    template_id = str(uuid4())
+    version_id = str(uuid4())
+    stub.tables["document_templates"].append({
+        "id": template_id,
+        "org_id": ORG_ID,
+        "name": "Contrato",
+        "template_document_type": "contrato_compraventa",
+        "status": "published",
+    })
+    stub.tables["document_template_versions"].append({
+        "id": version_id,
+        "org_id": ORG_ID,
+        "template_id": template_id,
+        "version_number": 1,
+        "status": "published",
+        "canonical_text": "Contrato",
+    })
+
+    response = client.post(
+        f"/api/dms/folders/{folder_id}/preview-missing-fields",
+        json={"template_version_id": version_id, "overrides": {}},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["is_complete"] is False
+    assert payload["missing_fields"] == []
+    assert payload["prerequisite_issues"] == {"missing_party_roles": ["buyer", "seller"]}
 
 
 def test_generate_document_resolves_party_variables(monkeypatch) -> None:
