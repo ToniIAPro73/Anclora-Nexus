@@ -216,10 +216,28 @@ export function GenerateDocumentWizard({
       setGeneratedId(docId);
       setStep("done");
     } catch (err) {
+      const raw = err instanceof Error ? err.message : "";
+      // Detect prerequisite errors from the generate endpoint and surface them
+      // using the same warning UI that the preview step uses.
+      try {
+        const parsed = JSON.parse(raw) as
+          | { detail?: PrerequisiteIssues }
+          | PrerequisiteIssues;
+        const issues =
+          "detail" in parsed && parsed.detail
+            ? (parsed.detail as PrerequisiteIssues)
+            : (parsed as PrerequisiteIssues);
+        if (issues.primary_client_required || issues.missing_party_roles?.length) {
+          setPrerequisiteIssues(issues);
+          setMissingFields([]);
+          setStep("fields");
+          return;
+        }
+      } catch {
+        // not a JSON prerequisite payload — fall through to generic error
+      }
       setError(
-        err instanceof Error
-          ? formatGenerationError(err.message)
-          : "Error al generar el documento",
+        raw ? formatGenerationError(raw) : "Error al generar el documento",
       );
       setStep("fields");
     }
