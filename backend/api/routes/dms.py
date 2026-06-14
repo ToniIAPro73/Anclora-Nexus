@@ -1019,6 +1019,38 @@ async def mark_party_kyc_verified(
     return response.data[0] if response.data else {"ok": True}
 
 
+# ── Field vault (per-folder reusable template variables) ─────────────────────
+
+@router.get("/folders/{folder_id}/field-vault", response_model=dict)
+async def get_folder_field_vault(
+    folder_id: UUID,
+    org_id: str = Depends(get_org_id),
+    _membership: dict = Depends(require_dms_membership),
+):
+    folder = _require_folder(folder_id, org_id, "id,field_vault")
+    return folder.get("field_vault") or {}
+
+
+@router.put("/folders/{folder_id}/field-vault", response_model=dict)
+async def put_folder_field_vault(
+    folder_id: UUID,
+    payload: dict[str, Any],
+    org_id: str = Depends(get_org_id),
+    _membership: dict = Depends(require_dms_membership),
+):
+    folder = _require_folder(folder_id, org_id, "id,field_vault")
+    merged: dict[str, Any] = {**(folder.get("field_vault") or {}), **payload}
+    resp = (
+        _table("real_estate_deal_folders")
+        .update({"field_vault": merged, "updated_at": datetime.now(timezone.utc).isoformat()})
+        .eq("id", str(folder_id))
+        .eq("org_id", org_id)
+        .execute()
+    )
+    row = resp.data[0] if resp.data else {}
+    return row.get("field_vault") or merged
+
+
 # ── Complete generated-document flow ──────────────────────────────────────────
 
 @router.get("/folders/{folder_id}/available-templates", response_model=list[dict])

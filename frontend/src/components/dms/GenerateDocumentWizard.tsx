@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import {
   generateDocument,
+  getFolderFieldVault,
   previewMissingFields,
+  putFolderFieldVault,
   type GeneratedDocumentEnvelope,
 } from "@/lib/dms-api";
 
@@ -541,6 +543,22 @@ function fieldPlaceholder(key: string, lang: WizardLang): string {
   return fallback[lang];
 }
 
+// ── Exported i18n helpers for the field vault drawer ─────────────────────────
+
+export type { WizardLang };
+export { normalizeLang, fieldLabel, fieldPlaceholder };
+
+/** All explicitly mapped field keys, grouped by namespace prefix. */
+export const FIELD_GROUPS: Record<string, string[]> = (() => {
+  const groups: Record<string, string[]> = {};
+  for (const key of Object.keys(FIELD_I18N)) {
+    const ns = key.split(".")[0];
+    if (!groups[ns]) groups[ns] = [];
+    groups[ns].push(key);
+  }
+  return groups;
+})();
+
 function roleLabel(role: string): string {
   const labels: Record<string, string> = {
     buyer: "comprador",
@@ -673,17 +691,17 @@ export function GenerateDocumentWizard({
     setLoadingFields(true);
     setError(null);
     try {
-      const res = await previewMissingFields(folderId, {
-        template_version_id: versionId,
-        overrides: {},
-      });
+      const [res, vault] = await Promise.all([
+        previewMissingFields(folderId, { template_version_id: versionId, overrides: {} }),
+        getFolderFieldVault(folderId).catch(() => ({} as Record<string, string>)),
+      ]);
       setMissingFields(res.missing_fields ?? []);
       setPrerequisiteIssues(res.prerequisite_issues ?? {});
       setPreviewBlocked(false);
-      // Pre-fill any values already known
+      // Pre-fill from vault first, then keep any values already typed in the wizard
       const initValues: Record<string, string> = {};
       for (const f of res.missing_fields ?? []) {
-        initValues[f] = fieldValues[f] ?? "";
+        initValues[f] = fieldValues[f] || vault[f] || "";
       }
       setFieldValues(initValues);
       setStep("fields");
@@ -726,6 +744,10 @@ export function GenerateDocumentWizard({
           generation_payload: payload,
         },
       );
+      // Persist filled values back to the folder vault for future reuse
+      if (Object.keys(payload).length > 0) {
+        void putFolderFieldVault(folderId, payload).catch(() => undefined);
+      }
       const docId = envelope.document?.id ?? "";
       setGeneratedId(docId);
       setStep("done");
