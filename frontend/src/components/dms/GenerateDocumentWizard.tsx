@@ -31,6 +31,80 @@ type PrerequisiteIssues = {
   missing_party_roles?: string[];
 };
 
+// ── Field label / placeholder map ─────────────────────────────────────────────
+
+const FIELD_META: Record<string, { label: string; placeholder: string }> = {
+  // Deal / folder
+  "deal.folder_reference":    { label: "Referencia del expediente",       placeholder: "EXP-2024-001" },
+  "deal.price":               { label: "Precio de compraventa",           placeholder: "350.000 €" },
+  "deal.offer_price":         { label: "Precio ofertado",                 placeholder: "340.000 €" },
+  "deal.deposit_amount":      { label: "Importe de arras / señal",        placeholder: "10.000 €" },
+  "deal.signing_deadline":    { label: "Fecha límite de firma",           placeholder: "30/09/2026" },
+  "deal.visit_date":          { label: "Fecha de visita",                 placeholder: "15/06/2026" },
+  "deal.operation_type":      { label: "Tipo de operación",               placeholder: "compraventa" },
+  "deal.phase":               { label: "Fase del expediente",             placeholder: "negociación" },
+  "deal.language":            { label: "Idioma del contrato",             placeholder: "es" },
+  "deal.jurisdiction":        { label: "Jurisdicción",                    placeholder: "ES-IB" },
+  // Buyer
+  "buyer.full_name":          { label: "Nombre completo del comprador",   placeholder: "Juan García López" },
+  "buyer.id_document":        { label: "DNI / NIE del comprador",         placeholder: "12345678A" },
+  "buyer.email":              { label: "Email del comprador",             placeholder: "comprador@email.com" },
+  "buyer.phone":              { label: "Teléfono del comprador",          placeholder: "+34 600 000 000" },
+  "buyer.address":            { label: "Dirección del comprador",         placeholder: "Calle Mayor 1, Madrid" },
+  "buyer.nationality":        { label: "Nacionalidad del comprador",      placeholder: "española" },
+  "buyer.company_name":       { label: "Empresa del comprador",           placeholder: "Inmuebles García S.L." },
+  "buyer.company_cif":        { label: "CIF empresa del comprador",       placeholder: "B12345678" },
+  // Seller
+  "seller.full_name":         { label: "Nombre completo del vendedor",    placeholder: "María Martínez Ruiz" },
+  "seller.id_document":       { label: "DNI / NIE del vendedor",          placeholder: "87654321B" },
+  "seller.email":             { label: "Email del vendedor",              placeholder: "vendedor@email.com" },
+  "seller.phone":             { label: "Teléfono del vendedor",           placeholder: "+34 611 000 000" },
+  "seller.address":           { label: "Dirección del vendedor",          placeholder: "Calle Colón 5, Valencia" },
+  "seller.nationality":       { label: "Nacionalidad del vendedor",       placeholder: "española" },
+  // Landlord / tenant / guest
+  "landlord.full_name":       { label: "Nombre completo del arrendador",  placeholder: "Pedro Sánchez Gómez" },
+  "landlord.id_document":     { label: "DNI / NIE del arrendador",        placeholder: "11223344C" },
+  "landlord.email":           { label: "Email del arrendador",            placeholder: "arrendador@email.com" },
+  "tenant.full_name":         { label: "Nombre completo del arrendatario",placeholder: "Laura Fernández Gil" },
+  "tenant.id_document":       { label: "DNI / NIE del arrendatario",      placeholder: "44332211D" },
+  "tenant.email":             { label: "Email del arrendatario",          placeholder: "arrendatario@email.com" },
+  "guest.full_name":          { label: "Nombre completo del huésped",     placeholder: "Sophie Dupont" },
+  "guest.id_document":        { label: "Pasaporte / ID del huésped",      placeholder: "AB123456" },
+  // Agent
+  "agent.full_name":          { label: "Nombre del agente inmobiliario",  placeholder: "Ana López Sánchez" },
+  "agent.email":              { label: "Email del agente",                placeholder: "agente@anclora.com" },
+  "agent.phone":              { label: "Teléfono del agente",             placeholder: "+34 622 000 000" },
+  "agent.roaiib_number":      { label: "Número ROAIIB del agente",        placeholder: "ROAIIB-0001" },
+  // Property
+  "property.address":         { label: "Dirección del inmueble",          placeholder: "Carrer del Mar 10, Palma" },
+  "property.municipality":    { label: "Municipio",                       placeholder: "Palma de Mallorca" },
+  "property.postal_code":     { label: "Código postal",                   placeholder: "07001" },
+  "property.province":        { label: "Provincia",                       placeholder: "Illes Balears" },
+  "property.cadastral_reference": { label: "Referencia catastral",        placeholder: "1234567AB1234C0001WX" },
+  "property.registry_reference":  { label: "Referencia registral",        placeholder: "Tomo 123, Libro 45, Finca 6789" },
+  "property.energy_certificate":  { label: "Certificado energético",      placeholder: "C" },
+  "property.energy_rating":       { label: "Calificación energética",     placeholder: "C" },
+  "property.habitation_certificate": { label: "Cédula de habitabilidad",  placeholder: "CH-2024-001" },
+  // Organization
+  "organization.legal_name":  { label: "Razón social de la agencia",      placeholder: "Anclora Real Estate S.L." },
+  "organization.trade_name":  { label: "Nombre comercial de la agencia",  placeholder: "Anclora" },
+  "organization.tax_id":      { label: "CIF de la agencia",               placeholder: "B12345678" },
+  "organization.address":     { label: "Dirección de la agencia",         placeholder: "Paseo del Born 5, Palma" },
+  "organization.phone":       { label: "Teléfono de la agencia",          placeholder: "+34 971 000 000" },
+  "organization.email":       { label: "Email de la agencia",             placeholder: "info@anclora.com" },
+  "organization.roaiib_number": { label: "Número ROAIIB de la agencia",   placeholder: "ROAIIB-ES-0001" },
+  // Document
+  "document.generated_at":    { label: "Fecha del documento",             placeholder: "14/06/2026" },
+};
+
+function fieldLabel(key: string): string {
+  return FIELD_META[key]?.label ?? key.replace(/\./g, " › ").replace(/_/g, " ");
+}
+
+function fieldPlaceholder(key: string): string {
+  return FIELD_META[key]?.placeholder ?? `Valor para ${key}…`;
+}
+
 function roleLabel(role: string): string {
   const labels: Record<string, string> = {
     buyer: "comprador",
@@ -447,8 +521,11 @@ export function GenerateDocumentWizard({
                   <div className="max-h-56 overflow-y-auto space-y-2.5">
                     {missingFields.map((field) => (
                       <div key={field} className="space-y-1">
-                        <label className="text-xs font-mono text-zinc-400">
-                          {field}
+                        <label className="block text-xs font-medium text-zinc-300">
+                          {fieldLabel(field)}
+                          <span className="ml-1.5 font-mono text-[10px] text-zinc-600">
+                            {field}
+                          </span>
                         </label>
                         <input
                           value={fieldValues[field] ?? ""}
@@ -458,8 +535,8 @@ export function GenerateDocumentWizard({
                               [field]: e.target.value,
                             }))
                           }
-                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-[#AFD2FA]/50 focus:outline-none"
-                          placeholder={`Valor para ${field}...`}
+                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-[#AFD2FA]/50 focus:outline-none"
+                          placeholder={fieldPlaceholder(field)}
                         />
                       </div>
                     ))}
