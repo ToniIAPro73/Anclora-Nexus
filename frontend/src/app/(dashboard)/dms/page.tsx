@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Database,
   Download,
   FilePlus2,
   FolderOpen,
@@ -19,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { GenerateDocumentWizard } from "@/components/dms/GenerateDocumentWizard";
+import { FolderFieldVaultDrawer } from "@/components/dms/FolderFieldVaultDrawer";
 
 import {
   createDealFolder,
@@ -350,6 +352,7 @@ export default function DmsPage() {
   const [showGenerateForm, setShowGenerateForm] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [wizardPreselectId, setWizardPreselectId] = useState<string | undefined>(undefined);
+  const [showVaultDrawer, setShowVaultDrawer] = useState(false);
   const [partyName, setPartyName] = useState("");
   const [partyEmail, setPartyEmail] = useState("");
   const [partyRole, setPartyRole] = useState<PartyRole>("buyer");
@@ -1035,6 +1038,14 @@ export default function DmsPage() {
                               </select>
                             </div>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowVaultDrawer(true)}
+                            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-zinc-100"
+                          >
+                            <Database className="h-3.5 w-3.5" />
+                            {t("dmsFolderVault")}
+                          </button>
                           {templates.length > 0 && (
                             <button
                               type="button"
@@ -1243,6 +1254,16 @@ export default function DmsPage() {
           </main>
         </div>
       </div>
+
+      {/* ── Folder Field Vault Drawer ── */}
+      {showVaultDrawer && selectedFolderId && (
+        <FolderFieldVaultDrawer
+          folderId={selectedFolderId}
+          folderName={selectedFolder?.id.slice(0, 8)}
+          language={selectedFolder?.language}
+          onClose={() => setShowVaultDrawer(false)}
+        />
+      )}
 
       {/* ── Generate Document Wizard ── */}
       {showWizard && selectedFolderId && (
