@@ -112,6 +112,53 @@ describe("GenerateDocumentWizard", () => {
     expect(generateBtn).toBeDisabled();
   });
 
+  it("blocks generation when folder prerequisites are missing", async () => {
+    vi.mocked(dmsApi.previewMissingFields).mockResolvedValue({
+      missing_fields: [],
+      prerequisite_issues: { missing_party_roles: ["buyer", "seller"] },
+      is_complete: false,
+      total_placeholders: 0,
+    });
+
+    render(
+      <GenerateDocumentWizard
+        folderId={FOLDER_ID}
+        templates={mockTemplates}
+        onSuccess={onSuccess}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Arras penitenciales"));
+    fireEvent.click(screen.getByRole("button", { name: /siguiente/i }));
+
+    await waitFor(() => screen.getByText(/Faltan datos del expediente/));
+
+    expect(screen.getByText(/comprador, vendedor/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /generar ahora/i })).toBeDisabled();
+  });
+
+  it("does not allow generation when preview fails", async () => {
+    vi.mocked(dmsApi.previewMissingFields).mockRejectedValue(new Error("Template version is not published"));
+
+    render(
+      <GenerateDocumentWizard
+        folderId={FOLDER_ID}
+        templates={mockTemplates}
+        onSuccess={onSuccess}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Arras penitenciales"));
+    fireEvent.click(screen.getByRole("button", { name: /siguiente/i }));
+
+    await waitFor(() => screen.getByText("Template version is not published"));
+
+    expect(screen.getByRole("button", { name: /generar ahora/i })).toBeDisabled();
+    expect(dmsApi.generateDocument).not.toHaveBeenCalled();
+  });
+
   it("generate button is enabled after all missing fields are filled", async () => {
     vi.mocked(dmsApi.previewMissingFields).mockResolvedValue({
       missing_fields: ["buyer.full_name"],

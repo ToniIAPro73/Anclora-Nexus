@@ -10,6 +10,7 @@ import {
   Download,
   FilePlus2,
   FolderOpen,
+  Globe,
   RefreshCw,
   Search,
   Send,
@@ -41,9 +42,31 @@ import {
 import { useI18n } from '@/lib/i18n'
 import { useStore, type Lead } from '@/lib/store'
 
-type TemplateRow = DocumentTemplate & { latest_version?: TemplateVersion }
+type TemplateRow = DocumentTemplate & {
+  latest_version?: TemplateVersion | null
+  language_used?: string | null
+  language_fallback_applied?: boolean
+}
 type Tab = 'parties' | 'templates' | 'documents'
 type FilterType = OperationType | 'all'
+
+const TEMPLATE_LANGUAGES = [
+  { code: 'es', label: 'Español' },
+  { code: 'en', label: 'English' },
+  { code: 'ca', label: 'Català' },
+  { code: 'fr', label: 'Français' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'pt', label: 'Português' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'sv', label: 'Svenska' },
+  { code: 'da', label: 'Dansk' },
+  { code: 'no', label: 'Norsk' },
+]
+
+function languageLabel(code?: string | null): string {
+  return TEMPLATE_LANGUAGES.find((language) => language.code === code)?.label ?? code ?? '—'
+}
 
 function docStatusClass(status: string): string {
   if (status === 'approved') return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
@@ -256,6 +279,7 @@ export default function DmsPage() {
   const [partyRole, setPartyRole] = useState<PartyRole>('buyer')
   const [selectedTemplateVersionId, setSelectedTemplateVersionId] = useState('')
   const [generatedTitle, setGeneratedTitle] = useState('')
+  const [templateLanguage, setTemplateLanguage] = useState('es')
 
   const selectedFolder = useMemo(
     () => folders.find((f) => f.id === selectedFolderId) ?? null,
@@ -312,20 +336,27 @@ export default function DmsPage() {
     try {
       const [nextParties, nextTemplates, nextGenerated] = await Promise.all([
         listParties(folderId),
-        listAvailableTemplates(folderId),
+        listAvailableTemplates(folderId, { language: templateLanguage }),
         listGeneratedDocuments(folderId),
       ])
       setParties(nextParties)
       setTemplates(nextTemplates)
       setGeneratedDocs(nextGenerated)
-      setSelectedTemplateVersionId((current) => current || nextTemplates[0]?.latest_version?.id || '')
+      setSelectedTemplateVersionId((current) => {
+        if (nextTemplates.some((tpl) => tpl.latest_version?.id === current)) return current
+        return nextTemplates[0]?.latest_version?.id || ''
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : t('dmsErrorLoadFolder'))
     }
-  }, [t])
+  }, [t, templateLanguage])
 
   useEffect(() => { void loadFolders() }, [loadFolders])
   useEffect(() => { void loadFolderContext(selectedFolderId) }, [loadFolderContext, selectedFolderId])
+  useEffect(() => {
+    const folderLanguage = selectedFolder?.language || 'es'
+    setTemplateLanguage((current) => current || folderLanguage)
+  }, [selectedFolder?.language])
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCreateFolder = () => runAction('create-folder', async () => {
@@ -733,17 +764,42 @@ export default function DmsPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-display text-base font-semibold text-soft-white">{t('dmsTemplatesTitle')}</h3>
+                        <p className="mt-1 text-xs text-soft-muted">
+                          {languageLabel(templateLanguage)} · {templates.length} plantillas compatibles
+                        </p>
                       </div>
-                      {templates.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setShowWizard(true)}
-                          className="btn-action"
-                        >
-                          <Sparkles className="h-4 w-4" />
-                          {t('dmsGenerateSection')}
-                        </button>
-                      )}
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                        <div className="grid gap-1.5">
+                          <FieldLabel label="Idioma de plantilla" required />
+                          <div className="relative">
+                            <Globe className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-soft-muted" />
+                            <select
+                              value={templateLanguage}
+                              onChange={(event) => {
+                                setTemplateLanguage(event.target.value)
+                                setSelectedTemplateVersionId('')
+                              }}
+                              className="ui-select min-w-[210px] pl-9 text-sm"
+                            >
+                              {TEMPLATE_LANGUAGES.map((language) => (
+                                <option key={language.code} value={language.code}>
+                                  {language.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        {templates.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowWizard(true)}
+                            className="btn-action"
+                          >
+                            <Sparkles className="h-4 w-4" />
+                            {t('dmsGenerateSection')}
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {showGenerateForm && templates.length > 0 && (
@@ -754,7 +810,7 @@ export default function DmsPage() {
                             <select
                               value={selectedTemplateVersionId}
                               onChange={(e) => setSelectedTemplateVersionId(e.target.value)}
-                              className="rounded-xl border border-soft-subtle bg-navy-darker px-3 py-2.5 text-sm text-soft-white focus:border-blue-light/60 focus:outline-none"
+                              className="ui-select text-sm"
                             >
                               {templates.map((tpl) => (
                                 <option key={tpl.id} value={tpl.latest_version?.id || ''}>{tpl.name}</option>
@@ -797,7 +853,8 @@ export default function DmsPage() {
                             <div className="min-w-0">
                               <p className="font-semibold text-soft-white">{tpl.name}</p>
                               <p className="mt-0.5 text-xs text-soft-muted">
-                                {tpl.template_document_type} · {t('dmsVersionLabel')} {tpl.latest_version?.version_number ?? '-'}
+                                {tpl.template_document_type} · {languageLabel(tpl.language_used ?? tpl.language)}
+                                {tpl.language_fallback_applied ? ' · fallback ES' : ''} · {t('dmsVersionLabel')} {tpl.latest_version?.version_number ?? '-'}
                               </p>
                             </div>
                             <button
