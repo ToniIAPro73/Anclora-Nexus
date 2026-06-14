@@ -39,6 +39,8 @@ const NS_DISPLAY: Record<WizardLang, Record<string, string>> = {
     tenancy: "Arrendamiento",
     booking: "Reserva turística",
     inventory: "Inventario",
+    nda: "Acuerdo de confidencialidad",
+    delivery: "Entrega del inmueble",
   },
   ca: {
     deal: "Expedient",
@@ -57,6 +59,8 @@ const NS_DISPLAY: Record<WizardLang, Record<string, string>> = {
     tenancy: "Arrendament",
     booking: "Reserva turística",
     inventory: "Inventari",
+    nda: "Acord de confidencialitat",
+    delivery: "Lliurament de l'immoble",
   },
   en: {
     deal: "File / Deal",
@@ -75,6 +79,8 @@ const NS_DISPLAY: Record<WizardLang, Record<string, string>> = {
     tenancy: "Tenancy",
     booking: "Tourist booking",
     inventory: "Inventory",
+    nda: "Confidentiality agreement",
+    delivery: "Property handover",
   },
   de: {
     deal: "Akte / Vorgang",
@@ -93,6 +99,8 @@ const NS_DISPLAY: Record<WizardLang, Record<string, string>> = {
     tenancy: "Mietverhältnis",
     booking: "Touristenbuchung",
     inventory: "Inventar",
+    nda: "Vertraulichkeitsvereinbarung",
+    delivery: "Immobilienübergabe",
   },
 };
 
@@ -110,6 +118,8 @@ const NS_ORDER = [
   "supply",
   "sof",
   "inventory",
+  "nda",
+  "delivery",
   "agent",
   "organization",
   "document",
