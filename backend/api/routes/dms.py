@@ -718,6 +718,8 @@ async def publish_template(
     for version in versions:
         _table("document_template_versions").update({
             "status": "published",
+            "legal_review_status": "approved",
+            "translation_status": "approved",
             "immutable": True,
             "published_by": str(current_user.id),
             "published_at": now,

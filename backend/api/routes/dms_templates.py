@@ -134,6 +134,24 @@ async def publish_template(
 
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat()
+    versions = (
+        _table("document_template_versions")
+        .select("id")
+        .eq("template_id", str(template_id))
+        .eq("org_id", org_id)
+        .execute()
+        .data or []
+    )
+    for version in versions:
+        _table("document_template_versions").update({
+            "status": TemplateStatus.published.value,
+            "legal_review_status": "approved",
+            "translation_status": "approved",
+            "immutable": True,
+            "published_by": str(current_user.id),
+            "published_at": now,
+        }).eq("id", str(version["id"])).eq("org_id", org_id).execute()
+
     response = (
         _table("document_templates")
         .update({"status": TemplateStatus.published.value, "published_at": now})
