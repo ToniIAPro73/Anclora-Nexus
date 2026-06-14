@@ -986,18 +986,21 @@ async def list_available_templates(
     _membership: dict = Depends(require_dms_membership),
     org_id: str = Depends(get_org_id),
 ):
-    """Return published templates applicable to this folder, filtered by operation type,
-    language (with es fallback), phase, and jurisdiction."""
+    """Return templates applicable to this folder.
+
+    Draft templates are included because generation creates a draft document;
+    legal validation and signing gates happen after generation.
+    """
     folder = _require_folder(folder_id, org_id, "id,org_id,operation_type,language,jurisdiction")
     operation = folder.get("operation_type", "general")
     folder_lang = language or folder.get("language") or "es"
     jurisdiction = folder.get("jurisdiction") or "ES-IB"
 
-    # Fetch all published templates accessible to this org (system + org-owned)
+    # Fetch all active templates accessible to this org (system + org-owned).
     templates = (
         _table("document_templates")
         .select("*")
-        .in_("status", ["published"])
+        .in_("status", ["draft", "published"])
         .execute()
         .data or []
     )
@@ -1103,10 +1106,13 @@ async def list_available_templates(
             )
             if versions:
                 v = versions[0]
-                ts = v.get("translation_status", "")
-                legal_ok = v.get("legal_review_status") in {"approved", None, ""}
-                translation_ok = try_lang == "es" or ts in {"approved", "published", "approved_source", None, ""}
-                if legal_ok and translation_ok:
+                version_status = v.get("status") or "draft"
+                legal_status = v.get("legal_review_status")
+                translation_status = v.get("translation_status")
+                version_usable = version_status not in {"deprecated", "retired"}
+                legal_usable = legal_status not in {"rejected", "expired"}
+                translation_usable = translation_status not in {"retired"}
+                if version_usable and legal_usable and translation_usable:
                     best_version = v
                     language_used = try_lang
                     language_fallback_applied = try_lang != folder_lang
