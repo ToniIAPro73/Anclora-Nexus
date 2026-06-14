@@ -80,17 +80,29 @@ def _first_party(parties: list[dict[str, Any]], *roles: str) -> dict[str, Any]:
 
 def _party_to_context(party: dict[str, Any]) -> dict[str, Any]:
     """Map a deal_folder_parties row to a canonical placeholder namespace."""
+    full_name = party.get("full_name")
+    role = party.get("party_role", "")
+    role_labels = {
+        "buyer": "Comprador", "seller": "Vendedor", "agent": "Agente",
+        "landlord": "Arrendador", "tenant": "Arrendatario", "guest": "Huésped",
+        "guarantor": "Avalista", "co_buyer": "Cocomprador", "co_seller": "Covendedor",
+        "notary": "Notario",
+    }
     return {
         "id": party.get("id"),
-        "full_name": party.get("full_name"),
+        "full_name": full_name,
+        "fullname": full_name,          # legacy alias used in some templates
+        "name": full_name,              # legacy alias
         "id_document": party.get("dni_nie_passport"),
         "email": party.get("email"),
         "phone": party.get("phone"),
         "address": party.get("address"),
+        "permanent_address": party.get("address"),
         "nationality": party.get("nationality"),
         "is_company": party.get("is_company", False),
         "company_name": party.get("company_name"),
         "company_cif": party.get("company_cif"),
+        "role_label": role_labels.get(role, role),
     }
 
 
