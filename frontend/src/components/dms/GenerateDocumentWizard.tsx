@@ -31,78 +31,363 @@ type PrerequisiteIssues = {
   missing_party_roles?: string[];
 };
 
-// ── Field label / placeholder map ─────────────────────────────────────────────
+// ── Field labels & placeholders — es / ca / en / de ──────────────────────────
 
-const FIELD_META: Record<string, { label: string; placeholder: string }> = {
-  // Deal / folder
-  "deal.folder_reference":    { label: "Referencia del expediente",       placeholder: "EXP-2024-001" },
-  "deal.price":               { label: "Precio de compraventa",           placeholder: "350.000 €" },
-  "deal.offer_price":         { label: "Precio ofertado",                 placeholder: "340.000 €" },
-  "deal.deposit_amount":      { label: "Importe de arras / señal",        placeholder: "10.000 €" },
-  "deal.signing_deadline":    { label: "Fecha límite de firma",           placeholder: "30/09/2026" },
-  "deal.visit_date":          { label: "Fecha de visita",                 placeholder: "15/06/2026" },
-  "deal.operation_type":      { label: "Tipo de operación",               placeholder: "compraventa" },
-  "deal.phase":               { label: "Fase del expediente",             placeholder: "negociación" },
-  "deal.language":            { label: "Idioma del contrato",             placeholder: "es" },
-  "deal.jurisdiction":        { label: "Jurisdicción",                    placeholder: "ES-IB" },
-  // Buyer
-  "buyer.full_name":          { label: "Nombre completo del comprador",   placeholder: "Juan García López" },
-  "buyer.id_document":        { label: "DNI / NIE del comprador",         placeholder: "12345678A" },
-  "buyer.email":              { label: "Email del comprador",             placeholder: "comprador@email.com" },
-  "buyer.phone":              { label: "Teléfono del comprador",          placeholder: "+34 600 000 000" },
-  "buyer.address":            { label: "Dirección del comprador",         placeholder: "Calle Mayor 1, Madrid" },
-  "buyer.nationality":        { label: "Nacionalidad del comprador",      placeholder: "española" },
-  "buyer.company_name":       { label: "Empresa del comprador",           placeholder: "Inmuebles García S.L." },
-  "buyer.company_cif":        { label: "CIF empresa del comprador",       placeholder: "B12345678" },
-  // Seller
-  "seller.full_name":         { label: "Nombre completo del vendedor",    placeholder: "María Martínez Ruiz" },
-  "seller.id_document":       { label: "DNI / NIE del vendedor",          placeholder: "87654321B" },
-  "seller.email":             { label: "Email del vendedor",              placeholder: "vendedor@email.com" },
-  "seller.phone":             { label: "Teléfono del vendedor",           placeholder: "+34 611 000 000" },
-  "seller.address":           { label: "Dirección del vendedor",          placeholder: "Calle Colón 5, Valencia" },
-  "seller.nationality":       { label: "Nacionalidad del vendedor",       placeholder: "española" },
-  // Landlord / tenant / guest
-  "landlord.full_name":       { label: "Nombre completo del arrendador",  placeholder: "Pedro Sánchez Gómez" },
-  "landlord.id_document":     { label: "DNI / NIE del arrendador",        placeholder: "11223344C" },
-  "landlord.email":           { label: "Email del arrendador",            placeholder: "arrendador@email.com" },
-  "tenant.full_name":         { label: "Nombre completo del arrendatario",placeholder: "Laura Fernández Gil" },
-  "tenant.id_document":       { label: "DNI / NIE del arrendatario",      placeholder: "44332211D" },
-  "tenant.email":             { label: "Email del arrendatario",          placeholder: "arrendatario@email.com" },
-  "guest.full_name":          { label: "Nombre completo del huésped",     placeholder: "Sophie Dupont" },
-  "guest.id_document":        { label: "Pasaporte / ID del huésped",      placeholder: "AB123456" },
-  // Agent
-  "agent.full_name":          { label: "Nombre del agente inmobiliario",  placeholder: "Ana López Sánchez" },
-  "agent.email":              { label: "Email del agente",                placeholder: "agente@anclora.com" },
-  "agent.phone":              { label: "Teléfono del agente",             placeholder: "+34 622 000 000" },
-  "agent.roaiib_number":      { label: "Número ROAIIB del agente",        placeholder: "ROAIIB-0001" },
-  // Property
-  "property.address":         { label: "Dirección del inmueble",          placeholder: "Carrer del Mar 10, Palma" },
-  "property.municipality":    { label: "Municipio",                       placeholder: "Palma de Mallorca" },
-  "property.postal_code":     { label: "Código postal",                   placeholder: "07001" },
-  "property.province":        { label: "Provincia",                       placeholder: "Illes Balears" },
-  "property.cadastral_reference": { label: "Referencia catastral",        placeholder: "1234567AB1234C0001WX" },
-  "property.registry_reference":  { label: "Referencia registral",        placeholder: "Tomo 123, Libro 45, Finca 6789" },
-  "property.energy_certificate":  { label: "Certificado energético",      placeholder: "C" },
-  "property.energy_rating":       { label: "Calificación energética",     placeholder: "C" },
-  "property.habitation_certificate": { label: "Cédula de habitabilidad",  placeholder: "CH-2024-001" },
-  // Organization
-  "organization.legal_name":  { label: "Razón social de la agencia",      placeholder: "Anclora Real Estate S.L." },
-  "organization.trade_name":  { label: "Nombre comercial de la agencia",  placeholder: "Anclora" },
-  "organization.tax_id":      { label: "CIF de la agencia",               placeholder: "B12345678" },
-  "organization.address":     { label: "Dirección de la agencia",         placeholder: "Paseo del Born 5, Palma" },
-  "organization.phone":       { label: "Teléfono de la agencia",          placeholder: "+34 971 000 000" },
-  "organization.email":       { label: "Email de la agencia",             placeholder: "info@anclora.com" },
-  "organization.roaiib_number": { label: "Número ROAIIB de la agencia",   placeholder: "ROAIIB-ES-0001" },
-  // Document
-  "document.generated_at":    { label: "Fecha del documento",             placeholder: "14/06/2026" },
+type WizardLang = "es" | "ca" | "en" | "de";
+
+type FieldEntry = { label: string; placeholder: string };
+type LangMap = Record<WizardLang, FieldEntry>;
+
+const FIELD_I18N: Record<string, LangMap> = {
+  // ── Deal / expediente ──────────────────────────────────────────────────────
+  "deal.folder_reference": {
+    es: { label: "Referencia del expediente",    placeholder: "EXP-2024-001" },
+    ca: { label: "Referència de l'expedient",    placeholder: "EXP-2024-001" },
+    en: { label: "File reference",               placeholder: "FILE-2024-001" },
+    de: { label: "Aktenzeichen",                 placeholder: "AKT-2024-001" },
+  },
+  "deal.price": {
+    es: { label: "Precio de compraventa",        placeholder: "350.000 €" },
+    ca: { label: "Preu de compravenda",          placeholder: "350.000 €" },
+    en: { label: "Purchase price",               placeholder: "€ 350,000" },
+    de: { label: "Kaufpreis",                    placeholder: "350.000 €" },
+  },
+  "deal.offer_price": {
+    es: { label: "Precio ofertado",              placeholder: "340.000 €" },
+    ca: { label: "Preu ofert",                   placeholder: "340.000 €" },
+    en: { label: "Offer price",                  placeholder: "€ 340,000" },
+    de: { label: "Angebotspreis",                placeholder: "340.000 €" },
+  },
+  "deal.deposit_amount": {
+    es: { label: "Importe de arras / señal",     placeholder: "10.000 €" },
+    ca: { label: "Import d'arres / senyal",      placeholder: "10.000 €" },
+    en: { label: "Deposit amount",               placeholder: "€ 10,000" },
+    de: { label: "Anzahlung / Kaution",          placeholder: "10.000 €" },
+  },
+  "deal.signing_deadline": {
+    es: { label: "Fecha límite de firma",        placeholder: "30/09/2026" },
+    ca: { label: "Data límit de signatura",      placeholder: "30/09/2026" },
+    en: { label: "Signing deadline",             placeholder: "09/30/2026" },
+    de: { label: "Unterzeichnungsfrist",         placeholder: "30.09.2026" },
+  },
+  "deal.visit_date": {
+    es: { label: "Fecha de visita",              placeholder: "15/06/2026" },
+    ca: { label: "Data de visita",               placeholder: "15/06/2026" },
+    en: { label: "Visit date",                   placeholder: "06/15/2026" },
+    de: { label: "Besichtigungsdatum",           placeholder: "15.06.2026" },
+  },
+  "deal.operation_type": {
+    es: { label: "Tipo de operación",            placeholder: "compraventa" },
+    ca: { label: "Tipus d'operació",             placeholder: "compravenda" },
+    en: { label: "Operation type",               placeholder: "sale" },
+    de: { label: "Vorgangsart",                  placeholder: "Kauf" },
+  },
+  "deal.phase": {
+    es: { label: "Fase del expediente",          placeholder: "negociación" },
+    ca: { label: "Fase de l'expedient",          placeholder: "negociació" },
+    en: { label: "File phase",                   placeholder: "negotiation" },
+    de: { label: "Aktenphase",                   placeholder: "Verhandlung" },
+  },
+  "deal.language": {
+    es: { label: "Idioma del contrato",          placeholder: "es" },
+    ca: { label: "Idioma del contracte",         placeholder: "ca" },
+    en: { label: "Contract language",            placeholder: "en" },
+    de: { label: "Vertragssprache",              placeholder: "de" },
+  },
+  "deal.jurisdiction": {
+    es: { label: "Jurisdicción",                 placeholder: "ES-IB" },
+    ca: { label: "Jurisdicció",                  placeholder: "ES-IB" },
+    en: { label: "Jurisdiction",                 placeholder: "ES-IB" },
+    de: { label: "Zuständigkeit",               placeholder: "ES-IB" },
+  },
+  // ── Buyer ──────────────────────────────────────────────────────────────────
+  "buyer.full_name": {
+    es: { label: "Nombre completo del comprador",   placeholder: "Juan García López" },
+    ca: { label: "Nom complet del comprador",       placeholder: "Joan Garcia López" },
+    en: { label: "Buyer's full name",               placeholder: "John Smith" },
+    de: { label: "Vollständiger Name des Käufers",  placeholder: "Hans Müller" },
+  },
+  "buyer.id_document": {
+    es: { label: "DNI / NIE del comprador",         placeholder: "12345678A" },
+    ca: { label: "DNI / NIE del comprador",         placeholder: "12345678A" },
+    en: { label: "Buyer's ID / passport",           placeholder: "AB123456" },
+    de: { label: "Ausweis des Käufers",             placeholder: "DE123456789" },
+  },
+  "buyer.email": {
+    es: { label: "Email del comprador",             placeholder: "comprador@email.com" },
+    ca: { label: "Correu del comprador",            placeholder: "comprador@email.com" },
+    en: { label: "Buyer's email",                   placeholder: "buyer@email.com" },
+    de: { label: "E-Mail des Käufers",              placeholder: "kaeufer@email.de" },
+  },
+  "buyer.phone": {
+    es: { label: "Teléfono del comprador",          placeholder: "+34 600 000 000" },
+    ca: { label: "Telèfon del comprador",           placeholder: "+34 600 000 000" },
+    en: { label: "Buyer's phone",                   placeholder: "+44 7000 000000" },
+    de: { label: "Telefon des Käufers",             placeholder: "+49 151 00000000" },
+  },
+  "buyer.address": {
+    es: { label: "Dirección del comprador",         placeholder: "Calle Mayor 1, Madrid" },
+    ca: { label: "Adreça del comprador",            placeholder: "Carrer Major 1, Barcelona" },
+    en: { label: "Buyer's address",                 placeholder: "10 High Street, London" },
+    de: { label: "Adresse des Käufers",             placeholder: "Hauptstraße 1, München" },
+  },
+  "buyer.nationality": {
+    es: { label: "Nacionalidad del comprador",      placeholder: "española" },
+    ca: { label: "Nacionalitat del comprador",      placeholder: "espanyola" },
+    en: { label: "Buyer's nationality",             placeholder: "British" },
+    de: { label: "Staatsangehörigkeit des Käufers", placeholder: "deutsch" },
+  },
+  "buyer.company_name": {
+    es: { label: "Empresa del comprador",           placeholder: "Inmuebles García S.L." },
+    ca: { label: "Empresa del comprador",           placeholder: "Immobles Garcia S.L." },
+    en: { label: "Buyer's company",                 placeholder: "Smith Properties Ltd." },
+    de: { label: "Firma des Käufers",               placeholder: "Müller Immobilien GmbH" },
+  },
+  "buyer.company_cif": {
+    es: { label: "CIF empresa del comprador",       placeholder: "B12345678" },
+    ca: { label: "CIF empresa del comprador",       placeholder: "B12345678" },
+    en: { label: "Buyer's company tax ID",          placeholder: "GB123456789" },
+    de: { label: "Steuer-ID der Käuferfirma",       placeholder: "DE123456789" },
+  },
+  // ── Seller ─────────────────────────────────────────────────────────────────
+  "seller.full_name": {
+    es: { label: "Nombre completo del vendedor",    placeholder: "María Martínez Ruiz" },
+    ca: { label: "Nom complet del venedor",         placeholder: "Maria Martínez Ruiz" },
+    en: { label: "Seller's full name",              placeholder: "Jane Brown" },
+    de: { label: "Vollständiger Name des Verkäufers", placeholder: "Anna Schmidt" },
+  },
+  "seller.id_document": {
+    es: { label: "DNI / NIE del vendedor",          placeholder: "87654321B" },
+    ca: { label: "DNI / NIE del venedor",           placeholder: "87654321B" },
+    en: { label: "Seller's ID / passport",          placeholder: "CD789012" },
+    de: { label: "Ausweis des Verkäufers",          placeholder: "DE987654321" },
+  },
+  "seller.email": {
+    es: { label: "Email del vendedor",              placeholder: "vendedor@email.com" },
+    ca: { label: "Correu del venedor",              placeholder: "venedor@email.com" },
+    en: { label: "Seller's email",                  placeholder: "seller@email.com" },
+    de: { label: "E-Mail des Verkäufers",           placeholder: "verkaeufer@email.de" },
+  },
+  "seller.phone": {
+    es: { label: "Teléfono del vendedor",           placeholder: "+34 611 000 000" },
+    ca: { label: "Telèfon del venedor",             placeholder: "+34 611 000 000" },
+    en: { label: "Seller's phone",                  placeholder: "+44 7111 000000" },
+    de: { label: "Telefon des Verkäufers",          placeholder: "+49 152 00000000" },
+  },
+  "seller.address": {
+    es: { label: "Dirección del vendedor",          placeholder: "Calle Colón 5, Valencia" },
+    ca: { label: "Adreça del venedor",              placeholder: "Carrer Colom 5, València" },
+    en: { label: "Seller's address",                placeholder: "5 Park Lane, London" },
+    de: { label: "Adresse des Verkäufers",          placeholder: "Parkstraße 5, Berlin" },
+  },
+  "seller.nationality": {
+    es: { label: "Nacionalidad del vendedor",       placeholder: "española" },
+    ca: { label: "Nacionalitat del venedor",        placeholder: "espanyola" },
+    en: { label: "Seller's nationality",            placeholder: "British" },
+    de: { label: "Staatsangehörigkeit des Verkäufers", placeholder: "deutsch" },
+  },
+  // ── Landlord / tenant / guest ──────────────────────────────────────────────
+  "landlord.full_name": {
+    es: { label: "Nombre completo del arrendador",   placeholder: "Pedro Sánchez Gómez" },
+    ca: { label: "Nom complet de l'arrendador",      placeholder: "Pere Sànchez Gómez" },
+    en: { label: "Landlord's full name",             placeholder: "Peter Johnson" },
+    de: { label: "Vollständiger Name des Vermieters",placeholder: "Peter Wagner" },
+  },
+  "landlord.id_document": {
+    es: { label: "DNI / NIE del arrendador",         placeholder: "11223344C" },
+    ca: { label: "DNI / NIE de l'arrendador",        placeholder: "11223344C" },
+    en: { label: "Landlord's ID / passport",         placeholder: "EF345678" },
+    de: { label: "Ausweis des Vermieters",           placeholder: "DE112233445" },
+  },
+  "landlord.email": {
+    es: { label: "Email del arrendador",             placeholder: "arrendador@email.com" },
+    ca: { label: "Correu de l'arrendador",           placeholder: "arrendador@email.com" },
+    en: { label: "Landlord's email",                 placeholder: "landlord@email.com" },
+    de: { label: "E-Mail des Vermieters",            placeholder: "vermieter@email.de" },
+  },
+  "tenant.full_name": {
+    es: { label: "Nombre completo del arrendatario", placeholder: "Laura Fernández Gil" },
+    ca: { label: "Nom complet de l'arrendatari",     placeholder: "Laura Fernández Gil" },
+    en: { label: "Tenant's full name",               placeholder: "Laura Green" },
+    de: { label: "Vollständiger Name des Mieters",   placeholder: "Laura Fischer" },
+  },
+  "tenant.id_document": {
+    es: { label: "DNI / NIE del arrendatario",       placeholder: "44332211D" },
+    ca: { label: "DNI / NIE de l'arrendatari",       placeholder: "44332211D" },
+    en: { label: "Tenant's ID / passport",           placeholder: "GH901234" },
+    de: { label: "Ausweis des Mieters",              placeholder: "DE443322110" },
+  },
+  "tenant.email": {
+    es: { label: "Email del arrendatario",           placeholder: "arrendatario@email.com" },
+    ca: { label: "Correu de l'arrendatari",          placeholder: "arrendatari@email.com" },
+    en: { label: "Tenant's email",                   placeholder: "tenant@email.com" },
+    de: { label: "E-Mail des Mieters",               placeholder: "mieter@email.de" },
+  },
+  "guest.full_name": {
+    es: { label: "Nombre completo del huésped",      placeholder: "Sophie Dupont" },
+    ca: { label: "Nom complet de l'hoste",           placeholder: "Sophie Dupont" },
+    en: { label: "Guest's full name",                placeholder: "Sophie Dupont" },
+    de: { label: "Vollständiger Name des Gastes",    placeholder: "Sophie Dupont" },
+  },
+  "guest.id_document": {
+    es: { label: "Pasaporte / ID del huésped",       placeholder: "AB123456" },
+    ca: { label: "Passaport / ID de l'hoste",        placeholder: "AB123456" },
+    en: { label: "Guest's passport / ID",            placeholder: "AB123456" },
+    de: { label: "Reisepass / Ausweis des Gastes",   placeholder: "AB123456" },
+  },
+  // ── Agent ──────────────────────────────────────────────────────────────────
+  "agent.full_name": {
+    es: { label: "Nombre del agente inmobiliario",   placeholder: "Ana López Sánchez" },
+    ca: { label: "Nom de l'agent immobiliari",       placeholder: "Anna López Sànchez" },
+    en: { label: "Real estate agent's name",         placeholder: "Ana López" },
+    de: { label: "Name des Immobilienmaklers",       placeholder: "Ana López" },
+  },
+  "agent.email": {
+    es: { label: "Email del agente",                 placeholder: "agente@anclora.com" },
+    ca: { label: "Correu de l'agent",                placeholder: "agent@anclora.com" },
+    en: { label: "Agent's email",                    placeholder: "agent@anclora.com" },
+    de: { label: "E-Mail des Maklers",               placeholder: "makler@anclora.com" },
+  },
+  "agent.phone": {
+    es: { label: "Teléfono del agente",              placeholder: "+34 622 000 000" },
+    ca: { label: "Telèfon de l'agent",               placeholder: "+34 622 000 000" },
+    en: { label: "Agent's phone",                    placeholder: "+34 622 000 000" },
+    de: { label: "Telefon des Maklers",              placeholder: "+34 622 000 000" },
+  },
+  "agent.roaiib_number": {
+    es: { label: "Número ROAIIB del agente",         placeholder: "ROAIIB-0001" },
+    ca: { label: "Número ROAIIB de l'agent",         placeholder: "ROAIIB-0001" },
+    en: { label: "Agent's ROAIIB number",            placeholder: "ROAIIB-0001" },
+    de: { label: "ROAIIB-Nummer des Maklers",        placeholder: "ROAIIB-0001" },
+  },
+  // ── Property ───────────────────────────────────────────────────────────────
+  "property.address": {
+    es: { label: "Dirección del inmueble",           placeholder: "Carrer del Mar 10, Palma" },
+    ca: { label: "Adreça de l'immoble",              placeholder: "Carrer del Mar 10, Palma" },
+    en: { label: "Property address",                 placeholder: "10 Carrer del Mar, Palma" },
+    de: { label: "Adresse der Immobilie",            placeholder: "Carrer del Mar 10, Palma" },
+  },
+  "property.municipality": {
+    es: { label: "Municipio",                        placeholder: "Palma de Mallorca" },
+    ca: { label: "Municipi",                         placeholder: "Palma de Mallorca" },
+    en: { label: "Municipality",                     placeholder: "Palma de Mallorca" },
+    de: { label: "Gemeinde",                         placeholder: "Palma de Mallorca" },
+  },
+  "property.postal_code": {
+    es: { label: "Código postal",                    placeholder: "07001" },
+    ca: { label: "Codi postal",                      placeholder: "07001" },
+    en: { label: "Postal code",                      placeholder: "07001" },
+    de: { label: "Postleitzahl",                     placeholder: "07001" },
+  },
+  "property.province": {
+    es: { label: "Provincia",                        placeholder: "Illes Balears" },
+    ca: { label: "Província",                        placeholder: "Illes Balears" },
+    en: { label: "Province",                         placeholder: "Illes Balears" },
+    de: { label: "Provinz",                          placeholder: "Illes Balears" },
+  },
+  "property.cadastral_reference": {
+    es: { label: "Referencia catastral",             placeholder: "1234567AB1234C0001WX" },
+    ca: { label: "Referència cadastral",             placeholder: "1234567AB1234C0001WX" },
+    en: { label: "Cadastral reference",              placeholder: "1234567AB1234C0001WX" },
+    de: { label: "Katasterreferenz",                 placeholder: "1234567AB1234C0001WX" },
+  },
+  "property.registry_reference": {
+    es: { label: "Referencia registral",             placeholder: "Tomo 123, Libro 45, Finca 6789" },
+    ca: { label: "Referència registral",             placeholder: "Tom 123, Llibre 45, Finca 6789" },
+    en: { label: "Registry reference",               placeholder: "Volume 123, Book 45, Plot 6789" },
+    de: { label: "Grundbuchreferenz",                placeholder: "Band 123, Buch 45, Grundstück 6789" },
+  },
+  "property.energy_certificate": {
+    es: { label: "Certificado energético",           placeholder: "C" },
+    ca: { label: "Certificat energètic",             placeholder: "C" },
+    en: { label: "Energy certificate",               placeholder: "C" },
+    de: { label: "Energieausweis",                   placeholder: "C" },
+  },
+  "property.energy_rating": {
+    es: { label: "Calificación energética",          placeholder: "C" },
+    ca: { label: "Qualificació energètica",          placeholder: "C" },
+    en: { label: "Energy rating",                    placeholder: "C" },
+    de: { label: "Energiebewertung",                 placeholder: "C" },
+  },
+  "property.habitation_certificate": {
+    es: { label: "Cédula de habitabilidad",          placeholder: "CH-2024-001" },
+    ca: { label: "Cèdula d'habitabilitat",           placeholder: "CH-2024-001" },
+    en: { label: "Habitation certificate",           placeholder: "CH-2024-001" },
+    de: { label: "Wohnfähigkeitsnachweis",           placeholder: "CH-2024-001" },
+  },
+  // ── Organization ───────────────────────────────────────────────────────────
+  "organization.legal_name": {
+    es: { label: "Razón social de la agencia",       placeholder: "Anclora Real Estate S.L." },
+    ca: { label: "Raó social de l'agència",          placeholder: "Anclora Real Estate S.L." },
+    en: { label: "Agency's legal name",              placeholder: "Anclora Real Estate S.L." },
+    de: { label: "Firmenname der Agentur",           placeholder: "Anclora Real Estate S.L." },
+  },
+  "organization.trade_name": {
+    es: { label: "Nombre comercial de la agencia",   placeholder: "Anclora" },
+    ca: { label: "Nom comercial de l'agència",       placeholder: "Anclora" },
+    en: { label: "Agency's trade name",              placeholder: "Anclora" },
+    de: { label: "Handelsname der Agentur",          placeholder: "Anclora" },
+  },
+  "organization.tax_id": {
+    es: { label: "CIF de la agencia",                placeholder: "B12345678" },
+    ca: { label: "CIF de l'agència",                 placeholder: "B12345678" },
+    en: { label: "Agency's tax ID",                  placeholder: "B12345678" },
+    de: { label: "Steuer-ID der Agentur",            placeholder: "B12345678" },
+  },
+  "organization.address": {
+    es: { label: "Dirección de la agencia",          placeholder: "Paseo del Born 5, Palma" },
+    ca: { label: "Adreça de l'agència",              placeholder: "Passeig del Born 5, Palma" },
+    en: { label: "Agency's address",                 placeholder: "5 Paseo del Born, Palma" },
+    de: { label: "Adresse der Agentur",              placeholder: "Paseo del Born 5, Palma" },
+  },
+  "organization.phone": {
+    es: { label: "Teléfono de la agencia",           placeholder: "+34 971 000 000" },
+    ca: { label: "Telèfon de l'agència",             placeholder: "+34 971 000 000" },
+    en: { label: "Agency's phone",                   placeholder: "+34 971 000 000" },
+    de: { label: "Telefon der Agentur",              placeholder: "+34 971 000 000" },
+  },
+  "organization.email": {
+    es: { label: "Email de la agencia",              placeholder: "info@anclora.com" },
+    ca: { label: "Correu de l'agència",              placeholder: "info@anclora.com" },
+    en: { label: "Agency's email",                   placeholder: "info@anclora.com" },
+    de: { label: "E-Mail der Agentur",               placeholder: "info@anclora.com" },
+  },
+  "organization.roaiib_number": {
+    es: { label: "Número ROAIIB de la agencia",      placeholder: "ROAIIB-ES-0001" },
+    ca: { label: "Número ROAIIB de l'agència",       placeholder: "ROAIIB-ES-0001" },
+    en: { label: "Agency's ROAIIB number",           placeholder: "ROAIIB-ES-0001" },
+    de: { label: "ROAIIB-Nummer der Agentur",        placeholder: "ROAIIB-ES-0001" },
+  },
+  // ── Document ───────────────────────────────────────────────────────────────
+  "document.generated_at": {
+    es: { label: "Fecha del documento",              placeholder: "14/06/2026" },
+    ca: { label: "Data del document",                placeholder: "14/06/2026" },
+    en: { label: "Document date",                    placeholder: "06/14/2026" },
+    de: { label: "Dokumentdatum",                    placeholder: "14.06.2026" },
+  },
 };
 
-function fieldLabel(key: string): string {
-  return FIELD_META[key]?.label ?? key.replace(/\./g, " › ").replace(/_/g, " ");
+function normalizeLang(lang?: string | null): WizardLang {
+  if (lang === "ca" || lang === "en" || lang === "de") return lang;
+  return "es";
 }
 
-function fieldPlaceholder(key: string): string {
-  return FIELD_META[key]?.placeholder ?? `Valor para ${key}…`;
+function fieldLabel(key: string, lang: WizardLang): string {
+  return (
+    FIELD_I18N[key]?.[lang]?.label ??
+    FIELD_I18N[key]?.es?.label ??
+    key.replace(/\./g, " › ").replace(/_/g, " ")
+  );
+}
+
+function fieldPlaceholder(key: string, lang: WizardLang): string {
+  const fallbackMsg: Record<WizardLang, string> = {
+    es: `Valor para ${key}…`,
+    ca: `Valor per a ${key}…`,
+    en: `Value for ${key}…`,
+    de: `Wert für ${key}…`,
+  };
+  return FIELD_I18N[key]?.[lang]?.placeholder ?? fallbackMsg[lang];
 }
 
 function roleLabel(role: string): string {
@@ -140,6 +425,8 @@ function formatGenerationError(message: string): string {
 interface WizardProps {
   folderId: string;
   templates: TemplateOption[];
+  /** Folder language (es / ca / en / de). Drives field label language. */
+  language?: string | null;
   /** When set, the wizard shows only this template and skips to step 2 automatically. */
   preselectTemplateId?: string;
   onSuccess: (documentId: string) => void;
@@ -186,10 +473,12 @@ function StepDot({
 export function GenerateDocumentWizard({
   folderId,
   templates: allTemplates,
+  language,
   preselectTemplateId,
   onSuccess,
   onClose,
 }: WizardProps) {
+  const lang = normalizeLang(language);
   const templates = preselectTemplateId
     ? allTemplates.filter((t) => t.id === preselectTemplateId)
     : allTemplates;
@@ -522,7 +811,7 @@ export function GenerateDocumentWizard({
                     {missingFields.map((field) => (
                       <div key={field} className="space-y-1">
                         <label className="block text-xs font-medium text-zinc-300">
-                          {fieldLabel(field)}
+                          {fieldLabel(field, lang)}
                           <span className="ml-1.5 font-mono text-[10px] text-zinc-600">
                             {field}
                           </span>
@@ -536,7 +825,7 @@ export function GenerateDocumentWizard({
                             }))
                           }
                           className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-[#AFD2FA]/50 focus:outline-none"
-                          placeholder={fieldPlaceholder(field)}
+                          placeholder={fieldPlaceholder(field, lang)}
                         />
                       </div>
                     ))}

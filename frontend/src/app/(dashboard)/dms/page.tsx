@@ -1248,6 +1248,7 @@ export default function DmsPage() {
       {showWizard && selectedFolderId && (
         <GenerateDocumentWizard
           folderId={selectedFolderId}
+          language={selectedFolder?.language}
           templates={templates.map((t) => ({
             id: t.id,
             name: t.name,
