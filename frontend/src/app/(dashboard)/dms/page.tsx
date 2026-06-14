@@ -1041,9 +1041,9 @@ export default function DmsPage() {
                           <button
                             type="button"
                             onClick={() => setShowVaultDrawer(true)}
-                            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-zinc-100"
+                            className="btn-action"
                           >
-                            <Database className="h-3.5 w-3.5" />
+                            <Database className="h-4 w-4" />
                             {t("dmsFolderVault")}
                           </button>
                           {templates.length > 0 && (
@@ -1259,7 +1259,8 @@ export default function DmsPage() {
       {showVaultDrawer && selectedFolderId && (
         <FolderFieldVaultDrawer
           folderId={selectedFolderId}
-          folderName={selectedFolder?.id.slice(0, 8)}
+          primaryPartyName={parties.find((p) => p.is_primary)?.full_name}
+          operationLabel={OPERATION_LABELS[selectedFolder?.operation_type as OperationType]}
           language={selectedFolder?.language}
           onClose={() => setShowVaultDrawer(false)}
         />

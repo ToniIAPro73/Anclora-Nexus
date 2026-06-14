@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
-  Database,
+  CheckCircle,
   Loader2,
   Save,
   Search,
@@ -96,8 +96,6 @@ const NS_DISPLAY: Record<WizardLang, Record<string, string>> = {
   },
 };
 
-// ── Namespace order (most common first) ───────────────────────────────────────
-
 const NS_ORDER = [
   "deal",
   "buyer",
@@ -121,14 +119,16 @@ const NS_ORDER = [
 
 interface FolderFieldVaultDrawerProps {
   folderId: string;
-  folderName?: string;
+  primaryPartyName?: string;
+  operationLabel?: string;
   language?: string | null;
   onClose: () => void;
 }
 
 export function FolderFieldVaultDrawer({
   folderId,
-  folderName,
+  primaryPartyName,
+  operationLabel,
   language,
   onClose,
 }: FolderFieldVaultDrawerProps) {
@@ -143,7 +143,6 @@ export function FolderFieldVaultDrawer({
     new Set(["deal", "buyer", "seller", "landlord", "tenant", "property"]),
   );
 
-  // Load existing vault values
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -201,7 +200,6 @@ export function FolderFieldVaultDrawer({
     });
   };
 
-  // Build ordered namespace list from FIELD_GROUPS
   const orderedNs = [
     ...NS_ORDER.filter((ns) => FIELD_GROUPS[ns]),
     ...Object.keys(FIELD_GROUPS).filter((ns) => !NS_ORDER.includes(ns)),
@@ -212,47 +210,80 @@ export function FolderFieldVaultDrawer({
   const filledCount = (ns: string) =>
     (FIELD_GROUPS[ns] ?? []).filter((k) => values[k]?.trim()).length;
 
-  return (
-    <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
+  const totalFilled = Object.values(values).filter((v) => v?.trim()).length;
+  const totalFields = Object.values(FIELD_GROUPS).reduce(
+    (acc, keys) => acc + keys.length,
+    0,
+  );
 
-      {/* Drawer panel */}
-      <div className="relative ml-auto flex h-full w-full max-w-xl flex-col bg-[#070d1a] shadow-2xl shadow-black/60 border-l border-white/10">
+  const saveLabel = saving
+    ? lang === "en"
+      ? "Saving…"
+      : lang === "de"
+        ? "Speichern…"
+        : lang === "ca"
+          ? "Desant…"
+          : "Guardando…"
+    : saved
+      ? lang === "en"
+        ? "Saved"
+        : lang === "de"
+          ? "Gespeichert"
+          : lang === "ca"
+            ? "Desat"
+            : "Guardado"
+      : lang === "en"
+        ? "Save"
+        : lang === "de"
+          ? "Speichern"
+          : lang === "ca"
+            ? "Desar"
+            : "Guardar";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+      {/* Backdrop */}
+      <div className="absolute inset-0" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative flex h-[90vh] w-full max-w-4xl flex-col rounded-2xl border border-white/10 bg-[#050a18] shadow-2xl shadow-black/70">
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Database className="h-5 w-5 text-[#D4AF37]" />
+        <div className="flex items-start justify-between border-b border-white/10 px-8 py-5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/25">
+              <Save className="h-5 w-5 text-[#D4AF37]" />
+            </div>
             <div>
-              <p className="text-sm font-semibold text-zinc-100">
-                {lang === "ca"
-                  ? "Dades de l'expedient"
-                  : lang === "en"
-                    ? "File data vault"
-                    : lang === "de"
-                      ? "Aktendaten"
-                      : "Datos del expediente"}
+              <h2 className="text-base font-semibold text-zinc-100">
+                {primaryPartyName ?? (
+                  lang === "en" ? "File data"
+                  : lang === "de" ? "Aktendaten"
+                  : lang === "ca" ? "Dades de l'expedient"
+                  : "Datos del expediente"
+                )}
+              </h2>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                {operationLabel ?? ""}
+                {operationLabel && totalFields > 0 && " · "}
+                {totalFilled > 0
+                  ? `${totalFilled} / ${totalFields} ${lang === "en" ? "fields filled" : lang === "de" ? "Felder ausgefüllt" : lang === "ca" ? "camps emplenats" : "campos rellenos"}`
+                  : lang === "en" ? `${totalFields} fields available` : lang === "de" ? `${totalFields} Felder verfügbar` : lang === "ca" ? `${totalFields} camps disponibles` : `${totalFields} campos disponibles`}
               </p>
-              {folderName && (
-                <p className="text-xs text-zinc-500">{folderName}</p>
-              )}
             </div>
           </div>
           <button
             onClick={onClose}
             className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-white/5 hover:text-zinc-100"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Search */}
-        <div className="border-b border-white/10 px-4 py-3">
+        {/* Search bar */}
+        <div className="border-b border-white/10 px-8 py-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -265,24 +296,26 @@ export function FolderFieldVaultDrawer({
                       ? "Felder suchen…"
                       : "Buscar campos…"
               }
-              className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-[#AFD2FA]/50 focus:outline-none"
+              className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-10 pr-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-[#AFD2FA]/50 focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        {/* Body — scrollable */}
+        <div className="flex-1 overflow-y-auto px-8 py-5">
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-500" />
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {orderedNs.map((ns) => {
                 const keys = (FIELD_GROUPS[ns] ?? []).filter((k) => {
                   if (!needle) return true;
-                  const lbl = fieldLabel(k, lang).toLowerCase();
-                  return lbl.includes(needle) || k.includes(needle);
+                  return (
+                    fieldLabel(k, lang).toLowerCase().includes(needle) ||
+                    k.includes(needle)
+                  );
                 });
                 if (keys.length === 0) return null;
 
@@ -293,46 +326,58 @@ export function FolderFieldVaultDrawer({
                 return (
                   <div
                     key={ns}
-                    className="rounded-xl border border-white/8 bg-white/2"
+                    className="rounded-xl border border-white/8 bg-white/[0.025] overflow-hidden"
                   >
+                    {/* Section header */}
                     <button
                       onClick={() => toggleSection(ns)}
-                      className="flex w-full items-center justify-between px-4 py-3 text-left"
+                      className="flex w-full items-center justify-between px-5 py-3.5 text-left transition hover:bg-white/[0.03]"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         {isOpen ? (
                           <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
                         ) : (
                           <ChevronRight className="h-3.5 w-3.5 text-zinc-500" />
                         )}
-                        <span className="text-sm font-medium text-zinc-200">
+                        <span className="text-sm font-semibold text-zinc-200">
                           {nsLabel}
                         </span>
                       </div>
-                      {filled > 0 && (
-                        <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-medium text-green-400">
-                          {filled}/{keys.length}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {filled > 0 && (
+                          <span className="flex items-center gap-1 rounded-full bg-green-500/12 px-2.5 py-0.5 text-[10px] font-medium text-green-400">
+                            <CheckCircle className="h-3 w-3" />
+                            {filled}/{keys.length}
+                          </span>
+                        )}
+                        {filled === 0 && (
+                          <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-zinc-600">
+                            {keys.length}
+                          </span>
+                        )}
+                      </div>
                     </button>
 
+                    {/* Section fields — 2-column grid */}
                     {isOpen && (
-                      <div className="border-t border-white/8 px-4 pb-4 pt-3 space-y-3">
-                        {keys.map((key) => (
-                          <div key={key} className="space-y-1">
-                            <label className="block text-xs font-medium text-zinc-400">
-                              {fieldLabel(key, lang)}
-                            </label>
-                            <input
-                              value={values[key] ?? ""}
-                              onChange={(e) =>
-                                handleChange(key, e.target.value)
-                              }
-                              placeholder={fieldPlaceholder(key, lang)}
-                              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-[#AFD2FA]/50 focus:outline-none"
-                            />
-                          </div>
-                        ))}
+                      <div className="border-t border-white/8 px-5 pb-5 pt-4">
+                        <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+                          {keys.map((key) => (
+                            <div key={key} className="space-y-1.5">
+                              <label className="block text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                                {fieldLabel(key, lang)}
+                              </label>
+                              <input
+                                value={values[key] ?? ""}
+                                onChange={(e) =>
+                                  handleChange(key, e.target.value)
+                                }
+                                placeholder={fieldPlaceholder(key, lang)}
+                                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 transition focus:border-[#AFD2FA]/40 focus:bg-white/8 focus:outline-none"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -343,51 +388,31 @@ export function FolderFieldVaultDrawer({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/10 px-6 py-4">
+        <div className="border-t border-white/10 px-8 py-4">
           {error && <p className="mb-3 text-xs text-red-400">{error}</p>}
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-4">
             <p className="text-xs text-zinc-500">
               {lang === "ca"
-                ? "Els valors guardats s'usaran automàticament en tots els documents d'aquest expedient."
+                ? "Els valors es recuperaran automàticament cada vegada que generis un document d'aquest expedient."
                 : lang === "en"
-                  ? "Saved values will auto-fill all documents in this file."
+                  ? "These values will auto-fill every document you generate for this file."
                   : lang === "de"
-                    ? "Gespeicherte Werte werden in allen Dokumenten dieser Akte automatisch ausgefüllt."
-                    : "Los valores guardados se usarán automáticamente en todos los documentos del expediente."}
+                    ? "Diese Werte werden beim Generieren jedes Dokuments dieser Akte automatisch eingefügt."
+                    : "Estos valores se usarán automáticamente en todos los documentos de este expediente."}
             </p>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex shrink-0 items-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-black transition hover:bg-[#e5c340] disabled:opacity-50"
+              className="btn-action shrink-0 disabled:opacity-50"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : saved ? (
-                <span>✓</span>
+                <CheckCircle className="h-4 w-4" />
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {saving
-                ? lang === "en"
-                  ? "Saving…"
-                  : lang === "de"
-                    ? "Speichern…"
-                    : "Guardando…"
-                : saved
-                  ? lang === "ca"
-                    ? "Desat"
-                    : lang === "en"
-                      ? "Saved"
-                      : lang === "de"
-                        ? "Gespeichert"
-                        : "Guardado"
-                  : lang === "ca"
-                    ? "Desar"
-                    : lang === "en"
-                      ? "Save"
-                      : lang === "de"
-                        ? "Speichern"
-                        : "Guardar"}
+              {saveLabel}
             </button>
           </div>
         </div>
