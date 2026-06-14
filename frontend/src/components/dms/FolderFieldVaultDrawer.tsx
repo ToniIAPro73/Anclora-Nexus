@@ -167,7 +167,12 @@ export function FolderFieldVaultDrawer({
       await putFolderFieldVault(folderId, nonEmpty);
       setSaved(true);
     } catch {
-      setError("No se pudo guardar. Inténtalo de nuevo.");
+      setError(
+        lang === "ca" ? "No s'ha pogut desar. Torna-ho a intentar."
+        : lang === "en" ? "Could not save. Please try again."
+        : lang === "de" ? "Speichern fehlgeschlagen. Bitte erneut versuchen."
+        : "No se pudo guardar. Inténtalo de nuevo."
+      );
     } finally {
       setSaving(false);
     }
