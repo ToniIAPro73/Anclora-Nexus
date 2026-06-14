@@ -139,16 +139,27 @@ export function FolderFieldVaultDrawer({
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [openSections, setOpenSections] = useState<Set<string>>(new Set(["deal", "buyer", "seller", "landlord", "tenant", "property"]));
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    new Set(["deal", "buyer", "seller", "landlord", "tenant", "property"]),
+  );
 
   // Load existing vault values
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     getFolderFieldVault(folderId)
-      .then((v) => { if (!cancelled) { setValues(v); setLoading(false); } })
-      .catch(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((v) => {
+        if (!cancelled) {
+          setValues(v);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [folderId]);
 
   const handleChange = useCallback((key: string, val: string) => {
@@ -168,10 +179,13 @@ export function FolderFieldVaultDrawer({
       setSaved(true);
     } catch {
       setError(
-        lang === "ca" ? "No s'ha pogut desar. Torna-ho a intentar."
-        : lang === "en" ? "Could not save. Please try again."
-        : lang === "de" ? "Speichern fehlgeschlagen. Bitte erneut versuchen."
-        : "No se pudo guardar. Inténtalo de nuevo."
+        lang === "ca"
+          ? "No s'ha pogut desar. Torna-ho a intentar."
+          : lang === "en"
+            ? "Could not save. Please try again."
+            : lang === "de"
+              ? "Speichern fehlgeschlagen. Bitte erneut versuchen."
+              : "No se pudo guardar. Inténtalo de nuevo.",
       );
     } finally {
       setSaving(false);
@@ -214,10 +228,13 @@ export function FolderFieldVaultDrawer({
             <Database className="h-5 w-5 text-[#D4AF37]" />
             <div>
               <p className="text-sm font-semibold text-zinc-100">
-                {lang === "ca" ? "Dades de l'expedient"
-                  : lang === "en" ? "File data vault"
-                  : lang === "de" ? "Aktendaten"
-                  : "Datos del expediente"}
+                {lang === "ca"
+                  ? "Dades de l'expedient"
+                  : lang === "en"
+                    ? "File data vault"
+                    : lang === "de"
+                      ? "Aktendaten"
+                      : "Datos del expediente"}
               </p>
               {folderName && (
                 <p className="text-xs text-zinc-500">{folderName}</p>
@@ -239,7 +256,15 @@ export function FolderFieldVaultDrawer({
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={lang === "ca" ? "Cerca camps…" : lang === "en" ? "Search fields…" : lang === "de" ? "Felder suchen…" : "Buscar campos…"}
+              placeholder={
+                lang === "ca"
+                  ? "Cerca camps…"
+                  : lang === "en"
+                    ? "Search fields…"
+                    : lang === "de"
+                      ? "Felder suchen…"
+                      : "Buscar campos…"
+              }
               className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-[#AFD2FA]/50 focus:outline-none"
             />
           </div>
@@ -266,17 +291,23 @@ export function FolderFieldVaultDrawer({
                 const nsLabel = NS_DISPLAY[lang]?.[ns] ?? ns;
 
                 return (
-                  <div key={ns} className="rounded-xl border border-white/8 bg-white/[0.02]">
+                  <div
+                    key={ns}
+                    className="rounded-xl border border-white/8 bg-white/2"
+                  >
                     <button
                       onClick={() => toggleSection(ns)}
                       className="flex w-full items-center justify-between px-4 py-3 text-left"
                     >
                       <div className="flex items-center gap-2">
-                        {isOpen
-                          ? <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
-                          : <ChevronRight className="h-3.5 w-3.5 text-zinc-500" />
-                        }
-                        <span className="text-sm font-medium text-zinc-200">{nsLabel}</span>
+                        {isOpen ? (
+                          <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 text-zinc-500" />
+                        )}
+                        <span className="text-sm font-medium text-zinc-200">
+                          {nsLabel}
+                        </span>
                       </div>
                       {filled > 0 && (
                         <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-medium text-green-400">
@@ -294,7 +325,9 @@ export function FolderFieldVaultDrawer({
                             </label>
                             <input
                               value={values[key] ?? ""}
-                              onChange={(e) => handleChange(key, e.target.value)}
+                              onChange={(e) =>
+                                handleChange(key, e.target.value)
+                              }
                               placeholder={fieldPlaceholder(key, lang)}
                               className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-[#AFD2FA]/50 focus:outline-none"
                             />
@@ -311,34 +344,50 @@ export function FolderFieldVaultDrawer({
 
         {/* Footer */}
         <div className="border-t border-white/10 px-6 py-4">
-          {error && (
-            <p className="mb-3 text-xs text-red-400">{error}</p>
-          )}
+          {error && <p className="mb-3 text-xs text-red-400">{error}</p>}
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-zinc-500">
               {lang === "ca"
                 ? "Els valors guardats s'usaran automàticament en tots els documents d'aquest expedient."
                 : lang === "en"
-                ? "Saved values will auto-fill all documents in this file."
-                : lang === "de"
-                ? "Gespeicherte Werte werden in allen Dokumenten dieser Akte automatisch ausgefüllt."
-                : "Los valores guardados se usarán automáticamente en todos los documentos del expediente."}
+                  ? "Saved values will auto-fill all documents in this file."
+                  : lang === "de"
+                    ? "Gespeicherte Werte werden in allen Dokumenten dieser Akte automatisch ausgefüllt."
+                    : "Los valores guardados se usarán automáticamente en todos los documentos del expediente."}
             </p>
             <button
               onClick={handleSave}
               disabled={saving}
               className="flex shrink-0 items-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-black transition hover:bg-[#e5c340] disabled:opacity-50"
             >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : saved ? (
+                <span>✓</span>
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
               {saving
-                ? <Loader2 className="h-4 w-4 animate-spin" />
+                ? lang === "en"
+                  ? "Saving…"
+                  : lang === "de"
+                    ? "Speichern…"
+                    : "Guardando…"
                 : saved
-                ? <span>✓</span>
-                : <Save className="h-4 w-4" />}
-              {saving
-                ? (lang === "en" ? "Saving…" : lang === "de" ? "Speichern…" : "Guardando…")
-                : saved
-                ? (lang === "ca" ? "Desat" : lang === "en" ? "Saved" : lang === "de" ? "Gespeichert" : "Guardado")
-                : (lang === "ca" ? "Desar" : lang === "en" ? "Save" : lang === "de" ? "Speichern" : "Guardar")}
+                  ? lang === "ca"
+                    ? "Desat"
+                    : lang === "en"
+                      ? "Saved"
+                      : lang === "de"
+                        ? "Gespeichert"
+                        : "Guardado"
+                  : lang === "ca"
+                    ? "Desar"
+                    : lang === "en"
+                      ? "Save"
+                      : lang === "de"
+                        ? "Speichern"
+                        : "Guardar"}
             </button>
           </div>
         </div>
