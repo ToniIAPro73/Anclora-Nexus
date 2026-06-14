@@ -1033,7 +1033,6 @@ async def list_available_templates(
     operation = str(folder.get("operation_type") or "general")
     folder_lang = language or folder.get("language") or "es"
     jurisdiction = folder.get("jurisdiction") or "ES-IB"
-    allowed_template_types = _template_types_for_operation(operation)
 
     # Fetch all active templates accessible to this org (system + org-owned).
     templates = (
@@ -1083,10 +1082,9 @@ async def list_available_templates(
         # ── Operation type filter ────────────────────────────────────────────────
         tpl_ops: list[str] = template.get("operation_types") or []
         tpl_type = template.get("template_document_type", "")
-        if allowed_template_types and tpl_type not in allowed_template_types:
-            continue
-        tpl_language = template.get("language")
-        if tpl_language and tpl_language not in allowed_languages:
+        # ── Language filter — NULL rows default to the canonical language ('es') ─
+        tpl_language = template.get("language") or "es"
+        if tpl_language not in allowed_languages:
             continue
         if tpl_ops:
             if operation not in tpl_ops and "general" not in tpl_ops:
