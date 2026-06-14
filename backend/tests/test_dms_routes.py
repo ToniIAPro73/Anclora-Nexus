@@ -487,8 +487,8 @@ def test_available_templates_filter_by_operation_and_language(monkeypatch) -> No
         {
             "id": nda_template_id,
             "org_id": ORG_ID,
-            "name": "NDA ES",
-            "template_document_type": "acuerdo_confidencialidad",
+            "name": "Contrato Temporada ES",
+            "template_document_type": "contrato_temporada",
             "language": "es",
             "jurisdiction": "ES-IB",
             "status": "published",
@@ -520,7 +520,7 @@ def test_available_templates_filter_by_operation_and_language(monkeypatch) -> No
             "version_number": 1,
             "status": "published",
             "language": "es",
-            "canonical_text": "NDA",
+            "canonical_text": "Contrato de temporada",
         },
         {
             "id": str(uuid4()),

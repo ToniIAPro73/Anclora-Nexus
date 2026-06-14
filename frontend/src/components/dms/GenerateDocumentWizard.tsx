@@ -74,13 +74,13 @@ function StepDot({ active, done, label }: { active: boolean; done: boolean; labe
           done
             ? "border-green-400 bg-green-400/15 text-green-400"
             : active
-            ? "border-gold-light bg-gold-light/15 text-gold-light"
-            : "border-border-subtle text-soft-subtle"
+            ? "border-[#D4AF37] bg-[#D4AF37]/15 text-[#D4AF37]"
+            : "border-white/15 text-zinc-500"
         }`}
       >
         {done ? <CheckCircle className="h-3.5 w-3.5" /> : active ? "●" : "○"}
       </div>
-      <span className={`text-[10px] ${active ? "text-gold-light" : done ? "text-green-400" : "text-soft-subtle"}`}>
+      <span className={`text-[10px] ${active ? "text-[#D4AF37]" : done ? "text-green-400" : "text-zinc-500"}`}>
         {label}
       </span>
     </div>
@@ -175,35 +175,36 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
-      <div className="relative w-full max-w-lg rounded-2xl border border-border-subtle bg-[#050a18] shadow-2xl shadow-black/60">
+      <div className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-[#050a18] shadow-2xl shadow-black/60">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4">
+        <div className="flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-[#0a1228] to-[#050a18] px-6 py-4 rounded-t-2xl">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-gold-light" />
-            <h2 className="text-sm font-semibold text-soft-white">Generar documento</h2>
+            <Sparkles className="h-4 w-4 text-[#D4AF37]" />
+            <h2 className="text-sm font-semibold text-zinc-100">Generar documento</h2>
           </div>
           <button
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-soft-subtle hover:text-soft-white"
+            aria-label="Cerrar"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Step indicators */}
-        <div className="flex items-center justify-center gap-6 border-b border-border-subtle px-6 py-3">
+        <div className="flex items-center justify-center gap-6 border-b border-white/10 px-6 py-3">
           <StepDot
             active={step === "select"}
             done={step !== "select"}
             label="Plantilla"
           />
-          <ChevronRight className="h-3 w-3 text-soft-subtle" />
+          <ChevronRight className="h-3 w-3 text-zinc-600" />
           <StepDot
             active={step === "fields"}
             done={step === "generating" || step === "done"}
             label="Variables"
           />
-          <ChevronRight className="h-3 w-3 text-soft-subtle" />
+          <ChevronRight className="h-3 w-3 text-zinc-600" />
           <StepDot
             active={step === "generating" || step === "done"}
             done={step === "done"}
@@ -217,10 +218,10 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
           {step === "select" && (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-soft-muted">Plantilla</label>
-                <div className="max-h-64 overflow-y-auto space-y-1.5 rounded-xl border border-border-subtle p-2">
+                <label className="text-xs font-semibold text-zinc-400">Plantilla</label>
+                <div className="max-h-64 overflow-y-auto space-y-1.5 rounded-xl border border-white/10 p-2">
                   {templates.length === 0 ? (
-                    <p className="py-4 text-center text-xs text-soft-muted">
+                    <p className="py-4 text-center text-xs text-zinc-500">
                       No hay plantillas disponibles para este expediente.
                     </p>
                   ) : (
@@ -235,16 +236,16 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
                         title={!hasVersion ? "Esta plantilla no tiene una versión disponible" : undefined}
                         className={`w-full flex items-start gap-3 rounded-lg border p-3 text-left transition ${
                           isSelected
-                            ? "border-gold-light/60 bg-gold-light/15"
-                            : "border-border-subtle bg-surface-elevated/70 hover:border-gold-light/30 hover:bg-surface-elevated"
-                        } ${!hasVersion ? "cursor-not-allowed border-border-subtle/60 bg-surface-base/70" : ""}`}
+                            ? "border-[#D4AF37]/60 bg-[#D4AF37]/10"
+                            : "border-white/10 bg-white/5 hover:border-[#D4AF37]/30 hover:bg-white/8"
+                        } ${!hasVersion ? "cursor-not-allowed opacity-50" : ""}`}
                       >
-                        <FileText className={`mt-0.5 h-4 w-4 shrink-0 ${isSelected ? "text-gold-light" : "text-soft-muted"}`} />
+                        <FileText className={`mt-0.5 h-4 w-4 shrink-0 ${isSelected ? "text-[#D4AF37]" : "text-zinc-400"}`} />
                         <div className="min-w-0">
-                          <p className={`truncate text-sm font-semibold ${hasVersion ? "text-soft-white" : "text-soft-muted"}`}>
+                          <p className={`truncate text-sm font-semibold ${hasVersion ? "text-zinc-100" : "text-zinc-500"}`}>
                             {tpl.name}
                           </p>
-                          <p className="text-xs text-soft-muted">{tpl.template_document_type ?? ""}</p>
+                          <p className="text-xs text-zinc-500">{tpl.template_document_type ?? ""}</p>
                           {!hasVersion && (
                             <p className="mt-1 text-[10px] font-medium text-amber-300">
                               Sin versión disponible
@@ -252,7 +253,7 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
                           )}
                         </div>
                         {isSelected && (
-                          <CheckCircle className="ml-auto h-4 w-4 shrink-0 text-gold-light" />
+                          <CheckCircle className="ml-auto h-4 w-4 shrink-0 text-[#D4AF37]" />
                         )}
                       </button>
                     )})
@@ -262,11 +263,11 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
 
               {selectedTemplate && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-soft-muted">Título del documento</label>
+                  <label className="text-xs font-semibold text-zinc-400">Título del documento</label>
                   <input
                     value={docTitle}
                     onChange={(e) => setDocTitle(e.target.value)}
-                    className="w-full rounded-xl border border-border-subtle bg-surface-elevated px-3 py-2 text-sm text-soft-white placeholder:text-soft-subtle focus:border-blue-light/50 focus:outline-none"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-[#AFD2FA]/50 focus:outline-none"
                     placeholder="Título del documento..."
                   />
                 </div>
@@ -275,7 +276,7 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
               <button
                 onClick={handleNext}
                 disabled={!selectedTemplateId || !versionId || loadingFields}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gold-light/20 py-2.5 text-sm font-medium text-gold-light transition hover:bg-gold-light/30 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37]/20 py-2.5 text-sm font-medium text-[#D4AF37] transition hover:bg-[#D4AF37]/30 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {loadingFields ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -309,8 +310,8 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
               ) : missingFields.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 py-4 text-center">
                   <CheckCircle className="h-8 w-8 text-green-400" />
-                  <p className="text-sm font-medium text-soft-white">Todos los datos están disponibles</p>
-                  <p className="text-xs text-soft-muted">
+                  <p className="text-sm font-medium text-zinc-100">Todos los datos están disponibles</p>
+                  <p className="text-xs text-zinc-400">
                     El sistema puede generar el documento con los datos del expediente.
                   </p>
                 </div>
@@ -325,13 +326,13 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
                   <div className="max-h-56 overflow-y-auto space-y-2.5">
                     {missingFields.map((field) => (
                       <div key={field} className="space-y-1">
-                        <label className="text-xs font-mono text-soft-muted">{field}</label>
+                        <label className="text-xs font-mono text-zinc-400">{field}</label>
                         <input
                           value={fieldValues[field] ?? ""}
                           onChange={(e) =>
                             setFieldValues((prev) => ({ ...prev, [field]: e.target.value }))
                           }
-                          className="w-full rounded-lg border border-border-subtle bg-surface-elevated px-3 py-1.5 text-sm text-soft-white placeholder:text-soft-subtle focus:border-blue-light/50 focus:outline-none"
+                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-[#AFD2FA]/50 focus:outline-none"
                           placeholder={`Valor para ${field}...`}
                         />
                       </div>
@@ -349,14 +350,14 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
               <div className="flex gap-2">
                 <button
                   onClick={() => setStep("select")}
-                  className="flex-1 rounded-xl border border-border-subtle py-2.5 text-sm text-soft-muted transition hover:text-soft-white"
+                  className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-zinc-400 transition hover:border-white/20 hover:text-zinc-100"
                 >
                   Atrás
                 </button>
                 <button
                   onClick={handleGenerate}
                   disabled={!canGenerate}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gold-light/20 py-2.5 text-sm font-medium text-gold-light transition hover:bg-gold-light/30 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#D4AF37]/20 py-2.5 text-sm font-medium text-[#D4AF37] transition hover:bg-[#D4AF37]/30 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Sparkles className="h-4 w-4" />
                   Generar ahora
@@ -368,12 +369,12 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
           {/* ── Step 3: Generating ── */}
           {step === "generating" && (
             <div className="flex flex-col items-center gap-4 py-8">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-gold-light/20 bg-gold-light/5">
-                <Loader2 className="h-7 w-7 animate-spin text-gold-light" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[#D4AF37]/20 bg-[#D4AF37]/5">
+                <Loader2 className="h-7 w-7 animate-spin text-[#D4AF37]" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-soft-white">Generando documento…</p>
-                <p className="mt-1 text-xs text-soft-muted">Aplicando plantilla y variables del expediente.</p>
+                <p className="text-sm font-medium text-zinc-100">Generando documento…</p>
+                <p className="mt-1 text-xs text-zinc-400">Aplicando plantilla y variables del expediente.</p>
               </div>
             </div>
           )}
@@ -385,19 +386,19 @@ export function GenerateDocumentWizard({ folderId, templates, onSuccess, onClose
                 <CheckCircle className="h-7 w-7 text-green-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-soft-white">Documento generado</p>
-                <p className="mt-1 text-xs text-soft-muted">{docTitle}</p>
+                <p className="text-sm font-semibold text-zinc-100">Documento generado</p>
+                <p className="mt-1 text-xs text-zinc-400">{docTitle}</p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={onClose}
-                  className="rounded-xl border border-border-subtle px-4 py-2 text-sm text-soft-muted hover:text-soft-white"
+                  className="rounded-xl border border-white/10 px-4 py-2 text-sm text-zinc-400 transition hover:border-white/20 hover:text-zinc-100"
                 >
                   Cerrar
                 </button>
                 <button
                   onClick={() => onSuccess(generatedId)}
-                  className="rounded-xl bg-green-400/15 px-4 py-2 text-sm font-medium text-green-400 hover:bg-green-400/25"
+                  className="rounded-xl bg-green-400/15 px-4 py-2 text-sm font-medium text-green-400 transition hover:bg-green-400/25"
                 >
                   Ver documento
                 </button>
