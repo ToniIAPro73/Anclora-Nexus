@@ -33,6 +33,7 @@ from backend.models.dms import (
 from backend.services.advanced_document_parser import AdvancedDocumentParser
 from backend.services.advisor_contract_validator_service import advisor_contract_validator_service
 from backend.services.document_encryption_service import DocumentEncryptionService
+from backend.services.document_export_service import export_docx, export_pdf
 from backend.services.document_generation_service import fetch_template_required_fields
 from backend.services.document_template_rendering_service import build_template_context, resolve_and_render_template
 from backend.services.supabase_service import supabase_service
@@ -1350,8 +1351,14 @@ async def generate_document_from_template(
 
     generated_id = str(uuid4())
     version_id = str(uuid4())
-    docx_bytes = rendered.rendered_text.encode("utf-8")
-    pdf_bytes = _pdf_placeholder(rendered.rendered_text)
+    try:
+        docx_bytes = export_docx(rendered.rendered_text)
+    except Exception:
+        docx_bytes = rendered.rendered_text.encode("utf-8")
+    try:
+        pdf_bytes = export_pdf(rendered.rendered_text)
+    except Exception:
+        pdf_bytes = _pdf_placeholder(rendered.rendered_text)
     docx_path = f"dms/{org_id}/{folder_id}/generated/{generated_id}/v1.docx"
     pdf_path = f"dms/{org_id}/{folder_id}/generated/{generated_id}/v1.pdf"
     preview_path = f"dms/{org_id}/{folder_id}/generated/{generated_id}/preview.txt"
@@ -1468,8 +1475,16 @@ async def create_generated_document_version(
     version_id = str(uuid4())
     docx_path = f"dms/{org_id}/{document.get('folder_id')}/generated/{document_id}/v{next_number}.docx"
     pdf_path = f"dms/{org_id}/{document.get('folder_id')}/generated/{document_id}/v{next_number}.pdf"
-    _plain_storage_upload(docx_path, body.edited_text.encode("utf-8"), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-    _plain_storage_upload(pdf_path, _pdf_placeholder(body.edited_text), "application/pdf")
+    try:
+        _docx_edit = export_docx(body.edited_text)
+    except Exception:
+        _docx_edit = body.edited_text.encode("utf-8")
+    try:
+        _pdf_edit = export_pdf(body.edited_text)
+    except Exception:
+        _pdf_edit = _pdf_placeholder(body.edited_text)
+    _plain_storage_upload(docx_path, _docx_edit, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    _plain_storage_upload(pdf_path, _pdf_edit, "application/pdf")
     version_payload = {
         "id": version_id,
         "generated_document_id": str(document_id),
