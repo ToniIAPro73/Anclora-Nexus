@@ -22,11 +22,19 @@ import {
   listReviewDecisions,
   listGeneratedDocumentVersions,
 } from "@/lib/dms-api";
+import supabase from "@/lib/supabase";
+
+async function getAuthHeader(): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ? `Bearer ${session.access_token}` : "";
+}
 
 // Direct API calls using fetch to avoid strict SDK type constraints
 async function getDocRaw(id: string): Promise<GeneratedDocument> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  const res = await fetch(`/api/dms/generated-documents/${id}`, { headers, credentials: "include" });
+  const authorization = await getAuthHeader();
+  const res = await fetch(`/api/dms/generated-documents/${id}`, {
+    headers: { "Content-Type": "application/json", Authorization: authorization },
+  });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   const data = await res.json();
   // API returns envelope { document, version, preview } OR flat document
@@ -37,10 +45,10 @@ async function postReviewRaw(
   id: string,
   payload: { decision: string; notes?: string; version_id?: string | null },
 ): Promise<void> {
+  const authorization = await getAuthHeader();
   const res = await fetch(`/api/dms/generated-documents/${id}/review-decisions`, {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: authorization },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -53,10 +61,10 @@ async function postSignatureRaw(
   id: string,
   payload: { signing_level: string; signers: unknown[] },
 ): Promise<void> {
+  const authorization = await getAuthHeader();
   const res = await fetch(`/api/dms/generated-documents/${id}/signature-flows`, {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: authorization },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {

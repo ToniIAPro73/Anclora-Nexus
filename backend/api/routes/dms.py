@@ -153,11 +153,12 @@ def _audit_access(org_id: str, user_id: Optional[str], action: str, entity_id: s
 
         payload = {
             "org_id": org_id,
-            "user_id": user_id,
+            "actor_type": "user",
+            "actor_id": user_id or "system",
             "action": action,
-            "entity_type": "deal_document",
-            "entity_id": entity_id,
-            "metadata": metadata,
+            "resource_type": "deal_document",
+            "resource_id": entity_id,
+            "details": metadata,
         }
         try:
             loop = asyncio.get_running_loop()
