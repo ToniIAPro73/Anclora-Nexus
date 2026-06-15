@@ -29,7 +29,8 @@ def _detect_unfilled_placeholders(text: str) -> list[str]:
 def render_template(canonical_text: str, field_values: dict[str, Any]) -> str:
     """Substitute {{ field_key }} tokens in canonical_text with field_values.
 
-    Template syntax: {{buyer_name}}, {{ sale_price }}, etc.
+    Template syntax: {{buyer.full_name}}, {{ deal.price }}, etc.
+    Dots in keys are supported (namespaced placeholders).
     Unknown tokens are left in place so placeholder detection can catch them.
     """
     def replacer(match: re.Match) -> str:
@@ -39,7 +40,7 @@ def render_template(canonical_text: str, field_values: dict[str, Any]) -> str:
             return match.group(0)   # leave unfilled for detection
         return str(value)
 
-    return re.sub(r"\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}", replacer, canonical_text)
+    return re.sub(r"\{\{\s*(\w[\w.]*)\s*\}\}", replacer, canonical_text)
 
 
 class GenerationResult:
