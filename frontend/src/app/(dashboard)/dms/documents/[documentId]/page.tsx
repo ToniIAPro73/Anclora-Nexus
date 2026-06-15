@@ -2,6 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   ArrowLeft,
   Download,
@@ -30,15 +32,16 @@ async function getAuthHeader(): Promise<string> {
 }
 
 // Direct API calls using fetch to avoid strict SDK type constraints
-async function getDocRaw(id: string): Promise<GeneratedDocument> {
+async function getDocRaw(id: string): Promise<{ doc: GeneratedDocument; previewText: string | null }> {
   const authorization = await getAuthHeader();
   const res = await fetch(`/api/dms/generated-documents/${id}`, {
     headers: { "Content-Type": "application/json", Authorization: authorization },
   });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   const data = await res.json();
-  // API returns envelope { document, version, preview } OR flat document
-  return data.document ?? data;
+  const doc = data.document ?? data;
+  const previewText: string | null = data.version?.canonical_text ?? null;
+  return { doc, previewText };
 }
 
 async function postReviewRaw(
@@ -172,21 +175,13 @@ export default function DocumentViewerPage() {
     setLoading(true);
     setError(null);
     try {
-      const [docData, reviewData] = await Promise.all([
+      const [{ doc: docData, previewText: docPreview }, reviewData] = await Promise.all([
         getDocRaw(documentId),
         listReviewDecisions(documentId).catch(() => []),
       ]);
       setDoc(docData);
+      setPreviewText(docPreview);
       setReviews(reviewData as ReviewDecisionRow[]);
-      // Load preview text if available
-      if (docData.download_urls?.pdf || docData.pdf_storage_path) {
-        try {
-          const text = await downloadGeneratedDocument(documentId, "txt");
-          if (typeof text === "string") setPreviewText(text);
-        } catch {
-          // preview not available — silent
-        }
-      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
@@ -392,9 +387,26 @@ export default function DocumentViewerPage() {
         {activeTab === "preview" && (
           <div className="mx-auto max-w-3xl">
             {previewText ? (
-              <pre className="whitespace-pre-wrap rounded-xl border border-border-subtle bg-surface-elevated p-6 font-mono text-xs leading-relaxed text-soft-muted">
-                {previewText}
-              </pre>
+              <article className="prose prose-invert prose-sm max-w-none rounded-xl border border-border-subtle bg-white/[0.03] px-8 py-10
+                prose-headings:font-serif prose-headings:text-soft-white prose-headings:tracking-tight
+                prose-h1:text-xl prose-h1:text-center prose-h1:mb-2
+                prose-h2:text-sm prose-h2:uppercase prose-h2:tracking-widest prose-h2:text-gold-light prose-h2:border-b prose-h2:border-gold-light/20 prose-h2:pb-2
+                prose-h3:text-xs prose-h3:text-soft-white
+                prose-p:text-soft-muted prose-p:leading-relaxed
+                prose-strong:text-soft-white
+                prose-table:text-xs prose-thead:bg-navy-deep prose-th:text-gold-light prose-th:uppercase prose-th:tracking-wider prose-th:py-2 prose-th:px-3
+                prose-td:py-1.5 prose-td:px-3 prose-td:text-soft-muted prose-td:border-b prose-td:border-border-subtle
+                prose-hr:border-gold-light/30
+                prose-li:text-soft-muted prose-ul:text-soft-muted">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    img: () => null,
+                  }}
+                >
+                  {previewText}
+                </ReactMarkdown>
+              </article>
             ) : (
               <div className="flex flex-col items-center gap-4 py-16 text-center text-soft-muted">
                 <Eye className="h-10 w-10 opacity-30" />
