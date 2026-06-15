@@ -315,15 +315,67 @@ def _plain_storage_upload(path: str, content: bytes, content_type: str) -> None:
 
 
 def _pdf_placeholder(text: str) -> bytes:
-    escaped = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-    body = f"BT /F1 12 Tf 72 720 Td ({escaped[:3000]}) Tj ET"
-    return (
-        b"%PDF-1.4\n"
-        + f"1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n"
-          f"2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n"
-          f"3 0 obj << /Type /Page /Parent 2 0 R /Contents 4 0 R >> endobj\n"
-          f"4 0 obj << /Length {len(body)} >> stream\n{body}\nendstream endobj\n%%EOF".encode("utf-8")
+    """Generate a minimal but spec-compliant PDF 1.4 with Helvetica body text.
+
+    Uses WinAnsiEncoding so Spanish/accented chars render correctly.
+    Non-encodable characters are replaced with '?' rather than crashing.
+    """
+    # Truncate and encode to WinAnsi (Latin-1 superset used by PDF Helvetica)
+    safe = text[:8000].encode("latin-1", errors="replace").decode("latin-1")
+    # Escape PDF string delimiters
+    escaped = (
+        safe
+        .replace("\\", "\\\\")
+        .replace("(", "\\(")
+        .replace(")", "\\)")
+        .replace("\r", "\\r")
+        .replace("\n", ") Tj T* (")
     )
+    stream_src = f"BT /F1 11 Tf 50 780 Td 16 TL ({escaped}) Tj ET"
+    stream_bytes = stream_src.encode("latin-1", errors="replace")
+
+    obj1 = b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+    obj2 = b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+    obj3 = (
+        b"3 0 obj\n<< /Type /Page /Parent 2 0 R\n"
+        b"   /MediaBox [0 0 595 842]\n"
+        b"   /Contents 4 0 R\n"
+        b"   /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n"
+    )
+    obj4 = (
+        f"4 0 obj\n<< /Length {len(stream_bytes)} >>\nstream\r\n".encode("latin-1")
+        + stream_bytes
+        + b"\r\nendstream\nendobj\n"
+    )
+    obj5 = (
+        b"5 0 obj\n"
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica"
+        b" /Encoding /WinAnsiEncoding >>\nendobj\n"
+    )
+
+    header = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n"  # binary comment marks file as binary
+
+    # Compute byte offsets for xref
+    objects = [obj1, obj2, obj3, obj4, obj5]
+    offsets: list[int] = []
+    pos = len(header)
+    for obj in objects:
+        offsets.append(pos)
+        pos += len(obj)
+
+    body = b"".join(objects)
+    xref_offset = len(header) + len(body)
+
+    xref = b"xref\n0 6\n0000000000 65535 f \n"
+    for off in offsets:
+        xref += f"{off:010d} 00000 n \n".encode()
+
+    trailer = (
+        f"trailer\n<< /Size 6 /Root 1 0 R >>\n"
+        f"startxref\n{xref_offset}\n%%EOF\n"
+    ).encode()
+
+    return header + body + xref + trailer
 
 
 def _fetch_latest_template_version(template_version_id: UUID | str, org_id: str) -> dict[str, Any]:
