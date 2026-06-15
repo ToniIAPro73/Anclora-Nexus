@@ -300,11 +300,17 @@ def _unset_existing_primary_party(folder_id: UUID | str, org_id: str) -> None:
 
 
 def _plain_storage_upload(path: str, content: bytes, content_type: str) -> None:
-    supabase_service.client.storage.from_(_storage_bucket()).upload(
-        path,
-        content,
-        file_options={"content-type": content_type, "upsert": "false"},
-    )
+    try:
+        supabase_service.client.storage.from_(_storage_bucket()).upload(
+            path,
+            content,
+            file_options={"content-type": content_type, "upsert": "true"},
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Storage upload failed [{_storage_bucket()}/{path}]: {exc}",
+        ) from exc
 
 
 def _pdf_placeholder(text: str) -> bytes:
