@@ -1275,10 +1275,18 @@ async def generate_document_from_template(
         context=context,
         overrides={**vault, **(body.generation_payload or {})},
     )
-    if not rendered.is_complete:
+    # Only hard-block if there are truly unresolved Jinja {{ key }} tokens.
+    # Heuristic patterns ([Logo...], ___, pendiente, etc.) are intentional
+    # template content and must not block generation.
+    import re as _re
+    truly_missing = [
+        ph for ph in rendered.missing_fields
+        if _re.match(r"^\{\{.*\}\}$", ph.strip())
+    ]
+    if truly_missing:
         raise HTTPException(
             status_code=422,
-            detail={"missing_fields": rendered.missing_fields, "variable_snapshot": rendered.variable_snapshot},
+            detail={"missing_fields": truly_missing, "variable_snapshot": rendered.variable_snapshot},
         )
 
     generated_id = str(uuid4())
