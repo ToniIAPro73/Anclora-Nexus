@@ -30,10 +30,11 @@ app.add_middleware(
 
 from .routes.automation import router as automation_router
 from .routes.access_requests import router as access_requests_router
-from .routes.syncxml_pilot import router as syncxml_pilot_router
 from .routes.intelligence import router as intelligence_router
 from .routes.ingestion import router as ingestion_router
 from .routes.leads import router as leads_router
+from .routes.lead_intake import router as lead_intake_router
+from .routes.lead_pipeline import router as lead_pipeline_router
 from .routes.finops import router as finops_router
 from .routes.partners import router as partners_router
 from .routes.public import router as public_router
@@ -49,9 +50,6 @@ app.include_router(automation_router, prefix="/api/automation", tags=["Automatio
 
 # Include internal access request review routes
 app.include_router(access_requests_router, prefix="/api/access-requests", tags=["Access Requests"])
-
-# Include SyncXML controlled pilot manual actions
-app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["SyncXML Pilot"])
 
 # Include Prospection & Buyer Matching routes
 app.include_router(prospection_router, prefix="/api/prospection", tags=["Prospection"])
@@ -73,6 +71,12 @@ app.include_router(ingestion_router, prefix="/api", tags=["Ingestion"])
 
 # Include lead outreach routes
 app.include_router(leads_router, prefix="/api", tags=["Leads"])
+
+# Include lead intake API (Phase 3 — Commercial Loop)
+app.include_router(lead_intake_router, prefix="/api/v1", tags=["Lead Intake"])
+
+# Include lead pipeline reporting and staleness detection (Phase 3)
+app.include_router(lead_pipeline_router, prefix="/api/v1", tags=["Lead Pipeline"])
 
 # Include public capture routes
 app.include_router(public_router, prefix="/api/public", tags=["Public"])

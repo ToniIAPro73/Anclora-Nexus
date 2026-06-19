@@ -6,13 +6,11 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, model_validato
 class AccessRequestProduct(str, Enum):
     SYNERGI = "synergi"
     DATA_LAB = "data_lab"
-    SYNCXML = "syncxml"
 
 class AccessRequestSource(str, Enum):
     LANDING = "landing"
     SYNERGI_APP = "synergi_app"
     DATA_LAB_APP = "data_lab_app"
-    SYNCXML_LANDING = "syncxml_landing"
 
 class AccessRequestStatus(str, Enum):
     PENDING = "pending"

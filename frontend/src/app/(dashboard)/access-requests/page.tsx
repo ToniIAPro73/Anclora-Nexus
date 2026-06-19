@@ -26,7 +26,6 @@ import { AccessRequestDetailPanel } from '@/components/access-requests/AccessReq
 import { AccessRequestOperationsDashboard } from '@/components/access-requests/AccessRequestOperationsDashboard'
 import { AccessRequestSlaPanel } from '@/components/access-requests/AccessRequestSlaPanel'
 import { AccessRequestsTable } from '@/components/access-requests/AccessRequestsTable'
-import { approveSyncXmlPilot, rejectSyncXmlPilot } from '@/lib/syncxml-pilot-api'
 
 export default function AccessRequestsPage() {
   const { t } = useI18n()
@@ -182,29 +181,15 @@ export default function AccessRequestsPage() {
     setDecisionError(null)
     setSuccess(null)
     try {
-      let payload: AccessRequest
-      if (selected.product === 'syncxml') {
-        const syncXmlPayload =
-          decisionMode === 'approve'
-            ? await approveSyncXmlPilot(selected.id, {
-                admin_notes: adminNotes.trim() || undefined,
-              })
-            : await rejectSyncXmlPilot(selected.id, {
-                internal_reason: adminNotes.trim() || rejectionReason.trim(),
-                user_reason: rejectionReason.trim(),
-              })
-        payload = syncXmlPayload.record
-      } else {
-        payload =
-          decisionMode === 'approve'
-            ? await approveAccessRequest(selected.id, {
-                admin_notes: adminNotes.trim() || undefined,
-              })
-            : await rejectAccessRequest(selected.id, {
-                admin_notes: adminNotes.trim() || undefined,
-                rejection_reason: rejectionReason.trim(),
-              })
-      }
+      const payload: AccessRequest =
+        decisionMode === 'approve'
+          ? await approveAccessRequest(selected.id, {
+              admin_notes: adminNotes.trim() || undefined,
+            })
+          : await rejectAccessRequest(selected.id, {
+              admin_notes: adminNotes.trim() || undefined,
+              rejection_reason: rejectionReason.trim(),
+            })
 
       setSelected(payload)
       setDecisionMode(null)
@@ -308,7 +293,6 @@ export default function AccessRequestsPage() {
                 <option value="">{t('accessRequestsAllProducts')}</option>
                 <option value="synergi">Synergi</option>
                 <option value="data_lab">Data Lab</option>
-                <option value="syncxml">SyncXML</option>
               </select>
             </label>
             <label>
@@ -318,7 +302,6 @@ export default function AccessRequestsPage() {
                 <option value="landing">{t('accessRequestsSourceLanding')}</option>
                 <option value="synergi_app">{t('accessRequestsSourceSynergiApp')}</option>
                 <option value="data_lab_app">{t('accessRequestsSourceDataLabApp')}</option>
-                <option value="syncxml_landing">{t('accessRequestsSourceSyncXmlLanding')}</option>
               </select>
             </label>
             <label>
