@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
     APP_ENV: str = "development"
-    SYNCXML_ENV: str = "development"
     ALLOW_REAL_SUPABASE_WRITE: bool = False
     USE_SYNTHETIC_DATA_ONLY: bool = False
     
@@ -68,17 +67,9 @@ class Settings(BaseSettings):
     N8N_WEBHOOK_URL: Optional[str] = None
     N8N_API_KEY: Optional[str] = None
 
-    # SyncXML Pilot Settings
-    SYNCXML_ADMIN_PASSWORD: Optional[str] = None
-    SYNCXML_APP_URL: str = "https://anclora-syncxml.vercel.app"
-    SYNCXML_LOGIN_URL: str = "https://anclora-syncxml.vercel.app/login"
-    SYNCXML_WEBHOOK_SECRET: Optional[str] = None
-    SYNCXML_INTERNAL_API_URL: str = "https://anclora-syncxml.vercel.app/api/internal/pilot-users"
-    SYNCXML_INTERNAL_API_SECRET: Optional[str] = None
     ADMIN_EMAIL: str = "toni@anclora.com"
     ADMIN_EMAILS: str = "antonio@anclora.com"
     NEXUS_INTERNAL_API_KEY: Optional[str] = None
-    SYNCXML_PILOT_AUTO_APPROVE: bool = False
 
     # Hermes Worker Settings
     HERMES_WORKER_URL: str = "http://localhost:8787"
@@ -94,6 +85,10 @@ class Settings(BaseSettings):
     ADVISOR_AI_BASE_URL: Optional[str] = None
     ADVISOR_AI_INTERNAL_API_KEY: Optional[str] = None
     ADVISOR_AI_TIMEOUT_SECONDS: float = 12.0
+
+    # Exclusiva Webhook Dispatcher (Req 15.1, 15.4)
+    CONTENT_GENERATOR_WEBHOOK_URL: Optional[str] = None
+    WEBHOOK_SHARED_SECRET: Optional[str] = None
 
     # Legacy compatibility - deprecated
     OPENAI_API_KEY: Optional[str] = None
