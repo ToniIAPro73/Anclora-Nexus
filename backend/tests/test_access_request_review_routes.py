@@ -84,18 +84,18 @@ async def test_list_access_requests_accepts_empty_lifecycle(app):
             return_value=[
                 {
                     **access_request_response(),
-                    "product": "syncxml",
-                    "source": "syncxml_landing",
+                    "product": "data_lab",
+                    "source": "data_lab_app",
                     "lifecycle": {},
                 }
             ]
         )
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-            response = await ac.get("/api/access-requests?status=pending&product=syncxml")
+            response = await ac.get("/api/access-requests?status=pending&product=data_lab")
 
     assert response.status_code == 200
-    assert response.json()[0]["product"] == "syncxml"
+    assert response.json()[0]["product"] == "data_lab"
     assert response.json()[0]["lifecycle"] is None
 
 
