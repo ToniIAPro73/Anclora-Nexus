@@ -16,7 +16,6 @@ from backend.api.routes.deal_margin import router as deal_margin_router
 from backend.api.routes.source_observatory import router as source_observatory_router
 from backend.api.routes.sellers import router as sellers_router
 from backend.api.routes.access_requests import router as access_requests_router
-from backend.api.routes.syncxml_pilot import router as syncxml_pilot_router
 from backend.api.routes.dms import router as dms_router
 from backend.api.routes.dms_templates import router as dms_templates_router
 from backend.api.routes.dms_generated import router as dms_generated_router
@@ -61,7 +60,6 @@ app.include_router(deal_margin_router, prefix="/api/deal-margin", tags=["Deal Ma
 app.include_router(source_observatory_router, prefix="/api/source-observatory", tags=["Source Observatory"])
 app.include_router(sellers_router, prefix="/api/sellers", tags=["Sellers"])
 app.include_router(access_requests_router, prefix="/api/access-requests", tags=["Access Requests"])
-app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["SyncXML Pilot"])
 app.include_router(dms_router, prefix="/api/dms", tags=["DMS"])
 app.include_router(dms_templates_router, prefix="/api/dms/templates", tags=["DMS Templates"])
 app.include_router(dms_generated_router, prefix="/api/dms", tags=["DMS Generated"])

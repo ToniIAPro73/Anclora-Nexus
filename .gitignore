@@ -18,6 +18,8 @@ venv/
 
 # testing
 /coverage
+.hypothesis/
+test_output.txt
 
 # next.js
 /.next/

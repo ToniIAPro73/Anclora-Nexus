@@ -14,8 +14,6 @@ def _product_label(record: Dict[str, Any]) -> str:
     product = str(record.get("product") or "").strip().lower()
     if product == "data_lab":
         return "Data Lab"
-    if product == "syncxml":
-        return "SyncXML"
     return "Synergi"
 
 
@@ -33,14 +31,6 @@ BRAND_SURFACE_ELEVATED = "#151F32"
 BRAND_ACCENT = "#BFA46A"
 BRAND_TEXT = "#F8FAFC"
 BRAND_MUTED = "#A8B3C7"
-
-
-def _syncxml_app_url() -> str:
-    return (settings.SYNCXML_APP_URL or "https://anclora-syncxml.vercel.app").rstrip("/")
-
-
-def _syncxml_logo_url() -> str:
-    return f"{_syncxml_app_url()}/brand/logo-anclora-syncxml-email.png"
 
 
 def _html_p(text: str) -> str:
@@ -81,7 +71,7 @@ def _button(label: str, href: str) -> str:
     )
 
 
-def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclora SyncXML") -> str:
+def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclora Nexus") -> str:
     return f"""
       <!doctype html>
       <html lang="es">
@@ -94,12 +84,9 @@ def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclo
                 <td style="padding:0 0 18px;">
                   <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                     <tr>
-                      <td style="padding-right:12px;">
-                        <img src="{escape(_syncxml_logo_url())}" width="48" height="48" alt="Anclora SyncXML" style="display:block;width:48px;height:48px;border-radius:8px;object-fit:contain;">
-                      </td>
                       <td>
-                        <div style="color:{BRAND_TEXT};font-size:18px;line-height:24px;font-weight:850;">Anclora SyncXML</div>
-                        <div style="color:{BRAND_MUTED};font-size:13px;line-height:18px;">Piloto controlado</div>
+                        <div style="color:{BRAND_TEXT};font-size:18px;line-height:24px;font-weight:850;">Anclora Nexus</div>
+                        <div style="color:{BRAND_MUTED};font-size:13px;line-height:18px;">Platform notifications</div>
                       </td>
                     </tr>
                   </table>
@@ -126,7 +113,7 @@ def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclo
               </tr>
               <tr>
                 <td style="padding:16px 4px 0;color:{BRAND_MUTED};font-size:12px;line-height:18px;">
-                  Email transaccional de Anclora SyncXML. El piloto es limitado, revocable y revisable.
+                  Transactional email from Anclora Nexus.
                 </td>
               </tr>
             </table>
@@ -145,28 +132,14 @@ def build_access_request_approved_email(record: Dict[str, Any]) -> Dict[str, str
 
     extra_text = ""
     extra_html = ""
-    if product == "SyncXML":
-        pwd = settings.SYNCXML_ADMIN_PASSWORD or "NOT_CONFIGURED"
-        url = _syncxml_app_url()
-        extra_text = f"\n\nPuedes acceder al piloto en {url} usando la contraseña compartida: {pwd}\n"
-        extra_html = (
-            _button("Acceder a Anclora SyncXML", url)
-            + _detail_table([
-                ("URL de acceso", url),
-                ("Contraseña compartida", pwd),
-                ("Estado", "Acceso aprobado"),
-            ])
-            + _html_p("Usa solo datos sintéticos o anonimizados. El piloto no incluye envío automático a SES.HOSPEDAJES ni garantía legal definitiva.")
-        )
-    else:
-        extra_text = (
-            "\nNuestro equipo enviará los siguientes pasos cuando apliquen. "
-            "No se ha creado ninguna cuenta externa automáticamente con esta aprobación.\n"
-        )
-        extra_html = (
-            _html_p("Nuestro equipo enviará los siguientes pasos cuando apliquen.")
-            + _html_p("No se ha creado ninguna cuenta externa automáticamente con esta aprobación.")
-        )
+    extra_text = (
+        "\nNuestro equipo enviará los siguientes pasos cuando apliquen. "
+        "No se ha creado ninguna cuenta externa automáticamente con esta aprobación.\n"
+    )
+    extra_html = (
+        _html_p("Nuestro equipo enviará los siguientes pasos cuando apliquen.")
+        + _html_p("No se ha creado ninguna cuenta externa automáticamente con esta aprobación.")
+    )
 
     text = (
         f"Hola {full_name},\n\n"
@@ -181,55 +154,6 @@ def build_access_request_approved_email(record: Dict[str, Any]) -> Dict[str, str
         eyebrow="Acceso aprobado",
     )
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
-
-
-def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Dict[str, Any]) -> Dict[str, str]:
-    full_name = _full_name(record)
-    login_url = settings.SYNCXML_LOGIN_URL or settings.SYNCXML_APP_URL
-    email = str(credentials.get("email") or _email_to(record))
-    temporary_password = str(credentials.get("temporaryPassword") or "")
-    expires_at = credentials.get("expiresAt") or "según condiciones del piloto"
-    subject = "Anclora SyncXML · Acceso al piloto controlado"
-    text = (
-        f"Hola {full_name},\n\n"
-        "Tu solicitud encaja con el alcance actual del piloto controlado de Anclora SyncXML.\n\n"
-        f"Acceso: {login_url}\n"
-        f"Email autorizado: {email}\n"
-        f"Contraseña temporal: {temporary_password}\n"
-        f"Caducidad/revisión: {expires_at}\n\n"
-        "Límites del piloto:\n"
-        "- Usa solo datos sintéticos o anonimizados.\n"
-        "- No subas datos reales de huéspedes.\n"
-        "- No hay envío automático a SES.HOSPEDAJES en esta fase.\n"
-        "- El piloto no constituye asesoramiento legal ni garantiza cumplimiento normativo definitivo.\n"
-        "- El acceso es limitado, revocable y revisable.\n\n"
-        "Gracias,\nAnclora"
-    )
-    body_html = (
-        _button("Acceder al piloto", login_url)
-        + _detail_table([
-            ("URL de acceso", login_url),
-            ("Email autorizado", email),
-            ("Contraseña temporal", temporary_password),
-            ("Caducidad/revisión", expires_at),
-        ])
-        + "<div style='margin-top:20px;padding:16px;border:1px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.035);'>"
-        + f"<div style='color:{BRAND_ACCENT};font-size:12px;line-height:16px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;'>Límites del piloto</div>"
-        + f"<ul style='margin:10px 0 0;padding-left:18px;color:{BRAND_MUTED};font-size:14px;line-height:22px;'>"
-        + "<li>Usa solo datos sintéticos o anonimizados.</li>"
-        + "<li>No subas datos reales de huéspedes.</li>"
-        + "<li>No hay envío automático a SES.HOSPEDAJES en esta fase.</li>"
-        + "<li>No constituye asesoramiento legal ni garantía normativa definitiva.</li>"
-        + "<li>El acceso es limitado, revocable y revisable.</li>"
-        + "</ul></div>"
-    )
-    html = _html_shell(
-        title="Acceso al piloto controlado de SyncXML",
-        intro=f"Hola {full_name}, tu solicitud encaja con el alcance actual del piloto controlado.",
-        body_html=body_html,
-        eyebrow="Acceso aprobado",
-    )
-    return {"to": email, "subject": subject, "text": text, "html": html}
 
 
 def build_access_request_rejected_email(record: Dict[str, Any]) -> Dict[str, str]:
@@ -266,27 +190,6 @@ def build_access_request_rejected_email(record: Dict[str, Any]) -> Dict[str, str
     return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
 
 
-def build_syncxml_more_info_email(record: Dict[str, Any], message: str) -> Dict[str, str]:
-    full_name = _full_name(record)
-    subject = "Anclora SyncXML · Necesitamos aclarar tu solicitud"
-    text = (
-        f"Hola {full_name},\n\n"
-        f"{message}\n\n"
-        "Recuerda que esta fase funciona solo con datos sintéticos o anonimizados y sin envío automático a SES.HOSPEDAJES.\n\n"
-        "Gracias,\nAnclora"
-    )
-    html = _html_shell(
-        title="Necesitamos aclarar tu solicitud",
-        intro=f"Hola {full_name}, antes de confirmar el acceso necesitamos aclarar algunos detalles.",
-        body_html=(
-            _html_p(message)
-            + _html_p("Recuerda que esta fase funciona solo con datos sintéticos o anonimizados y sin envío automático a SES.HOSPEDAJES.")
-        ),
-        eyebrow="Información adicional",
-    )
-    return {"to": _email_to(record), "subject": subject, "text": text, "html": html}
-
-
 def build_access_request_fallback_admin_email(record: Dict[str, Any]) -> Dict[str, str]:
     product = _product_label(record)
     email = _email_to(record)
@@ -315,12 +218,6 @@ class AccessRequestEmailService:
         if status == "rejected":
             return build_access_request_rejected_email(record)
         raise ValueError(f"Unsupported access request decision status: {status}")
-
-    def build_syncxml_acceptance_email(self, record: Dict[str, Any], credentials: Dict[str, Any]) -> Dict[str, str]:
-        return build_syncxml_pilot_acceptance_email(record, credentials)
-
-    def build_syncxml_more_info_email(self, record: Dict[str, Any], message: str) -> Dict[str, str]:
-        return build_syncxml_more_info_email(record, message)
 
     def send_decision_email(self, record: Dict[str, Any]) -> Dict[str, Any]:
         mail = self.build_decision_email(record)

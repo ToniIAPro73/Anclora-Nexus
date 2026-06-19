@@ -1,11 +1,61 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import re
-from typing import Any, Optional
+from datetime import datetime, timezone
+from typing import Any, Literal, Optional
+from uuid import uuid4
 
 import httpx
+from pydantic import BaseModel, Field
 
 from backend.config import settings
+
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Pydantic v2 models for contract validation (Requirements 10.1, 11.1)
+# ---------------------------------------------------------------------------
+
+
+class ValidationIssue(BaseModel):
+    """Single issue found during contract validation."""
+
+    code: str
+    severity: Literal["critical", "warning", "info"] = "warning"
+    description: str
+    clause_reference: Optional[str] = None
+
+
+class ContractValidationRequest(BaseModel):
+    """Request model for the Advisor AI contract validation endpoint."""
+
+    document_id: str
+    document_content: str
+    document_type: str
+    org_id: str
+
+
+class ContractValidationResponse(BaseModel):
+    """Response model from the Advisor AI contract validation endpoint."""
+
+    document_id: str
+    block_signing: bool
+    issues: list[ValidationIssue] = Field(default_factory=list)
+    confidence: float = 0.0
+
+
+# ---------------------------------------------------------------------------
+# Retry configuration (Requirements 10.5)
+# Max 3 retries over 1 hour: delays of ~60s, ~600s, ~2400s (exponential)
+# ---------------------------------------------------------------------------
+
+_MAX_RETRIES = 3
+_INITIAL_BACKOFF_SECONDS = 60.0
+_BACKOFF_MULTIPLIER = 4.0  # 60s, 240s, 960s ≈ fits within 1 hour total
 
 
 SAFE_FAILURE_RESULT: dict[str, Any] = {
@@ -47,10 +97,185 @@ class AdvisorContractValidatorService:
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         timeout_seconds: Optional[float] = None,
+        project_ref: Optional[str] = None,
     ) -> None:
         self.base_url = (base_url or settings.ADVISOR_AI_BASE_URL or "").rstrip("/")
         self.api_key = api_key if api_key is not None else settings.ADVISOR_AI_INTERNAL_API_KEY
         self.timeout_seconds = timeout_seconds or settings.ADVISOR_AI_TIMEOUT_SECONDS
+        # Requirement 11.4: Use project_ref to route to correct Advisor AI instance
+        self.project_ref = project_ref
+
+    # ------------------------------------------------------------------
+    # Retry with exponential backoff (Requirement 10.5)
+    # ------------------------------------------------------------------
+
+    async def validate_document_with_retry(
+        self,
+        request: ContractValidationRequest,
+    ) -> ContractValidationResponse:
+        """Call Advisor AI /api/legal-documents/validate with retry and backoff.
+
+        Retries up to 3 times with exponential backoff (max ~1 hour total).
+        Notifies operator via Command Center when Advisor AI is unreachable.
+        Uses ADVISOR_INTERNAL_API_KEY for authentication (Requirement 10.2).
+        Routes via project_ref when configured (Requirement 11.4).
+        """
+        if not self.base_url:
+            await self._notify_command_center(
+                org_id=request.org_id,
+                document_id=request.document_id,
+                error="ADVISOR_AI_BASE_URL not configured",
+            )
+            return ContractValidationResponse(
+                document_id=request.document_id,
+                block_signing=True,
+                issues=[
+                    ValidationIssue(
+                        code="ADVISOR_UNREACHABLE",
+                        severity="critical",
+                        description="Advisor AI base URL not configured.",
+                    )
+                ],
+                confidence=0.0,
+            )
+
+        last_error: Optional[str] = None
+        backoff = _INITIAL_BACKOFF_SECONDS
+
+        for attempt in range(_MAX_RETRIES):
+            try:
+                response = await self._call_advisor_validate(request)
+                return response
+            except (httpx.HTTPStatusError, httpx.TimeoutException, httpx.ConnectError, Exception) as exc:
+                last_error = f"Attempt {attempt + 1}/{_MAX_RETRIES} failed: {exc}"
+                logger.warning(
+                    "Advisor AI validation attempt %d/%d failed for document %s: %s",
+                    attempt + 1,
+                    _MAX_RETRIES,
+                    request.document_id,
+                    exc,
+                )
+                if attempt < _MAX_RETRIES - 1:
+                    await asyncio.sleep(backoff)
+                    backoff *= _BACKOFF_MULTIPLIER
+
+        # All retries exhausted — notify operator via Command Center
+        await self._notify_command_center(
+            org_id=request.org_id,
+            document_id=request.document_id,
+            error=last_error or "Unknown error after retries",
+        )
+
+        return ContractValidationResponse(
+            document_id=request.document_id,
+            block_signing=True,
+            issues=[
+                ValidationIssue(
+                    code="ADVISOR_UNREACHABLE",
+                    severity="critical",
+                    description=f"Advisor AI unreachable after {_MAX_RETRIES} retries. Queued for manual review.",
+                )
+            ],
+            confidence=0.0,
+        )
+
+    async def _call_advisor_validate(
+        self,
+        request: ContractValidationRequest,
+    ) -> ContractValidationResponse:
+        """Single attempt to call Advisor AI /api/legal-documents/validate."""
+        payload = {
+            "document_id": request.document_id,
+            "document_content": request.document_content,
+            "document_type": request.document_type,
+            "org_id": request.org_id,
+        }
+
+        headers: dict[str, str] = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["x-advisor-internal-api-key"] = self.api_key
+            headers["x-advisor-caller"] = "nexus"
+        if self.project_ref:
+            headers["x-advisor-project-ref"] = self.project_ref
+
+        async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+            resp = await client.post(
+                f"{self.base_url}/api/legal-documents/validate",
+                json=payload,
+                headers=headers,
+            )
+            resp.raise_for_status()
+
+        data = resp.json()
+        if not isinstance(data, dict):
+            raise ValueError("Advisor AI returned a non-object response")
+
+        issues: list[ValidationIssue] = []
+        for raw_issue in data.get("issues", []):
+            if isinstance(raw_issue, dict):
+                issues.append(
+                    ValidationIssue(
+                        code=str(raw_issue.get("code", "UNKNOWN")),
+                        severity=raw_issue.get("severity", "warning"),
+                        description=str(raw_issue.get("description", "")),
+                        clause_reference=raw_issue.get("clause_reference"),
+                    )
+                )
+
+        return ContractValidationResponse(
+            document_id=str(data.get("document_id", request.document_id)),
+            block_signing=bool(data.get("block_signing", False)),
+            issues=issues,
+            confidence=float(data.get("confidence", 0.0)),
+        )
+
+    async def _notify_command_center(
+        self,
+        org_id: str,
+        document_id: str,
+        error: str,
+    ) -> None:
+        """Notify operator via Command Center when Advisor AI is unreachable.
+
+        Inserts an alert into automation_alerts table (Requirement 10.5).
+        """
+        try:
+            from backend.services.supabase_service import supabase_service
+
+            now = datetime.now(timezone.utc).isoformat()
+            row = {
+                "id": str(uuid4()),
+                "org_id": org_id,
+                "rule_id": None,
+                "alert_scope": "advisor_ai",
+                "severity": "critical",
+                "alert_type": "advisor_ai_unreachable",
+                "message": (
+                    f"Advisor AI no disponible para validar documento {document_id}. "
+                    f"Se requiere revisión manual. Error: {error}"
+                ),
+                "dedupe_key": f"advisor_unreachable:{document_id}",
+                "metadata_json": {
+                    "document_id": document_id,
+                    "error": error,
+                    "service": "advisor_contract_validator",
+                },
+                "is_active": True,
+                "created_at": now,
+                "updated_at": now,
+                "resolved_at": None,
+            }
+            supabase_service.client.table("automation_alerts").insert(row).execute()
+            logger.info(
+                "Command Center notified: Advisor AI unreachable for document %s",
+                document_id,
+            )
+        except Exception as notify_exc:
+            logger.error(
+                "Failed to notify Command Center about Advisor AI unreachable: %s",
+                notify_exc,
+            )
+
 
     def _pre_validate(self, document_text: str) -> Optional[dict[str, Any]]:
         """Gate checks applied before calling Advisor AI.
