@@ -49,6 +49,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Check SyncXML pilot env example
+        run: npm run ops:syncxml-pilot:check-env
+
       - name: Create tag
         if: github.event.inputs.version
         run: git tag -a "${{ github.event.inputs.version }}" -m "Release ${{ github.event.inputs.version }}"
