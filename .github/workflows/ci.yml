@@ -35,3 +35,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Check SyncXML pilot env example
+        run: npm run ops:syncxml-pilot:check-env
