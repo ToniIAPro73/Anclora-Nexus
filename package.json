@@ -14,7 +14,8 @@
     "frontend:lint": "npm run lint -w frontend",
     "build": "npm run build -w frontend",
     "dev": "npm run dev -w frontend",
-    "lint": "npm run frontend:lint"
+    "lint": "npm run frontend:lint",
+    "ops:syncxml-pilot:check-env": "node scripts/check-env-syncxml-pilot.mjs"
   },
   "workspaces": [
     "frontend"
