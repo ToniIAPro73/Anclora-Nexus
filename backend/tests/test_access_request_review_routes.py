@@ -67,13 +67,13 @@ async def test_list_access_requests_route(app):
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.get(
-                "/api/access-requests?status=pending&product=synergi&source=landing&email=test@example.com"
+                "/api/access-requests?status=pending&product=synergi&source=nexus_manual&email=test@example.com"
             )
 
     assert response.status_code == 200
     assert response.json()[0]["id"] == "request-1"
     mock_service.list_requests.assert_awaited_once()
-    assert mock_service.list_requests.await_args.kwargs["source"].value == "landing"
+    assert mock_service.list_requests.await_args.kwargs["source"].value == "nexus_manual"
     assert mock_service.list_requests.await_args.kwargs["email"] == "test@example.com"
 
 

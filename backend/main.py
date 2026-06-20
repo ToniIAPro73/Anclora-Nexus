@@ -69,6 +69,8 @@ app.include_router(dms_versions_router, prefix="/api/dms", tags=["DMS Versions"]
 app.include_router(dms_retention_router, prefix="/api/dms/retention", tags=["DMS Retention"])
 app.include_router(internal_webhooks_router)
 app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["SyncXML Pilot"])
+from backend.api.routes.public import router as public_router
+app.include_router(public_router, prefix="/api/public", tags=["Public"])
 
 @app.get("/health")
 async def health_check():

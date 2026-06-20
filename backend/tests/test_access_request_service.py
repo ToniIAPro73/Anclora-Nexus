@@ -26,7 +26,7 @@ async def test_create_public_request_success(mock_supabase_service, mock_captcha
     service = AccessRequestService()
     data = PublicAccessRequestCreate(
         product=AccessRequestProduct.SYNERGI,
-        source=AccessRequestSource.LANDING,
+        source=AccessRequestSource.NEXUS_MANUAL,
         full_name="Test User",
         email="test@example.com",
         service_category="agent",
@@ -55,7 +55,7 @@ async def test_create_public_request_captcha_fail(mock_captcha):
     service = AccessRequestService()
     data = PublicAccessRequestCreate(
         product=AccessRequestProduct.SYNERGI,
-        source=AccessRequestSource.LANDING,
+        source=AccessRequestSource.NEXUS_MANUAL,
         full_name="Test User",
         email="test@example.com",
         service_category="agent",
@@ -85,7 +85,7 @@ def test_model_validation_missing_fields_synergi():
     with pytest.raises(ValueError, match="Synergi requests require service_category and service_summary"):
         PublicAccessRequestCreate(
             product=AccessRequestProduct.SYNERGI,
-            source=AccessRequestSource.LANDING,
+            source=AccessRequestSource.NEXUS_MANUAL,
             full_name="Test",
             email="test@example.com",
             privacy_accepted=True,
@@ -97,7 +97,7 @@ def test_model_validation_missing_fields_datalab():
     with pytest.raises(ValueError, match="Data Lab requests require intended_use or message"):
         PublicAccessRequestCreate(
             product=AccessRequestProduct.DATA_LAB,
-            source=AccessRequestSource.LANDING,
+            source=AccessRequestSource.NEXUS_MANUAL,
             full_name="Test",
             email="test@example.com",
             privacy_accepted=True,
@@ -109,7 +109,7 @@ def test_model_validation_consents_false():
     with pytest.raises(ValueError, match="Privacy and GDPR consents are required"):
         PublicAccessRequestCreate(
             product=AccessRequestProduct.DATA_LAB,
-            source=AccessRequestSource.LANDING,
+            source=AccessRequestSource.NEXUS_MANUAL,
             full_name="Test",
             email="test@example.com",
             privacy_accepted=False,
