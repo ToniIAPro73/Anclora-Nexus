@@ -1,7 +1,32 @@
 import { authFetch } from "./auth-fetch";
 
 export type AccessRequestProduct = "synergi" | "data_lab" | "syncxml";
-export type AccessRequestSource = "landing" | "synergi_app" | "data_lab_app" | "syncxml_landing";
+export type AccessRequestSource =
+  | "landing"            // legacy — deprecated, kept for backwards compat
+  | "synergi_app"
+  | "data_lab_app"
+  | "syncxml_landing"
+  | "private_estates_landing"
+  | "private_estates_web"
+  | "nexus_manual"
+  | "external_api";
+
+export type IntakeDomain = "access_request" | "commercial_lead";
+export type IntakeRequestType =
+  // access_request domain
+  | "pilot_request"
+  | "access_request"
+  | "partner_admission"
+  | "workspace_access_request"
+  // commercial_lead domain
+  | "seller_valuation_request"
+  | "seller_lead"
+  | "buyer_lead"
+  | "property_inquiry"
+  | "general_commercial_inquiry"
+  | "vacation_rental_management_interest";
+
+export type RoutingTargetDomain = "access_requests" | "leads" | "valuations" | "buyers";
 export type AccessRequestStatus =
   | "pending"
   | "approved"
@@ -34,6 +59,11 @@ export interface AccessRequest {
   product: AccessRequestProduct;
   source: AccessRequestSource;
   status: AccessRequestStatus;
+  schema_version?: string | null;
+  intake_domain?: IntakeDomain | null;
+  request_type?: IntakeRequestType | null;
+  routing_target_domain?: RoutingTargetDomain | null;
+  idempotency_key?: string | null;
   full_name: string;
   email: string;
   phone?: string | null;
@@ -126,6 +156,8 @@ export interface AccessRequestFilters {
   status?: AccessRequestStatus | "";
   product?: AccessRequestProduct | "";
   source?: AccessRequestSource | "";
+  request_type?: IntakeRequestType | "";
+  intake_domain?: IntakeDomain | "";
   email?: string;
   created_from?: string;
   created_to?: string;
@@ -170,6 +202,8 @@ export async function listAccessRequests(
   if (filters.status) search.set("status", filters.status);
   if (filters.product) search.set("product", filters.product);
   if (filters.source) search.set("source", filters.source);
+  if (filters.request_type) search.set("request_type", filters.request_type);
+  if (filters.intake_domain) search.set("intake_domain", filters.intake_domain);
   if (filters.email?.trim()) search.set("email", filters.email.trim());
   if (filters.created_from) search.set("created_from", filters.created_from);
   if (filters.created_to) search.set("created_to", filters.created_to);

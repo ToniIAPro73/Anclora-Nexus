@@ -74,6 +74,18 @@ class AccessRequestService:
         persistence_data["captcha_verified"] = captcha_result.get("verified", False)
         persistence_data["captcha_hostname"] = captcha_result.get("hostname")
         persistence_data["status"] = "pending"
+
+        # Anclora Intake Contract v1: set domain and routing fields from product
+        persistence_data["schema_version"] = "anclora-intake-v1"
+        persistence_data["intake_domain"] = "access_request"
+        persistence_data["routing_target_domain"] = "access_requests"
+        if not persistence_data.get("request_type"):
+            _product = str(data.product.value) if hasattr(data.product, "value") else str(data.product)
+            persistence_data["request_type"] = {
+                "syncxml": "pilot_request",
+                "synergi": "partner_admission",
+                "data_lab": "access_request",
+            }.get(_product)
         
         # 3. Persist to Supabase
         result = supabase_service.client.table("access_requests").insert(persistence_data).execute()
@@ -110,6 +122,8 @@ class AccessRequestService:
         status: Optional[AccessRequestStatus] = None,
         product: Optional[AccessRequestProduct] = None,
         source: Optional[AccessRequestSource] = None,
+        request_type: Optional[str] = None,
+        intake_domain: Optional[str] = None,
         email: Optional[str] = None,
         created_from: Optional[str] = None,
         created_to: Optional[str] = None,
@@ -122,6 +136,10 @@ class AccessRequestService:
             query = query.eq("product", product.value)
         if source:
             query = query.eq("source", source.value)
+        if request_type:
+            query = query.eq("request_type", request_type)
+        if intake_domain:
+            query = query.eq("intake_domain", intake_domain)
         if email and email.strip():
             query = query.ilike("email", f"%{email.strip()}%")
         if created_from:
