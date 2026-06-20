@@ -1,8 +1,14 @@
+import logging
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from backend.config import settings
 from backend.services.syncxml_pilot_service import syncxml_pilot_service
 from backend.services.supabase_service import supabase_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/internal/webhooks", tags=["Internal Webhooks"])
 
@@ -21,6 +27,116 @@ def get_api_key(api_key: str = Security(api_key_header)):
 async def syncxml_pilot_webhook(payload: dict, api_key: str = Depends(get_api_key)):
     result = await syncxml_pilot_service.process_incoming_lead(payload)
     return {"status": "accepted", "request_id": result.get("id") if result else None}
+
+
+def _upsert_intake_access_request(
+    *,
+    email: str,
+    full_name: str,
+    product: str,
+    source: str,
+    request_type: str,
+    idempotency_key: Optional[str],
+    extra: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Insert a v1 intake contract record into access_requests, with idempotency."""
+    org_id = settings.LEGACY_SINGLE_TENANT_ORG_ID or settings.PUBLIC_CTA_ORG_ID
+
+    # Idempotency: return the existing record if already processed
+    if idempotency_key:
+        existing = (
+            supabase_service.client
+            .table("access_requests")
+            .select("id,status")
+            .eq("idempotency_key", idempotency_key)
+            .limit(1)
+            .execute()
+        )
+        if existing.data:
+            return {"id": existing.data[0]["id"], "idempotent": True}
+
+    record: Dict[str, Any] = {
+        "org_id": org_id,
+        "email": email,
+        "full_name": full_name,
+        "product": product,
+        "source": source,
+        "status": "pending",
+        "schema_version": "anclora-intake-v1",
+        "intake_domain": "access_request",
+        "request_type": request_type,
+        "routing_target_domain": "access_requests",
+        "idempotency_key": idempotency_key,
+    }
+    if extra:
+        record.update(extra)
+
+    result = supabase_service.client.table("access_requests").insert(record).execute()
+    if not result.data:
+        raise RuntimeError("Failed to persist access request from intake forward")
+    return {"id": result.data[0]["id"], "idempotent": False}
+
+
+@router.post("/synergi-admission")
+async def synergi_admission_webhook(payload: dict, api_key: str = Depends(get_api_key)):
+    """Receive Anclora Intake Contract v1 payload from Synergi (partner admission)."""
+    applicant = payload.get("applicant") or {}
+    context = (payload.get("context") or {}).get("admission") or {}
+    email = applicant.get("email") or ""
+    full_name = applicant.get("name") or ""
+
+    if not email or not full_name:
+        raise HTTPException(status_code=422, detail="applicant.email and applicant.name are required")
+
+    try:
+        result = _upsert_intake_access_request(
+            email=email,
+            full_name=full_name,
+            product="synergi",
+            source=payload.get("source") or "synergi_app",
+            request_type=payload.get("request_type") or "partner_admission",
+            idempotency_key=payload.get("idempotency_key"),
+            extra={
+                "company_name": applicant.get("organization_name"),
+                "admin_notes": context.get("service_summary"),
+            },
+        )
+    except Exception as exc:
+        logger.error("synergi_admission_webhook persistence failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Failed to persist partner admission") from exc
+
+    return {"status": "accepted", "request_id": result.get("id"), "idempotent": result.get("idempotent", False)}
+
+
+@router.post("/data-lab-access")
+async def data_lab_access_webhook(payload: dict, api_key: str = Depends(get_api_key)):
+    """Receive Anclora Intake Contract v1 payload from Data Lab (access request)."""
+    applicant = payload.get("applicant") or {}
+    metadata = (payload.get("context") or {}).get("request_metadata") or {}
+    email = applicant.get("email") or ""
+    full_name = applicant.get("name") or ""
+
+    if not email or not full_name:
+        raise HTTPException(status_code=422, detail="applicant.email and applicant.name are required")
+
+    try:
+        result = _upsert_intake_access_request(
+            email=email,
+            full_name=full_name,
+            product="data_lab",
+            source=payload.get("source") or "data_lab_app",
+            request_type=payload.get("request_type") or "access_request",
+            idempotency_key=payload.get("idempotency_key"),
+            extra={
+                "intended_use": metadata.get("intended_use"),
+                "company_name": applicant.get("organization_name"),
+            },
+        )
+    except Exception as exc:
+        logger.error("data_lab_access_webhook persistence failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Failed to persist data lab access request") from exc
+
+    return {"status": "accepted", "request_id": result.get("id"), "idempotent": result.get("idempotent", False)}
 
 
 @router.post("/dms-retention-sweep")

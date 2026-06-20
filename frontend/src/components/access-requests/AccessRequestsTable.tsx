@@ -14,9 +14,14 @@ interface AccessRequestsTableProps {
   t: Translate
 }
 
+const PRODUCT_LABELS: Record<AccessRequestProduct, string> = {
+  syncxml: 'SyncXML',
+  synergi: 'Synergi',
+  data_lab: 'Data Lab',
+}
+
 export function productLabel(product: AccessRequestProduct): string {
-  if (product === 'data_lab') return 'Data Lab'
-  return 'Synergi'
+  return PRODUCT_LABELS[product] ?? 'No reconocido'
 }
 
 export function statusLabel(status: AccessRequestStatus, t: Translate): string {
@@ -35,8 +40,12 @@ export function sourceLabel(source: AccessRequestSource, t: Translate): string {
     synergi_app: 'accessRequestsSourceSynergiApp',
     data_lab_app: 'accessRequestsSourceDataLabApp',
     syncxml_landing: 'accessRequestsSourceSyncXmlLanding',
+    private_estates_landing: 'accessRequestsSourcePrivateEstatesLanding',
+    private_estates_web: 'accessRequestsSourcePrivateEstatesWeb',
+    nexus_manual: 'accessRequestsSourceNexusManual',
+    external_api: 'accessRequestsSourceExternalApi',
   }
-  return t(labels[source])
+  return labels[source] ? t(labels[source]) : 'No reconocido'
 }
 
 function formatDate(value?: string | null): string {
