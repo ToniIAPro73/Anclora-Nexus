@@ -202,7 +202,7 @@ async def test_list_requests_applies_operations_filters(monkeypatch, service):
         org_id=ORG_ID,
         status=AccessRequestStatus.PENDING,
         product=AccessRequestProduct.SYNERGI,
-        source=AccessRequestSource.LANDING,
+        source=AccessRequestSource.NEXUS_MANUAL,
         email="ana",
         created_from="2026-05-01T00:00:00+00:00",
         created_to="2026-05-04T00:00:00+00:00",

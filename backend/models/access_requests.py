@@ -9,12 +9,9 @@ class AccessRequestProduct(str, Enum):
     SYNCXML = "syncxml"
 
 class AccessRequestSource(str, Enum):
-    LANDING = "landing"                                    # legacy — deprecated
+    SYNCXML_LANDING = "syncxml_landing"
     SYNERGI_APP = "synergi_app"
     DATA_LAB_APP = "data_lab_app"
-    SYNCXML_LANDING = "syncxml_landing"
-    PRIVATE_ESTATES_LANDING = "private_estates_landing"
-    PRIVATE_ESTATES_WEB = "private_estates_web"
     NEXUS_MANUAL = "nexus_manual"
     EXTERNAL_API = "external_api"
 

@@ -1,7 +1,11 @@
 from fastapi import APIRouter, HTTPException, Query, Request, status
-from typing import Any, Dict
+from typing import Any, Dict, Optional
+from uuid import uuid4
+import logging
 from backend.agents.graph import agent_executor
 from backend.config import settings
+
+logger = logging.getLogger(__name__)
 from backend.models.partner_workspaces import (
     PublicPartnerOpportunityCreate,
     PublicPartnerWorkspaceProfileUpdate,
@@ -182,7 +186,7 @@ async def legacy_data_lab_access_request(data: LegacyDataLabAccessRequest, reque
     # Transform legacy model to canonical without mutation
     canonical_data = PublicAccessRequestCreate(
         product=AccessRequestProduct.DATA_LAB,
-        source=AccessRequestSource.LANDING,
+        source=AccessRequestSource.EXTERNAL_API,
         full_name=data.full_name,
         email=data.email,
         profile_type=data.profile_type,
@@ -202,7 +206,7 @@ async def legacy_partner_admission(data: LegacyPartnerAdmission, request: Reques
     # Transform legacy model to canonical without mutation
     canonical_data = PublicAccessRequestCreate(
         product=AccessRequestProduct.SYNERGI,
-        source=AccessRequestSource.LANDING,
+        source=AccessRequestSource.EXTERNAL_API,
         full_name=data.full_name,
         email=data.email,
         service_category=data.service_category,
@@ -214,3 +218,151 @@ async def legacy_partner_admission(data: LegacyPartnerAdmission, request: Reques
         captcha_token=data.captcha_token
     )
     return await create_public_access_request(canonical_data, request)
+
+
+COMMERCIAL_LEAD_VALID_SOURCES = {
+    "private_estates_landing",
+    "private_estates_web",
+    "nexus_manual",
+    "external_api",
+}
+
+
+async def _handle_commercial_lead_intake(body: Dict[str, Any]) -> Dict[str, Any]:
+    """Shared logic for commercial lead intake endpoints."""
+    from backend.services.supabase_service import supabase_service
+
+    # Validate intake_domain
+    intake_domain = body.get("intake_domain")
+    if intake_domain != "commercial_lead":
+        raise HTTPException(
+            status_code=422,
+            detail="intake_domain must be 'commercial_lead'",
+        )
+
+    # Validate source
+    source = body.get("source")
+    if source not in COMMERCIAL_LEAD_VALID_SOURCES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"source must be one of: {', '.join(sorted(COMMERCIAL_LEAD_VALID_SOURCES))}",
+        )
+
+    # Validate target_product is null/None
+    target_product = body.get("target_product")
+    if target_product is not None:
+        raise HTTPException(
+            status_code=422,
+            detail="target_product must be null for commercial_lead intakes",
+        )
+
+    # Validate at least one contact field
+    applicant = body.get("applicant") or {}
+    applicant_email = applicant.get("email") if isinstance(applicant, dict) else None
+    contact_email = body.get("contact_email")
+    if not applicant_email and not contact_email:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one contact field is required: applicant.email or contact_email",
+        )
+
+    # Generate idempotency_key if not provided
+    idempotency_key = body.get("idempotency_key") or str(uuid4())
+
+    # Determine routing target
+    request_type = body.get("request_type")
+    if request_type == "seller_valuation_request":
+        routing_target_domain = "valuation_requests"
+    else:
+        routing_target_domain = "leads_pipeline"
+
+    logger.info(
+        "commercial_lead intake received",
+        extra={
+            "source": source,
+            "request_type": request_type,
+            "routing_target_domain": routing_target_domain,
+            "idempotency_key": idempotency_key,
+        },
+    )
+
+    # Persist record
+    try:
+        if routing_target_domain == "valuation_requests":
+            persistence_data = {
+                "schema_version": body.get("schema_version", "anclora-intake-v1"),
+                "intake_domain": intake_domain,
+                "source": source,
+                "request_type": request_type,
+                "idempotency_key": idempotency_key,
+                "service_interest": body.get("service_interest"),
+                "applicant": applicant if applicant else None,
+                "context": body.get("context"),
+                "consent": body.get("consent"),
+                "routing_target_domain": routing_target_domain,
+            }
+            result = (
+                supabase_service.client
+                .table("valuation_requests")
+                .insert(persistence_data)
+                .execute()
+            )
+        else:
+            persistence_data = {
+                "schema_version": body.get("schema_version", "anclora-intake-v1"),
+                "intake_domain": intake_domain,
+                "source": source,
+                "request_type": request_type,
+                "idempotency_key": idempotency_key,
+                "service_interest": body.get("service_interest"),
+                "applicant": applicant if applicant else None,
+                "context": body.get("context"),
+                "consent": body.get("consent"),
+                "routing_target_domain": routing_target_domain,
+            }
+            result = (
+                supabase_service.client
+                .table("leads_pipeline")
+                .insert(persistence_data)
+                .execute()
+            )
+
+        if not result.data:
+            logger.error("commercial_lead persistence returned no data: %s", result)
+            raise HTTPException(status_code=500, detail="Failed to persist commercial lead")
+
+        record = result.data[0]
+        lead_id = record.get("id")
+        logger.info("commercial_lead persisted: lead_id=%s routing=%s", lead_id, routing_target_domain)
+
+        return {
+            "status": "accepted",
+            "lead_id": lead_id,
+            "routing": routing_target_domain,
+            "idempotent": False,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("commercial_lead persistence error: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/intake/commercial-leads", status_code=status.HTTP_202_ACCEPTED)
+async def intake_commercial_lead(body: Dict[str, Any]):
+    """
+    Public endpoint for commercial lead intake (e.g. Private Estates landing page).
+    No authentication required. Validates domain, source, and contact fields,
+    then routes to valuation_requests or leads_pipeline depending on request_type.
+    """
+    return await _handle_commercial_lead_intake(body)
+
+
+@router.post("/lead-intake", status_code=status.HTTP_202_ACCEPTED)
+async def lead_intake_alias(body: Dict[str, Any]):
+    """
+    Backward-compatibility alias for /intake/commercial-leads.
+    Used by PE Landing which calls this path.
+    """
+    return await _handle_commercial_lead_intake(body)

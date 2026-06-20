@@ -77,6 +77,7 @@ export default function AccessRequestsPage() {
         product: productFilter,
         source: sourceFilter,
         email: emailFilter,
+        intake_domain: 'access_request',
         limit: 50,
       })
       setRequests(payload)
@@ -315,10 +316,11 @@ export default function AccessRequestsPage() {
               <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsColumnSource')}</span>
               <select className="ui-select" value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as AccessRequestSource | '')}>
                 <option value="">{t('accessRequestsAllSources')}</option>
-                <option value="landing">{t('accessRequestsSourceLanding')}</option>
                 <option value="synergi_app">{t('accessRequestsSourceSynergiApp')}</option>
                 <option value="data_lab_app">{t('accessRequestsSourceDataLabApp')}</option>
                 <option value="syncxml_landing">{t('accessRequestsSourceSyncXmlLanding')}</option>
+                <option value="nexus_manual">{t('accessRequestsSourceNexusManual')}</option>
+                <option value="external_api">{t('accessRequestsSourceExternalApi')}</option>
               </select>
             </label>
             <label>
