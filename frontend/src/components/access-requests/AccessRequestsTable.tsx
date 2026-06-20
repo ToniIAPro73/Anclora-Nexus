@@ -34,6 +34,7 @@ export function sourceLabel(source: AccessRequestSource, t: Translate): string {
     landing: 'accessRequestsSourceLanding',
     synergi_app: 'accessRequestsSourceSynergiApp',
     data_lab_app: 'accessRequestsSourceDataLabApp',
+    syncxml_landing: 'accessRequestsSourceSyncXmlLanding',
   }
   return t(labels[source])
 }
