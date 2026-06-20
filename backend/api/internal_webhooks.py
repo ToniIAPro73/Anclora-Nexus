@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from backend.config import settings
+from backend.services.syncxml_pilot_service import syncxml_pilot_service
 from backend.services.supabase_service import supabase_service
 
 router = APIRouter(prefix="/api/internal/webhooks", tags=["Internal Webhooks"])
@@ -11,10 +12,15 @@ def get_api_key(api_key: str = Security(api_key_header)):
     if not api_key:
         raise HTTPException(status_code=403, detail="Missing API Key")
     token = api_key.replace("Bearer ", "").strip()
-    expected = settings.NEXUS_INTERNAL_API_KEY
+    expected = settings.SYNCXML_WEBHOOK_SECRET or settings.NEXUS_INTERNAL_API_KEY
     if not expected or token != expected:
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return token
+
+@router.post("/syncxml-pilot")
+async def syncxml_pilot_webhook(payload: dict, api_key: str = Depends(get_api_key)):
+    result = await syncxml_pilot_service.process_incoming_lead(payload)
+    return {"status": "accepted", "request_id": result.get("id") if result else None}
 
 
 @router.post("/dms-retention-sweep")
