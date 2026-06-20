@@ -9,10 +9,14 @@ class AccessRequestProduct(str, Enum):
     SYNCXML = "syncxml"
 
 class AccessRequestSource(str, Enum):
-    LANDING = "landing"
+    LANDING = "landing"                                    # legacy — deprecated
     SYNERGI_APP = "synergi_app"
     DATA_LAB_APP = "data_lab_app"
     SYNCXML_LANDING = "syncxml_landing"
+    PRIVATE_ESTATES_LANDING = "private_estates_landing"
+    PRIVATE_ESTATES_WEB = "private_estates_web"
+    NEXUS_MANUAL = "nexus_manual"
+    EXTERNAL_API = "external_api"
 
 class AccessRequestStatus(str, Enum):
     PENDING = "pending"
@@ -82,6 +86,9 @@ class PublicAccessRequestCreate(BaseModel):
     # org_id is NOT accepted from public client
     product: AccessRequestProduct
     source: AccessRequestSource
+    schema_version: Optional[str] = "anclora-intake-v1"
+    request_type: Optional[str] = None
+    idempotency_key: Optional[str] = None
     full_name: str
     email: EmailStr
     phone: Optional[str] = None
@@ -219,6 +226,11 @@ class AccessRequestResponse(BaseModel):
     product: AccessRequestProduct
     source: AccessRequestSource
     status: AccessRequestStatus
+    schema_version: Optional[str] = "anclora-intake-v1"
+    intake_domain: Optional[str] = "access_request"
+    request_type: Optional[str] = None
+    routing_target_domain: Optional[str] = None
+    idempotency_key: Optional[str] = None
     full_name: str
     email: EmailStr
     phone: Optional[str] = None
