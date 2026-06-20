@@ -18,7 +18,7 @@ async def test_create_access_request_api(mock_service):
     
     payload = {
         "product": "data_lab",
-        "source": "landing",
+        "source": "nexus_manual",
         "full_name": "Data Analyst",
         "email": "analyst@example.com",
         "intended_use": "Market research",
@@ -46,7 +46,7 @@ async def test_create_access_request_forbidden_org_id(mock_service):
     payload = {
         "org_id": "9d6cb56d-3f21-4f7b-80ea-797a7c2c62cf",
         "product": "data_lab",
-        "source": "landing",
+        "source": "nexus_manual",
         "full_name": "Attacker",
         "email": "attacker@example.com",
         "intended_use": "Injection",
@@ -80,7 +80,7 @@ async def test_legacy_data_lab_wrapper(mock_service):
     assert response.status_code == 201
     args, _ = mock_service.create_public_request.call_args
     assert args[0].product == "data_lab"
-    assert args[0].source == "landing"
+    assert args[0].source == "external_api"
 
 @pytest.mark.anyio
 async def test_legacy_partner_admission_wrapper(mock_service):
@@ -102,4 +102,4 @@ async def test_legacy_partner_admission_wrapper(mock_service):
     assert response.status_code == 201
     args, _ = mock_service.create_public_request.call_args
     assert args[0].product == "synergi"
-    assert args[0].source == "landing"
+    assert args[0].source == "external_api"
