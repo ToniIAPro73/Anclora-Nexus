@@ -41,6 +41,7 @@ from .routes.public import router as public_router
 from .routes.prospection import router as prospection_router
 from .routes.sellers import router as sellers_router
 from .routes.skills import router as skills_router
+from .routes.syncxml_pilot import router as syncxml_pilot_router
 
 # Include Intelligence routes (+ NotebookLM territorial insights)
 app.include_router(intelligence_router, prefix="/api/intelligence", tags=["Intelligence"])
@@ -80,6 +81,9 @@ app.include_router(lead_pipeline_router, prefix="/api/v1", tags=["Lead Pipeline"
 
 # Include public capture routes
 app.include_router(public_router, prefix="/api/public", tags=["Public"])
+
+# Include SyncXML Pilot manual decision routes
+app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["SyncXML Pilot"])
 
 # ═══════════════════════════════════════════════════════════════
 # HEALTH CHECK
