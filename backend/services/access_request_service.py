@@ -138,8 +138,10 @@ class AccessRequestService:
             query = query.eq("source", source.value)
         if request_type:
             query = query.eq("request_type", request_type)
-        if intake_domain:
-            query = query.eq("intake_domain", intake_domain)
+        # Always filter to access_request domain — commercial leads never appear in this view
+        if not intake_domain:
+            intake_domain = "access_request"
+        query = query.eq("intake_domain", intake_domain)
         if email and email.strip():
             query = query.ilike("email", f"%{email.strip()}%")
         if created_from:
@@ -808,7 +810,7 @@ class AccessRequestService:
             severity=severity,
             status=str(row.get("status") or AccessRequestStatus.PENDING.value),
             product=str(row.get("product") or AccessRequestProduct.SYNERGI.value),
-            source=str(row.get("source") or AccessRequestSource.LANDING.value),
+            source=str(row.get("source") or AccessRequestSource.NEXUS_MANUAL.value),
             email=str(row.get("email") or ""),
             created_at=row.get("created_at"),
             reviewed_at=row.get("reviewed_at"),
