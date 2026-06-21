@@ -103,6 +103,18 @@ class SyncXmlPilotService:
         raw_key = payload.raw.get("idempotency_key") if payload.raw else None
         return payload.idempotency_key or raw_key or payload.requestId
 
+    def _credentials_confirm_login_ready(self, record: Dict[str, Any], credentials: Dict[str, Any]) -> bool:
+        expected_email = str(record.get("email") or "").strip().lower()
+        returned_email = str(credentials.get("email") or "").strip().lower()
+        return bool(
+            credentials.get("ok")
+            and credentials.get("loginReady") is True
+            and credentials.get("temporaryPassword")
+            and expected_email
+            and returned_email == expected_email
+            and str(credentials.get("status") or "").lower() == "active"
+        )
+
     def _is_non_production_environment(self) -> bool:
         return (settings.APP_ENV or "development").lower() != "production" or (settings.SYNCXML_ENV or "development").lower() != "production"
 
@@ -416,11 +428,15 @@ class SyncXmlPilotService:
         self._update_request(record["id"], {"status": "pending", "metadata": pending, "admin_notes": payload.admin_notes})
 
         credentials = await self._create_syncxml_user(record, payload)
-        if not credentials.get("ok") or not credentials.get("temporaryPassword"):
+        if not self._credentials_confirm_login_ready(record, credentials):
             failed = self._merge_metadata(record, {
                 "final_decision": "failed_credentials",
                 "credential_status": "failed",
-                "error_message": credentials.get("error") or "SyncXML did not return temporary credentials",
+                "error_message": (
+                    credentials.get("error")
+                    or credentials.get("code")
+                    or "SyncXML did not confirm login-ready pilot user provisioning"
+                ),
             })
             updated = self._update_request(record["id"], {"status": "pending", "metadata": failed})
             await self._create_review_task(updated, _manual_review_result("credential_creation_failed"))
