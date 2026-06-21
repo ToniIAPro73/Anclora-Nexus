@@ -79,8 +79,13 @@ def test_syncxml_acceptance_email_uses_human_expiry_and_first_login_instruction(
     assert "Caducidad/revisión" not in payload["html"]
     assert "2026-06-28T01:53:42.673404Z" not in payload["text"]
     assert "2026-06-28T01:53:42.673404Z" not in payload["html"]
-    assert "Acceso temporal válido hasta" in payload["text"]
-    assert "domingo, 28 de junio de 2026, a las 03:53 h" in payload["text"]
+    expected_expiry = (
+        "Tu acceso temporal estará disponible hasta el domingo, 28 de junio de 2026, "
+        "a las 03:53 h (hora peninsular española)."
+    )
+    assert expected_expiry in payload["text"]
+    assert expected_expiry in payload["html"]
     assert "Al iniciar sesión por primera vez" in payload["text"]
+    assert "Al iniciar sesión por primera vez" in payload["html"]
     assert "Acceder al piloto" in payload["html"]
     assert_non_empty_bodies(payload)
