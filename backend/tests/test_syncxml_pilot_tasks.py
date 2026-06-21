@@ -11,6 +11,71 @@ from backend.services.syncxml_pilot_service import (
 )
 
 
+class FakeQueryResult:
+    def __init__(self, data):
+        self.data = data
+
+
+class FakeAccessRequestsTable:
+    def __init__(self):
+        self.rows = []
+        self.insert_count = 0
+        self._filters = []
+        self._pending_update = {}
+
+    def select(self, *_args, **_kwargs):
+        self._filters = []
+        return self
+
+    def eq(self, field, value):
+        self._filters.append((field, value))
+        return self
+
+    def limit(self, *_args, **_kwargs):
+        return self
+
+    def order(self, *_args, **_kwargs):
+        return self
+
+    def insert(self, record):
+        self.insert_count += 1
+        stored = {**record, "id": f"ar_{self.insert_count}"}
+        self.rows.append(stored)
+        return FakeInsertQuery(stored)
+
+    def update(self, data):
+        self._pending_update = data
+        return self
+
+    def execute(self):
+        if self._pending_update:
+            target_id = next((value for field, value in self._filters if field == "id"), None)
+            for index, row in enumerate(self.rows):
+                if row.get("id") == target_id:
+                    self.rows[index] = {**row, **self._pending_update}
+                    updated = self.rows[index]
+                    self._pending_update = {}
+                    self._filters = []
+                    return FakeQueryResult([updated])
+            self._pending_update = {}
+            self._filters = []
+            return FakeQueryResult([])
+
+        rows = self.rows
+        for field, value in self._filters:
+            rows = [row for row in rows if row.get(field) == value]
+        self._filters = []
+        return FakeQueryResult(rows)
+
+
+class FakeInsertQuery:
+    def __init__(self, record):
+        self.record = record
+
+    def execute(self):
+        return FakeQueryResult([self.record])
+
+
 def _payload(**overrides):
     base = SyncXmlPilotPayload(
         requestId="req_test",
@@ -41,6 +106,17 @@ def _configure_safe_settings(settings, *, app_env="staging", syncxml_env="stagin
     settings.SYNCXML_INTERNAL_API_URL = "https://syncxml.test/internal"
     settings.HERMES_WORKER_URL = ""
     settings.HERMES_WORKER_API_KEY = None
+
+
+def _configure_production_settings(settings, *, auto_approve=False):
+    _configure_safe_settings(
+        settings,
+        app_env="production",
+        syncxml_env="production",
+        allow_real_write=True,
+        synthetic_only=False,
+        auto_approve=auto_approve,
+    )
 
 
 @pytest.mark.asyncio
@@ -121,7 +197,7 @@ async def test_allows_production_flow_with_explicit_real_write_and_mocks():
         access_table = Mock()
         task_table = Mock()
         supabase.client.table.side_effect = lambda name: access_table if name == "access_requests" else task_table
-        access_table.select.return_value.eq.return_value.eq.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value.data = []
+        access_table.select.return_value.eq.return_value.limit.return_value.execute.return_value.data = []
         access_table.insert.return_value.execute.return_value.data = [record]
         access_table.update.return_value.eq.return_value.execute.return_value.data = [{**record, "status": "approved", "metadata": {}}]
 
@@ -131,6 +207,97 @@ async def test_allows_production_flow_with_explicit_real_write_and_mocks():
     assert result["status"] == "approved"
     supabase.client.table.assert_called()
     task_table.insert.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_syncxml_same_idempotency_key_does_not_duplicate():
+    access_table = FakeAccessRequestsTable()
+    task_table = Mock()
+
+    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
+        "backend.services.syncxml_pilot_service.settings"
+    ) as settings, patch.object(
+        syncxml_pilot_service, "_create_review_task", new=AsyncMock()
+    ):
+        _configure_production_settings(settings)
+        supabase.client.table.side_effect = lambda name: access_table if name == "access_requests" else task_table
+
+        first = await syncxml_pilot_service.process_incoming_lead(
+            _payload(
+                requestId="same-request",
+                raw={"idempotency_key": "same-request", "adminEmailSentBySyncxml": True},
+            )
+        )
+        second = await syncxml_pilot_service.process_incoming_lead(
+            _payload(
+                requestId="same-request",
+                raw={"idempotency_key": "same-request", "adminEmailSentBySyncxml": True},
+            )
+        )
+
+    assert first["id"] == second["id"]
+    assert access_table.insert_count == 1
+
+
+@pytest.mark.asyncio
+async def test_syncxml_same_email_different_idempotency_key_creates_two_rows():
+    access_table = FakeAccessRequestsTable()
+    task_table = Mock()
+
+    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
+        "backend.services.syncxml_pilot_service.settings"
+    ) as settings, patch.object(
+        syncxml_pilot_service, "_create_review_task", new=AsyncMock()
+    ):
+        _configure_production_settings(settings)
+        supabase.client.table.side_effect = lambda name: access_table if name == "access_requests" else task_table
+
+        first = await syncxml_pilot_service.process_incoming_lead(
+            _payload(
+                requestId="request-one",
+                email="same@example.com",
+                raw={"idempotency_key": "request-one", "adminEmailSentBySyncxml": True},
+            )
+        )
+        second = await syncxml_pilot_service.process_incoming_lead(
+            _payload(
+                requestId="request-two",
+                email="same@example.com",
+                raw={"idempotency_key": "request-two", "adminEmailSentBySyncxml": True},
+            )
+        )
+
+    assert first["id"] != second["id"]
+    assert access_table.insert_count == 2
+    assert [row["idempotency_key"] for row in access_table.rows] == ["request-one", "request-two"]
+
+
+@pytest.mark.asyncio
+async def test_syncxml_webhook_persists_explicit_access_request_contract_fields():
+    access_table = FakeAccessRequestsTable()
+    task_table = Mock()
+
+    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
+        "backend.services.syncxml_pilot_service.settings"
+    ) as settings, patch.object(
+        syncxml_pilot_service, "_create_review_task", new=AsyncMock()
+    ):
+        _configure_production_settings(settings)
+        supabase.client.table.side_effect = lambda name: access_table if name == "access_requests" else task_table
+
+        await syncxml_pilot_service.process_incoming_lead(
+            _payload(
+                requestId="contract-request",
+                raw={"idempotency_key": "contract-request", "adminEmailSentBySyncxml": True},
+            )
+        )
+
+    record = access_table.rows[0]
+    assert record["product"] == "syncxml"
+    assert record["source"] == "syncxml_landing"
+    assert record["request_type"] == "pilot_request"
+    assert record["intake_domain"] == "access_request"
+    assert record["routing_target_domain"] == "access_requests"
 
 
 @pytest.mark.asyncio

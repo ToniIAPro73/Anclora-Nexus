@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import re
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,7 @@ REAL_WRITE_BLOCK_REASON = "REAL_SUPABASE_WRITE_BLOCKED"
 
 class SyncXmlPilotPayload(BaseModel):
     requestId: Optional[str] = None
+    idempotency_key: Optional[str] = None
     name: str = Field(min_length=1, max_length=180)
     email: EmailStr
     companyName: Optional[str] = Field(default=None, max_length=200)
@@ -88,6 +90,19 @@ def _is_insufficient(value: Optional[str]) -> bool:
 
 
 class SyncXmlPilotService:
+    def _safe_trace_context(self, payload: SyncXmlPilotPayload) -> Dict[str, Any]:
+        email_hash = hashlib.sha256(str(payload.email).lower().encode("utf-8")).hexdigest()[:12]
+        return {
+            "requestId": payload.requestId,
+            "idempotency_key": self._resolve_idempotency_key(payload),
+            "email_hash": email_hash,
+            "source": payload.source,
+        }
+
+    def _resolve_idempotency_key(self, payload: SyncXmlPilotPayload) -> Optional[str]:
+        raw_key = payload.raw.get("idempotency_key") if payload.raw else None
+        return payload.idempotency_key or raw_key or payload.requestId
+
     def _is_non_production_environment(self) -> bool:
         return (settings.APP_ENV or "development").lower() != "production" or (settings.SYNCXML_ENV or "development").lower() != "production"
 
@@ -124,11 +139,16 @@ class SyncXmlPilotService:
         metadata = payload.model_dump(mode="json")
         review_result = await self._score_lead(payload)
         final_status = self._decide_status(payload, review_result)
+        idempotency_key = self._resolve_idempotency_key(payload)
+        trace = self._safe_trace_context(payload)
+
+        logger.info("SyncXML pilot webhook accepted for persistence", extra=trace)
 
         if self._is_staging_safety_mode():
             blocked = self._block_real_write_reason("process_incoming_lead")
             blocked["decision"] = final_status
             blocked["ai_review"] = review_result
+            logger.info("SyncXML pilot webhook blocked by safety mode", extra=trace)
             return blocked
 
         record_data = {
@@ -139,7 +159,7 @@ class SyncXmlPilotService:
             "intake_domain": "access_request",
             "request_type": "pilot_request",
             "routing_target_domain": "access_requests",
-            "idempotency_key": payload.raw.get("idempotency_key") if payload.raw else None,
+            "idempotency_key": idempotency_key,
             "full_name": payload.name,
             "email": str(payload.email),
             "company": payload.companyName,
@@ -161,24 +181,26 @@ class SyncXmlPilotService:
         }
 
         try:
-            existing = (
-                supabase_service.client.table("access_requests")
-                .select("id,status,email,created_at")
-                .eq("org_id", org_id)
-                .eq("product", "syncxml")
-                .eq("email", str(payload.email))
-                .order("created_at", desc=True)
-                .limit(1)
-                .execute()
-            )
-            if existing.data:
-                await self._create_review_task(existing.data[0], _manual_review_result("duplicate_request"))
-                return existing.data[0]
+            if idempotency_key:
+                existing = (
+                    supabase_service.client.table("access_requests")
+                    .select("id,status,email,created_at,idempotency_key")
+                    .eq("idempotency_key", idempotency_key)
+                    .limit(1)
+                    .execute()
+                )
+                if existing.data:
+                    logger.info("SyncXML pilot webhook idempotent replay", extra=trace)
+                    return existing.data[0]
 
             result = supabase_service.client.table("access_requests").insert(record_data).execute()
             if not result.data:
                 raise RuntimeError("Failed to persist SyncXML lead")
             record = result.data[0]
+            logger.info(
+                "SyncXML pilot access request inserted",
+                extra={**trace, "access_request_id": record.get("id")},
+            )
 
             update_data = {
                 "status": final_status,
@@ -217,7 +239,10 @@ class SyncXmlPilotService:
 
             return record
         except Exception as exc:
-            logger.error("Error processing SyncXML lead: request failed internally")
+            logger.error(
+                "Error processing SyncXML lead: request failed internally",
+                extra={**trace, "error_type": type(exc).__name__},
+            )
             raise
 
     async def _score_lead(self, payload: SyncXmlPilotPayload) -> Dict[str, Any]:
