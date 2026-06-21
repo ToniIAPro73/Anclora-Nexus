@@ -1,9 +1,11 @@
 import logging
+from hashlib import sha256
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
+from pydantic import ValidationError
 from backend.config import settings
 from backend.services.syncxml_pilot_service import syncxml_pilot_service
 from backend.services.supabase_service import supabase_service
@@ -23,9 +25,51 @@ def get_api_key(api_key: str = Security(api_key_header)):
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return token
 
+
+def _webhook_trace(payload: dict) -> Dict[str, Any]:
+    raw_email = str(payload.get("email") or "").strip().lower()
+    email_hash = sha256(raw_email.encode("utf-8")).hexdigest()[:12] if raw_email else None
+    raw_payload = payload.get("raw") or {}
+    return {
+        "requestId": payload.get("requestId"),
+        "idempotency_key": payload.get("idempotency_key") or raw_payload.get("idempotency_key"),
+        "source": payload.get("source"),
+        "email_hash": email_hash,
+    }
+
+
 @router.post("/syncxml-pilot")
 async def syncxml_pilot_webhook(payload: dict, api_key: str = Depends(get_api_key)):
-    result = await syncxml_pilot_service.process_incoming_lead(payload)
+    trace = _webhook_trace(payload)
+    logger.info("SyncXML pilot webhook received", extra=trace)
+    try:
+        result = await syncxml_pilot_service.process_incoming_lead(payload)
+    except ValidationError as exc:
+        logger.warning(
+            "SyncXML pilot webhook rejected by contract validation",
+            extra={**trace, "error_type": type(exc).__name__},
+        )
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "SYNCXML_PILOT_WEBHOOK_INVALID_PAYLOAD",
+                "requestId": trace["requestId"],
+                "idempotency_key": trace["idempotency_key"],
+            },
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "SyncXML pilot webhook persistence failed",
+            extra={**trace, "error_type": type(exc).__name__},
+        )
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "code": "SYNCXML_PILOT_WEBHOOK_PERSISTENCE_FAILED",
+                "requestId": trace["requestId"],
+                "idempotency_key": trace["idempotency_key"],
+            },
+        ) from exc
     return {"status": "accepted", "request_id": result.get("id") if result else None}
 
 
