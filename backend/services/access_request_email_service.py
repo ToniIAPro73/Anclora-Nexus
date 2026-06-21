@@ -218,6 +218,7 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
     email = str(credentials.get("email") or _email_to(record))
     temporary_password = str(credentials.get("temporaryPassword") or "")
     expires_at = _format_madrid_access_expiry(credentials.get("expiresAt"))
+    access_expiry_sentence = f"Tu acceso temporal estará disponible hasta el {expires_at}."
     subject = "Anclora SyncXML · Acceso al piloto controlado"
     text = (
         f"Hola {full_name},\n\n"
@@ -225,7 +226,7 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
         f"Acceso: {login_url}\n"
         f"Email autorizado: {email}\n"
         f"Contraseña temporal: {temporary_password}\n"
-        f"Acceso temporal válido hasta: {expires_at}\n"
+        f"{access_expiry_sentence}\n"
         "Al iniciar sesión por primera vez, te pediremos crear una contraseña personal.\n\n"
         "Límites del piloto:\n"
         "- Usa solo datos sintéticos o anonimizados.\n"
@@ -241,8 +242,8 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
             ("URL de acceso", login_url),
             ("Email autorizado", email),
             ("Contraseña temporal", temporary_password),
-            ("Acceso temporal válido hasta", expires_at),
         ])
+        + _html_p(access_expiry_sentence)
         + _html_p("Al iniciar sesión por primera vez, te pediremos crear una contraseña personal.")
         + "<div style='margin-top:20px;padding:16px;border:1px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.035);'>"
         + f"<div style='color:{BRAND_ACCENT};font-size:12px;line-height:16px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;'>Límites del piloto</div>"
