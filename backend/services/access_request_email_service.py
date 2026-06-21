@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from html import escape
 from typing import Any, Dict
+from zoneinfo import ZoneInfo
 
 from backend.config import settings
 from backend.services.email_delivery_service import get_email_transport_summary, send_email_native
@@ -25,6 +27,47 @@ def _full_name(record: Dict[str, Any]) -> str:
 
 def _email_to(record: Dict[str, Any]) -> str:
     return str(record.get("email") or "").strip()
+
+
+def _format_madrid_access_expiry(value: Any) -> str:
+    if not value:
+        return "según condiciones del piloto"
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        try:
+            parsed = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
+        except ValueError:
+            return "según condiciones del piloto"
+
+    madrid = parsed.astimezone(ZoneInfo("Europe/Madrid"))
+    weekdays = [
+        "lunes",
+        "martes",
+        "miércoles",
+        "jueves",
+        "viernes",
+        "sábado",
+        "domingo",
+    ]
+    months = [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre",
+    ]
+    return (
+        f"{weekdays[madrid.weekday()]}, {madrid.day} de {months[madrid.month - 1]} "
+        f"de {madrid.year}, a las {madrid:%H:%M} h (hora peninsular española)"
+    )
 
 
 BRAND_BG = "#070A12"
@@ -174,7 +217,7 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
     login_url = settings.SYNCXML_LOGIN_URL or settings.SYNCXML_APP_URL
     email = str(credentials.get("email") or _email_to(record))
     temporary_password = str(credentials.get("temporaryPassword") or "")
-    expires_at = credentials.get("expiresAt") or "según condiciones del piloto"
+    expires_at = _format_madrid_access_expiry(credentials.get("expiresAt"))
     subject = "Anclora SyncXML · Acceso al piloto controlado"
     text = (
         f"Hola {full_name},\n\n"
@@ -182,7 +225,8 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
         f"Acceso: {login_url}\n"
         f"Email autorizado: {email}\n"
         f"Contraseña temporal: {temporary_password}\n"
-        f"Caducidad/revisión: {expires_at}\n\n"
+        f"Acceso temporal válido hasta: {expires_at}\n"
+        "Al iniciar sesión por primera vez, te pediremos crear una contraseña personal.\n\n"
         "Límites del piloto:\n"
         "- Usa solo datos sintéticos o anonimizados.\n"
         "- No subas datos reales de huéspedes.\n"
@@ -197,8 +241,9 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
             ("URL de acceso", login_url),
             ("Email autorizado", email),
             ("Contraseña temporal", temporary_password),
-            ("Caducidad/revisión", expires_at),
+            ("Acceso temporal válido hasta", expires_at),
         ])
+        + _html_p("Al iniciar sesión por primera vez, te pediremos crear una contraseña personal.")
         + "<div style='margin-top:20px;padding:16px;border:1px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.035);'>"
         + f"<div style='color:{BRAND_ACCENT};font-size:12px;line-height:16px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;'>Límites del piloto</div>"
         + f"<ul style='margin:10px 0 0;padding-left:18px;color:{BRAND_MUTED};font-size:14px;line-height:22px;'>"

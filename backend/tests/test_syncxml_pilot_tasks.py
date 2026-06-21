@@ -183,6 +183,8 @@ async def test_allows_production_flow_with_explicit_real_write_and_mocks():
         "temporaryPassword": "Tmp-123456",
         "credentialStatus": "created",
         "pilotUserId": "pilot_1",
+        "loginReady": True,
+        "status": "active",
     }
 
     with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
@@ -345,6 +347,8 @@ async def test_syncxml_user_creation_defaults_temporary_password_to_seven_days()
                 "ok": True,
                 "email": "ana@example.com",
                 "temporaryPassword": "Tmp-123456",
+                "loginReady": True,
+                "status": "active",
             }
 
     class FakeClient:
@@ -369,3 +373,74 @@ async def test_syncxml_user_creation_defaults_temporary_password_to_seven_days()
     remaining = expires_at - datetime.now(timezone.utc)
     assert 6 <= remaining.days <= 7
     assert sent["json"]["rotatePassword"] is False
+
+
+@pytest.mark.asyncio
+async def test_provisioning_without_login_ready_does_not_send_acceptance_email():
+    record = {"id": "ar_1", "org_id": "org_1", "email": "ana@example.com", "metadata": {}, "full_name": "Ana Test"}
+    credentials = {
+        "ok": True,
+        "email": "ana@example.com",
+        "temporaryPassword": "Tmp-123456",
+        "status": "active",
+        "loginReady": False,
+        "code": "SYNCXML_PILOT_AUTH_CONFIG_INCOMPLETE",
+    }
+
+    with patch("backend.services.syncxml_pilot_service.settings") as settings, patch.object(
+        syncxml_pilot_service, "_create_syncxml_user", new=AsyncMock(return_value=credentials)
+    ), patch.object(
+        syncxml_pilot_service, "_send_safely", return_value=True
+    ) as send_safely, patch.object(
+        syncxml_pilot_service, "_create_review_task", new=AsyncMock()
+    ), patch.object(
+        syncxml_pilot_service,
+        "_update_request",
+        side_effect=lambda _request_id, data: {**record, **data},
+    ):
+        _configure_production_settings(settings)
+        result = await syncxml_pilot_service._approve_with_credentials(
+            record,
+            SyncXmlApprovePayload(),
+            reviewer_id="reviewer_1",
+        )
+
+    assert result["ok"] is False
+    assert result["status"] == "failed_credentials"
+    assert send_safely.call_count == 1
+    assert send_safely.call_args.args[2] == "credential_creation_failed"
+
+
+@pytest.mark.asyncio
+async def test_provisioning_same_active_user_retry_without_password_does_not_send_acceptance():
+    record = {"id": "ar_1", "org_id": "org_1", "email": "ana@example.com", "metadata": {}, "full_name": "Ana Test"}
+    credentials = {
+        "ok": True,
+        "email": "ana@example.com",
+        "temporaryPassword": None,
+        "status": "active",
+        "loginReady": True,
+    }
+
+    with patch("backend.services.syncxml_pilot_service.settings") as settings, patch.object(
+        syncxml_pilot_service, "_create_syncxml_user", new=AsyncMock(return_value=credentials)
+    ), patch.object(
+        syncxml_pilot_service, "_send_safely", return_value=True
+    ) as send_safely, patch.object(
+        syncxml_pilot_service, "_create_review_task", new=AsyncMock()
+    ), patch.object(
+        syncxml_pilot_service,
+        "_update_request",
+        side_effect=lambda _request_id, data: {**record, **data},
+    ):
+        _configure_production_settings(settings)
+        result = await syncxml_pilot_service._approve_with_credentials(
+            record,
+            SyncXmlApprovePayload(),
+            reviewer_id="reviewer_1",
+        )
+
+    assert result["ok"] is False
+    assert result["status"] == "failed_credentials"
+    assert send_safely.call_count == 1
+    assert send_safely.call_args.args[2] == "credential_creation_failed"

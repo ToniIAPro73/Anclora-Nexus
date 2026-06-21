@@ -3,6 +3,7 @@ import pytest
 from backend.services.access_request_email_service import (
     build_access_request_approved_email,
     build_access_request_rejected_email,
+    build_syncxml_pilot_acceptance_email,
 )
 
 
@@ -59,4 +60,27 @@ def test_rejection_email_handles_missing_or_empty_reason(reason) -> None:
     assert payload["to"] == "toni@example.com"
     assert "Data Lab" in payload["subject"]
     assert "Toni Test" in payload["text"]
+    assert_non_empty_bodies(payload)
+
+
+def test_syncxml_acceptance_email_uses_human_expiry_and_first_login_instruction() -> None:
+    payload = build_syncxml_pilot_acceptance_email(
+        record("syncxml"),
+        {
+            "email": "toni@example.com",
+            "temporaryPassword": "Tmp-123456",
+            "expiresAt": "2026-06-28T01:53:42.673404Z",
+            "loginReady": True,
+            "status": "active",
+        },
+    )
+
+    assert "Caducidad/revisión" not in payload["text"]
+    assert "Caducidad/revisión" not in payload["html"]
+    assert "2026-06-28T01:53:42.673404Z" not in payload["text"]
+    assert "2026-06-28T01:53:42.673404Z" not in payload["html"]
+    assert "Acceso temporal válido hasta" in payload["text"]
+    assert "domingo, 28 de junio de 2026, a las 03:53 h" in payload["text"]
+    assert "Al iniciar sesión por primera vez" in payload["text"]
+    assert "Acceder al piloto" in payload["html"]
     assert_non_empty_bodies(payload)
