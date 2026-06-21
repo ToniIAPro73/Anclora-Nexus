@@ -332,6 +332,32 @@ async def test_webhook_missing_api_key_returns_403(webhook_app):
 
 
 @pytest.mark.anyio
+async def test_webhook_invalid_payload_returns_traceable_422(webhook_app):
+    """Valid auth + invalid payload → traceable 422, no opaque 500."""
+    with patch("backend.api.internal_webhooks.settings") as mock_settings:
+        mock_settings.SYNCXML_WEBHOOK_SECRET = "correct-secret"
+        mock_settings.NEXUS_INTERNAL_API_KEY = "nexus-key"
+        async with AsyncClient(
+            transport=ASGITransport(app=webhook_app), base_url="http://test"
+        ) as client:
+            response = await client.post(
+                "/api/internal/webhooks/syncxml-pilot",
+                json={
+                    "requestId": "invalid-request",
+                    "idempotency_key": "invalid-request",
+                    "email": "invalid@example.com",
+                },
+                headers={"Authorization": "Bearer correct-secret"},
+            )
+
+    assert response.status_code == 422
+    body = response.json()
+    assert body["detail"]["code"] == "SYNCXML_PILOT_WEBHOOK_INVALID_PAYLOAD"
+    assert body["detail"]["requestId"] == "invalid-request"
+    assert body["detail"]["idempotency_key"] == "invalid-request"
+
+
+@pytest.mark.anyio
 async def test_webhook_valid_key_accepts_payload(webhook_app):
     """Valid API key + valid payload → accepted (200), no real Supabase write."""
     valid_payload = {
