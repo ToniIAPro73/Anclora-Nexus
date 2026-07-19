@@ -97,6 +97,53 @@ async def test_approve_pending_syncxml_request(pilot_app):
 
 
 @pytest.mark.anyio
+async def test_approve_failed_credentials_returns_502(pilot_app):
+    """failed SyncXML provisioning is not a successful approval."""
+    mock_result = {
+        "ok": False,
+        "status": "failed_credentials",
+        "record": {
+            "id": "req-001",
+            "product": "syncxml",
+            "status": "pending",
+            "email": "piloto@test.com",
+            "metadata": {
+                "error_message": "SyncXML returned 503: persistent pilot authentication is not ready",
+            },
+        },
+    }
+
+    with patch.object(syncxml_pilot_service, "approve_manual", new=AsyncMock(return_value=mock_result)):
+        async with AsyncClient(
+            transport=ASGITransport(app=pilot_app), base_url="http://test"
+        ) as client:
+            response = await client.post("/api/syncxml-pilot/req-001/approve", json={})
+
+    assert response.status_code == 502
+    assert "persistent pilot authentication" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_approve_blocked_real_write_returns_503(pilot_app):
+    """environment safety blocks must surface as API errors."""
+    mock_result = {
+        "ok": False,
+        "blocked": True,
+        "reason": "REAL_SUPABASE_WRITE_BLOCKED",
+        "action": "approve_manual",
+    }
+
+    with patch.object(syncxml_pilot_service, "approve_manual", new=AsyncMock(return_value=mock_result)):
+        async with AsyncClient(
+            transport=ASGITransport(app=pilot_app), base_url="http://test"
+        ) as client:
+            response = await client.post("/api/syncxml-pilot/req-001/approve", json={})
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "REAL_SUPABASE_WRITE_BLOCKED"
+
+
+@pytest.mark.anyio
 async def test_reject_pending_syncxml_request(pilot_app):
     """reject returns 200, updates status, no provisioning attempt."""
     fake_result = {
