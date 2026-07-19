@@ -11,6 +11,21 @@ from backend.services.syncxml_pilot_service import (
 router = APIRouter()
 
 
+def _raise_if_incomplete_decision(result: dict):
+    if result.get("blocked"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=result.get("reason") or "SYNCXML_PILOT_DECISION_BLOCKED",
+        )
+    if result.get("status") == "failed_credentials":
+        record = result.get("record") or {}
+        metadata = record.get("metadata") or {}
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=metadata.get("error_message") or "SYNCXML_PILOT_CREDENTIALS_FAILED",
+        )
+
+
 @router.post("/{request_id}/approve")
 async def approve_syncxml_pilot(
     request_id: str,
@@ -19,12 +34,14 @@ async def approve_syncxml_pilot(
     current_user=Depends(require_access_request_reviewer),
 ):
     try:
-        return await syncxml_pilot_service.approve_manual(
+        result = await syncxml_pilot_service.approve_manual(
             org_id=org_id,
             request_id=request_id,
             reviewer_id=str(current_user.id),
             payload=payload,
         )
+        _raise_if_incomplete_decision(result)
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
@@ -37,12 +54,14 @@ async def reject_syncxml_pilot(
     current_user=Depends(require_access_request_reviewer),
 ):
     try:
-        return await syncxml_pilot_service.reject_manual(
+        result = await syncxml_pilot_service.reject_manual(
             org_id=org_id,
             request_id=request_id,
             reviewer_id=str(current_user.id),
             payload=payload,
         )
+        _raise_if_incomplete_decision(result)
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
@@ -55,11 +74,13 @@ async def request_more_info_syncxml_pilot(
     current_user=Depends(require_access_request_reviewer),
 ):
     try:
-        return await syncxml_pilot_service.request_more_info_manual(
+        result = await syncxml_pilot_service.request_more_info_manual(
             org_id=org_id,
             request_id=request_id,
             reviewer_id=str(current_user.id),
             payload=payload,
         )
+        _raise_if_incomplete_decision(result)
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
