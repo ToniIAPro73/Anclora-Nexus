@@ -1,3 +1,7 @@
+import re
+from io import BytesIO
+from zipfile import ZipFile
+
 import pytest
 
 from backend.services.access_request_email_service import (
@@ -21,6 +25,11 @@ def assert_non_empty_bodies(payload: dict) -> None:
     assert payload["text"].strip()
     assert payload["html"].strip()
     assert "<table" in payload["html"]
+
+
+def worksheet_xml(xlsx_content: bytes) -> str:
+    with ZipFile(BytesIO(xlsx_content)) as archive:
+        return archive.read("xl/worksheets/sheet1.xml").decode("utf-8")
 
 
 def test_approval_email_for_synergi_includes_product_recipient_subject_and_name() -> None:
@@ -116,6 +125,18 @@ def test_syncxml_acceptance_email_adds_sample_workbooks_when_applicant_has_no_sa
         "anclora-syncxml-muestra-subsanable.xlsx",
     ]
     assert all(item["content"].startswith(b"PK") for item in payload["attachments"])
+
+    valid_xml = worksheet_xml(payload["attachments"][0]["content"])
+    fixable_xml = worksheet_xml(payload["attachments"][1]["content"])
+
+    assert re.search(r"NUMERO DE PERSONAS</t></is></c><c r=\"B13\"[^>]*><is><t>2</t>", valid_xml)
+    assert re.search(r"NUMERO DE PERSONAS</t></is></c><c r=\"B13\"[^>]*><is><t>3</t>", fixable_xml)
+    assert "ES9121000418450200051332" in valid_xml
+    assert "ES9121000418450200051332" in fixable_xml
+    assert "Titular" not in valid_xml
+    assert "Acompañante" not in valid_xml
+    assert "Titular" not in fixable_xml
+    assert "Acompañante" not in fixable_xml
 
 
 def test_syncxml_acceptance_email_omits_sample_workbooks_when_applicant_has_sample() -> None:
