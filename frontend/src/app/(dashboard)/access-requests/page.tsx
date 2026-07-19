@@ -327,10 +327,10 @@ export default function AccessRequestsPage() {
                 <Filter className="h-4 w-4 text-blue-light" />
                 {t('accessRequestsFilterHint')}
               </div>
-              <div className="grid gap-3 md:grid-cols-[160px_170px_190px_minmax(220px,1fr)]">
-                <label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+                <label className="min-w-0">
                   <span className="mb-2 block text-sm font-semibold text-soft-white">{t('status')}</span>
-                  <select className="ui-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as AccessRequestStatus | '')}>
+                  <select className="ui-select min-w-0" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as AccessRequestStatus | '')}>
                     <option value="">{t('accessRequestsAllStatuses')}</option>
                     <option value="pending">{t('accessRequestsStatusPending')}</option>
                     <option value="approved">{t('accessRequestsStatusApproved')}</option>
@@ -338,18 +338,18 @@ export default function AccessRequestsPage() {
                     <option value="cancelled">{t('accessRequestsStatusCancelled')}</option>
                   </select>
                 </label>
-                <label>
+                <label className="min-w-0">
                   <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsColumnProduct')}</span>
-                  <select className="ui-select" value={productFilter} onChange={(event) => setProductFilter(event.target.value as AccessRequestProduct | '')}>
+                  <select className="ui-select min-w-0" value={productFilter} onChange={(event) => setProductFilter(event.target.value as AccessRequestProduct | '')}>
                     <option value="">{t('accessRequestsAllProducts')}</option>
                     <option value="synergi">Synergi</option>
                     <option value="data_lab">Data Lab</option>
                     <option value="syncxml">SyncXML</option>
                   </select>
                 </label>
-                <label>
+                <label className="min-w-0">
                   <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsColumnSource')}</span>
-                  <select className="ui-select" value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as AccessRequestSource | '')}>
+                  <select className="ui-select min-w-0" value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as AccessRequestSource | '')}>
                     <option value="">{t('accessRequestsAllSources')}</option>
                     <option value="synergi_app">{t('accessRequestsSourceSynergiApp')}</option>
                     <option value="data_lab_app">{t('accessRequestsSourceDataLabApp')}</option>
@@ -358,10 +358,10 @@ export default function AccessRequestsPage() {
                     <option value="external_api">{t('accessRequestsSourceExternalApi')}</option>
                   </select>
                 </label>
-                <label>
+                <label className="min-w-0">
                   <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsEmailFilter')}</span>
                   <input
-                    className="ui-input"
+                    className="ui-input min-w-0"
                     value={emailFilter}
                     onChange={(event) => setEmailFilter(event.target.value)}
                     placeholder={t('accessRequestsEmailFilterPlaceholder')}
