@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from backend.config import settings
 from backend.services.email_delivery_service import get_email_transport_summary, send_email_native
+from backend.services.syncxml_sample_workbooks import build_syncxml_sample_attachments
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,13 @@ def _button(label: str, href: str) -> str:
     )
 
 
+def _syncxml_request_needs_sample_attachments(record: Dict[str, Any]) -> bool:
+    metadata = record.get("metadata") or {}
+    raw = metadata.get("raw") or {}
+    value = metadata.get("acceptsSyntheticOrAnonymizedData", record.get("gdpr_consent"))
+    return raw.get("needsSyntheticSampleAttachments") is True or value is False
+
+
 def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclora SyncXML") -> str:
     return f"""
       <!doctype html>
@@ -220,6 +228,13 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
     expires_at = _format_madrid_access_expiry(credentials.get("expiresAt"))
     access_expiry_sentence = f"Tu acceso temporal estará disponible hasta el {expires_at}."
     subject = "Anclora SyncXML · Acceso al piloto controlado"
+    needs_samples = _syncxml_request_needs_sample_attachments(record)
+    sample_text = (
+        "\nComo indicaste que no dispones de una muestra sintética propia, adjuntamos dos Excel: "
+        "una muestra correcta y una muestra con un huésped incorrecto pero subsanable desde la app.\n"
+        if needs_samples
+        else ""
+    )
     text = (
         f"Hola {full_name},\n\n"
         "Tu solicitud encaja con el alcance actual del piloto controlado de Anclora SyncXML.\n\n"
@@ -228,6 +243,7 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
         f"Contraseña temporal: {temporary_password}\n"
         f"{access_expiry_sentence}\n"
         "Al iniciar sesión por primera vez, te pediremos crear una contraseña personal.\n\n"
+        f"{sample_text}"
         "Límites del piloto:\n"
         "- Usa solo datos sintéticos o anonimizados.\n"
         "- No subas datos reales de huéspedes.\n"
@@ -245,6 +261,11 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
         ])
         + _html_p(access_expiry_sentence)
         + _html_p("Al iniciar sesión por primera vez, te pediremos crear una contraseña personal.")
+        + (
+            _html_p("Como indicaste que no dispones de una muestra sintética propia, adjuntamos dos Excel: una muestra correcta y una muestra con un huésped incorrecto pero subsanable desde la app.")
+            if needs_samples
+            else ""
+        )
         + "<div style='margin-top:20px;padding:16px;border:1px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.035);'>"
         + f"<div style='color:{BRAND_ACCENT};font-size:12px;line-height:16px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;'>Límites del piloto</div>"
         + f"<ul style='margin:10px 0 0;padding-left:18px;color:{BRAND_MUTED};font-size:14px;line-height:22px;'>"
@@ -261,7 +282,10 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
         body_html=body_html,
         eyebrow="Acceso aprobado",
     )
-    return {"to": email, "subject": subject, "text": text, "html": html}
+    payload: Dict[str, Any] = {"to": email, "subject": subject, "text": text, "html": html}
+    if needs_samples:
+        payload["attachments"] = build_syncxml_sample_attachments()
+    return payload
 
 
 def build_access_request_rejected_email(record: Dict[str, Any]) -> Dict[str, str]:

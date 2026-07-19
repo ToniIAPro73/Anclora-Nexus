@@ -395,15 +395,18 @@ class SyncXmlPilotService:
         except Exception as exc:
             logger.warning("Could not create SyncXML review task: %s", exc)
 
-    def _email_kwargs(self, email_data: Dict[str, str]) -> Dict[str, str]:
-        return {
+    def _email_kwargs(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
+        payload = {
             "to_email": email_data["to"],
             "subject": email_data["subject"],
             "body": email_data["text"],
             "html": email_data["html"],
         }
+        if email_data.get("attachments"):
+            payload["attachments"] = email_data["attachments"]
+        return payload
 
-    def _send_safely(self, email_data: Dict[str, str], record: Dict[str, Any], failure_code: str) -> bool:
+    def _send_safely(self, email_data: Dict[str, Any], record: Dict[str, Any], failure_code: str) -> bool:
         try:
             send_email_native(**self._email_kwargs(email_data))
             return True

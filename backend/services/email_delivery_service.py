@@ -1,11 +1,18 @@
 from __future__ import annotations
 
 import smtplib
+import base64
 from email.message import EmailMessage
 from email.utils import make_msgid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 from backend.config import settings
+
+
+class EmailAttachment(TypedDict):
+    filename: str
+    content: bytes
+    content_type: str
 
 
 def _resend_from() -> Optional[str]:
@@ -26,7 +33,14 @@ def get_email_transport_summary() -> Dict[str, Any]:
     }
 
 
-def _send_with_resend(*, to_email: str, subject: str, body: str, html: Optional[str] = None) -> Dict[str, Any]:
+def _send_with_resend(
+    *,
+    to_email: str,
+    subject: str,
+    body: str,
+    html: Optional[str] = None,
+    attachments: Optional[List[EmailAttachment]] = None,
+) -> Dict[str, Any]:
     import resend
 
     resend.api_key = settings.RESEND_API_KEY
@@ -41,6 +55,14 @@ def _send_with_resend(*, to_email: str, subject: str, body: str, html: Optional[
         params["html"] = html
     if settings.RESEND_REPLY_TO or settings.SMTP_REPLY_TO:
         params["reply_to"] = settings.RESEND_REPLY_TO or settings.SMTP_REPLY_TO
+    if attachments:
+        params["attachments"] = [
+            {
+                "filename": attachment["filename"],
+                "content": base64.b64encode(attachment["content"]).decode("ascii"),
+            }
+            for attachment in attachments
+        ]
 
     result = resend.Emails.send(params)
     message_id = result.get("id") if isinstance(result, dict) else None
@@ -52,13 +74,26 @@ def _send_with_resend(*, to_email: str, subject: str, body: str, html: Optional[
     }
 
 
-def send_email_native(*, to_email: str, subject: str, body: str, html: Optional[str] = None) -> Dict[str, Any]:
+def send_email_native(
+    *,
+    to_email: str,
+    subject: str,
+    body: str,
+    html: Optional[str] = None,
+    attachments: Optional[List[EmailAttachment]] = None,
+) -> Dict[str, Any]:
     transport = get_email_transport_summary()
     if not transport["native_email_enabled"]:
         raise RuntimeError("Native email transport is not configured")
 
     if transport["provider"] == "resend":
-        return _send_with_resend(to_email=to_email, subject=subject, body=body, html=html)
+        return _send_with_resend(
+            to_email=to_email,
+            subject=subject,
+            body=body,
+            html=html,
+            attachments=attachments,
+        )
 
     message = EmailMessage()
     message["To"] = to_email
@@ -74,6 +109,14 @@ def send_email_native(*, to_email: str, subject: str, body: str, html: Optional[
     message.set_content(body)
     if html:
         message.add_alternative(html, subtype="html")
+    for attachment in attachments or []:
+        maintype, _, subtype = attachment["content_type"].partition("/")
+        message.add_attachment(
+            attachment["content"],
+            maintype=maintype or "application",
+            subtype=subtype or "octet-stream",
+            filename=attachment["filename"],
+        )
 
     if settings.SMTP_USE_SSL:
         with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT, timeout=20) as smtp:
