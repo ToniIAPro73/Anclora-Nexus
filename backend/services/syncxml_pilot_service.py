@@ -115,6 +115,18 @@ class SyncXmlPilotService:
             and str(credentials.get("status") or "").lower() == "active"
         )
 
+    def _credentials_can_retry_with_rotated_password(self, record: Dict[str, Any], credentials: Dict[str, Any]) -> bool:
+        expected_email = str(record.get("email") or "").strip().lower()
+        returned_email = str(credentials.get("email") or "").strip().lower()
+        return bool(
+            credentials.get("ok")
+            and credentials.get("loginReady") is True
+            and not credentials.get("temporaryPassword")
+            and expected_email
+            and returned_email == expected_email
+            and str(credentials.get("status") or "").lower() == "active"
+        )
+
     def _is_non_production_environment(self) -> bool:
         return (settings.APP_ENV or "development").lower() != "production" or (settings.SYNCXML_ENV or "development").lower() != "production"
 
@@ -428,6 +440,13 @@ class SyncXmlPilotService:
         self._update_request(record["id"], {"status": "pending", "metadata": pending, "admin_notes": payload.admin_notes})
 
         credentials = await self._create_syncxml_user(record, payload)
+        if (
+            not payload.rotatePassword
+            and self._credentials_can_retry_with_rotated_password(record, credentials)
+        ):
+            rotated_payload = payload.model_copy(update={"rotatePassword": True})
+            credentials = await self._create_syncxml_user(record, rotated_payload)
+
         if not self._credentials_confirm_login_ready(record, credentials):
             failed = self._merge_metadata(record, {
                 "final_decision": "failed_credentials",
@@ -450,7 +469,7 @@ class SyncXmlPilotService:
             "metadata": self._merge_metadata(record, {
                 "final_decision": "approved",
                 "credential_status": credentials.get("credentialStatus") or "created",
-                "pilot_user_id": credentials.get("pilotUserId"),
+                "pilot_user_id": credentials.get("pilotUserId") or credentials.get("userId"),
             }),
         })
         sent = self._send_safely(

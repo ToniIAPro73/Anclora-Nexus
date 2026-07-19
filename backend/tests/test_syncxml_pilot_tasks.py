@@ -412,18 +412,27 @@ async def test_provisioning_without_login_ready_does_not_send_acceptance_email()
 
 
 @pytest.mark.asyncio
-async def test_provisioning_same_active_user_retry_without_password_does_not_send_acceptance():
+async def test_provisioning_same_active_user_retry_without_password_rotates_password_and_approves():
     record = {"id": "ar_1", "org_id": "org_1", "email": "ana@example.com", "metadata": {}, "full_name": "Ana Test"}
-    credentials = {
+    existing_credentials = {
         "ok": True,
         "email": "ana@example.com",
         "temporaryPassword": None,
         "status": "active",
         "loginReady": True,
     }
+    rotated_credentials = {
+        "ok": True,
+        "email": "ana@example.com",
+        "temporaryPassword": "Tmp-123456",
+        "status": "active",
+        "loginReady": True,
+        "userId": "pilot_1",
+    }
+    create_syncxml_user = AsyncMock(side_effect=[existing_credentials, rotated_credentials])
 
     with patch("backend.services.syncxml_pilot_service.settings") as settings, patch.object(
-        syncxml_pilot_service, "_create_syncxml_user", new=AsyncMock(return_value=credentials)
+        syncxml_pilot_service, "_create_syncxml_user", new=create_syncxml_user
     ), patch.object(
         syncxml_pilot_service, "_send_safely", return_value=True
     ) as send_safely, patch.object(
@@ -440,7 +449,10 @@ async def test_provisioning_same_active_user_retry_without_password_does_not_sen
             reviewer_id="reviewer_1",
         )
 
-    assert result["ok"] is False
-    assert result["status"] == "failed_credentials"
+    assert result["ok"] is True
+    assert result["status"] == "approved"
+    assert create_syncxml_user.call_count == 2
+    assert create_syncxml_user.call_args_list[0].args[1].rotatePassword is False
+    assert create_syncxml_user.call_args_list[1].args[1].rotatePassword is True
     assert send_safely.call_count == 1
-    assert send_safely.call_args.args[2] == "credential_creation_failed"
+    assert send_safely.call_args.args[2] == "acceptance_email_failed"
