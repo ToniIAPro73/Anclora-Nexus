@@ -193,12 +193,15 @@ class SyncXmlPilotService:
             "requested_scope": "controlled_pilot",
             "message": payload.currentWorkflow,
             "privacy_accepted": payload.acceptsPilotConditions,
-            "gdpr_consent": payload.acceptsSyntheticOrAnonymizedData,
+            "gdpr_consent": payload.acceptsPilotConditions,
             "submission_language": payload.locale,
             "status": "pending",
             "metadata": {
                 **metadata,
                 "request_type": "syncxml_pilot",
+                "has_own_synthetic_or_anonymized_sample": payload.acceptsSyntheticOrAnonymizedData,
+                "needsSyntheticSampleAttachments": payload.raw.get("needsSyntheticSampleAttachments") is True
+                or payload.acceptsSyntheticOrAnonymizedData is False,
                 "review_mode": "ai_review_pending",
                 "ai_review": review_result,
             },
@@ -311,12 +314,12 @@ class SyncXmlPilotService:
         return self._score_locally(payload)
 
     def _score_locally(self, payload: SyncXmlPilotPayload) -> Dict[str, Any]:
-        if not payload.acceptsPilotConditions or not payload.acceptsSyntheticOrAnonymizedData:
+        if not payload.acceptsPilotConditions:
             return {
                 "decision": "reject",
                 "score": 10,
                 "riskFlags": ["pilot_conditions_not_accepted"],
-                "reasonInternal": "No acepta las condiciones mínimas del piloto o el uso con datos sintéticos/anonimizados.",
+                "reasonInternal": "No acepta las condiciones mínimas del piloto.",
                 "emailReasonUser": "Tu solicitud no encaja con las condiciones mínimas del piloto controlado.",
                 "recommendedNextAction": "reject_pilot",
             }
@@ -348,7 +351,7 @@ class SyncXmlPilotService:
             "decision": "approve",
             "score": 88,
             "riskFlags": [],
-            "reasonInternal": "Caso compatible con validación controlada Excel/XLSX a XML y acepta datos sintéticos o anonimizados.",
+            "reasonInternal": "Caso compatible con validación controlada Excel/XLSX a XML.",
             "emailReasonUser": "Tu caso encaja con el alcance actual del piloto controlado.",
             "recommendedNextAction": "approve_pilot",
         }
@@ -360,7 +363,7 @@ class SyncXmlPilotService:
         text = " ".join([payload.currentWorkflow, payload.mainPain, payload.wantsToValidate]).lower()
         risky_terms = ["datos reales", "producción", "produccion", "ses automático", "ses automatico", "ministerio automático"]
 
-        if not payload.acceptsPilotConditions or not payload.acceptsSyntheticOrAnonymizedData:
+        if not payload.acceptsPilotConditions:
             return "rejected"
         if any(term in text for term in risky_terms):
             return "pending"

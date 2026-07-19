@@ -70,7 +70,35 @@ async def syncxml_pilot_webhook(payload: dict, api_key: str = Depends(get_api_ke
                 "idempotency_key": trace["idempotency_key"],
             },
         ) from exc
-    return {"status": "accepted", "request_id": result.get("id") if result else None}
+
+    if result and result.get("blocked"):
+        logger.warning(
+            "SyncXML pilot webhook blocked before persistence",
+            extra={**trace, "block_reason": result.get("reason"), "block_action": result.get("action")},
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": result.get("reason") or "SYNCXML_PILOT_WEBHOOK_BLOCKED",
+                "requestId": trace["requestId"],
+                "idempotency_key": trace["idempotency_key"],
+                "action": result.get("action"),
+            },
+        )
+
+    request_id = result.get("id") if result else None
+    if not request_id:
+        logger.error("SyncXML pilot webhook did not return a persisted request id", extra=trace)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "code": "SYNCXML_PILOT_WEBHOOK_NOT_PERSISTED",
+                "requestId": trace["requestId"],
+                "idempotency_key": trace["idempotency_key"],
+            },
+        )
+
+    return {"status": "accepted", "request_id": request_id}
 
 
 def _upsert_intake_access_request(

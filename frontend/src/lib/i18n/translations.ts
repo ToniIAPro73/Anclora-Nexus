@@ -1379,7 +1379,7 @@ export const translations = {
     partnerNetworkTitle: "Buyer Partner Network",
     accessRequestsTitle: "Solicitudes de acceso",
     accessRequestsSubtitle:
-      "Cola interna para revisar solicitudes centralizadas de Synergi y Data Lab.",
+      "Cola interna para revisar solicitudes centralizadas de SyncXML, Synergi y Data Lab.",
     accessRequestsQueueTitle: "Cola de revisión",
     accessRequestsQueueSubtitle:
       "Listado operativo ordenado por fecha de creación descendente.",
@@ -1396,8 +1396,10 @@ export const translations = {
     accessRequestsReviewerIdentityError:
       "No se pudo resolver el usuario interno autenticado. Vuelve a iniciar sesión antes de registrar la decisión.",
     accessRequestsDecisionSaved: "Decisión registrada.",
+    accessRequestsVisibleTotal: "Visibles",
+    accessRequestsResolved: "Resueltas",
     accessRequestsFilterHint:
-      "Los filtros consultan el backend interno. No se envía org_id desde el cliente.",
+      "Filtros de revisión",
     accessRequestsAllStatuses: "Todos los estados",
     accessRequestsAllProducts: "Todos los productos",
     accessRequestsAllSources: "Todas las fuentes",
@@ -2873,7 +2875,7 @@ export const translations = {
     partnerNetworkTitle: "Buyer Partner Network",
     accessRequestsTitle: "Access requests",
     accessRequestsSubtitle:
-      "Internal queue for reviewing centralized Synergi and Data Lab requests.",
+      "Internal queue for reviewing centralized SyncXML, Synergi and Data Lab requests.",
     accessRequestsQueueTitle: "Review queue",
     accessRequestsQueueSubtitle:
       "Operational list ordered by newest creation date.",
@@ -2888,8 +2890,10 @@ export const translations = {
     accessRequestsReviewerIdentityError:
       "Could not resolve the authenticated internal user. Sign in again before registering the decision.",
     accessRequestsDecisionSaved: "Decision registered.",
+    accessRequestsVisibleTotal: "Visible",
+    accessRequestsResolved: "Resolved",
     accessRequestsFilterHint:
-      "Filters query the internal backend. org_id is not sent from the client.",
+      "Review filters",
     accessRequestsAllStatuses: "All statuses",
     accessRequestsAllProducts: "All products",
     accessRequestsAllSources: "All sources",
@@ -4268,7 +4272,7 @@ export const translations = {
     partnerNetworkTitle: "Buyer Partner Network",
     accessRequestsTitle: "Zugriffsanfragen",
     accessRequestsSubtitle:
-      "Interne Queue zur Prüfung zentraler Synergi- und Data-Lab-Anfragen.",
+      "Interne Queue zur Prüfung zentraler SyncXML-, Synergi- und Data-Lab-Anfragen.",
     accessRequestsQueueTitle: "Prüf-Queue",
     accessRequestsQueueSubtitle:
       "Operative Liste, absteigend nach Erstellungsdatum sortiert.",
@@ -4287,8 +4291,10 @@ export const translations = {
     accessRequestsReviewerIdentityError:
       "Der authentifizierte interne Benutzer konnte nicht ermittelt werden. Melde dich erneut an, bevor du die Entscheidung speicherst.",
     accessRequestsDecisionSaved: "Entscheidung gespeichert.",
+    accessRequestsVisibleTotal: "Sichtbar",
+    accessRequestsResolved: "Erledigt",
     accessRequestsFilterHint:
-      "Filter fragen das interne Backend ab. org_id wird nicht vom Client gesendet.",
+      "Prüffilter",
     accessRequestsAllStatuses: "Alle Status",
     accessRequestsAllProducts: "Alle Produkte",
     accessRequestsAllSources: "Alle Quellen",
@@ -5989,7 +5995,7 @@ export const translations = {
     partnerNetworkTitle: "Buyer Partner Network",
     accessRequestsTitle: "Sol·licituds d'accés",
     accessRequestsSubtitle:
-      "Cua interna per revisar sol·licituds centralitzades de Synergi i Data Lab.",
+      "Cua interna per revisar sol·licituds centralitzades de SyncXML, Synergi i Data Lab.",
     accessRequestsQueueTitle: "Cua de revisió",
     accessRequestsQueueSubtitle:
       "Llistat operatiu ordenat per data de creació descendent.",
@@ -6006,8 +6012,10 @@ export const translations = {
     accessRequestsReviewerIdentityError:
       "No s'ha pogut resoldre l'usuari intern autenticat. Torna a iniciar sessió abans de registrar la decisió.",
     accessRequestsDecisionSaved: "Decisió registrada.",
+    accessRequestsVisibleTotal: "Visibles",
+    accessRequestsResolved: "Resoltes",
     accessRequestsFilterHint:
-      "Els filtres consulten el backend intern. No s'envia org_id des del client.",
+      "Filtres de revisió",
     accessRequestsAllStatuses: "Tots els estats",
     accessRequestsAllProducts: "Tots els productes",
     accessRequestsAllSources: "Totes les fonts",
