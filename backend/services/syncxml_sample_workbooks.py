@@ -40,9 +40,8 @@ BASE_METADATA_ROWS = [
     ["FECHA DE SALIDA", "2026-08-15"],
     ["HORA", "11:00"],
     ["FECHA DE CONTRATO", "2026-07-20"],
-    ["NUMERO DE PERSONAS", "3"],
     ["TIPO DE PAGO", "Tarjeta"],
-    ["IBAN", "ES0000000000000000000000"],
+    ["IBAN", "ES9121000418450200051332"],
     [],
 ]
 
@@ -62,7 +61,7 @@ VALID_GUEST_ROWS = [
         "28079",
         "2026-08-12",
         "2026-08-15",
-        "Titular",
+        "TI",
     ],
     [
         "Bruno",
@@ -79,7 +78,7 @@ VALID_GUEST_ROWS = [
         "",
         "2026-08-12",
         "2026-08-15",
-        "Acompañante",
+        "OT",
     ],
 ]
 
@@ -99,9 +98,13 @@ FIXABLE_GUEST_ROWS = VALID_GUEST_ROWS + [
         "28079",
         "2026-08-12",
         "2026-08-15",
-        "Acompañante",
+        "OT",
     ],
 ]
+
+
+def _metadata_rows(guest_count: int) -> List[List[object]]:
+    return BASE_METADATA_ROWS[:12] + [["NUMERO DE PERSONAS", str(guest_count)]] + BASE_METADATA_ROWS[12:]
 
 
 def _xml_escape(value: object) -> str:
@@ -209,8 +212,8 @@ def _build_xlsx(rows: List[List[object]]) -> bytes:
 
 
 def build_syncxml_sample_attachments() -> List[EmailAttachment]:
-    valid_rows = BASE_METADATA_ROWS + [GUEST_HEADERS] + VALID_GUEST_ROWS
-    fixable_rows = BASE_METADATA_ROWS + [GUEST_HEADERS] + FIXABLE_GUEST_ROWS
+    valid_rows = _metadata_rows(len(VALID_GUEST_ROWS)) + [GUEST_HEADERS] + VALID_GUEST_ROWS
+    fixable_rows = _metadata_rows(len(FIXABLE_GUEST_ROWS)) + [GUEST_HEADERS] + FIXABLE_GUEST_ROWS
     return [
         {
             "filename": "anclora-syncxml-muestra-correcta.xlsx",
