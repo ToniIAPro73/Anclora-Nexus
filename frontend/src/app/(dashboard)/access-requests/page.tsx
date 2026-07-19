@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { Filter, Inbox, RefreshCw, ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import {
   ApiError,
@@ -57,6 +57,8 @@ export default function AccessRequestsPage() {
   const [rejectionReason, setRejectionReason] = useState('')
 
   const selectedId = selected?.id ?? null
+  const pendingVisibleCount = requests.filter((request) => request.status === 'pending').length
+  const decidedVisibleCount = requests.filter((request) => request.status === 'approved' || request.status === 'rejected').length
 
   const formatApiError = useCallback((err: unknown, fallbackKey: Parameters<typeof t>[0]) => {
     if (err instanceof ApiError) {
@@ -283,61 +285,6 @@ export default function AccessRequestsPage() {
           </div>
         </section>
 
-        <AccessRequestOperationsDashboard
-          analytics={analytics}
-          loading={analyticsLoading}
-          error={analyticsError}
-          onSelectAttentionItem={(requestId) => void openRequestById(requestId)}
-          t={t}
-        />
-
-        <section className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5">
-          <div className="grid gap-3 md:grid-cols-[180px_180px_180px_minmax(220px,1fr)]">
-            <label>
-              <span className="mb-2 block text-sm font-semibold text-soft-white">{t('status')}</span>
-              <select className="ui-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as AccessRequestStatus | '')}>
-                <option value="">{t('accessRequestsAllStatuses')}</option>
-                <option value="pending">{t('accessRequestsStatusPending')}</option>
-                <option value="approved">{t('accessRequestsStatusApproved')}</option>
-                <option value="rejected">{t('accessRequestsStatusRejected')}</option>
-                <option value="cancelled">{t('accessRequestsStatusCancelled')}</option>
-              </select>
-            </label>
-            <label>
-              <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsColumnProduct')}</span>
-              <select className="ui-select" value={productFilter} onChange={(event) => setProductFilter(event.target.value as AccessRequestProduct | '')}>
-                <option value="">{t('accessRequestsAllProducts')}</option>
-                <option value="synergi">Synergi</option>
-                <option value="data_lab">Data Lab</option>
-                <option value="syncxml">SyncXML</option>
-              </select>
-            </label>
-            <label>
-              <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsColumnSource')}</span>
-              <select className="ui-select" value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as AccessRequestSource | '')}>
-                <option value="">{t('accessRequestsAllSources')}</option>
-                <option value="synergi_app">{t('accessRequestsSourceSynergiApp')}</option>
-                <option value="data_lab_app">{t('accessRequestsSourceDataLabApp')}</option>
-                <option value="syncxml_landing">{t('accessRequestsSourceSyncXmlLanding')}</option>
-                <option value="nexus_manual">{t('accessRequestsSourceNexusManual')}</option>
-                <option value="external_api">{t('accessRequestsSourceExternalApi')}</option>
-              </select>
-            </label>
-            <label>
-              <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsEmailFilter')}</span>
-              <input
-                className="ui-input"
-                value={emailFilter}
-                onChange={(event) => setEmailFilter(event.target.value)}
-                placeholder={t('accessRequestsEmailFilterPlaceholder')}
-              />
-            </label>
-            <div className="self-end rounded-xl border border-soft-subtle/50 bg-navy-deep/30 px-4 py-3 text-sm text-soft-muted">
-              {t('accessRequestsFilterHint')}
-            </div>
-          </div>
-        </section>
-
         {error ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-500/30 dark:bg-navy-surface/50 dark:text-rose-200">
             {error}
@@ -351,9 +298,76 @@ export default function AccessRequestsPage() {
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
           <section className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5">
-            <div className="mb-4">
-              <h2 className="section-title">{t('accessRequestsQueueTitle')}</h2>
-              <p className="section-subtitle mt-1">{t('accessRequestsQueueSubtitle')}</p>
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-gold">
+                  <Inbox className="h-5 w-5" />
+                  <h2 className="section-title">{t('accessRequestsQueueTitle')}</h2>
+                </div>
+                <p className="section-subtitle mt-1">{t('accessRequestsQueueSubtitle')}</p>
+              </div>
+              <div className="grid min-w-60 grid-cols-3 gap-2 text-center">
+                <div>
+                  <p className="kpi-label">{t('accessRequestsVisibleTotal')}</p>
+                  <p className="mt-1 text-xl font-semibold text-soft-white">{requests.length}</p>
+                </div>
+                <div>
+                  <p className="kpi-label">{t('accessRequestsStatusPending')}</p>
+                  <p className="mt-1 text-xl font-semibold text-gold">{pendingVisibleCount}</p>
+                </div>
+                <div>
+                  <p className="kpi-label">{t('accessRequestsResolved')}</p>
+                  <p className="mt-1 text-xl font-semibold text-emerald-200">{decidedVisibleCount}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-5 border-y border-soft-subtle/50 py-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-soft-white">
+                <Filter className="h-4 w-4 text-blue-light" />
+                {t('accessRequestsFilterHint')}
+              </div>
+              <div className="grid gap-3 md:grid-cols-[160px_170px_190px_minmax(220px,1fr)]">
+                <label>
+                  <span className="mb-2 block text-sm font-semibold text-soft-white">{t('status')}</span>
+                  <select className="ui-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as AccessRequestStatus | '')}>
+                    <option value="">{t('accessRequestsAllStatuses')}</option>
+                    <option value="pending">{t('accessRequestsStatusPending')}</option>
+                    <option value="approved">{t('accessRequestsStatusApproved')}</option>
+                    <option value="rejected">{t('accessRequestsStatusRejected')}</option>
+                    <option value="cancelled">{t('accessRequestsStatusCancelled')}</option>
+                  </select>
+                </label>
+                <label>
+                  <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsColumnProduct')}</span>
+                  <select className="ui-select" value={productFilter} onChange={(event) => setProductFilter(event.target.value as AccessRequestProduct | '')}>
+                    <option value="">{t('accessRequestsAllProducts')}</option>
+                    <option value="synergi">Synergi</option>
+                    <option value="data_lab">Data Lab</option>
+                    <option value="syncxml">SyncXML</option>
+                  </select>
+                </label>
+                <label>
+                  <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsColumnSource')}</span>
+                  <select className="ui-select" value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as AccessRequestSource | '')}>
+                    <option value="">{t('accessRequestsAllSources')}</option>
+                    <option value="synergi_app">{t('accessRequestsSourceSynergiApp')}</option>
+                    <option value="data_lab_app">{t('accessRequestsSourceDataLabApp')}</option>
+                    <option value="syncxml_landing">{t('accessRequestsSourceSyncXmlLanding')}</option>
+                    <option value="nexus_manual">{t('accessRequestsSourceNexusManual')}</option>
+                    <option value="external_api">{t('accessRequestsSourceExternalApi')}</option>
+                  </select>
+                </label>
+                <label>
+                  <span className="mb-2 block text-sm font-semibold text-soft-white">{t('accessRequestsEmailFilter')}</span>
+                  <input
+                    className="ui-input"
+                    value={emailFilter}
+                    onChange={(event) => setEmailFilter(event.target.value)}
+                    placeholder={t('accessRequestsEmailFilterPlaceholder')}
+                  />
+                </label>
+              </div>
             </div>
             <AccessRequestsTable
               requests={requests}
@@ -365,7 +379,6 @@ export default function AccessRequestsPage() {
           </section>
 
           <div className="min-w-0 space-y-3">
-            <AccessRequestSlaPanel onSelectRequest={(id) => void openRequestById(id)} t={t} />
             {detailLoading ? (
               <div className="surface-primary rounded-2xl border border-soft-subtle bg-navy-surface/35 p-5 text-sm text-soft-muted">
                 {t('accessRequestsDetailLoading')}
@@ -385,8 +398,21 @@ export default function AccessRequestsPage() {
               onRetryDecisionEmail={() => void retryDecisionEmail()}
               t={t}
             />
+            <AccessRequestSlaPanel onSelectRequest={(id) => void openRequestById(id)} t={t} />
           </div>
         </div>
+
+        <div className="flex items-center gap-2 px-1 text-sm font-semibold text-soft-white">
+          <ShieldCheck className="h-4 w-4 text-blue-light" />
+          {t('accessRequestsAnalyticsTitle')}
+        </div>
+        <AccessRequestOperationsDashboard
+          analytics={analytics}
+          loading={analyticsLoading}
+          error={analyticsError}
+          onSelectAttentionItem={(requestId) => void openRequestById(requestId)}
+          t={t}
+        />
       </div>
 
       <AccessRequestDecisionDialog

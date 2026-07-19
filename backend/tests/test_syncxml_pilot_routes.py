@@ -266,12 +266,18 @@ def test_decide_rejects_when_conditions_not_accepted():
     assert result == "rejected"
 
 
-def test_decide_rejects_when_synthetic_not_accepted():
-    """Deterministic rejection: no acepta datos sintéticos."""
+def test_decide_keeps_request_pending_when_applicant_has_no_synthetic_sample():
+    """No aportar muestra propia no rechaza: se revisa y al aprobar se adjuntan muestras."""
     payload = _base_payload(acceptsSyntheticOrAnonymizedData=False)
     ai = {"decision": "approve", "score": 90, "riskFlags": []}
-    result = syncxml_pilot_service._decide_status(payload, ai)
-    assert result == "rejected"
+    with patch("backend.services.syncxml_pilot_service.settings") as mock_settings:
+        mock_settings.SYNCXML_PILOT_AUTO_APPROVE = False
+        mock_settings.APP_ENV = "production"
+        mock_settings.SYNCXML_ENV = "production"
+        mock_settings.ALLOW_REAL_SUPABASE_WRITE = True
+        mock_settings.USE_SYNTHETIC_DATA_ONLY = False
+        result = syncxml_pilot_service._decide_status(payload, ai)
+    assert result == "pending"
 
 
 def test_decide_pending_when_auto_approve_false():
@@ -434,3 +440,75 @@ async def test_webhook_valid_key_accepts_payload(webhook_app):
             )
     assert response.status_code == 200
     assert response.json().get("status") == "accepted"
+
+
+@pytest.mark.anyio
+async def test_webhook_blocked_result_returns_503(webhook_app):
+    """The webhook must not report accepted when safety mode blocks persistence."""
+    with patch("backend.api.internal_webhooks.settings") as mock_settings, \
+         patch("backend.api.internal_webhooks.syncxml_pilot_service") as mock_service:
+        mock_settings.SYNCXML_WEBHOOK_SECRET = "correct-secret"
+        mock_settings.NEXUS_INTERNAL_API_KEY = "nexus-key"
+        mock_service.process_incoming_lead = AsyncMock(
+            return_value={
+                "blocked": True,
+                "reason": "REAL_SUPABASE_WRITE_BLOCKED",
+                "action": "process_incoming_lead",
+            }
+        )
+        async with AsyncClient(
+            transport=ASGITransport(app=webhook_app), base_url="http://test"
+        ) as client:
+            response = await client.post(
+                "/api/internal/webhooks/syncxml-pilot",
+                json={
+                    "requestId": "blocked-request",
+                    "name": "Test User",
+                    "email": "test@example.com",
+                    "accommodationType": "hotel",
+                    "estimatedMonthlyReservations": "10",
+                    "currentWorkflow": "excel manual",
+                    "mainPain": "mucho tiempo",
+                    "wantsToValidate": "ficheros xml sintéticos",
+                    "acceptsPilotConditions": True,
+                    "acceptsSyntheticOrAnonymizedData": False,
+                    "locale": "es",
+                },
+                headers={"Authorization": "Bearer correct-secret"},
+            )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "REAL_SUPABASE_WRITE_BLOCKED"
+
+
+@pytest.mark.anyio
+async def test_webhook_missing_persisted_id_returns_500(webhook_app):
+    """Accepted responses must include a persisted access request id."""
+    with patch("backend.api.internal_webhooks.settings") as mock_settings, \
+         patch("backend.api.internal_webhooks.syncxml_pilot_service") as mock_service:
+        mock_settings.SYNCXML_WEBHOOK_SECRET = "correct-secret"
+        mock_settings.NEXUS_INTERNAL_API_KEY = "nexus-key"
+        mock_service.process_incoming_lead = AsyncMock(return_value={"status": "pending"})
+        async with AsyncClient(
+            transport=ASGITransport(app=webhook_app), base_url="http://test"
+        ) as client:
+            response = await client.post(
+                "/api/internal/webhooks/syncxml-pilot",
+                json={
+                    "requestId": "missing-id-request",
+                    "name": "Test User",
+                    "email": "test@example.com",
+                    "accommodationType": "hotel",
+                    "estimatedMonthlyReservations": "10",
+                    "currentWorkflow": "excel manual",
+                    "mainPain": "mucho tiempo",
+                    "wantsToValidate": "ficheros xml sintéticos",
+                    "acceptsPilotConditions": True,
+                    "acceptsSyntheticOrAnonymizedData": False,
+                    "locale": "es",
+                },
+                headers={"Authorization": "Bearer correct-secret"},
+            )
+
+    assert response.status_code == 500
+    assert response.json()["detail"]["code"] == "SYNCXML_PILOT_WEBHOOK_NOT_PERSISTED"

@@ -303,6 +303,35 @@ async def test_syncxml_webhook_persists_explicit_access_request_contract_fields(
 
 
 @pytest.mark.asyncio
+async def test_syncxml_webhook_without_own_sample_stays_pending_and_marks_sample_attachments():
+    access_table = FakeAccessRequestsTable()
+    task_table = Mock()
+
+    with patch("backend.services.syncxml_pilot_service.supabase_service") as supabase, patch(
+        "backend.services.syncxml_pilot_service.settings"
+    ) as settings, patch.object(
+        syncxml_pilot_service, "_create_review_task", new=AsyncMock()
+    ):
+        _configure_production_settings(settings)
+        supabase.client.table.side_effect = lambda name: access_table if name == "access_requests" else task_table
+
+        result = await syncxml_pilot_service.process_incoming_lead(
+            _payload(
+                requestId="no-own-sample",
+                acceptsSyntheticOrAnonymizedData=False,
+                raw={"idempotency_key": "no-own-sample", "adminEmailSentBySyncxml": True},
+            )
+        )
+
+    record = access_table.rows[0]
+    assert result["status"] == "pending"
+    assert record["gdpr_consent"] is True
+    assert record["metadata"]["acceptsSyntheticOrAnonymizedData"] is False
+    assert record["metadata"]["needsSyntheticSampleAttachments"] is True
+    assert record["metadata"]["has_own_synthetic_or_anonymized_sample"] is False
+
+
+@pytest.mark.asyncio
 async def test_block_reason_is_clear_for_manual_approval():
     with patch("backend.services.syncxml_pilot_service.settings") as settings:
         _configure_safe_settings(settings)
