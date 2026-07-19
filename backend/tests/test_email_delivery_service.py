@@ -70,3 +70,36 @@ def test_send_email_native_uses_resend_sdk(monkeypatch):
         "html": "<strong>HTML</strong>",
         "reply_to": "antonio@anclora.com",
     }
+
+
+def test_send_email_native_passes_attachments_to_resend(monkeypatch):
+    sent = {}
+
+    class FakeEmails:
+        @staticmethod
+        def send(params):
+            sent.update(params)
+            return {"id": "email_test_attachments"}
+
+    fake_resend = SimpleNamespace(api_key=None, Emails=FakeEmails)
+    monkeypatch.setitem(sys.modules, "resend", fake_resend)
+    monkeypatch.setattr(settings, "RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(settings, "RESEND_FROM", "Anclora SyncXML <piloto@anclora.com>")
+    monkeypatch.setattr(settings, "RESEND_FROM_EMAIL", None)
+    monkeypatch.setattr(settings, "RESEND_REPLY_TO", None)
+
+    result = send_email_native(
+        to_email="toni@example.com",
+        subject="Solicitud aprobada",
+        body="Texto fallback",
+        attachments=[
+            {
+                "filename": "muestra.xlsx",
+                "content": b"sample-bytes",
+                "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }
+        ],
+    )
+
+    assert result["provider"] == "resend"
+    assert sent["attachments"] == [{"filename": "muestra.xlsx", "content": "c2FtcGxlLWJ5dGVz"}]

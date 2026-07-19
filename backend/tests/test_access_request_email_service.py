@@ -89,3 +89,48 @@ def test_syncxml_acceptance_email_uses_human_expiry_and_first_login_instruction(
     assert "Al iniciar sesión por primera vez" in payload["html"]
     assert "Acceder al piloto" in payload["html"]
     assert_non_empty_bodies(payload)
+
+
+def test_syncxml_acceptance_email_adds_sample_workbooks_when_applicant_has_no_sample() -> None:
+    payload = build_syncxml_pilot_acceptance_email(
+        {
+            **record("syncxml"),
+            "metadata": {
+                "acceptsSyntheticOrAnonymizedData": False,
+                "raw": {"needsSyntheticSampleAttachments": True},
+            },
+        },
+        {
+            "email": "toni@example.com",
+            "temporaryPassword": "Tmp-123456",
+            "expiresAt": "2026-06-28T01:53:42.673404Z",
+            "loginReady": True,
+            "status": "active",
+        },
+    )
+
+    assert "adjuntamos dos Excel" in payload["text"]
+    assert "attachments" in payload
+    assert [item["filename"] for item in payload["attachments"]] == [
+        "anclora-syncxml-muestra-correcta.xlsx",
+        "anclora-syncxml-muestra-subsanable.xlsx",
+    ]
+    assert all(item["content"].startswith(b"PK") for item in payload["attachments"])
+
+
+def test_syncxml_acceptance_email_omits_sample_workbooks_when_applicant_has_sample() -> None:
+    payload = build_syncxml_pilot_acceptance_email(
+        {
+            **record("syncxml"),
+            "metadata": {"acceptsSyntheticOrAnonymizedData": True},
+        },
+        {
+            "email": "toni@example.com",
+            "temporaryPassword": "Tmp-123456",
+            "expiresAt": "2026-06-28T01:53:42.673404Z",
+            "loginReady": True,
+            "status": "active",
+        },
+    )
+
+    assert "attachments" not in payload
