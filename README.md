@@ -1,58 +1,80 @@
-# Anclora Nexus, capa de inteligencia
+<!-- markdownlint-disable MD001 MD013 MD033 MD041 MD060 -->
 
-Workspace operativo interno de Nexus sobre Next.js con frontend en `frontend/` y gobierno SDD en `sdd/`.
+<div align="center">
 
-## Entrada rápida
+<img src="./public/brand/logo-nexus2.png" alt="Anclora Nexus" width="120" />
 
-- app principal: `frontend/`
-- contratos SDD existentes: `sdd/contracts/`
-- reglas y gobernanza de agentes: `.agent/rules/`
+# Anclora Nexus
 
-## Scripts raíz
+### Repositorio interno del ecosistema Anclora para operaciones de familia internal
 
-- `npm run dev`
-- `npm run build`
-- `npm run frontend:lint`
+**Español** · [English](./README.en.md)
 
-## Contratos UX/UI
+<br />
 
-Lectura mínima antes de tocar interfaz:
+![Anclora](https://img.shields.io/badge/Anclora-ecosystem-111827)
+![Documentation](https://img.shields.io/badge/documentation-premium-BFA46A)
+![Languages](https://img.shields.io/badge/languages-ES%20%7C%20EN-047857)
 
-1. `docs/standards/ANCLORA_ECOSYSTEM_CONTRACT_GROUPS.md`
-2. `docs/standards/ANCLORA_INTERNAL_APP_CONTRACT.md`
-3. `docs/standards/UI_MOTION_CONTRACT.md`
-4. `docs/standards/MODAL_CONTRACT.md`
-5. `docs/standards/LOCALIZATION_CONTRACT.md`
+</div>
 
-## Contrato operativo actual
+---
 
-- familia contractual: `Internal`
-- branding: `Interna`
-- tema operativo: `dark`
-- idiomas objetivo Internal: `es/ca/en/de`
-- idiomas activos con copy completa: `es/en/de`
-- `ca`: pendiente de localización; no se activa hasta pasar Locale Copy Guardian
-- `light`: posible futuro, no requisito actual
+> [!IMPORTANT]
+> Repositorio interno del ecosistema Anclora. No publicar detalles operativos, credenciales,
+> datos reales ni logica sensible fuera de los canales autorizados.
 
-## Branding y activos
+## Vista rapida
 
-- tipografía principal: `Inter`
-- accent Nexus: oro `#D4AF37`
-- base dark Nexus: `#0F1629`, `#141C3A`, `#192350`
-- el favicon package final y el logo definitivo se integrarán con los assets canónicos del usuario cuando estén listos
+| Area | Definicion |
+| --- | --- |
+| Proposito | Repositorio interno del ecosistema Anclora para operaciones de familia internal |
+| Familia | `internal` |
+| Visibilidad | `private` |
+| Rol | Repositorio de trabajo interno |
 
-## Nota
+## Flujo conceptual
 
-`anclora-nexus` mantiene además contratos específicos en `sdd/contracts/`. Esos documentos siguen vigentes y concretan la implementación interna del grupo `Internal`.
+```text
+Contexto interno
+      ↓
+Configuracion y datos controlados
+      ↓
+Logica de producto
+      ↓
+Revision tecnica
+      ↓
+Entrega o soporte operativo
+```
 
-## Global Preferences Toggle
+## Arranque local
 
-Esta app sigue el contrato global de preferencias de Anclora Group.
+```bash
+npm install
+npm run dev
+```
 
-Incluye:
+## Tecnologia
 
-- idioma
-- moneda, porque muestra importes
-- unidades, porque muestra superficies/medidas
+| Area | Detalle |
+| --- | --- |
+| Node.js | Detectado en el repositorio |
 
-El Theme Toggle se gestiona por separado y solo aparece en grupos Premium, Internal y Portfolio.
+## Documentacion
+
+- [Documentacion](./docs)
+
+## Gobernanza
+
+- Producto canonico: `anclora-nexus`
+- Boveda: `/mnt/c/Users/antonio.ballesterosa/Desktop/Proyectos/Boveda-Anclora`
+- Contratos: `contracts/` y `docs/governance/`
+- Asset de marca: `presente`
+
+---
+
+<div align="center">
+
+### Anclora Group · Uso interno
+
+</div>
