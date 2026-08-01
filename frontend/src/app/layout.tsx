@@ -25,9 +25,12 @@ export const metadata: Metadata = {
   title: NEXUS_BRAND.name,
   description: NEXUS_BRAND.subtitle,
   icons: {
-    icon: NEXUS_BRAND.assets.favicon,
+    icon: [
+      { url: NEXUS_BRAND.assets.favicon, sizes: 'any' },
+      { url: NEXUS_BRAND.assets.favicon32, type: 'image/png', sizes: '32x32' },
+    ],
     shortcut: NEXUS_BRAND.assets.favicon,
-    apple: NEXUS_BRAND.assets.favicon,
+    apple: NEXUS_BRAND.assets.appleTouchIcon,
   },
 };
 
