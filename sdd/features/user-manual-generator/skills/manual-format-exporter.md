@@ -48,7 +48,7 @@ ANCLORA_BRAND = {
         "monospace": "Fira Code"
     },
     "cover": {
-        "logo_path": "public/brand/logo-nexus.png",
+        "logo_path": "public/brand/anclora-nexus.png",
         "title": "Manual de Usuario",
         "subtitle": "Anclora Nexus - Intelligence Layer",
         "background_color": "navy",

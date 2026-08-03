@@ -129,7 +129,7 @@ BRAND_CONFIG = {
         "body": "Inter",
         "monospace": "Fira Code"
     },
-    "logo": "public/brand/logo-nexus.png",
+    "logo": "public/brand/anclora-nexus.png",
     "footer": "Anclora Private Estates © 2026"
 }
 ```

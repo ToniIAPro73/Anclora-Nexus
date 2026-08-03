@@ -427,7 +427,7 @@ CREATE TABLE weekly_recaps (
 ### 4.6 Identidad Visual y Brand Guidelines
 
 **Logo:** Anclora Cognitive Solutions — círculo dorado con ondas digitales (olas + circuitos).
-**Archivo:** `frontend/public/logo-anclora-nexus.png`
+**Archivo:** `frontend/public/anclora-nexus.png`
 
 **Paleta de colores (obligatoria en toda la UI):**
 

@@ -68,7 +68,7 @@ export function PrivateAreaShell({
               <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-[#D4AF37]/40 bg-[rgba(6,33,42,0.44)] shadow-[0_0_18px_rgba(212,175,55,0.22)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/brand/logo-anclora-private-estates.png"
+                  src="/brand/anclora-private-estates.png"
                   alt="Anclora Private Estates logo"
                   className="h-full w-full object-cover"
                 />

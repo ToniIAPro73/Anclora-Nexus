@@ -98,7 +98,7 @@ export function Sidebar() {
         </div>
         <div className="flex flex-col items-center overflow-visible pt-1">
           <div className={`${isCollapsed ? 'mb-0 mt-1' : 'mb-3'}`}>
-            <BrandLogo size={isCollapsed ? 50 : 60} src="/brand/logo-nexus.png" />
+            <BrandLogo size={isCollapsed ? 50 : 60} src="/brand/anclora-nexus.png" />
           </div>
           <h1
             className={`font-display text-xl text-soft-white whitespace-nowrap transition-all duration-300 ${

@@ -11,6 +11,6 @@ describe('Nexus brand wiring', () => {
   it('uses the Nexus primary logo by default', () => {
     const element = BrandLogo({})
     expect(element.props.children.props.alt).toBe('Anclora Nexus logo')
-    expect(element.props.children.props.src).toContain('/brand/logo-nexus-v1.png')
+    expect(element.props.children.props.src).toContain('/brand/anclora-nexus.png')
   })
 })

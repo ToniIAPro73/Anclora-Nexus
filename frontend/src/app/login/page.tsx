@@ -293,7 +293,7 @@ export default function LoginPage() {
         <Card className="widget-card w-full border-soft-subtle/20 bg-navy-surface backdrop-blur-xl hover:shadow-[0_48px_100px_-35px_rgba(212,168,67,0.50)] hover:scale-[1.018] transition-[transform,box-shadow] duration-300 ease-out rounded-3xl" style={{minHeight: "560px", boxShadow: "0 32px 80px -40px rgba(212, 168, 67, 0.35)"}}>
           <div className="flex flex-col items-center pt-8 pb-5">
             <div style={{width: "50px", height: "50px"}} className="mb-2 drop-shadow-[0_12px_24px_rgba(0,0,0,0.30)]">
-              <BrandLogo size={50} src="/brand/logo-nexus.png" />
+              <BrandLogo size={50} src="/brand/anclora-nexus.png" />
             </div>
             <div className="h-[1px] w-[50px] bg-gradient-to-r from-transparent via-gold/70 to-transparent mb-2" />
             <h1 className="font-display text-sm font-bold text-soft-white">Anclora Nexus</h1>

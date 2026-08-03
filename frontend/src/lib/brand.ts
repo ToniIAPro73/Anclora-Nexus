@@ -4,12 +4,12 @@ export const NEXUS_BRAND = {
   defaultLanguage: 'es',
   supportedLanguages: ['es', 'en', 'de', 'ca'] as const,
   assets: {
-    logoPrimary: '/brand/logo-nexus-v1.png',
-    logoFallback: '/brand/logo-nexus.png',
-    favicon: '/nexus_favicon.ico',
-    favicon32: '/nexus_favicon_32.png',
-    favicon512: '/nexus_favicon_512.png',
-    appleTouchIcon: '/nexus_apple-touch-icon.png',
+    logoPrimary: '/brand/anclora-nexus.png',
+    logoFallback: '/brand/anclora-nexus.png',
+    favicon: '/favicon.ico',
+    favicon32: '/favicon-32.png',
+    favicon512: '/favicon-512.png',
+    appleTouchIcon: '/apple-touch-icon.png',
   },
   theme: {
     mode: 'dark',

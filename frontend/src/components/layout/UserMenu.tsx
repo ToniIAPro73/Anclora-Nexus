@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation'
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
-  const [avatarUrl, setAvatarUrl] = useState<string>('/brand/logo-nexus.png')
+  const [avatarUrl, setAvatarUrl] = useState<string>('/brand/anclora-nexus.png')
   const { t } = useI18n()
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)
@@ -27,7 +27,7 @@ export function UserMenu() {
         .eq('id', user.id)
         .maybeSingle()
 
-      setAvatarUrl(profile?.avatar_url || user.user_metadata?.avatar_url || '/brand/logo-nexus.png')
+      setAvatarUrl(profile?.avatar_url || user.user_metadata?.avatar_url || '/brand/anclora-nexus.png')
     }
     getUser()
 
@@ -62,8 +62,8 @@ export function UserMenu() {
             className="w-full h-full rounded-full object-cover"
             onError={(e) => {
               const target = e.currentTarget
-              if (target.src !== `${window.location.origin}/brand/logo-nexus.png`) {
-                target.src = '/brand/logo-nexus.png'
+              if (target.src !== `${window.location.origin}/brand/anclora-nexus.png`) {
+                target.src = '/brand/anclora-nexus.png'
               }
             }}
           />

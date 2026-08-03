@@ -74,7 +74,7 @@ Estas reglas aplican SIEMPRE, incluso en v0 simplificado:
 
 ## Identidad Visual (OBLIGATORIA en toda la UI)
 
-Logo: `frontend/public/logo-anclora-nexus.png` (círculo dorado, ondas digitales)
+Logo: `frontend/public/anclora-nexus.png` (círculo dorado, ondas digitales)
 
 Paleta:
 - `--navy-deep: #192350` — Background principal, sidebar, dark surfaces

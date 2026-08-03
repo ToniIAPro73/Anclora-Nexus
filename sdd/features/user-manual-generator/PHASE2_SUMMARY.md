@@ -24,7 +24,7 @@ El usuario solicitó extender la feature ANCLORA-UMG-001 con:
 
 #### 1. Logo Integration (✅ DONE)
 - **Script Updated:** `convert-manual-to-docx.py`
-- **Logo Added:** `public/brand/logo-nexus-1.png` (3" width, centered)
+- **Logo Added:** `public/brand/anclora-nexus.png` (3" width, centered)
 - **File Regenerated:** `MANUAL_USUARIO_ANCLORA_NEXUS.docx` (1.5 MB with logo)
 - **Status:** PRODUCTION READY
 

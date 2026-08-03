@@ -261,7 +261,7 @@ BRAND_STYLES = {
         "body": "Inter"
     },
     "cover": {
-        "logo": "public/brand/logo-nexus.png",
+        "logo": "public/brand/anclora-nexus.png",
         "title": "Manual de Usuario",
         "subtitle": "Anclora Nexus - Intelligence Layer",
         "background_color": "navy"

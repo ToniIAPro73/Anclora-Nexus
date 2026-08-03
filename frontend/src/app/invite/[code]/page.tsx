@@ -27,7 +27,7 @@ export default function InvitePage() {
           <div className="absolute inset-0 bg-gold/20 blur-xl rounded-full animate-pulse"></div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
-            src="/logo-anclora-nexus.png" 
+            src="/anclora-nexus.png" 
             alt="Anclora Nexus" 
             className="w-full h-full object-contain relative z-10"
           />

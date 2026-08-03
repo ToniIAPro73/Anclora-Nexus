@@ -131,7 +131,7 @@ frontend/
 │   └── cn.ts                         # clsx + tailwind-merge helper
 ├── public/
 │   ├── brand/
-│   │   ├── logo-nexus.png            # Logo principal
+│   │   ├── anclora-nexus.png            # Logo principal
 │   │   └── favicon.png               # Favicon
 │   └── og-image.png                  # Open Graph (optional)
 └── tailwind.config.ts                # Extended con design tokens
@@ -610,7 +610,7 @@ Especificación visual de `app/(auth)/login/page.tsx`:
 
 - Fondo: gradiente navy-darker → navy-deep con background-attachment fixed
 - Centro: Card glassmorphism (widget-card, max-w-md) conteniendo:
-  - Logo `public/brand/logo-nexus.png` a 80×80px con float animation sutil
+  - Logo `public/brand/anclora-nexus.png` a 80×80px con float animation sutil
   - "Anclora Nexus" en font-display text-2xl text-soft-white
   - "Private Estate Intelligence" en text-xs uppercase tracking-[0.2em] text-soft-muted
   - Separator: línea 1px gradiente gold (transparent→gold→transparent) 60% width

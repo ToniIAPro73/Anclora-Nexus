@@ -2,79 +2,91 @@
 
 <div align="center">
 
-<img src="./public/brand/logo-nexus2.png" alt="Anclora Nexus" width="120" />
+<img src="./frontend/public/brand/anclora-nexus.png" alt="Anclora Nexus" width="132" />
 
 # Anclora Nexus
 
-### Repositorio interno del ecosistema Anclora para operaciones de familia internal
+### Internal operational coordination system for documents and contracts
+
+Centralized platform for managing operation folders, documents, templates, and signature workflows in real-estate transactions.
 
 [Español](./README.md) · **English**
 
 <br />
 
 ![Anclora](https://img.shields.io/badge/Anclora-ecosystem-111827)
-![Documentation](https://img.shields.io/badge/documentation-premium-BFA46A)
-![Languages](https://img.shields.io/badge/languages-ES%20%7C%20EN-047857)
+![Category](https://img.shields.io/badge/category-Internal-D4AF37)
+![Languages](https://img.shields.io/badge/languages-ES%20%7C%20EN%20%7C%20DE-047857)
 
 </div>
 
 ---
 
 > [!IMPORTANT]
-> Internal Anclora ecosystem repository. Do not publish operational details, credentials,
-> real data or sensitive logic outside approved channels.
+> Internal Anclora ecosystem repository. This tool coordinates critical operations with real transaction documents and data. Do not publish operational details, credentials, customer data, or sensitive logic outside authorized channels.
 
-## At a glance
+## What it is
 
-| Area | Definition |
-| --- | --- |
-| Purpose | Repositorio interno del ecosistema Anclora para operaciones de familia internal |
-| Family | `internal` |
-| Visibility | `private` |
-| Role | Internal working repository |
+Nexus is the central operational platform for handling documents and contracts across the real-estate transaction lifecycle. It coordinates operation folders, manages document templates, generates e-signature workflows (DocuSeal), integrates contract validation via Advisor AI, and provides oversight views for internal teams.
 
-## Conceptual workflow
+## Category in the ecosystem
 
-```text
-Internal context
-      ↓
-Controlled configuration and data
-      ↓
-Product logic
-      ↓
-Technical review
-      ↓
-Delivery or operational support
-```
+| Field | Value |
+|---|---|
+| Category | Internal |
+| Brand accent | `#D4AF37` |
+| Typography | Inter |
+| Canonical repository | `anclora-nexus` |
 
-## Local start
+## Key features
+
+- **Operation folder management:** create, list, and manage folders linked to deals, properties, and stakeholders (leads, sellers, companies, contacts)
+- **Document lifecycle:** encrypted upload/download, document versioning, legal review, and policy-compliant retention management
+- **Template library:** templates by document family, quality metadata, automatic generation and validation
+- **Signature workflows:** DocuSeal integration, signature envelope tracking, immutability of signed copies
+- **Contract validation:** Advisor AI integration for automatic clause and legal-risk review
+- **Operational coordination:** indicators, action auditing, and consolidated views for teams
+
+## Technology stack
+
+| Area | Technology |
+|---|---|
+| Frontend | Next.js 16, React 19, TypeScript |
+| Authentication | Supabase Auth + NextAuth |
+| Storage | Supabase Storage (AES-GCM encrypted) |
+| Styling | Tailwind CSS, Radix UI, shadcn |
+| Testing | Vitest + React Testing Library |
+| UI Components | Lucide React, Framer Motion |
+| Documents | jsPDF, react-markdown, doc-viewer |
+
+## Local setup
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-## Technology
+The server will be available at `http://localhost:3000`.
 
-| Area | Detail |
-| --- | --- |
-| Node.js | Detected in repository |
+## Supported languages
 
-## Documentation
+- Español (default)
+- English
+- Deutsch
 
-- [Documentacion](./docs)
+## Documentation and governance
 
-## Governance
-
-- Canonical product: `anclora-nexus`
-- Vault: `/mnt/c/Users/antonio.ballesterosa/Desktop/Proyectos/Boveda-Anclora`
-- Contracts: `contracts/` and `docs/governance/`
-- Brand asset: `present`
+- Workflow specifications: [`docs/DMS_*.md`](./docs/)
+- Brand and governance contracts: `docs/standards/`
+- Anclora Vault (source of truth): `contracts/` and `docs/governance/`
 
 ---
 
 <div align="center">
 
-### Anclora Group · Internal use
+### Anclora Group
+
+Internal use
 
 </div>

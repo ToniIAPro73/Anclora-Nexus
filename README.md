@@ -2,79 +2,91 @@
 
 <div align="center">
 
-<img src="./public/brand/logo-nexus2.png" alt="Anclora Nexus" width="120" />
+<img src="./frontend/public/brand/anclora-nexus.png" alt="Anclora Nexus" width="132" />
 
 # Anclora Nexus
 
-### Repositorio interno del ecosistema Anclora para operaciones de familia internal
+### Sistema interno de coordinación operativa para documentos y contratos
+
+Plataforma centralizada para gestión de carpetas de operaciones, documentos, templates, y workflows de firma en transacciones inmobiliarias.
 
 **Español** · [English](./README.en.md)
 
 <br />
 
 ![Anclora](https://img.shields.io/badge/Anclora-ecosystem-111827)
-![Documentation](https://img.shields.io/badge/documentation-premium-BFA46A)
-![Languages](https://img.shields.io/badge/languages-ES%20%7C%20EN-047857)
+![Categoría](https://img.shields.io/badge/categoría-Interna-D4AF37)
+![Idiomas](https://img.shields.io/badge/idiomas-ES%20%7C%20EN%20%7C%20DE-047857)
 
 </div>
 
 ---
 
 > [!IMPORTANT]
-> Repositorio interno del ecosistema Anclora. No publicar detalles operativos, credenciales,
-> datos reales ni logica sensible fuera de los canales autorizados.
+> Repositorio interno del ecosistema Anclora. Esta herramienta coordina operaciones críticas con documentos y datos reales de transacciones. No publicar detalles operativos, credenciales, datos de clientes, ni lógica sensible fuera de los canales autorizados.
 
-## Vista rapida
+## Qué es
 
-| Area | Definicion |
-| --- | --- |
-| Proposito | Repositorio interno del ecosistema Anclora para operaciones de familia internal |
-| Familia | `internal` |
-| Visibilidad | `private` |
-| Rol | Repositorio de trabajo interno |
+Nexus es la plataforma operativa central para manejo de documentos y contratos en el ciclo de vida de transacciones inmobiliarias. Coordina carpetas de operaciones, gestiona templates de documentos, genera workflows de firma electrónica (DocuSeal), integra validación de contratos mediante Advisor AI, y proporciona vistas de control para teams internos.
 
-## Flujo conceptual
+## Categoría en el ecosistema
 
-```text
-Contexto interno
-      ↓
-Configuracion y datos controlados
-      ↓
-Logica de producto
-      ↓
-Revision tecnica
-      ↓
-Entrega o soporte operativo
-```
+| Campo | Valor |
+|---|---|
+| Categoría | Interna |
+| Acento de marca | `#D4AF37` |
+| Tipografía | Inter |
+| Repositorio canónico | `anclora-nexus` |
+
+## Funcionalidades principales
+
+- **Gestión de carpetas de operaciones:** crear, listar y gestionar carpetas vinculadas a deals, propiedades y partes interesadas (leads, sellers, companías, contactos)
+- **Ciclo de vida de documentos:** upload/download cifrado, versionado de documentos, revisión legal y gestión de retención conforme a políticas
+- **Biblioteca de templates:** templates por familia de documentos, metadata de calidad, generación automática y validación
+- **Workflows de firma:** integración con DocuSeal, tracking de envelopes de firma, inmutabilidad de copias firmadas
+- **Validación de contratos:** integración con Advisor AI para revisión automática de cláusulas y riesgos legales
+- **Coordinación operativa:** indicadores, auditoría de acciones, y vistas consolidadas para teams
+
+## Stack tecnológico
+
+| Área | Tecnología |
+|---|---|
+| Frontend | Next.js 16, React 19, TypeScript |
+| Autenticación | Supabase Auth + NextAuth |
+| Almacenamiento | Supabase Storage (cifrado AES-GCM) |
+| Estilos | Tailwind CSS, Radix UI, shadcn |
+| Testing | Vitest + React Testing Library |
+| UI Components | Lucide React, Framer Motion |
+| Documentos | jsPDF, react-markdown, doc-viewer |
 
 ## Arranque local
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-## Tecnologia
+El servidor estará disponible en `http://localhost:3000`.
 
-| Area | Detalle |
-| --- | --- |
-| Node.js | Detectado en el repositorio |
+## Idiomas soportados
 
-## Documentacion
+- Español (predeterminado)
+- English
+- Deutsch
 
-- [Documentacion](./docs)
+## Documentación y gobernanza
 
-## Gobernanza
-
-- Producto canonico: `anclora-nexus`
-- Boveda: `/mnt/c/Users/antonio.ballesterosa/Desktop/Proyectos/Boveda-Anclora`
-- Contratos: `contracts/` y `docs/governance/`
-- Asset de marca: `presente`
+- Especificación de flujos: [`docs/DMS_*.md`](./docs/)
+- Contratos de marca y gobernanza: `docs/standards/`
+- Bóveda Anclora (fuente de verdad): `contracts/` y `docs/governance/`
 
 ---
 
 <div align="center">
 
-### Anclora Group · Uso interno
+### Anclora Group
+
+Uso interno
 
 </div>

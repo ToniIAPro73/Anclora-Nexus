@@ -350,7 +350,7 @@ if __name__ == "__main__":
         docx_path = f"{base_dir}/public/docs/manual-usuario/MANUAL_USUARIO_ANCLORA_NEXUS.docx"
         print_lang = "ES (ESPAÑOL)"
 
-    logo_path = f"{base_dir}/public/brand/logo-nexus-1.png"
+    logo_path = f"{base_dir}/public/brand/anclora-nexus.png"
 
     # Ejecutar conversión
     print("=" * 60)
