@@ -10,13 +10,13 @@
 
 Plataforma centralizada para gestión de carpetas de operaciones, documentos, templates, y workflows de firma en transacciones inmobiliarias.
 
-**Español** · [English](./README.en.md)
+**Español** · [Català](./README.ca.md) · [English](./README.en.md) · [Deutsch](./README.de.md)
 
 <br />
 
 ![Anclora](https://img.shields.io/badge/Anclora-ecosystem-111827)
 ![Categoría](https://img.shields.io/badge/categoría-Interna-D4AF37)
-![Idiomas](https://img.shields.io/badge/idiomas-ES%20%7C%20EN%20%7C%20DE-047857)
+![Idiomas](https://img.shields.io/badge/idiomas%20producto-4-047857)
 
 </div>
 
@@ -71,9 +71,7 @@ El servidor estará disponible en `http://localhost:3000`.
 
 ## Idiomas soportados
 
-- Español (predeterminado)
-- English
-- Deutsch
+El producto en producción soporta 4 idiomas: Español (predeterminado), Català, English, Deutsch (`INTERNAL_LOCALES`, `frontend/src/lib/anclora-language-toggle.ts`). Esta documentación se mantiene en los 4 idiomas del producto.
 
 ## Documentación y gobernanza
 

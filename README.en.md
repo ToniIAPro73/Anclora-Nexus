@@ -10,13 +10,13 @@
 
 Centralized platform for managing operation folders, documents, templates, and signature workflows in real-estate transactions.
 
-[Español](./README.md) · **English**
+[Español](./README.md) · [Català](./README.ca.md) · **English** · [Deutsch](./README.de.md)
 
 <br />
 
 ![Anclora](https://img.shields.io/badge/Anclora-ecosystem-111827)
 ![Category](https://img.shields.io/badge/category-Internal-D4AF37)
-![Languages](https://img.shields.io/badge/languages-ES%20%7C%20EN%20%7C%20DE-047857)
+![Languages](https://img.shields.io/badge/product%20languages-4-047857)
 
 </div>
 
@@ -71,9 +71,7 @@ The server will be available at `http://localhost:3000`.
 
 ## Supported languages
 
-- Español (default)
-- English
-- Deutsch
+The production product supports 4 languages: Español (default), Català, English, Deutsch (`INTERNAL_LOCALES`, `frontend/src/lib/anclora-language-toggle.ts`). This documentation is maintained in all 4 product languages.
 
 ## Documentation and governance
 
