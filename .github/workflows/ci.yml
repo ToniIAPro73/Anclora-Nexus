@@ -34,8 +34,35 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test frontend
+        run: npm test -w frontend
+
       - name: Build
         run: npm run build
 
       - name: Check SyncXML pilot env example
         run: npm run ops:syncxml-pilot:check-env
+
+  backend-tests:
+    name: Backend pytest
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt pytest pytest-asyncio hypothesis python-dateutil
+
+      - name: Run backend tests
+        working-directory: backend
+        run: python -m pytest
