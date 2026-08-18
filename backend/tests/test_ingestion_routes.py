@@ -4,6 +4,8 @@ from unittest.mock import AsyncMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from route_helpers import flatten_routes
+
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test-key")
 os.environ.setdefault("AI_RUNTIME_PROFILE", "groq-cloudflare")
@@ -24,7 +26,7 @@ client = TestClient(app)
 
 class TestIngestionRouteRegistration:
     def test_ingestion_events_endpoint_exists(self) -> None:
-        routes = [r for r in app.routes if hasattr(r, "methods")]
+        routes = flatten_routes(app.routes)
         matching = [
             r for r in routes
             if hasattr(r, "path") and r.path == "/api/ingestion/events" and "GET" in r.methods
@@ -32,7 +34,7 @@ class TestIngestionRouteRegistration:
         assert len(matching) == 1
 
     def test_seller_signals_endpoint_exists(self) -> None:
-        routes = [r for r in app.routes if hasattr(r, "methods")]
+        routes = flatten_routes(app.routes)
         matching = [
             r for r in routes
             if hasattr(r, "path") and r.path == "/api/ingestion/seller-signals" and "POST" in r.methods

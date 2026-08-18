@@ -17,6 +17,8 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
+from route_helpers import flatten_routes
+
 from backend.api.deps import get_current_user, get_org_id, require_access_request_reviewer
 from backend.api.routes.syncxml_pilot import router as syncxml_pilot_router
 from backend.services.syncxml_pilot_service import SyncXmlPilotPayload, syncxml_pilot_service
@@ -59,7 +61,7 @@ def test_routes_registered_in_production_entrypoint():
     """
     from backend.main import app
 
-    routes = {route.path for route in app.routes}
+    routes = {route.path for route in flatten_routes(app.routes)}
     assert "/api/syncxml-pilot/{request_id}/approve" in routes, (
         "Route not found — router not registered in backend/main.py"
     )

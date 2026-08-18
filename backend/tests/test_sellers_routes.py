@@ -5,6 +5,8 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from route_helpers import flatten_routes
+
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test-key")
 os.environ.setdefault("AI_RUNTIME_PROFILE", "groq-cloudflare")
@@ -35,7 +37,7 @@ client = TestClient(app)
 
 class TestSellersRouteRegistration:
     def test_workbench_endpoint_exists(self) -> None:
-        routes = [r for r in app.routes if hasattr(r, "methods")]
+        routes = flatten_routes(app.routes)
         matching = [
             r for r in routes
             if hasattr(r, "path") and r.path == "/api/sellers/{seller_id}/workbench" and "GET" in r.methods
@@ -43,7 +45,7 @@ class TestSellersRouteRegistration:
         assert len(matching) == 1
 
     def test_dossier_export_endpoint_exists(self) -> None:
-        routes = [r for r in app.routes if hasattr(r, "methods")]
+        routes = flatten_routes(app.routes)
         matching = [
             r for r in routes
             if hasattr(r, "path") and r.path == "/api/sellers/{seller_id}/dossier-export" and "GET" in r.methods
@@ -51,7 +53,7 @@ class TestSellersRouteRegistration:
         assert len(matching) == 1
 
     def test_supervised_send_endpoint_exists(self) -> None:
-        routes = [r for r in app.routes if hasattr(r, "methods")]
+        routes = flatten_routes(app.routes)
         matching = [
             r for r in routes
             if hasattr(r, "path") and r.path == "/api/sellers/{seller_id}/send-supervised/{channel}" and "POST" in r.methods
@@ -59,7 +61,7 @@ class TestSellersRouteRegistration:
         assert len(matching) == 1
 
     def test_memory_routes_exist(self) -> None:
-        routes = [r for r in app.routes if hasattr(r, "methods")]
+        routes = flatten_routes(app.routes)
         get_matches = [
             r for r in routes
             if hasattr(r, "path") and r.path == "/api/sellers/{seller_id}/memory" and "GET" in r.methods

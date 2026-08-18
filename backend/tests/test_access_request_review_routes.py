@@ -47,7 +47,7 @@ def access_request_response(request_id: str = "request-1", status: str = "pendin
         "id": request_id,
         "org_id": ORG_ID,
         "product": "synergi",
-        "source": "landing",
+        "source": "syncxml_landing",
         "status": status,
         "full_name": "Test User",
         "email": "test@example.com",

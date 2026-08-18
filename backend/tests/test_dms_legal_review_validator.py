@@ -17,9 +17,17 @@ _fake_settings.ADVISOR_AI_TIMEOUT_SECONDS = 30.0
 sys.modules.setdefault("pydantic_settings", MagicMock())
 _config_mod = MagicMock()
 _config_mod.settings = _fake_settings
+_orig_config_mod = sys.modules.get("backend.config")
 sys.modules["backend.config"] = _config_mod
 
 from backend.services.advisor_contract_validator_service import AdvisorContractValidatorService  # noqa: E402
+
+# Restore the real backend.config for every other test module imported after
+# this one — the stub must only be visible while importing the service above.
+if _orig_config_mod is not None:
+    sys.modules["backend.config"] = _orig_config_mod
+else:
+    del sys.modules["backend.config"]
 
 VALID_LEGAL_DOCUMENT_RESPONSE = {
     "status": "ok",

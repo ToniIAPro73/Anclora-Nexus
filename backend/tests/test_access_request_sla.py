@@ -38,7 +38,7 @@ async def test_run_sla_scan_deduplication(mock_supabase_service, mock_audit_serv
         "email": "test@example.com",
         "full_name": "Test User",
         "product": "synergi",
-        "source": "landing"
+        "source": "syncxml_landing"
     }
     
     # Table "access_requests" fetch

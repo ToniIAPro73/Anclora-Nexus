@@ -52,7 +52,7 @@ async def test_access_request_analytics_route(app):
                 "rejected_count": 0,
                 "cancelled_count": 0,
                 "requests_by_product": {"synergi": 1, "data_lab": 0},
-                "requests_by_source": {"landing": 1, "synergi_app": 0, "data_lab_app": 0},
+                "requests_by_source": {"syncxml_landing": 1, "synergi_app": 0, "data_lab_app": 0},
                 "pending_older_than_24h": 1,
                 "pending_older_than_72h": 0,
                 "average_review_time_hours": None,
@@ -71,7 +71,7 @@ async def test_access_request_analytics_route(app):
                         "severity": "warning",
                         "status": "pending",
                         "product": "synergi",
-                        "source": "landing",
+                        "source": "syncxml_landing",
                         "email": "test@example.com",
                         "created_at": "2026-05-05T10:00:00+00:00",
                         "reviewed_at": None,
@@ -151,7 +151,7 @@ async def test_access_request_analytics_summary_counts_and_attention(monkeypatch
     assert summary.pending_count == 1
     assert summary.approved_count == 2
     assert summary.rejected_count == 1
-    assert summary.requests_by_product == {"synergi": 3, "data_lab": 1}
+    assert summary.requests_by_product == {"synergi": 3, "data_lab": 1, "syncxml": 0}
     assert summary.pending_older_than_24h == 1
     assert summary.pending_older_than_72h == 1
     assert summary.average_review_time_hours == 10.67

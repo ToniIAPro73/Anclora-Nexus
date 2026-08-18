@@ -4,6 +4,8 @@ from unittest.mock import AsyncMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from route_helpers import flatten_routes
+
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test-key")
 os.environ.setdefault("AI_RUNTIME_PROFILE", "groq-cloudflare")
@@ -21,7 +23,7 @@ client = TestClient(app)
 
 class TestStatefoxBridgeRoutes:
     def test_parse_route_exists(self) -> None:
-        routes = [r for r in app.routes if hasattr(r, "methods")]
+        routes = flatten_routes(app.routes)
         matching = [
             r for r in routes
             if hasattr(r, "path") and r.path == "/api/intelligence/statefox-bridge/parse" and "POST" in r.methods

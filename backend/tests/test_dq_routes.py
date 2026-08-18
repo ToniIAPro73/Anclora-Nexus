@@ -3,6 +3,8 @@ from unittest.mock import AsyncMock, patch, MagicMock
 from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
+from route_helpers import flatten_routes
 from backend.api.routes.dq import router
 from backend.models.dq import DQMetricsResponse, DQIssuesResponse, CandidateStatus
 
@@ -38,7 +40,7 @@ class TestDQRoutes:
         ("POST", "/api/dq/recompute"),
     ])
     def test_endpoint_exists(self, method: str, path: str) -> None:
-        routes = [r for r in app.routes if hasattr(r, "methods")]
+        routes = flatten_routes(app.routes)
         matching = [r for r in routes if hasattr(r, "path") and r.path == path and method in r.methods]
         assert len(matching) == 1
 

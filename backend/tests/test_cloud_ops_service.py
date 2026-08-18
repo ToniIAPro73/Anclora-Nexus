@@ -2,6 +2,19 @@ from backend.services.cloud_ops_service import get_cloud_ops_summary
 
 
 def test_cloud_ops_summary_reports_runtime_and_heartbeats(monkeypatch) -> None:
+    # Freeze "now" just after the mocked heartbeats (2026-06-03 ~08:00) so the
+    # staleness thresholds in _normalize_status do not drift with wall clock.
+    monkeypatch.setattr(
+        "backend.services.cloud_ops_service.datetime",
+        type(
+            "FixedDateTime",
+            (),
+            {
+                "now": staticmethod(lambda _tz=None: __import__("datetime").datetime(2026, 6, 3, 10, 0, tzinfo=__import__("datetime").timezone.utc)),
+                "fromisoformat": staticmethod(__import__("datetime").datetime.fromisoformat),
+            },
+        ),
+    )
     monkeypatch.setattr(
         "backend.services.cloud_ops_service.get_territorial_sync_status",
         lambda: {

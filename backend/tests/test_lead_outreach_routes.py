@@ -4,6 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from route_helpers import flatten_routes
+
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test-key")
 
@@ -20,7 +22,7 @@ client = TestClient(app)
 
 
 def test_generate_lead_outreach_route_exists() -> None:
-    matching = [r for r in app.routes if getattr(r, "path", "") == "/api/leads/{lead_id}/generate-outreach"]
+    matching = [r for r in flatten_routes(app.routes) if r.path == "/api/leads/{lead_id}/generate-outreach"]
     assert matching
 
 

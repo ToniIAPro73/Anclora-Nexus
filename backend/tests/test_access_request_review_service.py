@@ -27,8 +27,9 @@ def access_request_record(
         "id": request_id,
         "org_id": ORG_ID,
         "product": product,
-        "source": "landing",
+        "source": "syncxml_landing",
         "status": status,
+        "intake_domain": "access_request",
         "full_name": "Test User",
         "email": "test@example.com",
         "privacy_accepted": True,
@@ -176,7 +177,7 @@ async def test_list_requests_applies_operations_filters(monkeypatch, service):
     rows = [
         {
             **access_request_record("request-1", status="pending", product="synergi"),
-            "source": "landing",
+            "source": "nexus_manual",
             "email": "ana@example.com",
             "created_at": "2026-05-01T10:00:00+00:00",
         },
@@ -188,7 +189,7 @@ async def test_list_requests_applies_operations_filters(monkeypatch, service):
         },
         {
             **access_request_record("request-3", status="pending", product="synergi"),
-            "source": "landing",
+            "source": "nexus_manual",
             "email": "ana.later@example.com",
             "created_at": "2026-05-08T10:00:00+00:00",
         },

@@ -29,9 +29,17 @@ _fake_settings.NEXUS_DMS_BUCKET = "dms"
 _fake_settings.NEXUS_DMS_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 _config_mod = MagicMock()
 _config_mod.settings = _fake_settings
+_orig_config_mod = sys.modules.get("backend.config")
 sys.modules["backend.config"] = _config_mod
 
 from backend.api.routes.dms_templates import router as templates_router  # noqa: E402
+
+# Restore the real backend.config for every other test module imported after
+# this one — the stub must only be visible while importing the routes above.
+if _orig_config_mod is not None:
+    sys.modules["backend.config"] = _orig_config_mod
+else:
+    del sys.modules["backend.config"]
 
 app = FastAPI()
 app.include_router(templates_router, prefix="/api/dms/templates")

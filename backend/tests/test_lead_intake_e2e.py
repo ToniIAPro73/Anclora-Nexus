@@ -1,10 +1,17 @@
 import asyncio
 import json
+import os
 import pytest
 from uuid import uuid4
 from backend.agents.graph import agent_executor
 from backend.agents.state import AgentState
 
+# Live E2E: executes the real agent graph against a reachable Supabase
+# instance (requires NEXUS_RUN_LIVE_E2E=1 and valid credentials in .env).
+@pytest.mark.skipif(
+    os.environ.get("NEXUS_RUN_LIVE_E2E") != "1",
+    reason="live E2E requires reachable Supabase; set NEXUS_RUN_LIVE_E2E=1 to run",
+)
 @pytest.mark.asyncio
 async def test_lead_intake():
     print("🚀 Starting Lead Intake E2E Test...")

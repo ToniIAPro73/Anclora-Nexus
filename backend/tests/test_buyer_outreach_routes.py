@@ -5,6 +5,8 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from route_helpers import flatten_routes
+
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test-key")
 
@@ -36,7 +38,7 @@ client = TestClient(app)
 
 
 def test_buyer_workbench_route_exists() -> None:
-    matching = [r for r in app.routes if getattr(r, "path", "") == "/api/prospection/buyers/{buyer_id}/workbench"]
+    matching = [r for r in flatten_routes(app.routes) if r.path == "/api/prospection/buyers/{buyer_id}/workbench"]
     assert matching
 
 
