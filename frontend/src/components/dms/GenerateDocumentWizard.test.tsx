@@ -7,6 +7,8 @@ import { GenerateDocumentWizard } from "./GenerateDocumentWizard";
 vi.mock("@/lib/dms-api", () => ({
   previewMissingFields: vi.fn(),
   generateDocument: vi.fn(),
+  getFolderFieldVault: vi.fn().mockResolvedValue({}),
+  putFolderFieldVault: vi.fn().mockResolvedValue(undefined),
 }));
 
 import * as dmsApi from "@/lib/dms-api";
@@ -83,8 +85,8 @@ describe("GenerateDocumentWizard", () => {
       expect(screen.getByText(/Faltan 2 campos/)).toBeInTheDocument();
     });
 
-    expect(screen.getByPlaceholderText(/buyer\.full_name/)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/property\.address/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Juan García López")).toBeInTheDocument(); // buyer.full_name
+    expect(screen.getByPlaceholderText("Carrer del Mar 10, Palma")).toBeInTheDocument(); // property.address
   });
 
   it("generate button is disabled when missing fields are unfilled", async () => {
@@ -138,7 +140,7 @@ describe("GenerateDocumentWizard", () => {
     expect(screen.getByRole("button", { name: /generar ahora/i })).toBeDisabled();
   });
 
-  it("does not allow generation when preview fails", async () => {
+  it("shows the preview-blocked notice when preview fails (server still validates on generate)", async () => {
     vi.mocked(dmsApi.previewMissingFields).mockRejectedValue(new Error("Template version is not published"));
 
     render(
@@ -153,9 +155,8 @@ describe("GenerateDocumentWizard", () => {
     fireEvent.click(screen.getByText("Arras penitenciales"));
     fireEvent.click(screen.getByRole("button", { name: /siguiente/i }));
 
-    await waitFor(() => screen.getByText("Template version is not published"));
+    await waitFor(() => screen.getByText("No se pudo verificar la plantilla"));
 
-    expect(screen.getByRole("button", { name: /generar ahora/i })).toBeDisabled();
     expect(dmsApi.generateDocument).not.toHaveBeenCalled();
   });
 
@@ -178,8 +179,8 @@ describe("GenerateDocumentWizard", () => {
     fireEvent.click(screen.getByText("Arras penitenciales"));
     fireEvent.click(screen.getByRole("button", { name: /siguiente/i }));
 
-    await waitFor(() => screen.getByPlaceholderText(/buyer\.full_name/));
-    fireEvent.change(screen.getByPlaceholderText(/buyer\.full_name/), {
+    await waitFor(() => screen.getByPlaceholderText("Juan García López")); // buyer.full_name
+    fireEvent.change(screen.getByPlaceholderText("Juan García López"), {
       target: { value: "John Doe" },
     });
 
@@ -232,10 +233,7 @@ describe("GenerateDocumentWizard", () => {
         onClose={onClose}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "" })); // X button (no label)
-    // find by aria or by presence
-    const closeBtn = document.querySelector("button svg.lucide-x")?.closest("button");
-    if (closeBtn) fireEvent.click(closeBtn);
+    fireEvent.click(screen.getByRole("button", { name: /cerrar/i })); // X button (aria-label="Cerrar")
     expect(onClose).toHaveBeenCalled();
   });
 

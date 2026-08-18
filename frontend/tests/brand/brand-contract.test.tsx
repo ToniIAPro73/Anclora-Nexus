@@ -5,7 +5,7 @@ import { NEXUS_BRAND } from '../../src/lib/brand'
 describe('Nexus brand wiring', () => {
   it('keeps the supported language set aligned with Nexus', () => {
     expect(NEXUS_BRAND.defaultLanguage).toBe('es')
-    expect(NEXUS_BRAND.supportedLanguages).toEqual(['es', 'en', 'de'])
+    expect(NEXUS_BRAND.supportedLanguages).toEqual(['es', 'en', 'de', 'ca'])
   })
 
   it('uses the Nexus primary logo by default', () => {

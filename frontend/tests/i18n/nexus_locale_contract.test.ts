@@ -11,13 +11,13 @@ import {
 describe('nexus locale contract', () => {
   it('preserves the active Internal locale list', () => {
     expect(NEXUS_BRAND.defaultLanguage).toBe('es')
-    expect(NEXUS_BRAND.supportedLanguages).toEqual(['es', 'en', 'de'])
-    expect(ACTIVE_NEXUS_LOCALES).toEqual(['es', 'en', 'de'])
+    expect(NEXUS_BRAND.supportedLanguages).toEqual(['es', 'en', 'de', 'ca'])
+    expect(ACTIVE_NEXUS_LOCALES).toEqual(['es', 'en', 'de', 'ca'])
   })
 
   it('documents Internal governance order and excludes Russian from the selector target', () => {
     expect(INTERNAL_LOCALES).toEqual(['es', 'ca', 'en', 'de'])
-    expect(ANCLORA_INTERNAL_LOCALE_META.ca.status).toBe('pending-copy')
+    expect(ANCLORA_INTERNAL_LOCALE_META.ca.status).toBe('active')
     expect(INTERNAL_LOCALES).not.toContain('ru')
   })
 
@@ -25,7 +25,7 @@ describe('nexus locale contract', () => {
     expect(isSupportedNexusLanguage('es')).toBe(true)
     expect(isSupportedNexusLanguage('en')).toBe(true)
     expect(isSupportedNexusLanguage('de')).toBe(true)
-    expect(isSupportedNexusLanguage('ca')).toBe(false)
+    expect(isSupportedNexusLanguage('ca')).toBe(true)
     expect(isSupportedNexusLanguage('ru')).toBe(false)
     expect(isSupportedNexusLanguage('fr')).toBe(false)
     expect(isSupportedNexusLanguage(null)).toBe(false)
@@ -36,7 +36,7 @@ describe('nexus locale contract', () => {
     expect(resolveInitialLocale({ browserLocales: ['de-CH'] })).toBe('de')
     expect(resolveInitialLocale({ persistedLocale: 'de', browserLocales: ['en-US'] })).toBe('de')
     expect(resolveInitialLocale({ urlLocale: 'en', persistedLocale: 'de' })).toBe('en')
-    expect(resolveInitialLocale({ urlLocale: 'ru', persistedLocale: 'ca', browserLocales: ['fr-FR'] })).toBe('es')
+    expect(resolveInitialLocale({ urlLocale: 'ru', persistedLocale: 'ca', browserLocales: ['fr-FR'] })).toBe('ca')
   })
 
   it('requires a compact modal/popover pattern for the Internal list', () => {
