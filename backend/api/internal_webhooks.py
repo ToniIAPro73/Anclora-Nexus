@@ -20,7 +20,7 @@ def get_api_key(api_key: str = Security(api_key_header)):
     if not api_key:
         raise HTTPException(status_code=403, detail="Missing API Key")
     token = api_key.replace("Bearer ", "").strip()
-    expected = settings.SYNCXML_WEBHOOK_SECRET or settings.NEXUS_INTERNAL_API_KEY
+    expected = settings.GUESTHUB_WEBHOOK_SECRET or settings.NEXUS_INTERNAL_API_KEY
     if not expected or token != expected:
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return token
@@ -38,7 +38,11 @@ def _webhook_trace(payload: dict) -> Dict[str, Any]:
     }
 
 
+# Live inbound contract: the product posts to /api/internal/webhooks/syncxml-pilot.
+# The guesthub-pilot alias is registered for the rename transition (same handler);
+# both paths accept the same payload and legacy SYNCXML_PILOT_* error codes.
 @router.post("/syncxml-pilot")
+@router.post("/guesthub-pilot")
 async def syncxml_pilot_webhook(payload: dict, api_key: str = Depends(get_api_key)):
     trace = _webhook_trace(payload)
     logger.info("SyncXML pilot webhook received", extra=trace)

@@ -121,8 +121,8 @@ def test_syncxml_acceptance_email_adds_sample_workbooks_when_applicant_has_no_sa
     assert "adjuntamos dos Excel" in payload["text"]
     assert "attachments" in payload
     assert [item["filename"] for item in payload["attachments"]] == [
-        "anclora-syncxml-muestra-correcta.xlsx",
-        "anclora-syncxml-muestra-subsanable.xlsx",
+        "anclora-guesthub-muestra-correcta.xlsx",
+        "anclora-guesthub-muestra-subsanable.xlsx",
     ]
     assert all(item["content"].startswith(b"PK") for item in payload["attachments"])
 

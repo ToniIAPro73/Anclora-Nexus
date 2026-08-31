@@ -3,6 +3,14 @@
 **Schema version:** `anclora-intake-v1`  
 **Effective:** 2026-06-20
 
+> **Alias/supersession note (2026-08):** the product formerly known as **Anclora SyncXML**
+> (repo `anclora-syncxml`) has been renamed to **Anclora GuestHub** (repo `anclora-guesthub`).
+> All wire values in this v1 document — `anclora-syncxml` producer id, `syncxml` /
+> `syncxml_landing` enums, `/api/internal/webhooks/syncxml-pilot` path — remain **valid legacy
+> identifiers** and continue to be accepted unchanged. A v2 contract (`anclora-intake-v2`)
+> with renamed values may follow; until then this v1 document stays the SSOT. Do not change
+> wire values in place.
+
 ---
 
 ## Overview

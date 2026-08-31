@@ -1,4 +1,5 @@
 from pathlib import Path
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
@@ -8,7 +9,9 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
     APP_ENV: str = "development"
-    SYNCXML_ENV: str = "development"
+    # GuestHub product environment (renamed from Anclora SyncXML, 2026-08).
+    # Canonical env name: GUESTHUB_ENV; legacy SYNCXML_ENV still accepted as fallback.
+    GUESTHUB_ENV: str = Field(default="development", validation_alias=AliasChoices("GUESTHUB_ENV", "SYNCXML_ENV"))
     ALLOW_REAL_SUPABASE_WRITE: bool = False
     USE_SYNTHETIC_DATA_ONLY: bool = False
     
@@ -68,14 +71,19 @@ class Settings(BaseSettings):
     N8N_WEBHOOK_URL: Optional[str] = None
     N8N_API_KEY: Optional[str] = None
 
-    # SyncXML Pilot Settings
-    SYNCXML_ADMIN_PASSWORD: Optional[str] = None
-    SYNCXML_APP_URL: str = "https://anclora-syncxml.vercel.app"
-    SYNCXML_LOGIN_URL: str = "https://anclora-syncxml.vercel.app/login"
-    SYNCXML_WEBHOOK_SECRET: Optional[str] = None
-    SYNCXML_INTERNAL_API_URL: str = "https://anclora-syncxml.vercel.app/api/internal/pilot-users"
-    SYNCXML_INTERNAL_API_SECRET: Optional[str] = None
-    SYNCXML_PILOT_AUTO_APPROVE: bool = False
+    # GuestHub Pilot Settings (product renamed from Anclora SyncXML to Anclora GuestHub, 2026-08)
+    # Canonical env names are GUESTHUB_*; each setting falls back to the legacy SYNCXML_* name.
+    # NOTE: default URLs still point to the legacy anclora-syncxml.vercel.app deployment
+    # pending the owner's domain decision — do not invent a new domain here.
+    # NOTE: GUESTHUB_ADMIN_PASSWORD is used by the product-side ops flow and intentionally
+    # not listed in .env.example (pre-existing drift kept as-is).
+    GUESTHUB_ADMIN_PASSWORD: Optional[str] = Field(default=None, validation_alias=AliasChoices("GUESTHUB_ADMIN_PASSWORD", "SYNCXML_ADMIN_PASSWORD"))
+    GUESTHUB_APP_URL: str = Field(default="https://anclora-syncxml.vercel.app", validation_alias=AliasChoices("GUESTHUB_APP_URL", "SYNCXML_APP_URL"))
+    GUESTHUB_LOGIN_URL: str = Field(default="https://anclora-syncxml.vercel.app/login", validation_alias=AliasChoices("GUESTHUB_LOGIN_URL", "SYNCXML_LOGIN_URL"))
+    GUESTHUB_WEBHOOK_SECRET: Optional[str] = Field(default=None, validation_alias=AliasChoices("GUESTHUB_WEBHOOK_SECRET", "SYNCXML_WEBHOOK_SECRET"))
+    GUESTHUB_INTERNAL_API_URL: str = Field(default="https://anclora-syncxml.vercel.app/api/internal/pilot-users", validation_alias=AliasChoices("GUESTHUB_INTERNAL_API_URL", "SYNCXML_INTERNAL_API_URL"))
+    GUESTHUB_INTERNAL_API_SECRET: Optional[str] = Field(default=None, validation_alias=AliasChoices("GUESTHUB_INTERNAL_API_SECRET", "SYNCXML_INTERNAL_API_SECRET"))
+    GUESTHUB_PILOT_AUTO_APPROVE: bool = Field(default=False, validation_alias=AliasChoices("GUESTHUB_PILOT_AUTO_APPROVE", "SYNCXML_PILOT_AUTO_APPROVE"))
 
     ADMIN_EMAIL: str = "toni@anclora.com"
     ADMIN_EMAILS: str = "antonio@anclora.com"

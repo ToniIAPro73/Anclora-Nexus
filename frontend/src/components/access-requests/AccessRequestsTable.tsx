@@ -20,7 +20,7 @@ interface AccessRequestsTableProps {
 }
 
 const PRODUCT_LABELS: Record<AccessRequestProduct, string> = {
-  syncxml: "SyncXML",
+  syncxml: "GuestHub",
   synergi: "Synergi",
   data_lab: "Data Lab",
 };

@@ -65,7 +65,7 @@ class SyncXmlRejectPayload(BaseModel):
 class SyncXmlMoreInfoPayload(BaseModel):
     message: str = Field(
         default=(
-            "Gracias por tu interés en Anclora SyncXML. Antes de confirmar el acceso al piloto necesitamos aclarar "
+            "Gracias por tu interés en Anclora GuestHub. Antes de confirmar el acceso al piloto necesitamos aclarar "
             "algunos detalles sobre tu caso de uso y confirmar que la prueba se realizará solo con datos sintéticos o anonimizados."
         ),
         min_length=1,
@@ -128,7 +128,7 @@ class SyncXmlPilotService:
         )
 
     def _is_non_production_environment(self) -> bool:
-        return (settings.APP_ENV or "development").lower() != "production" or (settings.SYNCXML_ENV or "development").lower() != "production"
+        return (settings.APP_ENV or "development").lower() != "production" or (settings.GUESTHUB_ENV or "development").lower() != "production"
 
     def _allow_real_supabase_write(self) -> bool:
         return bool(settings.ALLOW_REAL_SUPABASE_WRITE)
@@ -147,7 +147,7 @@ class SyncXmlPilotService:
             "reason": REAL_WRITE_BLOCK_REASON,
             "action": action,
             "environment": settings.APP_ENV,
-            "syncxmlEnvironment": settings.SYNCXML_ENV,
+            "syncxmlEnvironment": settings.GUESTHUB_ENV,
             "allowRealSupabaseWrite": self._allow_real_supabase_write(),
             "useSyntheticDataOnly": bool(settings.USE_SYNTHETIC_DATA_ONLY),
         }
@@ -280,6 +280,8 @@ class SyncXmlPilotService:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
+                    # Cross-service contract with the Hermes worker: path and type keep the
+                    # legacy syncxml naming until Hermes adds a guesthub alias. Flagged for owner.
                     f"{settings.HERMES_WORKER_URL.rstrip('/')}/api/syncxml/pilot/validate",
                     json={
                         "type": "syncxml_pilot_validation",
@@ -368,7 +370,7 @@ class SyncXmlPilotService:
         if any(term in text for term in risky_terms):
             return "pending"
         if decision == "approve" and score >= 85 and not flags:
-            if settings.SYNCXML_PILOT_AUTO_APPROVE and not self._is_staging_safety_mode():
+            if settings.GUESTHUB_PILOT_AUTO_APPROVE and not self._is_staging_safety_mode():
                 return "approved"
             return "pending"
         if decision == "reject" and score <= 20 and flags:
@@ -381,14 +383,14 @@ class SyncXmlPilotService:
             return
         payload = {
             "org_id": record.get("org_id") or settings.PUBLIC_CTA_ORG_ID,
-            "title": f"Revisar piloto SyncXML · {record.get('email')}",
+            "title": f"Revisar piloto GuestHub · {record.get('email')}",
             "status": "pending",
             "task_type": "syncxml_pilot_review",
             "origin": "anclora-syncxml",
             "entity_type": "pilot_request",
             "entity_id": record.get("id"),
             "metadata": {
-                "badge": "SyncXML · Piloto controlado",
+                "badge": "GuestHub · Piloto controlado",
                 "access_request": record,
                 "ai_review": ai,
             },
@@ -460,7 +462,7 @@ class SyncXmlPilotService:
                 "error_message": (
                     credentials.get("error")
                     or credentials.get("code")
-                    or "SyncXML did not confirm login-ready pilot user provisioning"
+                    or "GuestHub did not confirm login-ready pilot user provisioning"
                 ),
             })
             updated = self._update_request(record["id"], {"status": "pending", "metadata": failed})
@@ -530,13 +532,13 @@ class SyncXmlPilotService:
     async def _create_syncxml_user(self, record: Dict[str, Any], payload: SyncXmlApprovePayload) -> Dict[str, Any]:
         if self._is_staging_safety_mode():
             return self._block_real_write_reason("create_syncxml_user")
-        if not settings.SYNCXML_INTERNAL_API_SECRET:
-            return {"ok": False, "error": "SYNCXML_INTERNAL_API_SECRET is not configured"}
+        if not settings.GUESTHUB_INTERNAL_API_SECRET:
+            return {"ok": False, "error": "GUESTHUB_INTERNAL_API_SECRET is not configured"}
         expires_at = payload.expiresAt or self._default_credentials_expires_at()
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    settings.SYNCXML_INTERNAL_API_URL,
+                    settings.GUESTHUB_INTERNAL_API_URL,
                     json={
                         "requestId": record["id"],
                         "email": record["email"],
@@ -546,17 +548,17 @@ class SyncXmlPilotService:
                         "source": "anclora-nexus",
                         "rotatePassword": payload.rotatePassword,
                     },
-                    headers={"Authorization": f"Bearer {settings.SYNCXML_INTERNAL_API_SECRET}"},
+                    headers={"Authorization": f"Bearer {settings.GUESTHUB_INTERNAL_API_SECRET}"},
                     timeout=15.0,
                 )
             if not response.is_success:
                 detail = response.text[:500]
                 logger.warning(
-                    "SyncXML pilot user creation failed: status=%s body=%s",
+                    "GuestHub pilot user creation failed: status=%s body=%s",
                     response.status_code,
                     detail,
                 )
-                return {"ok": False, "error": f"SyncXML returned {response.status_code}: {detail}"}
+                return {"ok": False, "error": f"GuestHub returned {response.status_code}: {detail}"}
             credentials = response.json()
             credentials.setdefault("expiresAt", expires_at)
             return credentials

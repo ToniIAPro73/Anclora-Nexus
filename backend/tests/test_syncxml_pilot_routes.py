@@ -273,9 +273,9 @@ def test_decide_keeps_request_pending_when_applicant_has_no_synthetic_sample():
     payload = _base_payload(acceptsSyntheticOrAnonymizedData=False)
     ai = {"decision": "approve", "score": 90, "riskFlags": []}
     with patch("backend.services.syncxml_pilot_service.settings") as mock_settings:
-        mock_settings.SYNCXML_PILOT_AUTO_APPROVE = False
+        mock_settings.GUESTHUB_PILOT_AUTO_APPROVE = False
         mock_settings.APP_ENV = "production"
-        mock_settings.SYNCXML_ENV = "production"
+        mock_settings.GUESTHUB_ENV = "production"
         mock_settings.ALLOW_REAL_SUPABASE_WRITE = True
         mock_settings.USE_SYNTHETIC_DATA_ONLY = False
         result = syncxml_pilot_service._decide_status(payload, ai)
@@ -290,9 +290,9 @@ def test_decide_pending_when_auto_approve_false():
     payload = _base_payload()
     ai = {"decision": "approve", "score": 88, "riskFlags": []}
     with patch("backend.services.syncxml_pilot_service.settings") as mock_settings:
-        mock_settings.SYNCXML_PILOT_AUTO_APPROVE = False
+        mock_settings.GUESTHUB_PILOT_AUTO_APPROVE = False
         mock_settings.APP_ENV = "production"
-        mock_settings.SYNCXML_ENV = "production"
+        mock_settings.GUESTHUB_ENV = "production"
         mock_settings.ALLOW_REAL_SUPABASE_WRITE = True
         mock_settings.USE_SYNTHETIC_DATA_ONLY = False
         result = syncxml_pilot_service._decide_status(payload, ai)
@@ -307,9 +307,9 @@ def test_decide_approved_only_when_auto_approve_true_and_not_safety_mode():
     payload = _base_payload()
     ai = {"decision": "approve", "score": 90, "riskFlags": []}
     with patch("backend.services.syncxml_pilot_service.settings") as mock_settings:
-        mock_settings.SYNCXML_PILOT_AUTO_APPROVE = True
+        mock_settings.GUESTHUB_PILOT_AUTO_APPROVE = True
         mock_settings.APP_ENV = "production"
-        mock_settings.SYNCXML_ENV = "production"
+        mock_settings.GUESTHUB_ENV = "production"
         mock_settings.ALLOW_REAL_SUPABASE_WRITE = True
         mock_settings.USE_SYNTHETIC_DATA_ONLY = False
         result = syncxml_pilot_service._decide_status(payload, ai)
@@ -321,9 +321,9 @@ def test_decide_pending_when_auto_approve_true_but_safety_mode():
     payload = _base_payload()
     ai = {"decision": "approve", "score": 90, "riskFlags": []}
     with patch("backend.services.syncxml_pilot_service.settings") as mock_settings:
-        mock_settings.SYNCXML_PILOT_AUTO_APPROVE = True
+        mock_settings.GUESTHUB_PILOT_AUTO_APPROVE = True
         mock_settings.APP_ENV = "staging"
-        mock_settings.SYNCXML_ENV = "staging"
+        mock_settings.GUESTHUB_ENV = "staging"
         mock_settings.ALLOW_REAL_SUPABASE_WRITE = False
         mock_settings.USE_SYNTHETIC_DATA_ONLY = True
         result = syncxml_pilot_service._decide_status(payload, ai)
@@ -390,7 +390,7 @@ async def test_webhook_missing_api_key_returns_403(webhook_app):
 async def test_webhook_invalid_payload_returns_traceable_422(webhook_app):
     """Valid auth + invalid payload → traceable 422, no opaque 500."""
     with patch("backend.api.internal_webhooks.settings") as mock_settings:
-        mock_settings.SYNCXML_WEBHOOK_SECRET = "correct-secret"
+        mock_settings.GUESTHUB_WEBHOOK_SECRET = "correct-secret"
         mock_settings.NEXUS_INTERNAL_API_KEY = "nexus-key"
         async with AsyncClient(
             transport=ASGITransport(app=webhook_app), base_url="http://test"
@@ -429,7 +429,7 @@ async def test_webhook_valid_key_accepts_payload(webhook_app):
     }
     with patch("backend.api.internal_webhooks.settings") as mock_settings, \
          patch("backend.api.internal_webhooks.syncxml_pilot_service") as mock_service:
-        mock_settings.SYNCXML_WEBHOOK_SECRET = "correct-secret"
+        mock_settings.GUESTHUB_WEBHOOK_SECRET = "correct-secret"
         mock_settings.NEXUS_INTERNAL_API_KEY = "nexus-key"
         mock_service.process_incoming_lead = AsyncMock(return_value={"id": "new-req-001"})
         async with AsyncClient(
@@ -449,7 +449,7 @@ async def test_webhook_blocked_result_returns_503(webhook_app):
     """The webhook must not report accepted when safety mode blocks persistence."""
     with patch("backend.api.internal_webhooks.settings") as mock_settings, \
          patch("backend.api.internal_webhooks.syncxml_pilot_service") as mock_service:
-        mock_settings.SYNCXML_WEBHOOK_SECRET = "correct-secret"
+        mock_settings.GUESTHUB_WEBHOOK_SECRET = "correct-secret"
         mock_settings.NEXUS_INTERNAL_API_KEY = "nexus-key"
         mock_service.process_incoming_lead = AsyncMock(
             return_value={
@@ -488,7 +488,7 @@ async def test_webhook_missing_persisted_id_returns_500(webhook_app):
     """Accepted responses must include a persisted access request id."""
     with patch("backend.api.internal_webhooks.settings") as mock_settings, \
          patch("backend.api.internal_webhooks.syncxml_pilot_service") as mock_service:
-        mock_settings.SYNCXML_WEBHOOK_SECRET = "correct-secret"
+        mock_settings.GUESTHUB_WEBHOOK_SECRET = "correct-secret"
         mock_settings.NEXUS_INTERNAL_API_KEY = "nexus-key"
         mock_service.process_incoming_lead = AsyncMock(return_value={"status": "pending"})
         async with AsyncClient(
