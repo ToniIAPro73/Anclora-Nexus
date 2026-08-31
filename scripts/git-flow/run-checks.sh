@@ -5,6 +5,6 @@ echo "== Nexus checks =="
 
 npm run lint
 npm run build
-npm run ops:syncxml-pilot:check-env
+npm run ops:guesthub-pilot:check-env
 
 echo "== Checks completed =="

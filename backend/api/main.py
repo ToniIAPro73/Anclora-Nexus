@@ -82,8 +82,9 @@ app.include_router(lead_pipeline_router, prefix="/api/v1", tags=["Lead Pipeline"
 # Include public capture routes
 app.include_router(public_router, prefix="/api/public", tags=["Public"])
 
-# Include SyncXML Pilot manual decision routes
-app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["SyncXML Pilot"])
+# Include GuestHub Pilot manual decision routes (legacy path prefix kept after
+# the SyncXML → GuestHub rename, 2026-08 — consumed by the Nexus frontend).
+app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["GuestHub Pilot"])
 
 # ═══════════════════════════════════════════════════════════════
 # HEALTH CHECK

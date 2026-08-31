@@ -175,7 +175,7 @@ def _build_xlsx(rows: List[List[object]]) -> bytes:
             '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
             'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-            '<sheets><sheet name="Muestra SyncXML" sheetId="1" r:id="rId1"/></sheets>'
+            '<sheets><sheet name="Muestra GuestHub" sheetId="1" r:id="rId1"/></sheets>'
             "</workbook>",
         )
         archive.writestr(
@@ -194,8 +194,8 @@ def _build_xlsx(rows: List[List[object]]) -> bytes:
             'xmlns:dcterms="http://purl.org/dc/terms/" '
             'xmlns:dcmitype="http://purl.org/dc/dcmitype/" '
             'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
-            "<dc:creator>Anclora SyncXML</dc:creator>"
-            "<dc:title>Muestra sintética Anclora SyncXML</dc:title>"
+            "<dc:creator>Anclora GuestHub</dc:creator>"
+            "<dc:title>Muestra sintética Anclora GuestHub</dc:title>"
             f'<dcterms:created xsi:type="dcterms:W3CDTF">{created}</dcterms:created>'
             f'<dcterms:modified xsi:type="dcterms:W3CDTF">{created}</dcterms:modified>'
             "</cp:coreProperties>",
@@ -216,12 +216,12 @@ def build_syncxml_sample_attachments() -> List[EmailAttachment]:
     fixable_rows = _metadata_rows(len(FIXABLE_GUEST_ROWS)) + [GUEST_HEADERS] + FIXABLE_GUEST_ROWS
     return [
         {
-            "filename": "anclora-syncxml-muestra-correcta.xlsx",
+            "filename": "anclora-guesthub-muestra-correcta.xlsx",
             "content": _build_xlsx(valid_rows),
             "content_type": XLSX_CONTENT_TYPE,
         },
         {
-            "filename": "anclora-syncxml-muestra-subsanable.xlsx",
+            "filename": "anclora-guesthub-muestra-subsanable.xlsx",
             "content": _build_xlsx(fixable_rows),
             "content_type": XLSX_CONTENT_TYPE,
         },

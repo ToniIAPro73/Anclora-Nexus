@@ -96,14 +96,14 @@ def _payload(**overrides):
 
 def _configure_safe_settings(settings, *, app_env="staging", syncxml_env="staging", allow_real_write=False, synthetic_only=True, auto_approve=False):
     settings.APP_ENV = app_env
-    settings.SYNCXML_ENV = syncxml_env
+    settings.GUESTHUB_ENV = syncxml_env
     settings.ALLOW_REAL_SUPABASE_WRITE = allow_real_write
     settings.USE_SYNTHETIC_DATA_ONLY = synthetic_only
-    settings.SYNCXML_PILOT_AUTO_APPROVE = auto_approve
+    settings.GUESTHUB_PILOT_AUTO_APPROVE = auto_approve
     settings.PUBLIC_CTA_ORG_ID = "org_1"
     settings.LEGACY_SINGLE_TENANT_ORG_ID = None
-    settings.SYNCXML_INTERNAL_API_SECRET = "secret"
-    settings.SYNCXML_INTERNAL_API_URL = "https://syncxml.test/internal"
+    settings.GUESTHUB_INTERNAL_API_SECRET = "secret"
+    settings.GUESTHUB_INTERNAL_API_URL = "https://syncxml.test/internal"
     settings.HERMES_WORKER_URL = ""
     settings.HERMES_WORKER_API_KEY = None
 

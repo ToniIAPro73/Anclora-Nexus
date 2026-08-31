@@ -38,17 +38,17 @@ function assertEffectiveDecision(
   expectedStatus: 'approved' | 'rejected',
 ): SyncXmlPilotDecisionResponse & { record: AccessRequest } {
   if (payload.blocked || payload.status === 'failed_credentials') {
-    throw new Error(explainIncompleteDecision(payload, 'SyncXML pilot decision did not complete'))
+    throw new Error(explainIncompleteDecision(payload, 'GuestHub pilot decision did not complete'))
   }
   if (!payload.record) {
-    throw new Error(explainIncompleteDecision(payload, 'SyncXML pilot decision returned no record'))
+    throw new Error(explainIncompleteDecision(payload, 'GuestHub pilot decision returned no record'))
   }
   const record = payload.record
   if (record.status !== expectedStatus) {
     throw new Error(
       explainIncompleteDecision(
         payload,
-        `SyncXML pilot request remained ${record.status}`,
+        `GuestHub pilot request remained ${record.status}`,
       ),
     )
   }
