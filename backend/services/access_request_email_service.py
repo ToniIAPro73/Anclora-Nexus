@@ -18,7 +18,7 @@ def _product_label(record: Dict[str, Any]) -> str:
     if product == "data_lab":
         return "Data Lab"
     if product == "syncxml":
-        return "SyncXML"
+        return "GuestHub"
     return "Synergi"
 
 
@@ -80,11 +80,14 @@ BRAND_MUTED = "#A8B3C7"
 
 
 def _syncxml_app_url() -> str:
-    return (settings.SYNCXML_APP_URL or "https://anclora-syncxml.vercel.app").rstrip("/")
+    # Legacy fallback URL kept until the owner decides the new GuestHub domain.
+    return (settings.GUESTHUB_APP_URL or "https://anclora-syncxml.vercel.app").rstrip("/")
 
 
 def _syncxml_logo_url() -> str:
-    return f"{_syncxml_app_url()}/brand/anclora-syncxml-email.png"
+    # The product renamed this asset to anclora-guesthub-email.png. Cutover requires
+    # the new asset to be deployed at the app URL, otherwise email logos will break.
+    return f"{_syncxml_app_url()}/brand/anclora-guesthub-email.png"
 
 
 def _html_p(text: str) -> str:
@@ -132,7 +135,7 @@ def _syncxml_request_needs_sample_attachments(record: Dict[str, Any]) -> bool:
     return raw.get("needsSyntheticSampleAttachments") is True or value is False
 
 
-def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclora SyncXML") -> str:
+def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclora GuestHub") -> str:
     return f"""
       <!doctype html>
       <html lang="es">
@@ -146,10 +149,10 @@ def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclo
                   <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                     <tr>
                       <td style="padding-right:12px;">
-                        <img src="{escape(_syncxml_logo_url())}" width="48" height="48" alt="Anclora SyncXML" style="display:block;width:48px;height:48px;border-radius:8px;object-fit:contain;">
+                        <img src="{escape(_syncxml_logo_url())}" width="48" height="48" alt="Anclora GuestHub" style="display:block;width:48px;height:48px;border-radius:8px;object-fit:contain;">
                       </td>
                       <td>
-                        <div style="color:{BRAND_TEXT};font-size:18px;line-height:24px;font-weight:850;">Anclora SyncXML</div>
+                        <div style="color:{BRAND_TEXT};font-size:18px;line-height:24px;font-weight:850;">Anclora GuestHub</div>
                         <div style="color:{BRAND_MUTED};font-size:13px;line-height:18px;">Piloto controlado</div>
                       </td>
                     </tr>
@@ -177,7 +180,7 @@ def _html_shell(*, title: str, intro: str, body_html: str, eyebrow: str = "Anclo
               </tr>
               <tr>
                 <td style="padding:16px 4px 0;color:{BRAND_MUTED};font-size:12px;line-height:18px;">
-                  Email transaccional de Anclora SyncXML. El piloto es limitado, revocable y revisable.
+                  Email transaccional de Anclora GuestHub. El piloto es limitado, revocable y revisable.
                 </td>
               </tr>
             </table>
@@ -222,12 +225,12 @@ def build_access_request_approved_email(record: Dict[str, Any]) -> Dict[str, str
 
 def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Dict[str, Any]) -> Dict[str, str]:
     full_name = _full_name(record)
-    login_url = settings.SYNCXML_LOGIN_URL or settings.SYNCXML_APP_URL
+    login_url = settings.GUESTHUB_LOGIN_URL or settings.GUESTHUB_APP_URL
     email = str(credentials.get("email") or _email_to(record))
     temporary_password = str(credentials.get("temporaryPassword") or "")
     expires_at = _format_madrid_access_expiry(credentials.get("expiresAt"))
     access_expiry_sentence = f"Tu acceso temporal estará disponible hasta el {expires_at}."
-    subject = "Anclora SyncXML · Acceso al piloto controlado"
+    subject = "Anclora GuestHub · Acceso al piloto controlado"
     needs_samples = _syncxml_request_needs_sample_attachments(record)
     sample_text = (
         "\nComo indicaste que no dispones de una muestra sintética propia, adjuntamos dos Excel: "
@@ -237,7 +240,7 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
     )
     text = (
         f"Hola {full_name},\n\n"
-        "Tu solicitud encaja con el alcance actual del piloto controlado de Anclora SyncXML.\n\n"
+        "Tu solicitud encaja con el alcance actual del piloto controlado de Anclora GuestHub.\n\n"
         f"Acceso: {login_url}\n"
         f"Email autorizado: {email}\n"
         f"Contraseña temporal: {temporary_password}\n"
@@ -277,7 +280,7 @@ def build_syncxml_pilot_acceptance_email(record: Dict[str, Any], credentials: Di
         + "</ul></div>"
     )
     html = _html_shell(
-        title="Acceso al piloto controlado de SyncXML",
+        title="Acceso al piloto controlado de GuestHub",
         intro=f"Hola {full_name}, tu solicitud encaja con el alcance actual del piloto controlado.",
         body_html=body_html,
         eyebrow="Acceso aprobado",
@@ -324,7 +327,7 @@ def build_access_request_rejected_email(record: Dict[str, Any]) -> Dict[str, str
 
 def build_syncxml_more_info_email(record: Dict[str, Any], message: str) -> Dict[str, str]:
     full_name = _full_name(record)
-    subject = "Anclora SyncXML · Necesitamos aclarar tu solicitud"
+    subject = "Anclora GuestHub · Necesitamos aclarar tu solicitud"
     text = (
         f"Hola {full_name},\n\n"
         f"{message}\n\n"

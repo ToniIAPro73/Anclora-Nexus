@@ -9,10 +9,21 @@ def missing(names):
     return [name for name in names if not os.getenv(name)]
 
 
+def dual_env(canonical, legacy):
+    """GuestHub rename (2026-08): read GUESTHUB_* first, fall back to legacy SYNCXML_*."""
+    return os.getenv(canonical) or os.getenv(legacy)
+
+
 dry_run = os.getenv("DRY_RUN", "true").lower() != "false"
-required = ["ADMIN_EMAILS", "SYNCXML_APP_URL", "SYNCXML_LOGIN_URL"]
+required = ["ADMIN_EMAILS"]
 smtp_required = ["SMTP_HOST", "SMTP_FROM_EMAIL"]
 missing_vars = missing(required)
+app_url = dual_env("GUESTHUB_APP_URL", "SYNCXML_APP_URL")
+login_url = dual_env("GUESTHUB_LOGIN_URL", "SYNCXML_LOGIN_URL")
+if not app_url:
+    missing_vars.append("GUESTHUB_APP_URL (or legacy SYNCXML_APP_URL)")
+if not login_url:
+    missing_vars.append("GUESTHUB_LOGIN_URL (or legacy SYNCXML_LOGIN_URL)")
 if not dry_run:
     missing_vars.extend(missing(smtp_required))
 
@@ -28,13 +39,13 @@ if not dry_run and not os.getenv("SMOKE_EMAIL_TO"):
 message = EmailMessage()
 message["To"] = to_email
 message["From"] = os.getenv("SMTP_FROM_EMAIL", "dry-run@example.com")
-message["Subject"] = "Smoke test Nexus SyncXML pilot email"
+message["Subject"] = "Smoke test Nexus GuestHub pilot email"
 message.set_content(
     "\n".join(
         [
-            "Smoke test for Nexus SyncXML controlled pilot emails.",
-            f"SyncXML app: {os.getenv('SYNCXML_APP_URL')}",
-            f"SyncXML login: {os.getenv('SYNCXML_LOGIN_URL')}",
+            "Smoke test for Nexus GuestHub controlled pilot emails.",
+            f"GuestHub app: {app_url}",
+            f"GuestHub login: {login_url}",
             "No real pilot credentials are included.",
         ]
     )

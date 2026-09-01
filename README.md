@@ -79,6 +79,10 @@ El producto en producción soporta 4 idiomas: Español (predeterminado), Català
 - Contratos de marca y gobernanza: `docs/standards/`
 - Bóveda Anclora (fuente de verdad): `contracts/` y `docs/governance/`
 
+## Renombrado SyncXML → GuestHub (2026-08)
+
+El producto **Anclora SyncXML** pasó a llamarse **Anclora GuestHub** (repo `anclora-guesthub`) en 2026-08. Nexus adopta los nombres canónicos `GUESTHUB_*` para variables de entorno con fallback a los legados `SYNCXML_*`. Los identificadores persistidos y de contrato se mantienen como legado sin migración de datos: `product='syncxml'`, `source='syncxml_landing'`, `request_type='syncxml_pilot'`, `task_type='syncxml_pilot_review'`, `origin='anclora-syncxml'`, rutas `/api/syncxml-pilot` y `/api/internal/webhooks/syncxml-pilot` (alias `/api/internal/webhooks/guesthub-pilot` registrado), códigos de error `SYNCXML_PILOT_*` y enums `TargetProduct.SYNCXML`/`IntakeSource.SYNCXML_LANDING`. Detalle operativo en [`docs/GUESTHUB_PILOT_REVIEW_FLOW.md`](./docs/GUESTHUB_PILOT_REVIEW_FLOW.md) y [`docs/ENVIRONMENT_SETUP_GUESTHUB_PILOT.md`](./docs/ENVIRONMENT_SETUP_GUESTHUB_PILOT.md).
+
 ---
 
 <div align="center">

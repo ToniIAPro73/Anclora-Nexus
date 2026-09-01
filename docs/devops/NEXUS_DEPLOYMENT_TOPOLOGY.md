@@ -17,13 +17,15 @@ Variables recomendadas para staging:
 
 ```env
 APP_ENV=staging
-SYNCXML_ENV=staging
+GUESTHUB_ENV=staging
 ALLOW_REAL_SUPABASE_WRITE=false
 USE_SYNTHETIC_DATA_ONLY=true
-SYNCXML_PILOT_AUTO_APPROVE=false
+GUESTHUB_PILOT_AUTO_APPROVE=false
 ```
 
-En este modo, el backend no debe crear usuarios piloto reales, no debe autoaprobar solicitudes, no debe escribir datos reales peligrosos en Supabase y no debe invocar acciones internas destructivas de SyncXML.
+(Los nombres legados `SYNCXML_ENV` y `SYNCXML_PILOT_AUTO_APPROVE` siguen aceptados como fallback tras el renombrado SyncXML → GuestHub de 2026-08.)
+
+En este modo, el backend no debe crear usuarios piloto reales, no debe autoaprobar solicitudes, no debe escribir datos reales peligrosos en Supabase y no debe invocar acciones internas destructivas de GuestHub.
 
 ## Operational note
 

@@ -26,7 +26,7 @@ Mapa documental inicial para Espana / Baleares. No es asesoramiento legal defini
 |---|---|---:|---|---|---|---|---|---|---|
 | Licencia | DRIAT/ETV o titulo habilitante | Si | Propietario | Vigente | Actividad no autorizada | `driat_etv` | No | Si | Especialmente critico en Baleares. |
 | Comercial | Certificado energetico | Si | Propietario | Segun certificado | Incumplimiento comercial | `certificado_energetico` | No | No | Revisar normativa aplicable. |
-| Operativa | Normas de uso/contrato estancia | Recomendado | Agencia | Por temporada | Conflictos y reclamaciones | `contrato_temporada` | Si | Si | Coordinar con PMS/SyncXML si aplica. |
+| Operativa | Normas de uso/contrato estancia | Recomendado | Agencia | Por temporada | Conflictos y reclamaciones | `contrato_temporada` | Si | Si | Coordinar con PMS/GuestHub si aplica. |
 
 ## Onboarding/KYC cliente individual
 

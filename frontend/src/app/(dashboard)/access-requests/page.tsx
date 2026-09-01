@@ -344,7 +344,7 @@ export default function AccessRequestsPage() {
                     <option value="">{t('accessRequestsAllProducts')}</option>
                     <option value="synergi">Synergi</option>
                     <option value="data_lab">Data Lab</option>
-                    <option value="syncxml">SyncXML</option>
+                    <option value="syncxml">GuestHub</option>
                   </select>
                 </label>
                 <label className="min-w-0">
