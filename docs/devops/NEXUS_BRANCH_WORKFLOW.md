@@ -32,6 +32,6 @@ Los agentes IA y cambios puntuales deben usar:
 
 - npm run lint
 - npm run build
-- npm run ops:syncxml-pilot:check-env
+- npm run ops:guesthub-pilot:check-env
 
 Si se añaden test o typecheck al repo en el futuro, deberán incorporarse al flujo.

@@ -1,4 +1,7 @@
-// scripts/check-env-syncxml-pilot.mjs
+// scripts/check-env-guesthub-pilot.mjs
+// Env gate for the GuestHub controlled pilot (product renamed from Anclora
+// SyncXML, 2026-08). Asserts the canonical GUESTHUB_* names in .env.example;
+// the backend still accepts the legacy SYNCXML_* names as runtime fallback.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -11,11 +14,11 @@ const REQUIRED_VARS = [
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
   'PUBLIC_CTA_ORG_ID',
-  'SYNCXML_WEBHOOK_SECRET',
-  'SYNCXML_INTERNAL_API_URL',
-  'SYNCXML_INTERNAL_API_SECRET',
-  'SYNCXML_APP_URL',
-  'SYNCXML_LOGIN_URL',
+  'GUESTHUB_WEBHOOK_SECRET',
+  'GUESTHUB_INTERNAL_API_URL',
+  'GUESTHUB_INTERNAL_API_SECRET',
+  'GUESTHUB_APP_URL',
+  'GUESTHUB_LOGIN_URL',
   'HERMES_WORKER_URL',
   'HERMES_WORKER_API_KEY',
   'RESEND_API_KEY',
@@ -44,7 +47,7 @@ function checkEnv() {
     process.exit(1);
   }
 
-  console.log('✅ .env.example has all required variables for SyncXML Pilot.');
+  console.log('✅ .env.example has all required variables for GuestHub Pilot.');
 }
 
 checkEnv();

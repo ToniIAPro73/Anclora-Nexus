@@ -68,7 +68,9 @@ app.include_router(dms_legal_review_router, prefix="/api/dms", tags=["DMS Legal 
 app.include_router(dms_versions_router, prefix="/api/dms", tags=["DMS Versions"])
 app.include_router(dms_retention_router, prefix="/api/dms/retention", tags=["DMS Retention"])
 app.include_router(internal_webhooks_router)
-app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["SyncXML Pilot"])
+# GuestHub pilot manual decision routes (legacy path prefix kept after the
+# SyncXML → GuestHub rename, 2026-08 — consumed by the Nexus frontend).
+app.include_router(syncxml_pilot_router, prefix="/api/syncxml-pilot", tags=["GuestHub Pilot"])
 from backend.api.routes.public import router as public_router
 app.include_router(public_router, prefix="/api/public", tags=["Public"])
 

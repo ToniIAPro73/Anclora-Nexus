@@ -44,8 +44,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Check SyncXML pilot env example
-        run: npm run ops:syncxml-pilot:check-env
+      - name: Check GuestHub pilot env example
+        run: npm run ops:guesthub-pilot:check-env
 
       - name: Push staging
         if: success()
