@@ -259,7 +259,7 @@ cd frontend && npm test
 
 - El proyecto es un **monorepo NPM** con workspace en `frontend/`
 - La documentación en `public/docs/` es estratégica, no técnica
-- Los archivos en `.agent/` y `.antigravity/` son el sistema de reglas y prompts del agente AntiGravity
+- Los archivos en `.agent/` son la ubicación canónica activa para reglas y prompts de agentes. La carpeta `legacy/agent-systems/antigravity/` se conserva solo como histórico deprecated
 - `sdd/` contiene los Software Design Documents por feature
 - Antes de crear un nuevo archivo, verificar si ya existe algo similar
 - Preferir editar código existente antes de crear nuevos archivos
