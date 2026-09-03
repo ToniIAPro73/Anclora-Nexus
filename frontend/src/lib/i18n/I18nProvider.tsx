@@ -1,5 +1,5 @@
 'use client'
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { translations, Language, TranslationKey } from './translations'
 import { NEXUS_BRAND, isSupportedNexusLanguage } from '@/lib/brand'
 import { resolveInitialLocale } from '@/lib/anclora-language-toggle'
@@ -13,15 +13,16 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window === 'undefined') return NEXUS_BRAND.defaultLanguage
+  const [language, setLanguageState] = useState<Language>(NEXUS_BRAND.defaultLanguage)
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    return resolveInitialLocale({
+    setLanguageState(resolveInitialLocale({
       urlLocale: params.get('lang') || params.get('locale'),
       persistedLocale: localStorage.getItem('anclora-language'),
       browserLocales: navigator.languages?.length ? navigator.languages : [navigator.language],
-    })
-  })
+    }))
+  }, [])
 
   const setLanguage = (lang: Language) => {
     const safeLang: Language = (isSupportedNexusLanguage(lang) ? lang : NEXUS_BRAND.defaultLanguage) as Language

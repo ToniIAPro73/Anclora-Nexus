@@ -10,22 +10,24 @@ const defaults: CookiePreferences = { necessary: true, session: true, analytics:
 
 export function CookieConsent() {
   const { language } = useI18n()
-  const [open, setOpen] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return !localStorage.getItem(STORAGE_KEY)
-  })
+  const [open, setOpen] = useState(false)
   const [settings, setSettings] = useState(false)
-  const [preferences, setPreferences] = useState<CookiePreferences>(() => {
-    if (typeof window === 'undefined') return defaults
+  const [preferences, setPreferences] = useState<CookiePreferences>(defaults)
+
+  useEffect(() => {
+    let stored = false
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<CookiePreferences>
-        return { necessary: true, session: true, analytics: Boolean(parsed.analytics), updatedAt: parsed.updatedAt ?? '', version: 'v1' }
+        setPreferences({ necessary: true, session: true, analytics: Boolean(parsed.analytics), updatedAt: parsed.updatedAt ?? '', version: 'v1' })
+        stored = true
       }
-    } catch {}
-    return defaults
-  })
+    } catch {
+      stored = false
+    }
+    setOpen(!stored)
+  }, [])
   const en = language === 'en'
   const de = language === 'de'
   const title = de ? 'Cookie-Einstellungen' : en ? 'Cookie preferences' : 'Preferencias de cookies'
